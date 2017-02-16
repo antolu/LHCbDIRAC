@@ -64,6 +64,8 @@ w2 = '{{w2#-WORKFLOW2: Simulation(up to Moore)+Selection+Merge#False}}'
 w3 = '{{w3#-WORKFLOW3: Simulation(up to Moore)+Selection(-->avoid merge)#False}}'
 w4 = '{{w4#-WORKFLOW4: Simulation+MCMerge#False}}'
 w5 = '{{w5#-WORKFLOW5: Simulation#False}}'
+w6 = '{{w6#-WORKFLOW6: Simulation(Gauss) + AllOthers#False}}'
+w7 = '{{w7#-WORKFLOW7: Simulation(Gauss) + AllOthers + Merge#False}}'
 
 localTestFlag = '{{localTestFlag#GENERAL: Set True for local test#False}}'
 validationFlag = '{{validationFlag#GENERAL: Set True for validation prod - will create histograms#False}}'
@@ -71,9 +73,10 @@ validationFlag = '{{validationFlag#GENERAL: Set True for validation prod - will 
 pr.configName = '{{BKConfigName#GENERAL: BK configuration name e.g. MC #MC}}'
 extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepID:options#}}'
 
-targets = '{{Target#PROD-1:MC: Target for MC (e.g. Tier2, ALL, LCG.CERN.ch#Tier2}}'
+targets = '{{Target#PROD-1:MC: Target for MC (e.g. Tier2, ALL, LCG.CERN.cern#Tier2}}'
 MCPriority = '{{MCPriority#PROD-1:MC: Production priority#0}}'
 MCmulticoreFlag = '{{MCMulticoreFLag#PROD-1: multicore flag#True}}'
+simulationCompressionLvl = '{{simulationCompressionLvl#PROD-1: Compression level#Compression-ZLIB-1}}'
 
 selectionPlugin = '{{selectionPlugin#PROD-2:Selection: plugin e.g. Standard, BySize#BySize}}'
 selectionGroupSize = '{{selectionGroupSize#PROD-2:Selection: input files total size (we\'ll download)#20}}'
@@ -81,6 +84,7 @@ selectionPriority = '{{selectionPriority#PROD-2:Selection: Job Priority e.g. 8 b
 selectionCPU = '{{selectionCPU#PROD-2:Selection: Max CPU time in secs#100000}}'
 removeInputSelection = '{{removeInputSelection#PROD-2:Selection: remove inputs#True}}'
 selmulticoreFlag = '{{selMulticoreFLag#PROD-2: multicore flag#True}}'
+selectionCompressionLvl = '{{selectionCompressionLvl#PROD-2: Compression level#Compression-ZLIB-1}}'
 
 mergingPlugin = '{{MergingPlugin#PROD-3:Merging: plugin e.g. Standard, BySize#BySize}}'
 mergingGroupSize = '{{MergingGroupSize#PROD-3:Merging: Group Size e.g. BySize = GB file size#5}}'
@@ -88,6 +92,7 @@ mergingPriority = '{{MergingPriority#PROD-3:Merging: Job Priority e.g. 8 by defa
 mergingCPU = '{{mergingCPU#PROD-3:Merging: Max CPU time in secs#100000}}'
 removeInputMerge = '{{removeInputMerge#PROD-3:Merging: remove inputs#True}}'
 mergemulticoreFlag = '{{mergeMulticoreFLag#PROD-3: multicore flag#True}}'
+mergeCompressionLvl = '{{mergeCompressionLvl#PROD-3: Compression level#Compression-LZMA-4}}'
 
 pr.configVersion = '{{mcConfigVersion}}'
 pr.eventType = '{{eventType}}'
@@ -130,8 +135,10 @@ w2 = ast.literal_eval( w2 )
 w3 = ast.literal_eval( w3 )
 w4 = ast.literal_eval( w4 )
 w5 = ast.literal_eval( w5 )
+w6 = ast.literal_eval( w6 )
+w7 = ast.literal_eval( w7 )
 
-if not w1 and not w2 and not w3 and not w4 and not w5:
+if not w1 and not w2 and not w3 and not w4 and not w5 and not w6 and not w7:
   gLogger.error( 'Vladimir, I told you to select at least one workflow!' )
   DIRACexit( 2 )
 
@@ -151,6 +158,7 @@ if w1:
   pr.inputDataPolicies = ['', 'download', 'download']
   pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag, mergemulticoreFlag]
+  pr.compressionLvl = [[simulationCompressionLvl],[selectionCompressionLvl],[mergeCompressionLvl]]
 
 elif w2:
   pr.prodsTypeList = ['MCSimulation', 'MCReconstruction', 'MCMerge']
@@ -178,6 +186,7 @@ elif w2:
   pr.inputDataPolicies = ['', 'download', 'download']
   pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag, mergemulticoreFlag]
+  pr.compressionLvl = [[simulationCompressionLvl],[selectionCompressionLvl],[mergeCompressionLvl]]
 
 elif w3:
   pr.prodsTypeList = ['MCSimulation', 'MCReconstruction']
@@ -207,6 +216,7 @@ elif w3:
   pr.inputDataPolicies = ['', 'download']
   pr.bkQueries = ['', 'fromPreviousProd']
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag]
+  pr.compressionLvl = [[simulationCompressionLvl],[selectionCompressionLvl]]
 
 elif w4:
   pr.prodsTypeList = ['MCSimulation', 'MCMerge']
@@ -223,6 +233,7 @@ elif w4:
   pr.inputDataPolicies = ['', 'download']
   pr.bkQueries = ['', 'fromPreviousProd']
   pr.multicore = [MCmulticoreFlag, mergemulticoreFlag]
+  pr.compressionLvl = [[simulationCompressionLvl],[mergeCompressionLvl]]
 
 elif w5:
   pr.prodsTypeList = ['MCSimulation']
@@ -242,6 +253,48 @@ elif w5:
   pr.inputDataPolicies = ['']
   pr.bkQueries = ['']
   pr.multicore = [MCmulticoreFlag]
+  pr.compressionLvl = [[simulationCompressionLvl]]
+
+elif w6:
+  pr.prodsTypeList = ['MCSimulation', 'MCReconstruction']
+  pr.outputSEs = ['Tier1-BUFFER', 'Tier1_MC-DST']
+
+  if pr.stepsListDict[-1]['ApplicationName'].lower() == 'lhcb':
+    gLogger.error( "This request contains a merge step, I can't submit it with this workflow" )
+    DIRACexit( 2 )
+
+  pr.stepsInProds = [[1,] , xrange( 2, len( pr.stepsListDict ) + 1 )]
+  pr.outputFileSteps = [str( len( pr.stepsInProds[0] ) ),
+                        str( len( pr.stepsInProds[1] ) )]
+
+  pr.removeInputsFlags = [False, removeInputSelection]
+  pr.priorities = [MCPriority, selectionPriority]
+  pr.cpus = [100000, selectionCPU]
+  pr.targets = [targets, '']
+  pr.groupSizes = [1, selectionGroupSize]
+  pr.plugins = ['', selectionPlugin]
+  pr.inputDataPolicies = ['', 'download']
+  pr.bkQueries = ['', 'fromPreviousProd']
+  pr.multicore = [MCmulticoreFlag, selmulticoreFlag]
+  pr.compressionLvl = [[simulationCompressionLvl],[selectionCompressionLvl]]
+
+elif w7:
+  pr.prodsTypeList = ['MCSimulation', 'MCReconstruction', 'MCMerge']
+  pr.outputSEs = ['Tier1-BUFFER', 'Tier1-BUFFER', 'Tier1_MC-DST']
+
+  pr.stepsInProds = [ [1,], xrange( 2, len( pr.stepsListDict ) ), [len( pr.stepsListDict )]]
+  pr.outputFileSteps = [ '1', str( len( pr.stepsInProds[1] ) ), '1']
+
+  pr.removeInputsFlags = [False, removeInputSelection, removeInputMerge]
+  pr.priorities = [MCPriority, selectionPriority, mergingPriority]
+  pr.cpus = [100000, selectionCPU, mergingCPU]
+  pr.targets = [targets, '', '']
+  pr.groupSizes = [1, selectionGroupSize, mergingGroupSize]
+  pr.plugins = ['', selectionPlugin, mergingPlugin]
+  pr.inputDataPolicies = ['', 'download', 'download']
+  pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
+  pr.multicore = [MCmulticoreFlag, selmulticoreFlag, mergemulticoreFlag]
+  pr.compressionLvl = [[simulationCompressionLvl],[selectionCompressionLvl],[mergeCompressionLvl]]
 
 # In case we want just to test, we publish in the certification/test part of the BKK
 if currentSetup == 'LHCb-Certification' or pr.testFlag:

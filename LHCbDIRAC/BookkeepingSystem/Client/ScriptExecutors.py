@@ -3,17 +3,13 @@ Set of functions used by the DMS scripts
 """
 import os
 
-from DIRAC  import gLogger, gConfig, S_OK, exit as diracExit
+from DIRAC  import gLogger, S_OK, exit as diracExit
 from DIRAC.Core.Utilities.List import breakListIntoChunks
 from DIRAC.Core.Base import Script
-from DIRAC.DataManagementSystem.Client.DataManager import DataManager
-from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
-from DIRAC.Resources.Storage.StorageElement  import StorageElement
-from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers, resolveSEGroup
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import printDMResult, ProgressBar
-from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery, parseRuns, BadRunRange
+from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery, parseRuns, BadRunRange, getProcessingPasses
 
 bkClient = BookkeepingClient()
 
@@ -143,7 +139,12 @@ def executeFilePath( dmScript ):
 
   dirMetadata = ( 'Production', 'ConfigName', 'ConditionDescription', 'EventType',
                  'FileType', 'ConfigVersion', 'ProcessingPass', 'Path' )
-  fileMetadata = ( 'EventType', 'FileType', 'RunNumber', 'JobId', 'DataqualityFlag', 'GotReplica' )
+  fileMetadata = ( 'EventType', 'FileType', 'RunNumber', 'JobId', 'DataqualityFlag', 'GotReplica', 'VisibilityFlag' )
+  if groupBy and groupBy not in dirMetadata and groupBy not in fileMetadata:
+    for meta in dirMetadata + fileMetadata:
+      if groupBy.lower() == meta.lower():
+        groupBy = meta
+        break
   if groupBy and groupBy not in dirMetadata:
     if groupBy not in fileMetadata:
       gLogger.notice( 'Invalid metata item', groupBy )
@@ -726,27 +727,35 @@ def executeFileSisters( dmScript, level = 1 ):
       gLogger.error( "Error getting ancestors:", res['Message'] )
       diracExit( 1 )
 
-    ancestors = dict( ( anc['FileName'], lfn ) for lfn, ancList in result['Value']['Successful'].iteritems() for anc in ancList )
+    ancestors = {}
+    # More than one file in the input list may have teh same ancestor(s)
+    for lfn, ancList in result['Value']['Successful'].iteritems():
+      for anc in ancList:
+        ancestors.setdefault( anc['FileName'], [] ).append( lfn )
+    # print ancestors
 
     res = bkClient.getFileDescendants( ancestors.keys(), depth = 999999, production = prod, checkreplica = checkreplica )
+    # print res
 
     fullResult['OK'] = res['OK']
     if res['OK']:
       for anc, sisters in res['Value']['WithMetadata'].iteritems():
-        lfn = ancestors[anc]
+        lfns = ancestors[anc]
         found = False
         for sister in sisters:
           metadata = sisters[sister]
-          if sister != lfn and ( not sameType or metadata['FileType'] == lfnTypes[lfn] ):
+          if sister not in lfns and ( not sameType or metadata['FileType'] in ( lfnTypes[lfn] for lfn in lfns ) ):
+            allLfns = ', '.join( lfns )
             if full:
-              resValue[resItem].setdefault( lfn, {} ).update( metadata )
+              resValue[resItem].setdefault( allLfns, {} ).update( metadata )
             else:
-              resValue[resItem].setdefault( lfn, set() ).add( sister )
+              resValue[resItem].setdefault( allLfns, {} ).update( {sister: 'Replica-%s' % metadata['GotReplica']} )
             found = True
-        if not found:
-          resValue[relation].add( lfn )
-        if lfn in lfnList:
-          lfnList.remove( lfn )
+        for lfn in lfns:
+          if not found:
+            resValue[relation].add( lfn )
+          if lfn in lfnList:
+            lfnList.remove( lfn )
       for lfn in lfnList:
         resValue[relation].add( lfn )
       for lfn in set( resValue[resItem] ).intersection( resValue[relation] ):
@@ -826,8 +835,10 @@ def _getCollidingBunches( fills ):
       runDbUrl = 'https://lbrundb.cern.ch/api/fill/%d/' % fill
       fillInfo = json.load( urllib2.urlopen( runDbUrl ) )
       result[fill] = int( fillInfo['nCollidingBunches'] )
-    except ( urllib2.HTTPError, KeyError, ValueError ) as e:
+    except ( KeyError, ValueError ) as e:
       gLogger.exception( "Exception getting info for fill", str( fill ), lException = e )
+      pass
+    except urllib2.HTTPError as e:
       pass
   return result
 
@@ -860,6 +871,7 @@ def executeGetStats( dmScript ):
       prodList = [prodList]
     bkQuery.setOption( 'ProductionID', None )
     fileType = bkQuery.getFileTypeList()
+    processingPasses = getProcessingPasses( bkQuery )
   else:
     prodList = [None]
     fileType = None
@@ -870,6 +882,7 @@ def executeGetStats( dmScript ):
   transClient = TransformationClient()
 
   for prod in prodList:
+    queryDict = {}
     if bkQuery:
       queryDict = bkQuery.getQueryDict()
       if queryDict.get( 'Visible', 'All' ).lower() in ( 'no', 'all' ):
@@ -883,60 +896,64 @@ def executeGetStats( dmScript ):
       gLogger.notice( "For production %d, %s (query %s)" % ( prod, prodName, bkQuery ) )
     elif lfns:
       gLogger.notice( "For %d LFNs:" % len( lfns ) )
-    else:
-      gLogger.notice( "For BK query:", bkQuery )
-      if bkQuery:
-        queryDict = bkQuery.getQueryDict()
+    elif bkQuery:
+      queryDict = bkQuery.getQueryDict()
+      if len( processingPasses ) > 1:
+        queryDict.pop( 'ProcessingPass', None )
+        gLogger.notice( "For BK query:", queryDict )
+        gLogger.notice( "   and %d processing passes :" % len( processingPasses ), ', '.join( processingPasses ) )
+      else:
+        gLogger.notice( "For BK query:", bkQuery )
 
     # Get information from BK
     if not triggerRate and not lfns and 'ReplicaFlag' not in queryDict and 'DataQuality' not in queryDict:
-      gLogger.notice( "Getting info from filesSummary..." )
-      query = queryDict.copy()
-      # Horrible! At some point the BK service was requiring a dictionary with at least 3 elements, to check if still needed
-      if len( query ) <= 3:
-        query.update( {'1':1, '2':2, '3':3 } )
-      fileTypes = query.get( 'FileType' )
+      fileTypes = queryDict.pop( 'FileType', None )
       if not isinstance( fileTypes, list ):
         fileTypes = [fileTypes]
-      if 'FileType' in query:
-        query.pop( 'FileType' )
       records = []
       nDatasets = 1
       if isinstance( fileTypes, list ):
         nDatasets = len( fileTypes )
-      eventTypes = query.get( 'EventType' )
+      eventTypes = queryDict.get( 'EventType' )
       if isinstance( eventTypes, list ):
         nDatasets *= len( eventTypes )
-      for fileType in fileTypes:
-        if fileType:
-          query['FileType'] = fileType
-        res = bkClient.getFilesSummary( query )
-        if not res['OK']:
-          gLogger.error( "Error getting statistics from BK", res['Message'] )
-          diracExit( 0 )
-        paramNames = res['Value']['ParameterNames']
-        record = []
-        for paramValues in res['Value']['Records']:
-          if not record:
-            record = len( paramValues ) * [0]
-          record = [( rec + val ) if val else rec for rec, val in zip( record, paramValues )]
-        # print fileType, record
-        for name, value in zip( paramNames, record ):
-          if name == 'NumberOfEvents':
-            nevts = value
-          elif name == 'FileSize':
-            size = value
-          elif name == 'Luminosity':
-            lumi = value
-        record.append( nevts / float( lumi ) if lumi else 0. )
-        record.append( size / float( lumi )  if lumi else 0. )
-        if not records:
-          records = len( record ) * [0]
-        records = [rec1 + rec2 for rec1, rec2 in zip( record, records )]
-        # print fileType, records, 'Total'
+      nPasses = len( processingPasses )
+      progressBar = ProgressBar( nPasses, title = 'Getting info from filesSummary' + ( ' for %d processing passes...' % nPasses if nPasses > 1 else '...' ), step = 1 )
+      for processingPass in processingPasses:
+        # Loop on all processing passes if needed
+        if processingPass:
+          queryDict['ProcessingPass'] = processingPass
+        progressBar.loop()
+        for fileType in fileTypes:
+          if fileType:
+            queryDict['FileType'] = fileType
+          retry = 0
+          while retry < 5:
+            retry += 1
+            res = bkClient.getFilesSummary( queryDict )
+            if res['OK']:
+              break
+          if not res['OK']:
+            gLogger.error( "Error getting statistics from BK", res['Message'] )
+            diracExit( 1 )
+          paramNames = res['Value']['ParameterNames']
+          record = len( paramNames ) * [0]
+          for paramValues in res['Value']['Records']:
+            record = [( rec + val ) if val else rec for rec, val in zip( record, paramValues )]
+          # print fileType, record
+          recDict = dict( zip( paramNames, record ) )
+          nevts = recDict.get( 'NumberOfEvents', 0 )
+          size = recDict.get( 'FileSize', 0 )
+          lumi = recDict.get( 'Luminosity', 0 )
+          record.append( nevts / float( lumi ) if lumi else 0. )
+          record.append( size / float( lumi )  if lumi else 0. )
+          if not records:
+            records = len( record ) * [0]
+          records = [rec1 + rec2 for rec1, rec2 in zip( record, records )]
+          # print fileType, records, 'Total'
+      progressBar.endLoop()
       paramNames += ['EvtsPerLumi', 'SizePerLumi' ]
     else:
-      gLogger.notice( "Getting info from files..." )
       # To be replaced with getFilesWithMetadata when it allows invisible files
       paramNames = ['NbofFiles', 'NumberOfEvents', 'FileSize', 'Luminosity', 'EvtsPerLumi', 'SizePerLumi']
       nbFiles = 0
@@ -946,35 +963,51 @@ def executeGetStats( dmScript ):
       datasets = set()
       runList = {}
       if not lfns:
-        fileTypes = queryDict.get( 'FileType' )
-        res = bkClient.getFilesWithMetadata( queryDict )
-        if 'ParameterNames' in res.get( 'Value', {} ):
-          parameterNames = res['Value']['ParameterNames']
-          info = res['Value']['Records']
-        else:
-          if 'Value' in res:
-            gLogger.error( 'ParameterNames not present:', str( res['Value'].keys() ) if isinstance( res['Value'], dict ) else str( res['Value'] ) )
-          info = []
-          res = bkClient.getFiles( queryDict )
-          if res['OK']:
-            lfns = res['Value']
-        for item in info:
-          metadata = dict( zip( parameterNames, item ) )
-          datasets.add( ( metadata.get( 'EventType', metadata['FileName'].split( '/' )[5] ), metadata.get( 'FileType', metadata.get( 'Name' ) ) ) )
-          try:
-            fileSize += metadata['FileSize']
-            lumi += metadata['Luminosity']
-            run = metadata['RunNumber']
-            runList.setdefault( run, [ 0., 0., 0. ] )
-            runList[run][0] += metadata['Luminosity']
-            if metadata['EventStat']:
-              nbEvents += metadata['EventStat']
-              runList[run][1] += metadata['EventStat']
-            runList[run][2] += metadata['FileSize']
-            nbFiles += 1
-          except Exception as e:
-            gLogger.exception( 'Exception for %s' % str( metadata.keys() ), lException = e )
+        nPasses = len( processingPasses )
+        progressBar = ProgressBar( nPasses, title = 'Getting info from files' + ( ' for %d processing passes...' % nPasses if nPasses > 1 else '...' ), step = 1 )
+        for processingPass in processingPasses:
+          if processingPass:
+            queryDict['ProcessingPass'] = processingPass
+          progressBar.loop()
+          fileTypes = queryDict.get( 'FileType' )
+          retry = 0
+          while retry < 5:
+            retry += 1
+            res = bkClient.getFilesWithMetadata( queryDict )
+            if res['OK']:
+              break
+          if not res['OK']:
+            gLogger.fatal( "Error getting files with metadata", res['Message'] )
+            diracExit( 1 )
+          if 'ParameterNames' in res.get( 'Value', {} ):
+            parameterNames = res['Value']['ParameterNames']
+            info = res['Value']['Records']
+          else:
+            if 'Value' in res:
+              gLogger.error( 'ParameterNames not present:', str( res['Value'].keys() ) if isinstance( res['Value'], dict ) else str( res['Value'] ) )
+            info = []
+            res = bkClient.getFiles( queryDict )
+            if res['OK']:
+              lfns = res['Value']
+          for item in info:
+            metadata = dict( zip( parameterNames, item ) )
+            datasets.add( ( metadata.get( 'EventType', metadata['FileName'].split( '/' )[5] ), metadata.get( 'FileType', metadata.get( 'Name' ) ) ) )
+            try:
+              fileSize += metadata['FileSize']
+              lumi += metadata['Luminosity']
+              run = metadata['RunNumber']
+              runList.setdefault( run, [ 0., 0., 0. ] )
+              runList[run][0] += metadata['Luminosity']
+              if metadata['EventStat']:
+                nbEvents += metadata['EventStat']
+                runList[run][1] += metadata['EventStat']
+              runList[run][2] += metadata['FileSize']
+              nbFiles += 1
+            except Exception as e:
+              gLogger.exception( 'Exception for %s' % str( metadata.keys() ), lException = e )
+        progressBar.endLoop()
       if lfns:
+        gLogger.notice( "Getting info from files..." )
         lfnChunks = breakListIntoChunks( lfns, 1000 )
         progressBar = ProgressBar( len( lfns ), title = "Get metadata from BK", chunk = 1000 )
         for lfnChunk in lfnChunks:
@@ -1077,7 +1110,7 @@ def executeGetStats( dmScript ):
           rate = 'Run duration not available'
         totalLumi, lumiUnit = _scaleLumi( totalLumi )
         gLogger.notice( '%s: %.3f %s' % ( 'Total Luminosity'.ljust( tab ), totalLumi, lumiUnit ) )
-        gLogger.notice( '%s: %.1f hours (%d runs)' % ( 'Run duration'.ljust( tab ), fullDuration, len( runs ) ) )
+        gLogger.notice( '%s: %.2f hours (%d runs)' % ( 'Run duration'.ljust( tab ), fullDuration, len( runs ) ) )
         gLogger.notice( '%s: %s' % ( 'Trigger rate'.ljust( tab ), rate ) )
         rate = ( '%.1f MB/second' % ( size / 1000000. / fullDuration / 3600. ) ) if fullDuration else 'Run duration not available'
         gLogger.notice( '%s: %s' % ( 'Throughput'.ljust( tab ), rate ) )
@@ -1085,7 +1118,7 @@ def executeGetStats( dmScript ):
         collBunches = 0.
         for fill in fillDuration:
           if fill not in result:
-            gLogger.notice( "Error: no number of colliding bunches for fill %d" % fillDuration )
+            gLogger.notice( "Error: no number of colliding bunches for fill %d" % fill )
           else:
             collBunches += result[fill] * fillDuration[fill]
         if fullDuration:
@@ -1097,18 +1130,24 @@ def executeGetStats( dmScript ):
           gLogger.notice( 'List of fills: ', ','.join( "%d (%d runs, %.1f hours)" % ( fill, len( fills[fill] ), fillDuration[fill] ) for fill in sorted( fills ) ) )
         if listRuns:
           for fill in sorted( fills ):
-            gLogger.notice( 'Fill %d (%4d bunches, %.1f hours):' % ( fill, result[fill], fillDuration[fill] ), ','.join( fills[fill] ) )
+            gLogger.notice( 'Fill %d (%s, %.1f hours):' % ( fill, '%4d bunches' % result[fill] if fill in result else 'Unknown bunches', fillDuration[fill] ), ','.join( fills[fill] ) )
     gLogger.notice( "" )
 
-def executeRunTCK():
+def executeRunInfo( item ):
   """
   Get the TCK for a range of runs, and then prints each TCK with run ranges
   """
   runsDict = {}
+  if item not in ( 'Tck', 'DataTakingDescription', 'ProcessingPass' ):
+    gLogger.fatal( "Incorrect run information item" )
+    return 0
   force = False
+  byRange = False
   for switch in Script.getUnprocessedSwitches():
     if switch[0] == 'Force':
       force = True
+    if switch[0] == 'ByRange':
+      byRange = True
     if switch[0] == 'Runs':
       # Add a fake run number to force parseRuns to return a list
       try:
@@ -1118,36 +1157,119 @@ def executeRunTCK():
         gLogger.fatal( "Bad run range" )
         diracExit( 1 )
 
+  if not runsDict:
+    Script.showHelp()
+    diracExit( 1 )
   runsList = runsDict['RunNumber']
   # Remove the fake run number
   runsList.remove( 0 )
   runDict = {}
-  progressBar = ProgressBar( len( runsList ), title = "Getting TCK for run range %s " % runRange, step = 20 )
+  if len( runRange ) < 30:
+    progressBar = ProgressBar( 1, title = "Getting runs for run range %s " % runRange, step = 20 )
+  else:
+    progressBar = ProgressBar( 1, title = "Getting runs for %d runs " % len( runsList ), step = 20 )
+  res = bkClient.getRunStatus( runsList )
+  progressBar.endLoop()
+  if not res['OK']:
+    gLogger.fatal( "Error getting run list", res['Message'] )
+    diracExit( 1 )
+  runsList = res['Value']['Successful'].keys()
+  progressBar = ProgressBar( len( runsList ), title = "Getting %s for %d runs " % ( item, len( runsList ) ), step = 20 )
   for run in sorted( runsList ):
     progressBar.loop()
     res = bkClient.getRunInformations( run )
     if res['OK']:
-      tck = res['Value'].get( 'Tck' )
+      itemValue = res['Value'].get( item )
       streams = res['Value'].get( 'Stream', [] )
-      if ( 90000000 in streams or force ) and tck:
-        runDict[run] = tck
+      if ( 90000000 in streams or force ) and itemValue:
+        runDict[run] = itemValue
   progressBar.endLoop()
-  tckList = []
+  itemList = []
   for run in sorted( runDict ):
-    if runDict[run] not in tckList:
-      tckList.append( runDict[run] )
-  for tck in tckList:
-    prStr = 'TCK %s: ' % tck
+    if runDict[run] not in itemList:
+      itemList.append( runDict[run] )
+  itemDict = {}
+  rangesDict = {}
+  for itemValue in itemList:
     firstRun = None
     # Add a fake run (None) in order to print out the last range
     for run in sorted( runDict ) + [None]:
-      runTck = runDict.get( run )
-      if runTck == tck and not firstRun:
+      runValue = runDict.get( run )
+      if runValue == itemValue and not firstRun:
         firstRun = run
         lastRun = run
-      elif runTck != tck and firstRun:
-        prStr += '%d:%d, ' % ( firstRun, lastRun )
+      elif ( runValue != itemValue or ( lastRun - run ) > 100 ) and firstRun:
+        if lastRun != firstRun:
+          rangeStr = '%d:%d' % ( firstRun, lastRun )
+        else:
+          rangeStr = '%d' % firstRun
+        rangesDict[rangeStr] = itemValue
+        itemDict.setdefault( itemValue, [] ).append( rangeStr )
         firstRun = None
       else:
         lastRun = run
-    gLogger.notice( prStr[:-2] )
+  if byRange:
+    for rangeStr in sorted( rangesDict ):
+      gLogger.notice( '%s : %s' % ( rangeStr, rangesDict[rangeStr] ) )
+  else:
+    for itemValue, ranges in itemDict.iteritems():
+      gLogger.notice( '%s :' % itemValue, ', '.join( ranges ) )
+
+def executeRejectionStats( dmScript ):
+  """
+  Extract statistics for a BK query
+  """
+  lfns = dmScript.getOption( 'LFNs', [] )
+  bkQuery = dmScript.getBKQuery()
+  if not bkQuery and not lfns:
+    gLogger.notice( "No BK query given..." )
+    diracExit( 1 )
+
+  if bkQuery:
+    bkQuery.setVisible( 'All' )
+    bkQuery.setOption( 'ReplicaFlag', 'All' )
+    gLogger.notice( "Using BK query", str( bkQuery ) )
+    lfns += bkQuery.getLFNs( printSEUsage = False, printOutput = False )
+
+  if not lfns:
+    gLogger.notice ( "No files found" )
+    diracExit( 0 )
+
+  chunkSize = 100
+  progressBar = ProgressBar( len( lfns ), title = "Getting metadata for %d files " % len( lfns ), chunk = chunkSize )
+  eventStat = 0
+  uniqueJobs = {}
+  for lfnChunk in breakListIntoChunks( lfns, chunkSize ):
+    progressBar.loop()
+    for lfn in lfnChunk:
+      uniqueJobs.setdefault( os.path.basename( lfn ).split( '.' )[0], lfn )
+    res = bkClient.getFileMetadata( lfnChunk )
+    if not res['OK']:
+      gLogger.fatal( "Error getting files metadata", res['Message'] )
+      diracExit( 1 )
+    eventStat += sum( meta['EventStat'] for meta in res['Value']['Successful'].itervalues() )
+  progressBar.endLoop()
+
+  jobLfns = uniqueJobs.values()
+  eventInputStat = 0
+  jobSet = set()
+  progressBar = ProgressBar( len( lfns ), title = "Getting metadata for %d jobs" % len( jobLfns ), chunk = chunkSize )
+  for lfnChunk in breakListIntoChunks( jobLfns, chunkSize ):
+    res = bkClient.bulkJobInfo( lfnChunk )
+    if not res['OK']:
+      gLogger.fatal( "Error getting job information", res['Message'] )
+      diracExit( 1 )
+    success = res['Value']['Successful']
+    for lfn in success:
+      if isinstance( success[lfn], list ) and len( success[lfn] ) == 1:
+        success[lfn] = success[lfn][0]
+      jobID = success[lfn]['DIRACJobId']
+      # Consider each job only once in case there is more than one output per job
+      if jobID not in jobSet:
+        eventInputStat += success[lfn]['EventInputStat']
+      jobSet.add( jobID )
+  progressBar.endLoop()
+
+  gLogger.notice( "Event stat: %d on %d files" % ( eventStat, len( lfns ) ) )
+  gLogger.notice( "EventInputStat: %d from %d jobs" % ( eventInputStat, len( jobSet ) ) )
+  gLogger.notice( "Retention: %.2f %%" % ( 100.* eventStat / eventInputStat ) )

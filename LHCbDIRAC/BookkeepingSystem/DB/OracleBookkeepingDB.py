@@ -523,8 +523,8 @@ class OracleBookkeepingDB( object ):
       for i in inFileTypes:
         values += "ftype('%s', '%s')," % ( ( i.get( 'FileType', None ).strip() if i.get( 'FileType', None )
                                              else i.get( 'FileType', None ) ),
-                                          ( i.get( 'Visible', None ).strip() if i.get( 'Visible', None )
-                                            else i.get( 'Visible', None ) ) )
+                                           ( i.get( 'Visible', None ).strip() if i.get( 'Visible', None )
+                                             else i.get( 'Visible', None ) ) )
       values = values[:-1]
       values += ')'
 
@@ -535,9 +535,9 @@ class OracleBookkeepingDB( object ):
       selection += ',OutputFileTypes'
       for i in outFileTypes:
         values += "ftype('%s', '%s')," % ( ( i.get( 'FileType', None ).strip() if i.get( 'FileType', None )
-                                           else i.get( 'FileType', None ) ),
-                                          ( i.get( 'Visible', None ).strip() if i.get( 'Visible', None )
-                                           else i.get( 'Visible', None ) ) )
+                                             else i.get( 'FileType', None ) ),
+                                           ( i.get( 'Visible', None ).strip() if i.get( 'Visible', None )
+                                             else i.get( 'Visible', None ) ) )
       values = values[:-1]
       values += ')'
 
@@ -641,6 +641,7 @@ class OracleBookkeepingDB( object ):
     if ok:
       stepid = in_dict.get( 'StepId', default )
       if stepid != default:
+        in_dict.pop( 'StepId' )
         condition = " where stepid=%s" % ( str( stepid ) )
         command = 'update steps set '
         for i in in_dict:
@@ -1049,6 +1050,8 @@ class OracleBookkeepingDB( object ):
     condition = ''
 
     tables = 'files f, jobs j, dataquality d '
+    useView = filetype not in ( default, 'RAW' )
+
     retVal = self.__buildStartenddate( startDate, endDate, condition, tables )
     if not retVal['OK']:
       return retVal
@@ -1074,12 +1077,12 @@ class OracleBookkeepingDB( object ):
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildConditions( default, conddescription, condition, tables, visible )
+    retVal = self.__buildConditions( default, conddescription, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildProduction( production, condition, tables, visible )
+    retVal = self.__buildProduction( production, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -1094,19 +1097,19 @@ class OracleBookkeepingDB( object ):
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildProcessingPass( processing, condition, tables, visible )
+    retVal = self.__buildProcessingPass( processing, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildEventType(evt, condition, tables, visible)
+    retVal = self.__buildEventType( evt, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
 
 
     tables += ',filetypes ft'
-    retVal = self.__buildFileTypes(filetype, condition, tables, visible)
+    retVal = self.__buildFileTypes( filetype, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -1210,18 +1213,18 @@ class OracleBookkeepingDB( object ):
         return S_ERROR( 'Simulation condition or data taking condition not exist!' )
     if simdesc != None:
       return S_OK( {'ConfigName':cname,
-                   'ConfigVersion':cversion,
-                   'ProgramName':pname,
-                   'ProgramVersion':pversion,
-                   'Processing pass':procdescription,
-                   'Simulation conditions':simdesc} )
+                    'ConfigVersion':cversion,
+                    'ProgramName':pname,
+                    'ProgramVersion':pversion,
+                    'Processing pass':procdescription,
+                    'Simulation conditions':simdesc} )
     else:
       return S_OK( {'ConfigName':cname,
-                   'ConfigVersion':cversion,
-                   'ProgramName':pname,
-                   'ProgramVersion':pversion,
-                   'Processing pass':procdescription,
-                   'Data taking conditions':daqdesc} )
+                    'ConfigVersion':cversion,
+                    'ProgramName':pname,
+                    'ProgramVersion':pversion,
+                    'Processing pass':procdescription,
+                    'Data taking conditions':daqdesc} )
 
 
   #############################################################################
@@ -1237,22 +1240,22 @@ class OracleBookkeepingDB( object ):
     if 'lfn' in in_dict:
       data = in_dict['lfn']
       retVal = self.dbR_.executeStoredProcedure( packageName = 'BOOKKEEPINGORACLEDB.bulkJobInfo',
-                                                parameters = [],
-                                                output = True,
-                                                array = data )
+                                                 parameters = [],
+                                                 output = True,
+                                                 array = data )
     elif 'jobId' in in_dict:
       data = in_dict['jobId']
       retVal = self.dbR_.executeStoredProcedure( packageName = 'BOOKKEEPINGORACLEDB.bulkJobInfoForJobId',
-                                                parameters = [],
-                                                output = True,
-                                                array = data )
+                                                 parameters = [],
+                                                 output = True,
+                                                 array = data )
 
     elif 'jobName' in in_dict:
       data = in_dict['jobName']
       retVal = self.dbR_.executeStoredProcedure( packageName = 'BOOKKEEPINGORACLEDB.bulkJobInfoForJobName',
-                                                parameters = [],
-                                                output = True,
-                                                array = data )
+                                                 parameters = [],
+                                                 output = True,
+                                                 array = data )
     else:
       return S_ERROR( "Wrong input parameters. You can use a dictionary with the following keys: lfn,jobId, jobName" )
 
@@ -1302,7 +1305,9 @@ class OracleBookkeepingDB( object ):
     production = params.get( 'Production', default )
     lfn = params.get( 'LFN', default )
     condition = ''
-    tables = ' jobs j, files f'
+    diracJobids = params.get( 'DiracJobId', default )
+    
+    tables = ' jobs j, files f, configurations c'
     result = None
     if production != default:
       if isinstance( production, ( basestring, long, int ) ) :
@@ -1318,20 +1323,30 @@ class OracleBookkeepingDB( object ):
         condition += ' and (' + ' or '.join( ["f.filename='%s'" % l for l in lfn] ) + ')'
       else:
         result = S_ERROR( "You must provide an LFN or a list of LFNs!" )
-
+    elif diracJobids != default: 
+      if isinstance( diracJobids, ( basestring, long, int ) ) :
+        condition += " and j.DIRACJOBID=%s " % diracJobids
+      elif isinstance( diracJobids, list ):
+        condition += ' and j.DIRACJOBID in ( ' + ','.join( [str( djobid ) for djobid in diracJobids] ) + ')'
+      else:
+        result = S_ERROR( "Please provide a correct DIRAC jobid!" )
+        
     if not result:
       command = " select  distinct j.DIRACJOBID, j.DIRACVERSION, j.EVENTINPUTSTAT, j.EXECTIME,\
       j.FIRSTEVENTNUMBER,j.LOCATION,  j.NAME, j.NUMBEROFEVENTS, \
                  j.STATISTICSREQUESTED, j.WNCPUPOWER, j.CPUTIME, j.WNCACHE, j.WNMEMORY, j.WNMODEL, \
-                 j.WORKERNODE, j.WNCPUHS06, j.jobid, j.totalluminosity, j.production, j.WNMJFHS06\
-                 from %s where f.jobid=j.jobid %s" % ( tables, condition )
+                 j.WORKERNODE, j.WNCPUHS06, j.jobid, j.totalluminosity, j.production, j.WNMJFHS06,\
+                 c.ConfigName,c.ConfigVersion, j.JobEnd, j.JobStart, j.RunNumber, j.FillNumber, j.Tck, j.stepid \
+                 from %s where f.jobid=j.jobid and c.configurationid=j.configurationid %s" % ( tables, condition )
       retVal = self.dbR_.query( command )
       if retVal['OK']:
         records = []
-        parameters = ['DiracJobID', 'DiracVersion', 'EventInputStat', 'Exectime', 'FirstEventNumber',
+                 
+        parameters = ['DiracJobId', 'DiracVersion', 'EventInputStat', 'Exectime', 'FirstEventNumber',
                       'Location', 'JobName', 'NumberOfEvents', 'StatisticsRequested', 'WNCPUPower',
                       'CPUTime', 'WNCache', 'WNMemory', 'WNModel', 'WorkerNode', 'WNCPUHS06',
-                      'JobId', 'TotalLuminosity', 'Production','WNMJFHS06']
+                      'JobId', 'TotalLuminosity', 'Production', 'WNMJFHS06', 'ConfigName',
+                      'ConfigVersion', 'JobEnd', 'JobStart', 'RunNumber', 'FillNumber', 'Tck', 'StepId']
         for i in retVal['Value']:
           records += [dict( zip( parameters, i ) )]
         result = S_OK( records )
@@ -1396,7 +1411,7 @@ class OracleBookkeepingDB( object ):
                             'InstLuminosity':record[5],
                             'EventStat':record[6],
                             'FullStat':record[7]
-                            }
+                           }
       result = S_OK( value )
     else:
       result = res
@@ -1425,9 +1440,9 @@ class OracleBookkeepingDB( object ):
       sqls += [command]
 
     retVal = self.dbR_.executeStoredProcedure( packageName = 'BOOKKEEPINGORACLEDB.bulkupdateFileMetaData',
-                                                parameters = [],
-                                                output = False,
-                                                array = sqls )
+                                               parameters = [],
+                                               output = False,
+                                               array = sqls )
     return retVal
 
   #############################################################################
@@ -1484,9 +1499,9 @@ class OracleBookkeepingDB( object ):
       failed = []
       succ = []
       retVal = self.dbR_.executeStoredProcedure( packageName = 'BOOKKEEPINGORACLEDB.updateDataQualityFlag',
-                                                parameters = [qid],
-                                                output = False,
-                                                array = lfns )
+                                                 parameters = [qid],
+                                                 output = False,
+                                                 array = lfns )
       if not retVal['OK']:
         failed = lfns
         gLogger.error( retVal['Message'] )
@@ -1524,7 +1539,7 @@ class OracleBookkeepingDB( object ):
       if retVal['OK']:
         flag = retVal['Value']
         result = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.insertRunquality',
-                                                  [runNB, flag, processingid], False )
+                                                   [runNB, flag, processingid], False )
       else:
         result = retVal
     else:
@@ -1651,12 +1666,12 @@ class OracleBookkeepingDB( object ):
           for record in dbResult:
             if ( not checkreplica or ( record[2] != 'No' ) ):
               files.append( {'FileName':record[0],
-                            'GotReplica':record[2],
-                            'EventStat':record[3],
-                            'EventType':record[4],
-                            'Luminosity':record[5],
-                            'InstLuminosity':record[6],
-                            'FileType':record[7]} )
+                             'GotReplica':record[2],
+                             'EventStat':record[3],
+                             'EventType':record[4],
+                             'Luminosity':record[5],
+                             'InstLuminosity':record[6],
+                             'FileType':record[7]} )
             if depth:
               failed += self.getFileAncestorHelper( record[0], files, depth, checkreplica )
       else:
@@ -1826,7 +1841,8 @@ class OracleBookkeepingDB( object ):
                  'TotalLuminosity':0, \
                  'Tck':'None',\
                  'StepID': None,\
-                 'WNMJFHS06' : 0}
+                 'WNMJFHS06' : 0,\
+                 'HLT2Tck': 'None'}
 
     for param in job:
       if not attrList.__contains__( param ):
@@ -1839,12 +1855,12 @@ class OracleBookkeepingDB( object ):
         time = dateAndTime[1].split( ':' )
         if len( time ) > 2:
           timestamp = datetime.datetime( int( date[0] ), int( date[1] ),
-                                        int( date[2] ), int( time[0] ),
-                                        int( time[1] ), int( time[2] ), 0 )
+                                         int( date[2] ), int( time[0] ),
+                                         int( time[1] ), int( time[2] ), 0 )
         else:
           timestamp = datetime.datetime( int( date[0] ), int( date[1] ),
-                                        int( date[2] ), int( time[0] ),
-                                        int( time[1] ), 0, 0 )
+                                         int( date[2] ), int( time[0] ),
+                                         int( time[1] ), 0, 0 )
         attrList[param] = timestamp
       else:
         attrList[param] = job[param]
@@ -1856,7 +1872,7 @@ class OracleBookkeepingDB( object ):
       pass  # it is already defined
 
 
-    result = self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.insertJobsRow',
+    result = self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.insertJobsRow_tmp',
                                               types.LongType, [attrList['ConfigName'],
                                                                attrList['ConfigVersion'],
                                                                attrList['DiracJobId'],
@@ -1885,7 +1901,8 @@ class OracleBookkeepingDB( object ):
                                                                attrList['TotalLuminosity'],
                                                                attrList['Tck'],
                                                                attrList['StepID'],
-                                                               attrList['WNMJFHS06'] ] )
+                                                               attrList['WNMJFHS06'],
+                                                               attrList['HLT2Tck'] ] )
     return result
 
   #############################################################################
@@ -1991,9 +2008,9 @@ class OracleBookkeepingDB( object ):
     g4settings = in_dict.get( 'G4settings', None )
     visible = in_dict.get( 'Visible', 'Y' )
     return self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.insertSimConditions',
-                                            types.LongType, [simdesc, beamCond, beamEnergy,
-                                                       generator, magneticField,
-                                                       detectorCond, luminosity, g4settings, visible] )
+                                             types.LongType, [simdesc, beamCond, beamEnergy,
+                                                              generator, magneticField,
+                                                              detectorCond, luminosity, g4settings, visible] )
 
   #############################################################################
   def getSimConditions( self ):
@@ -2053,9 +2070,9 @@ class OracleBookkeepingDB( object ):
     """removes the replica flag of a file"""
     result = S_ERROR()
     retVal = self.dbR_.executeStoredProcedure( packageName = 'BOOKKEEPINGORACLEDB.bulkcheckfiles',
-                                                parameters = [],
-                                                output = True,
-                                                array = fileNames )
+                                               parameters = [],
+                                               output = True,
+                                               array = fileNames )
     failed = {}
 
     if not retVal['OK']:
@@ -2066,9 +2083,9 @@ class OracleBookkeepingDB( object ):
         fileNames.remove( i[0] )
       if len( fileNames ) > 0:
         retVal = self.dbW_.executeStoredProcedure( packageName = 'BOOKKEEPINGORACLEDB.bulkupdateReplicaRow',
-                                                  parameters = ['No'],
-                                                  output = False,
-                                                  array = fileNames )
+                                                   parameters = ['No'],
+                                                   output = False,
+                                                   array = fileNames )
         if not retVal['OK']:
           result = retVal
         else:
@@ -2297,11 +2314,11 @@ class OracleBookkeepingDB( object ):
         row = [record[1], record[2], record[3], record[4], record[5], record[6], record[7], record[8]]
         records += [row]
       result = S_OK( {'TotalRecords':totalrecords,
-                     'ParameterNames':parametersNames,
-                     'Records':records,
-                     'Extras': {'GlobalStatistics':
-                                {'Number of Events':nbOfEvents,
-                                 'Files Size':filesSize }}} )
+                      'ParameterNames':parametersNames,
+                      'Records':records,
+                      'Extras': {'GlobalStatistics':
+                                  {'Number of Events':nbOfEvents,
+                                   'Files Size':filesSize }}} )
     else:
       result = res
     return result
@@ -2325,9 +2342,9 @@ class OracleBookkeepingDB( object ):
     """adds the replica flag to a file"""
     result = S_ERROR()
     retVal = self.dbR_.executeStoredProcedure( packageName = 'BOOKKEEPINGORACLEDB.bulkcheckfiles',
-                                                parameters = [],
-                                                output = True,
-                                                array = fileNames )
+                                               parameters = [],
+                                               output = True,
+                                               array = fileNames )
     failed = {}
     if not retVal['OK']:
       result = retVal
@@ -2963,7 +2980,7 @@ and files.qualityid= dataquality.qualityid'
   def getRunAndProcessingPassDataQuality( self, runnb, processing ):
     """returns the data qaulity for a given run and processing pass"""
     return self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getQFlagByRunAndProcId',
-                                            types.StringType, [runnb, processing] )
+                                             types.StringType, [runnb, processing] )
 
   #############################################################################
   def getRunWithProcessingPassAndDataQuality( self, procpass, flag = default ):
@@ -3007,22 +3024,24 @@ and files.qualityid= dataquality.qualityid'
 
   #############################################################################
   def getFiles( self, simdesc, datataking, procPass, ftype, evt,
-               configName = default, configVersion = default,
-               production = default, flag = default,
-               startDate = None, endDate = None,
-               nbofEvents = False, startRunID = None,
-               endRunID = None, runnumbers = list(),
-               replicaFlag = default, visible = default, filesize = False, tcks = list() ):
+                configName = default, configVersion = default,
+                production = default, flag = default,
+                startDate = None, endDate = None,
+                nbofEvents = False, startRunID = None,
+                endRunID = None, runnumbers = list(),
+                replicaFlag = default, visible = default, filesize = False, tcks = list() ):
     """returns a list of lfns"""
     condition = ''
     tables = ' files f,jobs j '
+
+    useView = ftype not in ( default, 'RAW' )
 
     retVal = self.__buildConfiguration( configName, configVersion, condition, tables )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildProduction( production, condition, tables, visible )
+    retVal = self.__buildProduction( production, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3032,12 +3051,12 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildProcessingPass( procPass, condition, tables, visible )
+    retVal = self.__buildProcessingPass( procPass, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildFileTypes( ftype, condition, tables, visible )
+    retVal = self.__buildFileTypes( ftype, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3047,7 +3066,7 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildEventType( evt, condition, tables, visible )
+    retVal = self.__buildEventType( evt, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3072,7 +3091,7 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildConditions( simdesc, datataking, condition, tables, visible )
+    retVal = self.__buildConditions( simdesc, datataking, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3256,7 +3275,7 @@ and files.qualityid= dataquality.qualityid'
         condition += ' and (j.runnumber>=%s and j.runnumber<=%s or %s)' % ( str( startRunID ), str( endRunID ), cond )
       elif startRunID != None or endRunID != None:
         condition += " and %s " % ( cond )
-      elif startRunID == None or endRunID == None:
+      elif startRunID is None or endRunID is None:
         condition += " and %s " % ( cond )
     else:
       if ( isinstance( startRunID, basestring ) and startRunID.upper() != default ) or\
@@ -3374,9 +3393,9 @@ and files.qualityid= dataquality.qualityid'
       elif visible.upper().startswith( 'N' ):
         condition += " and f.visibilityflag='N'"
     if tables.upper().find( 'FILES' ) < 0:
-        tables += ' ,file f '
+      tables += ' ,file f '
     if tables.upper().find( 'JOBS' ) < 0:
-        tables += ' ,jobs j '
+      tables += ' ,jobs j '
     return S_OK( ( condition, tables ) )
 
   #############################################################################
@@ -3407,12 +3426,12 @@ and files.qualityid= dataquality.qualityid'
 
   #############################################################################
   def getVisibleFilesWithMetadata( self, simdesc, datataking,
-                                  procPass, ftype, evt,
-                                  configName = default, configVersion = default,
-                                  production = default, flag = default,
-                                  startDate = None, endDate = None,
-                                  nbofEvents = False, startRunID = None,
-                                  endRunID = None, runnumbers = list(), replicaFlag = 'Yes', tcks = list() ):
+                                   procPass, ftype, evt,
+                                   configName = default, configVersion = default,
+                                   production = default, flag = default,
+                                   startDate = None, endDate = None,
+                                   nbofEvents = False, startRunID = None,
+                                   endRunID = None, runnumbers = list(), replicaFlag = 'Yes', tcks = list() ):
     """returns the visible files"""
     condition = ''
 
@@ -3827,14 +3846,14 @@ and files.qualityid= dataquality.qualityid'
                'OutputFileTypes':[{'FileType':'RAW',
                                    'Visible':'Y'}]}
     condition = ''
-    if conddb == None or conddb == '':
+    if conddb is None or conddb == '':
       condition += " and CondDB is NULL "
       dataset['Step'].pop( 'CONDDB' )
     else:
       condition += " and CondDB='%s' " % ( conddb )
       dataset['Step']['CONDDB'] = conddb
 
-    if dddb == None or dddb == '':
+    if dddb is None or dddb == '':
       condition += " and DDDB is NULL "
       dataset['Step'].pop( 'DDDB' )
     else:
@@ -3971,10 +3990,10 @@ and files.qualityid= dataquality.qualityid'
     return self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.insertStepsContainer', [prod, stepid, step], False )
 
   #############################################################################
-  def insertproductionscontainer( self, prod, processingid, simid, daqperiodid ):
+  def insertproductionscontainer( self, prod, processingid, simid, daqperiodid, configName, configVersion ):
     """inserts a production to the productions container"""
-    return self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.insertproductionscontainer',
-                                            [ prod, processingid, simid, daqperiodid], False )
+    return self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.insertproductionscontainer_tmp',
+                                            [ prod, processingid, simid, daqperiodid, configName, configVersion], False )
 
   #############################################################################
   def addProductionSteps( self, steps, prod ):
@@ -3995,7 +4014,7 @@ and files.qualityid= dataquality.qualityid'
     return res
 
   #############################################################################
-  def addProduction( self, production, simcond = None, daq = None, steps = default, inputproc = '' ):
+  def addProduction( self, production, simcond = None, daq = None, steps = default, inputproc = '', configName = None, configVersion = None ):
     """adds a production"""
     path = []
     if inputproc != '':
@@ -4042,7 +4061,7 @@ and files.qualityid= dataquality.qualityid'
           sim = retVal['Value']
         else:
           return S_ERROR( 'Data taking condition is missing!!' )
-      return self.insertproductionscontainer( production, processingid, sim, did )
+      return self.insertproductionscontainer( production, processingid, sim, did, configName, configVersion )
     else:
       return retVal
     return S_OK( 'The production processing pass is entered to the bkk' )
@@ -4118,14 +4137,14 @@ and files.qualityid= dataquality.qualityid'
       for i in retVal['Value']:
         # records = [[i[0],i[1],i[2],i[3],i[4],i[5],i[6], i[7], i[8]]]
         records = [ ['StepId', i[0]],
-                   ['StepName', i[1]],
-                   ['ApplicationName', i[2]],
-                   ['ApplicationVersion', i[3]],
-                   ['OptionFiles', i[4]],
-                   ['DDDB', i[5]],
-                   ['CONDDB', i[6]],
-                   ['ExtraPackages', i[7]],
-                   ['Visible', i[8]]]
+                    ['StepName', i[1]],
+                    ['ApplicationName', i[2]],
+                    ['ApplicationVersion', i[3]],
+                    ['OptionFiles', i[4]],
+                    ['DDDB', i[5]],
+                    ['CONDDB', i[6]],
+                    ['ExtraPackages', i[7]],
+                    ['Visible', i[8]]]
         step = 'Step-%s' % ( i[0] )
         processing[step] = records
         nb += 1
@@ -4169,14 +4188,14 @@ and files.qualityid= dataquality.qualityid'
       for i in retVal['Value']:
         # records = [[i[0],i[1],i[2],i[3],i[4],i[5],i[6], i[7], i[8]]]
         records = [ ['StepId', i[0]],
-                   ['ProcessingPass', procpass],
-                   ['ApplicationName', i[2]],
-                   ['ApplicationVersion', i[3]],
-                   ['OptionFiles', i[4]],
-                   ['DDDB', i[5]],
-                   ['CONDDB', i[6]],
-                   ['ExtraPackages', i[7]],
-                   ['Visible', i[8]]]
+                    ['ProcessingPass', procpass],
+                    ['ApplicationName', i[2]],
+                    ['ApplicationVersion', i[3]],
+                    ['OptionFiles', i[4]],
+                    ['DDDB', i[5]],
+                    ['CONDDB', i[6]],
+                    ['ExtraPackages', i[7]],
+                    ['Visible', i[8]]]
         step = i[1]
         processing[step] = records
         nb += 1
@@ -4237,14 +4256,14 @@ and files.qualityid= dataquality.qualityid'
   def insertRuntimeProject( self, projectid, runtimeprojectid ):
     """inserts a runtime project"""
     result = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.insertRuntimeProject',
-                                              [projectid, runtimeprojectid], False )
+                                               [projectid, runtimeprojectid], False )
     return result
 
   #############################################################################
   def updateRuntimeProject( self, projectid, runtimeprojectid ):
     """changes the runtime project"""
     result = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.updateRuntimeProject',
-                                              [projectid, runtimeprojectid], False )
+                                               [projectid, runtimeprojectid], False )
     return result
 
   def removeRuntimeProject( self, stepid ):
@@ -4393,23 +4412,23 @@ and files.qualityid= dataquality.qualityid'
 
   #############################################################################
   def getStepsMetadata( self, configName, configVersion,
-                       cond = default, procpass = default,
-                       evt = default, production = default,
-                       filetype = default, runnb = default ):
+                        cond = default, procpass = default,
+                        evt = default, production = default,
+                        filetype = default, runnb = default ):
     """returns the steps with metadata"""
     command = None
     processing = {}
     result = None
     if configName.upper().find( 'MC' ) >= 0:
       command = self.__prepareStepMetadata( configName,
-                                          configVersion,
-                                          cond,
-                                          procpass,
-                                          evt,
-                                          production,
-                                          filetype,
-                                          runnb,
-                                          selection = "prod.production" )
+                                            configVersion,
+                                            cond,
+                                            procpass,
+                                            evt,
+                                            production,
+                                            filetype,
+                                            runnb,
+                                            selection = "prod.production" )
       retVal = self.dbR_.query( command )
       if not retVal['OK']:
         result = retVal
@@ -4456,14 +4475,14 @@ and files.qualityid= dataquality.qualityid'
 
     else:
       command = self.__prepareStepMetadata( configName,
-                                        configVersion,
-                                        cond,
-                                        procpass,
-                                        evt,
-                                        production,
-                                        filetype,
-                                        runnb,
-                                        selection = 'distinct s.stepid,s.stepname,s.applicationname,s.applicationversion,\
+                                            configVersion,
+                                            cond,
+                                            procpass,
+                                            evt,
+                                            production,
+                                            filetype,
+                                            runnb,
+                                            selection = 'distinct s.stepid,s.stepname,s.applicationname,s.applicationversion,\
        s.optionfiles,s.dddb, s.conddb,s.extrapackages,s.visible, cont.step' )
 
     if not result:
@@ -4476,14 +4495,14 @@ and files.qualityid= dataquality.qualityid'
         for i in retVal['Value']:
           # records = [[i[0],i[1],i[2],i[3],i[4],i[5],i[6], i[7], i[8]]]
           records = [ ['StepId', i[0]],
-                     ['StepName', i[1]],
-                     ['ApplicationName', i[2]],
-                     ['ApplicationVersion', i[3]],
-                     ['OptionFiles', i[4]],
-                     ['DDDB', i[5]],
-                     ['CONDDB', i[6]],
-                     ['ExtraPackages', i[7]],
-                     ['Visible', i[8]]]
+                      ['StepName', i[1]],
+                      ['ApplicationName', i[2]],
+                      ['ApplicationVersion', i[3]],
+                      ['OptionFiles', i[4]],
+                      ['DDDB', i[5]],
+                      ['CONDDB', i[6]],
+                      ['ExtraPackages', i[7]],
+                      ['Visible', i[8]]]
           step = 'Step-%s' % ( i[0] )
           processing[step] = records
           nb += 1
@@ -4503,13 +4522,13 @@ and files.qualityid= dataquality.qualityid'
     if retVal['OK']:
       for i in retVal['Value']:
         records += [dict( zip( ( 'Production',
-                              'ConfigName',
-                              'ConfigVersion',
-                              'EventType',
-                              'FileType',
-                              'ProcessingPass',
-                              'ConditionDescription',
-                              'VisibilityFlag' ), i ) )]
+                                 'ConfigName',
+                                 'ConfigVersion',
+                                 'EventType',
+                                 'FileType',
+                                 'ProcessingPass',
+                                 'ConditionDescription',
+                                 'VisibilityFlag' ), i ) )]
       result = S_OK( records )
     else:
       result = retVal
@@ -4521,9 +4540,9 @@ and files.qualityid= dataquality.qualityid'
     result = S_ERROR()
     lfns = [ i + '%' for i in lfn]
     retVal = self.dbR_.executeStoredProcedure( packageName = 'BOOKKEEPINGORACLEDB.getDirectoryMetadata_new',
-                                                parameters = [],
-                                                output = True,
-                                                array = lfns )
+                                               parameters = [],
+                                               output = True,
+                                               array = lfns )
 
     records = {}
     failed = []
@@ -4601,8 +4620,8 @@ and files.qualityid= dataquality.qualityid'
 
   #############################################################################
   def getListOfFills( self, configName = default,
-                     configVersion = default,
-                     conddescription = default ):
+                      configVersion = default,
+                      conddescription = default ):
     """
     It returns a list of fills for a given condition.
     """
@@ -5027,3 +5046,87 @@ and files.qualityid= dataquality.qualityid'
 
     successful = list( set( evt['EVTTYPEID'] for evt in eventtypes ) - set( i.keys()[0] for i in failed ) )
     return S_OK( {'Failed': failed, 'Successful': successful} )
+
+  def getRunConfigurationsAndDataTakingCondition( self, runnumber ):
+    """
+    :param: int runnumber
+    :return: S_OK()/S_ERROR ConfigName, ConfigVersion and DataTakingDescription
+    """
+    command = "select c.configname, c.configversion from jobs j, configurations c \
+                  where j.configurationid=c.configurationid and \
+                        j.production<0 and j.runnumber=%d" % runnumber
+
+    retVal = self.dbR_.query( command )
+    if not retVal['OK']:
+      return retVal
+
+    if not retVal['Value']:
+      return S_ERROR("Run does not exists in the db")
+
+    result = {'ConfigName': retVal['Value'][0][0],
+              'ConfigVersion':retVal['Value'][0][1]}
+
+    command = "select d.description from jobs j, productionscontainer prod, data_taking_conditions d\
+                WHERE j.production=prod.production and \
+                      j.production<0 and \
+                      prod.daqperiodid=d.daqperiodid and \
+                      j.runnumber=%d" % runnumber
+
+    retVal = self.dbR_.query( command )
+    if not retVal['OK']:
+      return retVal
+
+    if not retVal['Value']:
+      return S_ERROR("Data taking description does not exists")
+    result['ConditionDescription'] = retVal['Value'][0][0]
+
+    return S_OK( result )
+  
+  def deleteCertificationData( self ):
+    """
+    It destroy the data used by the integration test.
+    """
+    return self.dbR_.executeStoredProcedure( 'BKUTILITIES.destroyDatasets', [], False )
+  
+  #############################################################################
+  def getAvailableTagsFromSteps( self ):
+    """
+    :return S_OK/S_ERROR a list of db tags
+    """
+    
+    command = "select distinct DDDB,CONDDB,DQTAG from steps where Usable='Yes'"
+    retVal = self.dbR_.query( command )
+    if not retVal['OK']:
+      return retVal
+    
+    records = []
+    for record in retVal['Value']:
+      if record[0]!=None:
+        records.append( [ 'DDDB', record[0]] )
+      if record[1]!=None:
+        records.append( [ 'CONDDB', record[1]] )
+      if record[2]!=None:
+        records.append( [ 'DQTAG', record[2]] )
+    
+    return S_OK( {'ParameterNames': ['TagName', 'TagValue'], 'Records':records} )
+  
+  #############################################################################
+  def bulkgetIDsFromFilesTable( self, lfns ):
+    """
+    This method used to retreive the JobId, FileId and FiletypeId for a given list of lfns
+    :return S_OK/S_ERROR {"FileId:1","JobId":22, "FileTypeId":3}
+    """
+    retVal = self.dbR_.executeStoredProcedure( packageName = 'BOOKKEEPINGORACLEDB.bulkgetIdsFromFiles',
+                                               parameters = [],
+                                               output = True,
+                                               array = lfns )
+    if not retVal['OK']:
+      return retVal
+    
+    fileParams = ['JobId', 'FileId', 'FileTypeId']
+    result = {}
+    for record in retVal['Value']:
+      result[record[0]] = dict( zip( fileParams, record[1:] ) )
+    
+    failed = list( set ( lfns ) - set( result.keys() ) )
+    return S_OK( {'Successful':result, 'Failed':failed} )

@@ -1,8 +1,10 @@
 """ Simple merging module for MDF files.
 """
 
+import shlex
+
 from DIRAC                                               import S_OK, S_ERROR, gLogger
-from DIRAC.Core.Utilities.Subprocess                     import shellCall
+from DIRAC.Core.Utilities.Subprocess                     import systemCall
 from DIRAC.Resources.Catalog.PoolXMLCatalog              import PoolXMLCatalog
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase               import ModuleBase
@@ -66,7 +68,7 @@ class MergeMDF( ModuleBase ):
       cmd = 'cat %s > %s' % ( inputs, self.outputFilePrefix + '.' + stepOutputTypes[0] )
       logLines.append( '\nExecuting merge operation...' )
       self.log.info( 'Executing "%s"' % cmd )
-      result = shellCall( timeout = 600, cmdSeq = cmd )
+      result = systemCall( timeout = 600, cmdSeq = shlex.split( cmd ) )
       if not result['OK']:
         self.log.error( result )
         logLines.append( 'Merge operation failed with result:\n%s' % result )
@@ -105,8 +107,7 @@ class MergeMDF( ModuleBase ):
 
     except Exception as e: #pylint:disable=broad-except
       self.log.exception( "Failure in MergeMDF execute module", lException = e )
-      self.setApplicationStatus( e )
-      return S_ERROR( e )
+      return S_ERROR( str(e) )
 
     finally:
       super( MergeMDF, self ).finalize( self.version )

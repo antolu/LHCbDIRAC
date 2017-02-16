@@ -62,7 +62,10 @@ class FailoverRequest( ModuleBase ):
 
       # report on the status of the input data, by default they are 'Processed', unless the job failed
       # failures happening before (e.g. in previous steps, or while inspecting the XML summary) are not touched.
-      filesInFileReport = self.fileReport.getFiles()  # It's normally empty, unless there are some Problematic files
+
+      # The FileReport object is normally empty, unless there are some Problematic files,
+      # or if there are files found to have descendants
+      filesInFileReport = self.fileReport.getFiles()
 
       if not self._checkWFAndStepStatus( noPrint = True ):
         # To overcome race condition issues, the file status for this case is reported by the failover request
@@ -114,8 +117,8 @@ class FailoverRequest( ModuleBase ):
 
     except Exception as e: #pylint:disable=broad-except
       self.log.exception( "Failure in FailoverRequest execute module", lException = e )
-      self.setApplicationStatus( e )
-      return S_ERROR( e )
+      self.setApplicationStatus( repr(e) )
+      return S_ERROR( str(e) )
 
     finally:
       super( FailoverRequest, self ).finalize( self.version )

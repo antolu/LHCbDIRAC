@@ -27,6 +27,7 @@
 import time
 import os
 import sqlite3
+from concurrent.futures import ThreadPoolExecutor, wait
 
 from DIRAC                                                      import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Base.AgentModule                                import AgentModule
@@ -428,6 +429,7 @@ class ProductionStatusAgent( AgentModule ):
     self.prSummary = {}
     self.prProds = {}  # <prID>, map produciton to known request, from _getProductionRequestsProgress
     self.notPrTrans = {}  # transformation without PR, from _getTransformationsState
+    self.toUpdate = []
 
   #############################################################################
   def initialize( self ):
@@ -556,7 +558,7 @@ class ProductionStatusAgent( AgentModule ):
         Failures there are critical and can inforce wrong logic
         Note: this method can be moved to the service
     """
-    self.log.verbose( "Collecting active production requests..." )
+    self.log.info( "Collecting active production requests..." )
     result = self.prClient.getProductionRequestList( 0, '', 'ASC', 0, 0, { 'RequestState':'Active' } )
     if not result['OK']:
       return S_ERROR( 'Could not retrieve active production requests: %s' % result['Message'] )
@@ -612,7 +614,7 @@ class ProductionStatusAgent( AgentModule ):
     """ get Transformations state (set 'Other' for not interesting states)
         failures to get something are not critical since there is no reaction on 'Other' state
     """
-    self.log.verbose( "Collecting transformations state..." )
+    self.log.info( "Collecting transformations state..." )
     try:
       # We put 'Finished' for both
       tListCompleted = self.__getTransformations( 'Completed' )
@@ -742,39 +744,46 @@ class ProductionStatusAgent( AgentModule ):
     """ contact BK for the current number of processed events
         failures are critical
     """
-    self.log.verbose( "Updating production requests progress..." )
-    toUpdate = []
-    for tID, prID in self.prProds.iteritems():
-      tInfo = self.prSummary[prID]['prods'][tID]
-      result = self.__getProductionProducedEvents( tID )
-      if result['OK']:
-        nEvents = result['Value']
-        if nEvents and nEvents != tInfo['Events'] :
-          self.log.debug( "Updating production %d, with BkEvents %d" % ( int( tID ), \
-                                                                         int( nEvents ) ) )
-          toUpdate.append( { 'ProductionID': tID, 'BkEvents': nEvents } )
-          tInfo['Events'] = nEvents
-      else:
-        self.log.error( "Progress is not updated", "%s : %s" % ( tID, result['Message'] ) )
-        return S_ERROR( "Too dangerous to continue" )
+    self.log.info( "Updating production requests progress..." )
 
-    if toUpdate:
+    # Using 10 threads, and waiting for the results before continuing
+    futureThreads = []
+    with ThreadPoolExecutor( 10 ) as threadPool:
+      for tID, prID in self.prProds.iteritems():
+        futureThreads.append( threadPool.submit( self._getProducedEvents, tID, prID ) )
+      wait( futureThreads )
+
+    if self.toUpdate:
       if gDoRealTracking:
-        result = self.prClient.updateTrackedProductions( toUpdate )
+        result = self.prClient.updateTrackedProductions( self.toUpdate )
       else:
         result = S_OK()
       if not result['OK']:
         self.log.error( 'Could not send update to the Production Request System', result['Message'] )  # that is not critical
       else:
-        self.log.info( 'The progress of %s Production Requests is updated' % len( toUpdate ) )
-    self.log.verbose( "Production requests progress update is finished" )
+        self.log.verbose( 'The progress of %s Production Requests is updated' % len( self.toUpdate ) )
+    self.log.info( "Production requests progress update is finished" )
     return S_OK()
+
+  def _getProducedEvents(self, tID, prID):
+    tInfo = self.prSummary[prID]['prods'][tID]
+    result = self.__getProductionProducedEvents( tID )
+    if result['OK']:
+      nEvents = result['Value']
+      if nEvents and nEvents != tInfo['Events'] :
+        self.log.verbose( "Updating production %d, with BkEvents %d" % ( int( tID ), int( nEvents ) ) )
+        self.toUpdate.append( { 'ProductionID': tID, 'BkEvents': nEvents } )
+        tInfo['Events'] = nEvents
+    else:
+      self.log.error( "Progress is not updated", "%s : %s" % ( tID, result['Message'] ) )
+      return S_ERROR( "Too dangerous to continue" )
+
 
   @timeThis
   def __getProductionProducedEvents( self, tID ):
     """ dev function - separate only for timing purposes
     """
-    self.log.debug( "Getting BK production progress", "Transformation ID = %d" % tID )
+    self.log.verbose( "Getting BK production progress", "Transformation ID = %d" % tID )
     return BookkeepingClient().getProductionProducedEvents( tID )
 
 
@@ -1009,7 +1018,7 @@ class ProductionStatusAgent( AgentModule ):
                 #   We wait till mergers finish the job
             # else
             #  we do not know what to do with that (yet)
-	           # else
+           # else
           # 'Idle' && isIdle() (or unknown) && !isDone is not interesting combination
         elif tInfo['state'] == 'RemovedFiles':
           self.__updateTransformationStatus( tID, 'RemovedFiles', 'Completed', updatedT )

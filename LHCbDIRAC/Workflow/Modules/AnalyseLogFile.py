@@ -1,6 +1,8 @@
 """ Analyse log file(s) module
 """
 
+### This module is now not used anywhere
+
 import os
 import re
 import glob
@@ -89,8 +91,8 @@ class AnalyseLogFile( ModuleBase ):
 
     except Exception as e: #pylint:disable=broad-except
       self.log.exception( "Failure in AnalyseLogFile execute module", lException = e )
-      self.setApplicationStatus( e )
-      return S_ERROR( e )
+      self.setApplicationStatus( repr(e) )
+      return S_ERROR( str(e) )
 
     finally:
       super( AnalyseLogFile, self ).finalize( self.version )

@@ -1,29 +1,12 @@
 ''' LHCbDIRAC.ResourceStatusSystem.Agent.SLSAgent
 
-  xml_append
-  gen_mysql
-  insert_slsservice
-  insert_slst1service
-  insert_slslogse
-  insert_slsstorage
-  insert_slsrmstats
-  gen_xml_stub
-  TestBase.__bases__:
-    object
-  SpaceTokenOccupancyTest.__bases__:
-    LHCbDIRAC.ResourceStatusSystem.Agent.SLSAgent.TestBase
-  DIRACTest.__bases__:
-    LHCbDIRAC.ResourceStatusSystem.Agent.SLSAgent.TestBase
-  LogSETest.__bases__:
-    LHCbDIRAC.ResourceStatusSystem.Agent.SLSAgent.TestBase
-  SLSAgent.__bases__:
-    DIRAC.Core.Base.AgentModule.AgentModule
+    This agent creates XML files with SE space left, that will be picked up by a cron job that will add to meter.cern.ch
+      so maybe SLSAgent is not anymore the right name
 
 '''
 
-# TODO: make this agent readable and understandable. Right not, it is not very much.
+# TODO: decide what to do about this agent (maybe really remove it). Alternatively: use elasticseach module to spit in meter.
 
-import os
 import string
 import time
 import xml.dom, xml.sax

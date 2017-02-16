@@ -6,7 +6,6 @@
 
 __RCSID__ = "$Id$"
 
-
 if __name__ == "__main__":
 
   import DIRAC
@@ -105,6 +104,7 @@ if __name__ == "__main__":
   from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
   from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
+  from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import getProcessingPasses
   from DIRAC.Core.Utilities.List import breakListIntoChunks
   from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities import getRemovalPlugins, getReplicationPlugins
   from LHCbDIRAC.DataManagementSystem.Utilities.FCUtilities import chown
@@ -137,21 +137,14 @@ if __name__ == "__main__":
       DIRAC.exit( 2 )
     transBKQuery = bkQuery.getQueryDict()
     processingPass = transBKQuery.get( 'ProcessingPass', '' )
-    if processingPass.endswith( '...' ):
+    if '...' in processingPass:
       if listProcessingPasses:
         gLogger.notice( "List of processing passes for BK path", pluginScript.getOption( 'BKPath' ) )
-      basePass = os.path.dirname( processingPass )
-      wildPass = os.path.basename( processingPass ).replace( '...', '' )
-      bkQuery.setProcessingPass( basePass )
-      processingPasses = bkQuery.getBKProcessingPasses().keys()
-      for processingPass in list( processingPasses ):
-        if not processingPass.startswith( os.path.join( basePass, wildPass ) ) or processingPass == basePass or ( depth and len( processingPass.replace( basePass, '' ).split( '/' ) ) != ( depth + 1 ) ):
-          processingPasses.remove( processingPass )
+      processingPasses = getProcessingPasses( bkQuery, depth = depth )
       if processingPasses:
-        processingPasses.sort()
         if not listProcessingPasses:
-          gLogger.notice( "Transformations will be launched for the following list of processing passes:\n" )
-        gLogger.notice( '\t'.join( [''] + processingPasses ) )
+          gLogger.notice( "Transformations will be launched for the following list of processing passes:" )
+        gLogger.notice( '\n'.join( [''] + processingPasses ) )
       else:
         gLogger.notice( "No processing passes matching the BK path" )
         DIRAC.exit( 0 )
@@ -343,7 +336,7 @@ if __name__ == "__main__":
 
     # If the transformation uses the RemoveDataset plugin, set the files invisible in the BK...
     setInvisiblePlugins = ( "RemoveDataset", )
-    # Try and let them visible such
+    # Try and let them visible such that users can see they are archived
     # setInvisiblePlugins = tuple()
     if invisible or plugin in setInvisiblePlugins:
       res = bk.setFilesInvisible( lfns )

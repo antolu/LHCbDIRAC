@@ -9,10 +9,9 @@
 import os
 import time
 import xml.dom.minidom
-
 from DIRAC                                               import S_OK, rootPath, gLogger, gConfig
 from DIRAC.Core.Base.AgentModule                         import AgentModule
-from DIRAC.DataManagementSystem.Utilities.DMSHelpers     import DMSHelpers  
+from DIRAC.DataManagementSystem.Utilities.DMSHelpers     import DMSHelpers
 from DIRAC.Resources.Storage.StorageElement              import StorageElement
 
 
@@ -36,6 +35,8 @@ class NagiosTopologyAgent( AgentModule ):
 
     self.xmlPath = None
 
+    self.dryRun = False
+
   def initialize( self ):
     """ Initialize the agent.
     """
@@ -53,8 +54,6 @@ class NagiosTopologyAgent( AgentModule ):
     """ Let's generate the xml file with the topology.
     """
 
-    self.dryRun = False
-
     # instantiate xml doc
     xml_impl = xml.dom.minidom.getDOMImplementation()
     xml_doc = xml_impl.createDocument( None, 'root', None )
@@ -65,76 +64,90 @@ class NagiosTopologyAgent( AgentModule ):
 
     # loop over sites
 
-    middlewareTypes = []
-    ret = gConfig.getSections('Resources/Sites') 
-    if not ret[ 'OK' ] : 
+##################################################################################################################
+#New code to include VAC and VCYCLE
+
+    ret = gConfig.getSections('Resources/Sites')
+    if not ret[ 'OK' ] :
       gLogger.error( ret[ 'Message' ] )
       return ret
-    
-    middlewareTypes = ret['Value']
-    for middleware in middlewareTypes :
 
-      sites = gConfig.getSections( 'Resources/Sites/%s' % middleware )
-      if not sites[ 'OK' ]:
-        gLogger.error( sites[ 'Message' ] )
-        return sites
+    gridTypes = ret['Value']
 
-      for site in sites[ 'Value' ]:
+    all_sites = {}
 
-        # Site config
-        site_opts = gConfig.getOptionsDict( 'Resources/Sites/%s/%s' % ( middleware, site ) )
+    for grid in gridTypes:
+      sites = gConfig.getSections( 'Resources/Sites/%s' % grid )
+      for site in sites['Value']:
+        grid, real_site_name, country = site.split( "." )
+        site_opts = gConfig.getOptionsDict( 'Resources/Sites/%s/%s' % ( grid, site ) )
         if not site_opts[ 'OK' ]:
           gLogger.error( site_opts[ 'Message' ] )
           return site_opts
-        site_opts = site_opts[ 'Value' ]
-
-        site_name = site_opts.get( 'Name' )
+        site_opts = site_opts['Value']
         site_tier = site_opts.get( 'MoUTierLevel', 'None' )
-        # we are only interested in sites with a MoUTierLevel, i.e. WLCG sites, for the WLCG topology map
-        if site_tier != 'None' :
+        if site_tier != 'None':
           site_subtier = site_opts.get( 'SubTier', 'None' )
-          has_grid_elem = False
-          xml_site = xml_append( xml_doc, xml_root, 'atp_site', name = site_name )
+          dict_opts = { 'SiteOptions' : site_opts ,
+                        'DiracName': ( 'LCG.' + real_site_name + "." + country), 'Grid' : [grid] }
+          dict1 = {real_site_name:dict_opts}
+          if all_sites.has_key(real_site_name):
+            all_sites[ real_site_name ][ 'SiteOptions' ][ 'CE' ] = all_sites[ real_site_name ][ 'SiteOptions' ][ 'CE' ] + "," + dict_opts['SiteOptions']['CE']
+            all_sites[real_site_name]['Grid'].append(grid)
+          else:
+            all_sites.update(dict1)
 
+      for key in all_sites.itervalues():
+        dirac_name = key['DiracName']
+        site_tier = key['SiteOptions'].get('MoUTierLevel')
+        site_subtier = key['SiteOptions'].get('SubTier')
+        site_name = key['SiteOptions'].get( 'Name' )
+        xml_site = xml_append( xml_doc, xml_root, 'atp_site', name = site_name )
+        has_grid_elem = False
+
+        for grid in key['Grid']:
+
+          site = grid + "." + key['DiracName'].split(".")[1] + "." + key['DiracName'].split(".")[2]
           # CE info
-          ces = gConfig.getSections( 'Resources/Sites/%s/%s/CEs' % ( middleware, site ) )
+          ces = gConfig.getSections( 'Resources/Sites/%s/%s/CEs' % ( grid, site ) )
           if ces[ 'OK' ]:
-            res = self.__writeCEInfo( xml_doc, middleware, xml_site, site, ces[ 'Value' ] )
+            res = self.__writeCEInfo( xml_doc, grid, xml_site, site, ces[ 'Value' ] )
             # Update has_grid_elem
             has_grid_elem = res or has_grid_elem
 
-          # SE info
-          if site_opts.has_key( 'SE' ) and  ( site_tier in [ '0', '1', '2' ] or site_subtier in ['T2-D'] ):
-            res = self.__writeSEInfo( xml_doc, xml_site, site )
-            # Update has_grid_elem
-            has_grid_elem = res or has_grid_elem
+        # SE info
+        if key['SiteOptions'].has_key('SE') and ( site_tier in [ '0', '1', '2' ] or site_subtier in ['T2-D'] ):
+          #res = self.__writeSEInfo( xml_doc, xml_site, dirac_name )
+          res = self.__writeSEInfo( xml_doc, xml_site, dirac_name, site_tier, site_subtier )
+          # Update has_grid_elem
+          has_grid_elem = res or has_grid_elem
 
-          # Site info will be put if we found at least one CE, SE or LFC element
-          if has_grid_elem:
-            xml_append( xml_doc, xml_site, 'group', name = 'Tier ' + site_tier, type = 'LHCb_Tier' )
-            xml_append( xml_doc, xml_site, 'group', name = site, type = 'LHCb_Site' )
-            xml_append( xml_doc, xml_site, 'group', name = site, type = 'All Sites' )
-            try:
-              if site_subtier == 'T2-D':
-                xml_append( xml_doc, xml_site, 'group', name = site, type = 'Tier 0/1/2D' )
-                xml_append( xml_doc, xml_site, 'group', name = site, type = 'Tier 2D' )
+        # Site info will be put if we found at least one CE, SE or LFC element
+        if has_grid_elem:
+          xml_append( xml_doc, xml_site, 'group', name = 'Tier ' + site_tier, type = 'LHCb_Tier' )
+          xml_append( xml_doc, xml_site, 'group', name = dirac_name, type = 'LHCb_Site' )
+          xml_append( xml_doc, xml_site, 'group', name = dirac_name, type = 'All Sites' )
+          try:
+            if site_subtier == 'T2-D':
+              xml_append( xml_doc, xml_site, 'group', name = dirac_name, type = 'Tier 0/1/2D' )
+              xml_append( xml_doc, xml_site, 'group', name = dirac_name, type = 'Tier 2D' )
 
-              elif int( site_tier ) == 2:
-                xml_append( xml_doc, xml_site, 'group', name = site, type = 'Tier 2' )
+            elif int( site_tier ) == 2:
+              xml_append( xml_doc, xml_site, 'group', name = dirac_name, type = 'Tier 2' )
 
-              else:  # site_tier can be only 1 or 0, (see site_tier def above to convince yourself.)
-                # If site_type is None, then we go to the exception.
-                xml_append( xml_doc, xml_site, 'group', name = site, type = 'Tier 0/1/2D' )
-                xml_append( xml_doc, xml_site, 'group', name = site, type = 'Tier 0/1' )
+            else:  # site_tier can be only 1 or 0, (see site_tier def above to convince yourself.)
+              # If site_type is None, then we go to the exception.
+              xml_append( xml_doc, xml_site, 'group', name = dirac_name, type = 'Tier 0/1/2D' )
+              xml_append( xml_doc, xml_site, 'group', name = dirac_name, type = 'Tier 0/1' )
 
-            except ValueError:  # Site tier is None, do nothing
-              pass
+          except ValueError:  # Site tier is None, do nothing
+            pass
 
-          else :
-            _msg = "Site %s, (WLCG Name: %s) has no CE, SE or LFC, thus will not be put into the xml"
-            _msg = _msg % ( site, site_name )
-            self.log.warn( _msg )
-            xml_root.removeChild( xml_site )
+        else :
+          _msg = "Site %s, (WLCG Name: %s) has no CE, SE or LFC, thus will not be put into the xml"
+          _msg = _msg % ( site, site_name )
+          self.log.warn( _msg )
+          xml_root.removeChild( xml_site )
 
     self.dryRun = self.am_getOption( 'DryRun', self.dryRun )
     if self.dryRun:
@@ -146,9 +159,11 @@ class NagiosTopologyAgent( AgentModule ):
       with open( self.xmlPath + "lhcb_topology.xml", 'w' ) as xmlf:
         xmlf.write( xml_doc.toxml() )
 
-      self.log.info( "Dry Run: XML file created Successfully" )
+      self.log.info( "XML file created Successfully" )
 
     return S_OK()
+
+
 
   ## Private methods ###########################################################
 
@@ -160,16 +175,16 @@ class NagiosTopologyAgent( AgentModule ):
 
     xml_append( xml_doc, xml_root, 'title', 'LHCb Topology Information for ATP' )
     xml_append( xml_doc, xml_root, 'description',
-                     'List of LHCb site names for monitoring and mapping to the SAM/WLCG site names' )
+                'List of LHCb site names for monitoring and mapping to the SAM/WLCG site names' )
     xml_append( xml_doc, xml_root, 'feed_responsible',
-                     dn = '/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=roiser/CN=564059/CN=Stefan Roiser',
-                     name = 'Stefan Roiser' )
+                dn = '/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=roiser/CN=564059/CN=Stefan Roiser',
+                name = 'Stefan Roiser' )
     xml_append( xml_doc, xml_root, 'last_update',
-                     time.strftime( '%Y-%m-%dT%H:%M:%SZ', time.gmtime() ) )
+                time.strftime( '%Y-%m-%dT%H:%M:%SZ', time.gmtime() ) )
     xml_append( xml_doc, xml_root, 'vo', 'lhcb' )
 
   @staticmethod
-  def __writeCEInfo( xml_doc, middleware, xml_site, site, ces ):
+  def __writeCEInfo( xml_doc, grid, xml_site, site, ces ):
     """ Writes CE information in the XML Document
     """
 
@@ -180,37 +195,38 @@ class NagiosTopologyAgent( AgentModule ):
 
       has_grid_elem = True
 
-      site_ce_opts = gConfig.getOptionsDict( 'Resources/Sites/%s/%s/CEs/%s' % ( middleware, site, site_ce_name ) )
+      site_ce_opts = gConfig.getOptionsDict( 'Resources/Sites/%s/%s/CEs/%s' % ( grid, site, site_ce_name ) )
       if not site_ce_opts['OK']:
         gLogger.error( site_ce_opts['Message'] )
         continue
       site_ce_opts = site_ce_opts['Value']
 
       site_ce_type = site_ce_opts.get( 'CEType' )
-      mappingCEType = { 'LCG':'CE', 'CREAM':'CREAM-CE', 
-                       'ARC':'ARC-CE', 'HTCondorCE':'HTCONDOR-CE', 
-                       'Vac':'VAC', 'Cloud':'CLOUD', 'Boinc':'BOINC' }
+      mappingCEType = { 'LCG':'CE', 'CREAM':'CREAM-CE',
+                        'ARC':'ARC-CE', 'HTCondorCE':'HTCONDOR-CE',
+                        'Vac':'VAC', 'Cloud':'CLOUD', 'Boinc':'BOINC', 'Vcycle':'VCYCLE' }
 
       xml_append( xml_doc, xml_site, 'service', hostname = site_ce_name,
-                       flavour = mappingCEType.get( site_ce_type, 'UNDEFINED' ) )
+                  flavour = mappingCEType.get( site_ce_type, 'UNDEFINED' ) )
 
     return has_grid_elem
 
+
   @staticmethod
-  def __writeSEInfo( xml_doc, xml_site, site ):
+  def __writeSEInfo( xml_doc, xml_site, site, site_tier, site_subtier ):
     """ Writes SE information in the XML Document
     """
     def __write_SE_XML(site_se_opts):
       """
       Sub-function just to populate the XML with the SE values
-      """  
+      """
       site_se_name = site_se_opts.get( 'Host' )
       site_se_flavour = site_se_opts.get( 'Protocol' )
       site_se_path = site_se_opts.get( 'Path', 'UNDEFINED' )
-      mappingSEFlavour = { 'srm' : 'SRMv2', 
-                          'root' : 'XROOTD', 'http' : 'HTTPS' } 
-   
-      xml_append( xml_doc, xml_site, 'service', 
+      mappingSEFlavour = { 'srm' : 'SRMv2',
+                           'root' : 'XROOTD', 'http' : 'HTTPS' }
+
+      xml_append( xml_doc, xml_site, 'service',
                   hostname = site_se_name,
                   flavour = mappingSEFlavour.get( site_se_flavour, 'UNDEFINED' ),
                   path = site_se_path )
@@ -219,59 +235,52 @@ class NagiosTopologyAgent( AgentModule ):
 
     real_site_name = site.split( "." )[ 1 ]
     dmsHelper = DMSHelpers()
-    
-    t1 = dmsHelper.getSEInGroupAtSite( 'Tier1-DST', real_site_name )
-    t2 = dmsHelper.getSEInGroupAtSite( 'Tier2D-DST', real_site_name )
-    if not (t1['OK'] or t2['OK']):
-      
-      gLogger.error( t1.get( 'Message' ) or t2.get( 'Message' ) )
+
+    if int(site_tier) in ( 0, 1 ):
+      dst = dmsHelper.getSEInGroupAtSite( 'Tier1-DST', real_site_name )
+      raw = dmsHelper.getSEInGroupAtSite( 'Tier1-RAW', real_site_name )
+      if not raw[ 'OK' ]:
+        gLogger.error( raw['Message'] )
+        return False
+      raw = raw[ 'Value' ]
+      se_RAW = StorageElement( raw )
+      se_plugins_RAW = se_RAW.getPlugins( )
+
+    if site_subtier == 'T2-D':
+      dst = dmsHelper.getSEInGroupAtSite( 'Tier2D-DST', real_site_name )
+
+    if not dst[ 'OK' ]:
+      gLogger.error( dst[ 'Message' ] )
       return False
-    
-    storage_element_name_DST = t1['Value'] or t2['Value']
-    if storage_element_name_DST:
-      se_DST = StorageElement(storage_element_name_DST)
- 
-      storage_element_name_RAW = dmsHelper.getSEInGroupAtSite( 'Tier1-RAW', real_site_name )
-      if not storage_element_name_RAW['OK']:
-        gLogger.error( storage_element_name_RAW['Message'] )
-        return False
-      storage_element_name_RAW = storage_element_name_RAW['Value']
-      se_RAW = None if not storage_element_name_RAW else StorageElement(storage_element_name_RAW)
-  
-      # Use case - Storage Element exists but it's removed from Resources/StorageElementGroups 
-      if not (se_DST and se_RAW):
-        gLogger.error( 'Storage Element for site ' + site + 
-                       ' was found in Resources/Sites but not in the Storage Element Groups' )
-        return False 
 
-      se_plugins = se_DST.getPlugins()   
-      if not se_plugins['OK']:
-        gLogger.error( se_plugins['Message'] )
-        return False
-      
-      for protocol in se_plugins['Value']:
-        site_se_opts_DST = se_DST.getStorageParameters( protocol )
-        if not site_se_opts_DST['OK']:
-          gLogger.error( site_se_opts_DST[ 'Message' ] )
-          return False
-        __write_SE_XML( site_se_opts_DST )
+    dst = dst[ 'Value' ]
+    se_DST = StorageElement( dst )
+    se_plugins_DST = se_DST.getPlugins( )
+    if not se_plugins_DST[ 'OK' ]:
+      gLogger.error( se_plugins_DST[ 'Message' ] )
+      return False
 
-        
-        site_se_opts_RAW = None if not se_RAW else se_RAW.getStorageParameters( protocol )
-        if not site_se_opts_RAW:
-          gLogger.error( 'No RAW Storage Element found for ' + site )
-          continue
-        else:
-          if not site_se_opts_RAW['OK']:
-            gLogger.error( site_se_opts_RAW['Message'] )
-            return False
-                          
-          # This tests if the DST and RAW StorageElements have the same endpoint. 
+    for protocol in se_plugins_DST[ 'Value' ]:
+      site_se_opts_DST = se_DST.getStorageParameters( protocol )
+      if not site_se_opts_DST['OK']:
+        gLogger.error( site_se_opts_DST[ 'Message' ] )
+        return False
+      site_se_opts_DST = site_se_opts_DST['Value']
+      __write_SE_XML( site_se_opts_DST )
+
+      if site_tier in ( 0, 1 ):
+        if protocol in se_plugins_RAW[ 'Value' ]:
+          site_se_opts_RAW = se_RAW.getStorageParameters( protocol )
+          if not site_se_opts_RAW[ 'OK' ]:
+            gLogger.error( site_se_opts_RAW[ 'Message'] )
+            return has_grid_elem
+          site_se_opts_RAW = site_se_opts_RAW[ 'Value' ]
+          # This tests if the DST and RAW StorageElements have the same endpoint.
           # If so it only uses the one already added.
-          if site_se_opts_RAW[ 'Value' ][ 'Host' ] != site_se_opts_DST[ 'Value' ][ 'Host' ] :
+          if site_se_opts_RAW[ 'Host' ] != site_se_opts_DST[ 'Host' ]:
             __write_SE_XML( site_se_opts_RAW )
-  
-      
+
+
     return has_grid_elem
 
 ################################################################################
@@ -280,7 +289,7 @@ def xml_append( doc, base, elem, cdata = None, **attrs ):
   """
     Given a Document, we append to it an element.
   """
-  
+
   new_elem = doc.createElement( elem )
   for attr in attrs:
     new_elem.setAttribute( attr, attrs[ attr ] )

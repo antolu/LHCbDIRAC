@@ -2,10 +2,10 @@
 LHCbDIRAC Certification (development) Releases
 ======================================================
 
-The following procedure applies to pre-releases (AKA certification releases) 
-and it is a simpler version of what applies to production releases. 
+The following procedure applies to pre-releases (AKA certification releases)
+and it is a simpler version of what applies to production releases.
 
-This page details the duty of the release manager. 
+This page details the duty of the release manager.
 The certification manager duties are detailed in the next page.
 
 
@@ -72,6 +72,7 @@ Otherwise, simply click the "Accept merge request" button for each of them.
 Then, from the LHCbDIRAC local fork you need to update some files::
 
   # if you start from scratch otherwise skip the first 2 commands
+  mkdir $(date +20%y%m%d) && cd $(date +20%y%m%d)
   git clone https://:@gitlab.cern.ch:8443/lhcb-dirac/LHCbDIRAC.git
   git remote add upstream https://:@gitlab.cern.ch:8443/lhcb-dirac/LHCbDIRAC.git
   # update your "local" upstream/master branch
@@ -85,10 +86,11 @@ Then, from the LHCbDIRAC local fork you need to update some files::
   # Update the version in the releases.cfg file:
   vim LHCbDIRAC/releases.cfg
   # For updating the CHANGELOG, get what's changed since the last tag
-  t=$(git describe --abbrev=0 --tags); git --no-pager log ${t}..HEAD --no-merges --pretty=format:'* %s';
+  #please use the proper LHCbDIRAC tag; replace v8r2p46
+  git log --pretty=oneline ${t}..HEAD | grep -Ev "($(git log --pretty=oneline  ${t}..v8r2p46 | awk {'print $1'} | tr '\n' '|')BOOM)"
   # copy the output, add it to the CHANGELOG (please also add the DIRAC version)
   vim CHANGELOG # please, remove comments like "fix" or "pylint" or "typo"...
-  #If needed, change the versions of the packages  
+  #If needed, change the versions of the packages
   vim dist-tools/projectConfig.json
   # Commit in your local newDevel branch the 3 files you modified
   git add -A && git commit -av -m "<YourNewTag>"
@@ -112,9 +114,9 @@ Creating the release tarball, add uploading it to the LHCb web service
 ```````````````````````````````````````````````````````````````````````
 Login on lxplus, run ::
 
-  SetupProject LHCbDirac
+  lb-run LHCbDirac/prod bash -norc
   git archive --remote ssh://git@gitlab.cern.ch:7999/lhcb-dirac/LHCbDIRAC.git devel LHCbDIRAC/releases.cfg  | tar -x -v -f - --transform 's|^LHCbDIRAC/||' LHCbDIRAC/releases.cfg
-  dirac-distribution -r v8r3-pre5 -l LHCb -C file:///`pwd`/releases.cfg (this may take some time)
+  dirac-distribution -r v8r4-pre1 -l LHCb -C file:///`pwd`/releases.cfg (this may take some time)
 
 Don't forget to read the last line of the previous command to copy the generated files at the right place. The format is something like::
 
@@ -170,20 +172,20 @@ release for client
 Please refer to this `TWIKI page <https://twiki.cern.ch/twiki/bin/view/LHCb/ProjectRelease#LHCbDirac>`_
 a quick test to validate the installation is to run the SHELL script $LHCBRELEASE/LHCBDIRAC/LHCBDIRAC_vXrY/LHCbDiracSys/test/client_test.csh
 
-go to this `web page <https://lhcb-jenkins.cern.ch/jenkins/job/lhcb-release/build/>`_ for asking to install the client release in AFS and CVMFS:
-    
-* in the field "Project list" put : "Dirac vNrMpK LHCbDirac vArBpC LHCbGrid vArB" (LHCbGrid version can be found: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/blob/devel/dist-tools/projectConfig.json)
-* in the field "platforms" put : "x86_64-slc6-gcc48-opt x86_64-slc6-gcc49-opt"
+go to https://jenkins-lhcb-nightlies.web.cern.ch/job/nightly-builds/job/release/build page for asking to install the client release in AFS and CVMFS:
+
+* in the field "Project list" put : "Dirac vNrMpK LHCbGrid vArB LHCbDirac vArBpC " (LHCbGrid version can be found: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/blob/devel/dist-tools/projectConfig.json)
+* in the field "platforms" put : "x86_64-slc6-gcc49-opt x86_64-slc6-gcc62-opt x86_64-centos7-gcc62-opt"
 * inthe field "build_tool" put : "CMake"
-* inthe field "scripts_version" put : "support-platform-indep-projects"
+* inthe field "scripts_version" put : "prepare-for-new-jenkins"
 
 Then click on the "BUILD" button
-    
-* within 10-15 min the build should start to appear in the nightlies page https://lhcb-nightlies.cern.ch/release/   
+
+* within 10-15 min the build should start to appear in the nightlies page https://lhcb-nightlies.cern.ch/release/
 * if there is a problem in the build, it can be re-started via the dedicated button (it will not restart by itself after a retag)
 
 
-When the release is finished https://lhcb-nightlies.cern.ch/release/, you can deploy to the client. 
+When the release is finished https://lhcb-nightlies.cern.ch/release/, you can deploy to the client.
 
 Note: Please execute the following commands sequentially.
 
@@ -195,7 +197,7 @@ The following commands used to prepare the RPMs::
     lb-release-rpm --copy /data/artifacts/release/lhcb-release/$build_id
 
 If the rmps are created, you can deploy the release (Do not execute parallel the following commands)::
-    
+
     ssh lxplus
     cd /afs/cern.ch/lhcb/software/lhcb_rpm_dev
     export MYSITEROOT=/afs/cern.ch/lhcb/software/lhcb_rpm_dev
@@ -214,7 +216,7 @@ To install it on the VOBOXes (certification only) from lxplus::
 
   lhcb-proxy-init  -g diracAdmin
   dirac-admin-sysadmin-cli --host volhcbXX.cern.ch
-  >update LHCbDIRAC-v8r3-pre5
+  >update LHCbDIRAC-v8r4-pre1
   >restart *
 
 The (better) alternative is using the web portal.
@@ -228,9 +230,8 @@ Use the following script (from, e.g., lxplus after having run `lb-run --dev LHCb
 
   dirac-pilot-version
 
-for checking and updating the pilot version. Note that you'll need a proxy that can write in the CS (i.e. lhcb-admin). 
-This script will make sure that the pilot version is update BOTH in the CS and in the json file used by pilots started in the vacuum. The command to update is 
-  dirac-pilot-version -S v8r3-pre5
+for checking and updating the pilot version. Note that you'll need a proxy that can write in the CS (i.e. lhcb-admin).
+This script will make sure that the pilot version is update BOTH in the CS and in the json file used by pilots started in the vacuum. The command to update is
+  dirac-pilot-version -S v8r4-pre1
 
 Make sure that you are in the certification setup (e.g. check the content of your .dirac.cfg file)
-

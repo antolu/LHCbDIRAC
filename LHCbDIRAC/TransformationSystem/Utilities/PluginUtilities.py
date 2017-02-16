@@ -64,7 +64,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     self.filesParam = {}
     self.transRunFiles = {}
     self.notProcessed = {}
-    self.cacheHitFrequency = max( 0., 1 - self.getPluginParam( 'RunCacheUpdateFrequency', 0.05 ) )
+    self.cacheHitFrequency = max( 0., 1 - self.getPluginParam( 'RunCacheUpdateFrequency', 0.1 ) )
     self.__runExpired = {}
     self.__recoType = ''
     self.dmsHelper = DMSHelpers()
@@ -139,37 +139,27 @@ class PluginUtilities( DIRACPluginUtilities ):
     if not res['OK']:
       self.logError( "There is no CS section %s" % section, res['Message'] )
       return res
-    # Apply these processing fractions to the RAW distribution shares
-    rawFraction = res['Value']
-    result = getShares( 'RAW', normalise = True )
-    if result['OK']:
-      rawShares = result['Value']
-      shares = dict( ( se, rawShares[se] * rawFraction[se] ) for se in set( rawShares ) & set( rawFraction ) )
-      tier1Fraction = sum( shares.values() )
-      shares[backupSE] = 100. - tier1Fraction
-    else:
-      return res
-    self.logInfo( "Fraction of RAW (%s) to be processed at each SE (%%):" % section )
-    for se in sorted( shares ):
-      self.logInfo( "%s: %.1f" % ( se.ljust( 15 ), shares[se] ) )
-    return S_OK( ( rawFraction, shares ) )
-
-  def getReplicationShares( self, section = None ):
-    """
-    Get shares from CS for RAW replication
-    """
-    if section is None:
-      section = 'RAW'
-    res = getShares( section )
-    if not res['OK']:
-      self.logError( "There is no CS section %s" % section, res['Message'] )
-      return res
     rawFraction = None
+    if backupSE:
+      # Apply these processing fractions to the RAW distribution shares
+      rawFraction = res['Value']
+      result = getShares( 'RAW', normalise = True )
+      if result['OK']:
+        rawShares = result['Value']
+        shares = dict( ( se, rawShares[se] * rawFraction[se] ) for se in set( rawShares ) & set( rawFraction ) )
+        tier1Fraction = sum( shares.values() )
+        shares[backupSE] = 100. - tier1Fraction
+      else:
+        return res
+      self.logInfo( "Fraction of RAW (%s) to be processed at each SE (%%):" % section )
+      for se in sorted( rawFraction ):
+        self.logInfo( "%s: %.1f" % ( se.ljust( 15 ), 100. * rawFraction[se] ) )
+    else:
+      shares = normaliseShares( res['Value'] )
+      self.logInfo( "Obtained the following target distribution shares (%):" )
+      for se in sorted( shares ):
+        self.logInfo( "%s: %.1f" % ( se.ljust( 15 ), shares[se] ) )
 
-    shares = normaliseShares( res['Value'] )
-
-    if self.shareMetrics is None:
-      self.shareMetrics = self.getPluginParam( 'ShareMetrics', 'Files' )
     # Get the existing destinations from the transformationDB, just for printing
     if self.shareMetrics == 'Files':
       res = self.getExistingCounters( requestedSEs = sorted( shares ) )
@@ -211,7 +201,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     """
     Get per site how much time of run was assigned
     """
-    res = self.getTransformationRuns()
+    res = self.getTransformationRuns( transID = transID )
     if not res['OK']:
       return res
     runDictList = res['Value']
@@ -232,6 +222,8 @@ class PluginUtilities( DIRACPluginUtilities ):
       for se in selectedSEs:
         seUsage[se] = seUsage.setdefault( se, 0 ) + duration
 
+    if normalise:
+      seUsage = normaliseShares( seUsage )
     return S_OK( seUsage )
 
 
@@ -239,12 +231,13 @@ class PluginUtilities( DIRACPluginUtilities ):
     """
     Used by RAWReplication and RAWProcessing plugins, gets what has been done up to now while distributing runs
     """
+    if transID is None:
+      transID = self.transID
     res = self.transClient.getCounters( 'TransformationFiles', ['UsedSE'],
-                                        {'TransformationID':self.transID} )
+                                        {'TransformationID':transID} )
     if not res['OK']:
       return res
     usageDict = {}
-    total = sum( count for _uDict, count in res['Value'] )
     for usedDict, count in res['Value']:
       usedSE = usedDict['UsedSE']
       if usedSE != 'Unknown':
@@ -257,7 +250,11 @@ class PluginUtilities( DIRACPluginUtilities ):
         if overlap:
           for ov in overlap:
             seDict[ov] = seDict.setdefault( ov, 0 ) + count
+        else:
+          self.logWarn( "%s is in counters but not in required list" % se )
       usageDict = seDict
+    if normalise:
+      usageDict = normaliseShares( usageDict )
     return S_OK( usageDict )
 
   def getBookkeepingMetadata( self, lfns, param ):
@@ -315,7 +312,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     self.setCachedProductions( productions )
     return productions
 
-  @timeThis
+  # @timeThis
   def getFilesParam( self, lfns, param ):
     if not self.filesParam:
       nCached = 0
@@ -442,11 +439,14 @@ class PluginUtilities( DIRACPluginUtilities ):
       return None
     targetSEs += ses
 
-    # Now select the secondary copies
-    # Missing secondary copies, make a list of candidates
+    # Now select the disk replicas
+    # 1. add mandatory SEs
     candidateSEs = [se for se in mandatorySEs if not self.isSameSEInList( se, existingSEs )]
-    candidateSEs += [se for se in existingSEs if not self.isSameSEInList( se, targetSEs + candidateSEs ) and not isArchive( se )]
-    candidateSEs += [se for se in self.rankSEs( secondaryActiveSEs ) if not self.isSameSEInList( se, candidateSEs )]
+    # 2. add existing disk SEs that are either mandatory or secondary
+    candidateSEs += [se for se in existingSEs if se in ( mandatorySEs + secondarySEs ) and not self.isSameSEInList( se, targetSEs + candidateSEs ) and not isArchive( se )]
+    # 3. add ranked list of secondary SEs
+    candidateSEs += [se for se in self.rankSEs( secondaryActiveSEs ) if not self.isSameSEInList( se, targetSEs + candidateSEs + existingSEs )]
+    # 4. Select the proper number of SEs in the candidate ordered list
     ses = self.selectSEs( candidateSEs, numberOfCopies, existingSEs )
     self.logVerbose( "SecondarySEs: %s" % ses )
     if len( ses ) < numberOfCopies:
@@ -499,21 +499,21 @@ class PluginUtilities( DIRACPluginUtilities ):
         fileTargetSEs[lfn] = ','.join( sorted( neededSEs ) )
     return ( fileTargetSEs, alreadyCompleted )
 
-  @timeThis
+  # @timeThis
   def getProcessedFiles( self, lfns ):
     """
     Check which files have been processed by a given production, i.e. have a meaningful descendant
     """
     from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import getFileDescendants
-    return getFileDescendants( self.transID, lfns, transClient = self.transClient, dm = self.dm, bkClient = self.bkClient, verbose = self.debug )
+    return getFileDescendants( self.transID, lfns, transClient = self.transClient, dm = self.dm, bkClient = self.bkClient )
 
-  @timeThis
+  # @timeThis
   def getRAWAncestorsForRun( self, runID, param = None, paramValue = None, getFiles = False ):
     """
     Determine from BK how many ancestors files from a given run we have.
     This is used for deciding when to flush a run (when all RAW files have been processed)
     """
-    ancestors = 0
+    ancestorFiles = set()
     # The transformation files cannot be cached globally as they evolve at each cycle
     lfns = self.transRunFiles.get( runID, [] )
     if not lfns:
@@ -555,33 +555,35 @@ class PluginUtilities( DIRACPluginUtilities ):
     #
     # Get number of ancestors for known files
     cachedLfns = self.cachedLFNAncestors.get( runID, {} )
+    # If we cached a number, clean the cache
+    if cachedLfns and True in set( isinstance( val, ( long, int ) ) for val in cachedLfns.values() ):
+      cachedLfns = {}
     setLfns = set( lfns )
     hitLfns = setLfns & set( cachedLfns )
     if hitLfns and not getFiles:
       self.logVerbose( "Ancestors cache hit for run %d: %d files cached" % \
                        ( runID, len( hitLfns ) ) )
-      ancestors += sum( [cachedLfns[lfn] for lfn in hitLfns] )
-      lfns = list( setLfns - hitLfns )
+      for lfn in hitLfns:
+        ancestorFiles.update( cachedLfns[lfn] )
+      lfns = setLfns - hitLfns
 
     # If some files are unknown, get the ancestors from BK
-    ancestorFiles = set()
     if lfns:
-      res = self.getFileAncestors( lfns )
+      res = self.getFileAncestors( list( lfns ) )
       if res['OK']:
         ancestorDict = res['Value']['Successful']
       else:
         self.logError( "Error getting ancestors: %s" % res['Message'] )
         ancestorDict = {}
       for lfn in ancestorDict:
-        ancFiles = [f['FileName'] for f in ancestorDict[lfn] if f['FileType'] == 'RAW']
+        ancFiles = set( os.path.basename( f['FileName'] ) for f in ancestorDict[lfn] if f['FileType'] == 'RAW' )
         ancestorFiles.update( ancFiles )
-        n = len( ancFiles )
-        self.cachedLFNAncestors.setdefault( runID, {} )[lfn] = n
-        ancestors += n
+        self.cachedLFNAncestors.setdefault( runID, {} )[lfn] = ancFiles
 
     if getFiles:
       return ancestorFiles
     notProcessed = self.__getNotProcessedAncestors( runID, lfnToCheck )
+    ancestors = len( ancestorFiles )
     if notProcessed:
       self.logVerbose( "Found %d files not processed for run %d" % ( notProcessed, runID ) )
       ancestors += notProcessed
@@ -635,15 +637,15 @@ class PluginUtilities( DIRACPluginUtilities ):
     self.notProcessed[runID] = notProcessed
     return notProcessed
 
-  @timeThis
+  # @timeThis
   def getTransformationFiles( self, runID ):
     return self.transClient.getTransformationFiles( { 'TransformationID' : self.transID, 'RunNumber': runID } )
 
-  @timeThis
+  # @timeThis
   def getFileAncestors( self, lfns, depth = 10, replica = True ):
     return self.bkClient.getFileAncestors( lfns, depth = depth, replica = replica )
 
-  @timeThis
+  # @timeThis
   def getTransformationRuns( self, runs = None, transID = None ):
     """ get the run table for a list of runs, if missing, add them """
     if transID is None:
@@ -670,7 +672,7 @@ class PluginUtilities( DIRACPluginUtilities ):
         result = self.transClient.getTransformationRuns( condDict )
     return result
 
-  @timeThis
+  # @timeThis
   def groupByRunAndParam( self, lfns, files, param = '' ):
     """ Group files by run and another BK parameter (e.g. file type or event type)
     """
@@ -772,7 +774,7 @@ class PluginUtilities( DIRACPluginUtilities ):
       self.__runExpired[runID] = ( random.uniform( 0., 1. ) > self.cacheHitFrequency )
     return self.__runExpired[runID]
 
-  @timeThis
+  # @timeThis
   def getNbRAWInRun( self, runID, evtType ):
     """ Get the number of RAW files in a run
     """
@@ -785,7 +787,10 @@ class PluginUtilities( DIRACPluginUtilities ):
         return 0
       rawFiles = res['Value']
       self.cachedNbRAWFiles.setdefault( runID, {} )[evtType] = rawFiles
-      self.logVerbose( "Run %d has %d RAW files" % ( runID, rawFiles ) )
+      if rawFiles:
+        self.logVerbose( "Run %d has %d RAW files" % ( runID, rawFiles ) )
+      else:
+        self.logVerbose( "Run %d is not finished yet" % runID )
     return rawFiles
 
 
@@ -976,19 +981,19 @@ class PluginUtilities( DIRACPluginUtilities ):
     lfnDirs = {}
     # Get the directories
     for lfn in lfns:
-      dir = os.path.dirname( lfn )
-      last = os.path.basename( dir )
+      dirName = os.path.dirname( lfn )
+      last = os.path.basename( dirName )
       if len( last ) == 4 and last.isdigit():
-        dir = os.path.dirname( dir )
-      directories.setdefault( dir, lfn )
-      lfnDirs[lfn] = dir
+        dirName = os.path.dirname( dirName )
+      directories.setdefault( dirName, lfn )
+      lfnDirs[lfn] = dirName
 
-    dirList = [dir for dir in directories if dir not in self.cachedDirMetadata]
-    for dir in dirList:
-      res = self.bkClient.getJobInfo( directories[dir] )
+    dirList = [dirName for dirName in directories if dirName not in self.cachedDirMetadata]
+    for dirName in dirList:
+      res = self.bkClient.getJobInfo( directories[dirName] )
       if not res['OK']:
         return res
-      self.cachedDirMetadata.update( {dir : res['Value'][0][18]} )
+      self.cachedDirMetadata.update( {dirName : res['Value'][0][18]} )
 
     lfnProd = dict( ( lfn, self.cachedDirMetadata.get( lfnDirs[lfn], 0 ) ) for lfn in lfns )
     return S_OK( lfnProd )
@@ -999,6 +1004,7 @@ class PluginUtilities( DIRACPluginUtilities ):
 
 def getRemovalPlugins():
   return ( "DestroyDataset", 'DestroyDatasetWhenProcessed' ,
+           'RemoveReplicasKeepDestination', "ReduceReplicasKeepDestination",
            "RemoveDataset", "RemoveReplicas", 'RemoveReplicasWhenProcessed', 'ReduceReplicas' )
 def getReplicationPlugins():
   return ( "LHCbDSTBroadcast", "LHCbMCDSTBroadcastRandom",
@@ -1039,7 +1045,7 @@ def normaliseShares( shares ):
     normShares[site] = 100.0 * ( float( shares[site] ) / total )
   return normShares
 
-@timeThis
+# @timeThis
 def groupByRun( files ):
   """ Groups files by run
   files is a list of dictionaries containing the run number

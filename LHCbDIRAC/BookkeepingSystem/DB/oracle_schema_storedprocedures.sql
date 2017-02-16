@@ -72,6 +72,39 @@ function insertJobsRow (
      v_WNMJFHS06                   FLOAT
   ) return number;
 
+function insertJobsRow_tmp (
+     v_ConfigName                  VARCHAR2,
+     v_ConfigVersion               VARCHAR2,
+     v_DiracJobId                  NUMBER,
+     v_DiracVersion                VARCHAR2,
+     v_EventInputStat              NUMBER,
+     v_ExecTime                    FLOAT,
+     v_FirstEventNumber            NUMBER,
+     v_JobEnd                      TIMESTAMP,
+     v_JobStart                    TIMESTAMP,
+     v_Location                    VARCHAR2,
+     v_Name                        VARCHAR2,
+     v_NumberOfEvents              NUMBER,
+     v_Production                  NUMBER,
+     v_ProgramName                 VARCHAR2,
+     v_ProgramVersion              VARCHAR2,
+     v_StatisticsRequested         NUMBER,
+     v_WNCPUPower                  VARCHAR2,
+     v_CPUTime                   FLOAT,
+     v_WNCache                     VARCHAR2,
+     v_WNMemory                    VARCHAR2,
+     v_WNModel                     VARCHAR2,
+     v_WorkerNode                  VARCHAR2,
+     v_runNumber                   NUMBER,
+     v_fillNumber                  NUMBER,
+     v_WNCPUHS06                   FLOAT,
+     v_totalLuminosity             NUMBER,
+     v_tck                         VARCHAR2,
+     v_stepid                      NUMBER,
+     v_WNMJFHS06                   FLOAT,
+     v_hlt2tck                     VARCHAR2
+  ) return number;
+
  function insertFilesRow (
     v_Adler32                         VARCHAR2,
     v_CreationDate                    TIMESTAMP,
@@ -152,6 +185,7 @@ procedure getSizeOfFiles(prodId number, a_Cursor out udt_RefCursor);
 procedure getNumberOfEvents(prodId number, a_Cursor out udt_RefCursor);
 procedure getJobsNb(prodId number, a_Cursor out udt_RefCursor);
 procedure insertStepsContainer(v_prod number, v_stepid number, v_step number);
+procedure insertproductionscontainer_tmp(v_prod number, v_processingid number, v_simid number, v_daqperiodid number, cName varchar2, cVersion varchar2);
 procedure insertproductionscontainer(v_prod number, v_processingid number, v_simid number, v_daqperiodid number);
 procedure getEventTypes(cName varchar2, cVersion varchar2, a_Cursor out udt_RefCursor);
 function  getRunNumber(lfn varchar2) return number;
@@ -189,7 +223,8 @@ procedure updateDesLuminosity(v_fileid number);
 procedure getFileDesJobId(v_Filename varchar2, a_Cursor out udt_RefCursor);
 procedure getAllMetadata(v_jobid NUMBER, v_prod number, a_Cursor  out udt_RefCursor);
 function getProducedEvents(v_prodid number) return number;
- 
+procedure bulkgetIdsFromFiles(lfns varchararray,  a_Cursor out udt_RefCursor);
+
 end;
 /
 
@@ -898,8 +933,7 @@ function insertJobsRow (
          TotalLuminosity,
          Tck,
          StepID,
-         WNMJFHS06
-         )
+         WNMJFHS06)
    values(
           jid,
           configId,
@@ -979,7 +1013,168 @@ function insertJobsRow (
     return -1;
   end;
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-function insertFilesRow (
+function insertJobsRow_tmp (
+     v_ConfigName                  VARCHAR2,
+     v_ConfigVersion               VARCHAR2,
+     v_DiracJobId                  NUMBER,
+     v_DiracVersion                VARCHAR2,
+     v_EventInputStat              NUMBER,
+     v_ExecTime                    FLOAT,
+     v_FirstEventNumber            NUMBER,
+     v_JobEnd                      TIMESTAMP,
+     v_JobStart                    TIMESTAMP,
+     v_Location                    VARCHAR2,
+     v_Name                        VARCHAR2,
+     v_NumberOfEvents              NUMBER,
+     v_Production                  NUMBER,
+     v_ProgramName                 VARCHAR2,
+     v_ProgramVersion              VARCHAR2,
+     v_StatisticsRequested         NUMBER,
+     v_WNCPUPower                  VARCHAR2,
+     v_CPUTime                   FLOAT,
+     v_WNCache                     VARCHAR2,
+     v_WNMemory                    VARCHAR2,
+     v_WNModel                     VARCHAR2,
+     v_WorkerNode                  VARCHAR2,
+     v_runNumber                   NUMBER,
+     v_fillNumber                  NUMBER,
+     v_WNCPUHS06                   FLOAT,
+     v_totalLuminosity             NUMBER,
+     v_tck                         VARCHAR2,
+     v_stepid                      NUMBER,
+     v_WNMJFHS06                   FLOAT,
+     v_hlt2tck                     VARCHAR2
+  )return number is
+  jid       number;
+  configId  number;
+  existInDB  number;
+  ecode    Varchar2(256);
+  begin
+    configId := 0;
+    select count(*) into existInDB from configurations where ConfigName=v_ConfigName and ConfigVersion=v_ConfigVersion;
+    if existInDB=0 then
+      select configurationId_seq.nextval into configId from dual;
+      insert into configurations(ConfigurationId,ConfigName,ConfigVersion)values(configId, v_ConfigName, v_ConfigVersion);
+      commit;
+    else
+     select configurationid into configId from configurations where ConfigName=v_ConfigName and ConfigVersion=v_ConfigVersion;
+    end if;
+
+    select jobId_seq.nextval into jid from dual;
+     insert into jobs(
+         JobId,
+         ConfigurationId,
+         DiracJobId,
+         DiracVersion,
+         EventInputStat,
+         ExecTime,
+         FirstEventNumber,
+         JobEnd,
+         JobStart,
+         Location,
+         Name,
+         NumberOfEvents,
+         Production,
+         ProgramName,
+         ProgramVersion,
+         StatisticsRequested,
+         WNCPUPower,
+         CPUTime,
+         WNCache,
+         WNMemory,
+         WNModel,
+         WorkerNode,
+         RunNumber,
+         FillNumber,
+         WNCPUHS06,
+         TotalLuminosity,
+         Tck,
+         StepID,
+         WNMJFHS06,
+         HLT2Tck
+         )
+   values(
+          jid,
+          configId,
+          v_DiracJobId,
+          v_DiracVersion,
+          v_EventInputStat,
+          v_ExecTime,
+          v_FirstEventNumber,
+          v_JobEnd,
+          v_JobStart,
+          v_Location,
+          v_Name,
+          v_NumberOfEvents,
+          v_Production,
+          v_ProgramName,
+          v_ProgramVersion,
+          v_StatisticsRequested,
+          v_WNCPUPower,
+          v_CPUTime,
+          v_WNCache,
+          v_WNMemory,
+          v_WNModel,
+          v_WorkerNode,
+          v_runNumber,
+          v_fillNumber,
+          v_WNCPUHS06,
+          v_totalLuminosity,
+          v_tck,
+          v_stepid,
+          v_WNMJFHS06,
+          v_hlt2tck);
+
+  commit;
+  return jid;
+  EXCEPTION
+  WHEN DUP_VAL_ON_INDEX THEN
+    jid:=0;
+    if v_Production < 0 then
+      select j.jobid into jid from jobs j where j.runnumber=v_runNumber and j.production<0;
+    ELSE 
+       select j.jobid into jid from jobs j where j.name=v_Name and j.production=v_Production;
+    END IF;
+
+    if jid=0 THEN
+      ecode:= SQLERRM;
+      raise_application_error(ecode, 'It is not a run!');
+    else
+       update jobs set ConfigurationId=configId,
+         DiracJobId=v_DiracJobId,
+         DiracVersion=v_DiracVersion,
+         EventInputStat=v_EventInputStat,
+         ExecTime=v_ExecTime,
+         FirstEventNumber=v_FirstEventNumber,
+         JobEnd=v_JobEnd,
+         JobStart=v_JobStart,
+         Location=v_Location,
+         Name=v_Name,
+         NumberOfEvents=v_NumberOfEvents,
+         Production=v_Production,
+         ProgramName=v_ProgramName,
+         ProgramVersion=v_ProgramVersion,
+         StatisticsRequested=v_StatisticsRequested,
+         WNCPUPower=v_WNCPUPower,
+         CPUTime=v_CPUTime,
+         WNCache=v_WNCache,
+         WNMemory=v_WNMemory,
+         WNModel=v_WNModel,
+         WorkerNode=v_WorkerNode,
+         FillNumber=v_fillNumber,
+         WNCPUHS06=v_WNCPUHS06,
+         TotalLuminosity=v_totalLuminosity,
+         StepID = v_stepid,
+         Tck=v_tck,
+         WNMJFHS06=v_WNMJFHS06,
+         HLT2Tck=v_hlt2tck where jobid=jid;
+      commit;
+    return jid;
+    END IF;
+    return -1;
+  end;
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  function insertFilesRow (
     v_Adler32                         VARCHAR2,
     v_CreationDate                    TIMESTAMP,
     v_EventStat                       NUMBER,
@@ -1278,7 +1473,7 @@ FOR j in iftypes.FIRST .. iftypes.LAST LOOP
          jobs.jobid=files.jobid and
          files.filetypeid=filetypes.filetypeid and
          files.QUALITYID=DataQuality.qualityID) LOOP
-        pipe row(metadata0bj(cur.FILENAME, cur.ADLER32,cur.CREATIONDATE,cur.EVENTSTAT, cur.EVENTTYPEID, cur.Name, cur.GOTREPLICA, cur.GUID, cur.MD5SUM, cur.FILESIZE, cur.FullStat, cur.DATAQUALITYFLAG, cur.jobid, cur.runnumber, cur.inserttimestamp, cur.luminosity, cur.instluminosity, cur.VISIBILITYFLAG));
+        pipe row(metadata0bj(cur.FILENAME, cur.ADLER32,cur.CREATIONDATE,cur.EVENTSTAT, cur.EVENTTYPEID, cur.Name, cur.GOTREPLICA, cur.GUID, cur.MD5SUM, cur.FILESIZE, cur.FullStat, cur.DATAQUALITYFLAG, cur.jobid, cur.runnumber, cur.inserttimestamp, cur.luminosity, cur.instluminosity, cur.VISIBILITYFLAG, NULL, NULL));
   END LOOP;
 END LOOP;
 END;
@@ -1298,7 +1493,7 @@ FOR j in iftypes.FIRST .. iftypes.LAST LOOP
          files.QUALITYID=DataQuality.qualityID) LOOP
  lfnmeta.extend;
  n:=n+1;
- lfnmeta (n):=metadata0bj(cur.FILENAME, cur.ADLER32,cur.CREATIONDATE,cur.EVENTSTAT, cur.EVENTTYPEID, cur.Name, cur.GOTREPLICA, cur.GUID, cur.MD5SUM, cur.FILESIZE, cur.FullStat, cur.DATAQUALITYFLAG, cur.jobid, cur.runnumber, cur.inserttimestamp, cur.luminosity, cur.instluminosity, cur.VISIBILITYFLAG);
+ lfnmeta (n):=metadata0bj(cur.FILENAME, cur.ADLER32,cur.CREATIONDATE,cur.EVENTSTAT, cur.EVENTTYPEID, cur.Name, cur.GOTREPLICA, cur.GUID, cur.MD5SUM, cur.FILESIZE, cur.FullStat, cur.DATAQUALITYFLAG, cur.jobid, cur.runnumber, cur.inserttimestamp, cur.luminosity, cur.instluminosity, cur.VISIBILITYFLAG, NULL, NULL);
   END LOOP;
 END LOOP;
 open a_Cursor for select * from table(lfnmeta);
@@ -1457,23 +1652,57 @@ end;
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure insertStepsContainer(v_prod number, v_stepid number, v_step number)is
+alreadyExists number;
 begin
 insert into stepscontainer(production,stepid,step)values(v_prod, v_stepid, v_step);
 commit;
 EXCEPTION
   WHEN DUP_VAL_ON_INDEX THEN
    dbms_output.put_line(v_prod || 'already in the steps container table');
-raise_application_error(-20005, 'The production already exists in the steps container table!');
+   SELECT count(*) INTO alreadyExists FROM stepscontainer WHERE production=v_prod AND stepid=v_stepid AND step=v_step;
+   IF alreadyExists > 0 then
+   	raise_application_error(-20005, 'The production already exists in the steps container table!');
+   END IF;
+end;
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure insertproductionscontainer_tmp(v_prod number, v_processingid number, v_simid number, v_daqperiodid number, cName varchar2, cVersion varchar2) is
+configId number;
+existInDB number;
+BEGIN
+configId := 0;
+select count(*) into existInDB from configurations where ConfigName=cName and ConfigVersion=cVersion;
+if existInDB=0 then
+  select configurationId_seq.nextval into configId from dual;
+  insert into configurations(ConfigurationId,ConfigName,ConfigVersion)values(configId, cName, cVersion);
+  commit;
+else
+ select configurationid into configId from configurations where ConfigName=cName and ConfigVersion=cVersion;
+end if;
+insert into productionscontainer(production,processingid,simid,daqperiodid, configurationid)values(v_prod, v_processingid, v_simid, v_daqperiodid, configId);
+commit;
+EXCEPTION
+  WHEN DUP_VAL_ON_INDEX THEN
+   existInDB := 0;
+   dbms_output.put_line(v_prod || 'already in the steps container table');
+   SELECT count(*) INTO existInDB FROM productionscontainer WHERE production=v_prod and processingid=v_processingid AND  simid=v_simid AND daqperiodid=v_daqperiodid and configurationid=configId;
+   IF existInDB > 0 then
+    raise_application_error(-20005, 'The production already exists in the productionscontainer table!');
+   END IF;
 end;
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure insertproductionscontainer(v_prod number, v_processingid number, v_simid number, v_daqperiodid number) is
+existInDB number;
 begin
 insert into productionscontainer(production,processingid,simid,daqperiodid)values(v_prod, v_processingid, v_simid, v_daqperiodid);
 commit;
 EXCEPTION
   WHEN DUP_VAL_ON_INDEX THEN
    dbms_output.put_line(v_prod || 'already in the steps container table');
-   raise_application_error(-20005, 'The production already exists in the productionscontainer table!');
+   existInDB := 0;
+   SELECT count(*) INTO existInDB FROM productionscontainer WHERE production=v_prod and processingid=v_processingid AND  simid=v_simid AND daqperiodid=v_daqperiodid;
+   IF existInDB > 0 then
+    raise_application_error(-20005, 'The production already exists in the productionscontainer table!');
+   END IF;
 end;
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  procedure getEventTypes(
@@ -1808,7 +2037,7 @@ FOR i in lfns.FIRST .. lfns.LAST LOOP
   IF found = 0 THEN
     lfnmeta.extend;
     n:=n+1;
-    lfnmeta (n):=metadata0bj(lfns(i), NULL,NULL,NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+    lfnmeta (n):=metadata0bj(lfns(i), NULL,NULL,NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
   END IF;
 END LOOP;
 open a_Cursor for select filename from table(lfnmeta);
@@ -1837,7 +2066,7 @@ FOR i in lfns.FIRST .. lfns.LAST LOOP
     select ftype.version into ftype from files f, filetypes ftype where f.filetypeid=ftype.filetypeid and f.filename=lfns(i);
     lfnmeta.extend;
     n:=n+1;
-    lfnmeta (n):=metadata0bj(lfns(i), ftype ,NULL,NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+    lfnmeta (n):=metadata0bj(lfns(i), ftype ,NULL,NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,NULL);
   END IF;
 END LOOP;
 open a_Cursor for select * from table(lfnmeta);
@@ -2045,5 +2274,26 @@ EXCEPTION
   WHEN OTHERS THEN
     raise_application_error(-20005, 'error found during the event number calculation');
 end;
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure bulkgetIdsFromFiles(lfns varchararray,  a_Cursor out udt_RefCursor)
+is
+lfnmeta metadata_table := metadata_table();
+n integer := 0;
+fileid number := 0;
+filetypeid number := 0;
+jobid number := 0;
+BEGIN
+FOR i in lfns.FIRST .. lfns.LAST LOOP
+  BEGIN 
+    select fileid, jobid, filetypeid INTO fileid, jobid, filetypeid from files where filename=lfns(i);
+    lfnmeta.extend;
+    n:=n+1;
+    lfnmeta(n):=metadata0bj(lfns(i), NULL,NULL,NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, jobid,NULL, NULL, NULL, NULL, NULL, fileid,filetypeid);
+  EXCEPTION WHEN NO_DATA_FOUND THEN
+         NULL;
+  END;
+ END LOOP;
+open a_Cursor for select FILENAME, jobid, fileid, filetypeid from table(lfnmeta);
+END;
 END;
 /

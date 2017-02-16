@@ -3,7 +3,7 @@
 """ Regression production jobs are "real" XMLs of production jobs that ran in production
 """
 
-#pylint: disable=missing-docstring
+#pylint: disable=missing-docstring,invalid-name,wrong-import-position
 
 import unittest
 

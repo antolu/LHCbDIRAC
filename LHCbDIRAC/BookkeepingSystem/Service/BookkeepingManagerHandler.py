@@ -1,11 +1,10 @@
-""" BookkeepingManaher service is the front-end to the Bookkeeping database
+""" BookkeepingManager service is the front-end to the Bookkeeping database
 """
 
 import cPickle
 
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
-from DIRAC.ConfigurationSystem.Client import PathFinder
 from DIRAC.ConfigurationSystem.Client.PathFinder import getServiceSection
 from DIRAC.ConfigurationSystem.Client.Helpers import cfgPath
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
@@ -27,6 +26,8 @@ reader_ = None
 global default
 default = 'ALL'
 
+__eventTypeCache = None
+
 def initializeBookkeepingManagerHandler( serviceInfo ):
   """ Put here necessary initializations needed at the service start
   """
@@ -35,6 +36,10 @@ def initializeBookkeepingManagerHandler( serviceInfo ):
 
   global reader_
   reader_ = XMLFilesReaderManager()
+  
+  global __eventTypeCache
+  __eventTypeCache = {}
+  
   return S_OK()
 
 
@@ -46,8 +51,7 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   @classmethod
   def initializeHandler( cls, serviceInfoDict ):
-    """
-      initialize the variables used to identify queries, which are not containing enough conditions.
+    """ Initializes the variables used to identify queries, which are not containing enough conditions.
     """
 
     bkkSection = getServiceSection( "Bookkeeping/BookkeepingManager" )
@@ -414,6 +418,7 @@ class BookkeepingManagerHandler( RequestHandler ):
     if retVal['OK']:
       gLogger.info( 'Sent file %s of size %d' % ( str( in_dict ), len( fileString ) ) )
     else:
+      gLogger.error( "Failed to send files %s" % in_dict )
       result = retVal
     return result
 
@@ -951,7 +956,15 @@ class BookkeepingManagerHandler( RequestHandler ):
   @staticmethod
   def export_checkEventType( eventTypeId ):
     """more info in the BookkeepingClient.py"""
-    return dataMGMT_.checkEventType( eventTypeId )
+    if eventTypeId in __eventTypeCache:
+      return __eventTypeCache[eventTypeId]
+    else:
+      retVal = dataMGMT_.checkEventType( eventTypeId )
+      if retVal['OK']:
+        __eventTypeCache[eventTypeId] = retVal
+      else:
+        return retVal
+    return __eventTypeCache[eventTypeId]
 
   #############################################################################
   types_insertSimConditions = [dict]
@@ -1354,6 +1367,7 @@ class BookkeepingManagerHandler( RequestHandler ):
   @staticmethod
   def export_getProductionProcessedEvents( prodid ):
     """more info in the BookkeepingClient.py"""
+    gLogger.info( 'getProductionProcessedEvents->Production: %d ' % prodid )
     return dataMGMT_.getProductionProcessedEvents( prodid )
 
   #############################################################################
@@ -1510,46 +1524,67 @@ class BookkeepingManagerHandler( RequestHandler ):
   #############################################################################
   types_getVisibleFilesWithMetadata = [dict]
   @staticmethod
-  def export_getVisibleFilesWithMetadata( values ):
+  def export_getVisibleFilesWithMetadata( in_dict ):
     """more info in the BookkeepingClient.py"""
 
-    simdesc = values.get( 'SimulationConditions', default )
-    datataking = values.get( 'DataTakingConditions', default )
-    procPass = values.get( 'ProcessingPass', default )
-    ftype = values.get( 'FileType', default )
-    evt = values.get( 'EventType', 0 )
-    configname = values.get( 'ConfigName', default )
-    configversion = values.get( 'ConfigVersion', default )
-    prod = values.get( 'Production', values.get( 'ProductionID', default ) )
-    flag = values.get( 'DataQuality', values.get( 'DataQualityFlag', default ) )
-    startd = values.get( 'StartDate', None )
-    endd = values.get( 'EndDate', None )
-    nbofevents = values.get( 'NbOfEvents', False )
-    startRunID = values.get( 'StartRun', None )
-    endRunID = values.get( 'EndRun', None )
-    runNbs = values.get( 'RunNumber', values.get( 'RunNumbers', [] ) )
-    replicaFlag = values.get( 'ReplicaFlag', 'Yes' )
-    tck = values.get( 'TCK', [] )
+    conddescription = in_dict.get( 'SimulationConditions', in_dict.get( 'DataTakingConditions', default ) )
+    procPass = in_dict.get( 'ProcessingPass', default )
+    ftype = in_dict.get( 'FileType', default )
+    evt = in_dict.get( 'EventType', default )
+    configname = in_dict.get( 'ConfigName', default )
+    configversion = in_dict.get( 'ConfigVersion', default )
+    prod = in_dict.get( 'Production', in_dict.get( 'ProductionID', default ) )
+    dqflag = in_dict.get( 'DataQuality', in_dict.get( 'DataQualityFlag', default ) )
+    startd = in_dict.get( 'StartDate', None )
+    endd = in_dict.get( 'EndDate', None )
+    startRunID = in_dict.get( 'StartRun', None )
+    endRunID = in_dict.get( 'EndRun', None )
+    runNbs = in_dict.get( 'RunNumber', in_dict.get( 'RunNumbers', [] ) )
+    replicaFlag = in_dict.get( 'ReplicaFlag', 'Yes' )
+    tck = in_dict.get( 'TCK', [] )
+    visible = in_dict.get( 'Visible', 'Y' )
 
     if ftype == default:
       return S_ERROR( 'FileType is missing!' )
 
-    if 'ProductionID' in values:
+    if 'ProductionID' in in_dict:
       gLogger.verbose( 'ProductionID will be removed. It will changed to Production' )
 
-    if 'DataQualityFlag' in values:
+    if 'DataQualityFlag' in in_dict:
       gLogger.verbose( 'DataQualityFlag will be removed. It will changed to DataQuality' )
 
-    if 'RunNumbers' in values:
+    if 'RunNumbers' in in_dict:
       gLogger.verbose( 'RunNumbers will be removed. It will changed to RunNumbers' )
 
+    gLogger.info( "getVisibleFilesWithMetadata->%s", in_dict )
     result = {}
-    retVal = dataMGMT_.getVisibleFilesWithMetadata( simdesc, datataking, procPass,
-                                                   ftype, evt, configname, configversion,
-                                                    prod, flag, startd, endd, nbofevents,
-                                                    startRunID, endRunID, runNbs,
-                                                    replicaFlag, tck )
+    retVal = dataMGMT_.getFilesWithMetadata( configName = configname,
+                                             configVersion = configversion,
+                                             conddescription = conddescription,
+                                             processing = procPass,
+                                             evt = evt,
+                                             production = prod,
+                                             filetype = ftype,
+                                             quality = dqflag,
+                                             visible = visible,
+                                             replicaflag = replicaFlag,
+                                             startDate = startd,
+                                             endDate = endd,
+                                             runnumbers = runNbs,
+                                             startRunID = startRunID,
+                                             endRunID = endRunID,
+                                             tcks = tck )
+
     summary = 0
+
+    parameters = ['FileName', 'EventStat', 'FileSize',
+                  'CreationDate', 'JobStart', 'JobEnd',
+                  'WorkerNode', 'FileType', 'RunNumber',
+                  'FillNumber', 'FullStat', 'DataqualityFlag',
+                  'EventInputStat', 'TotalLuminosity', 'Luminosity',
+                  'InstLuminosity', 'TCK', 'GUID', 'ADLER32', 'EventType', 'MD5SUM',
+                  'VisibilityFlag', 'JobId', 'GotReplica', 'InsertTimeStamp']
+
     if not retVal['OK']:
       return retVal
     else:
@@ -1563,27 +1598,28 @@ class BookkeepingManagerHandler( RequestHandler ):
       ilumi = 0
       for i in values:
         nbfiles = nbfiles + 1
-        if i[1] != None:
-          nbevents += i[1]
-        if i[2] != None:
-          evinput += i[2]
-        if i[5] != None:
-          fsize += i[5]
-        if i[6] != None:
-          tLumi += i[6]
-        if i[7] != None:
-          lumi += i[7]
-        if i[8] != None:
-          ilumi += i[8]
-        result[i[0]] = {'EventStat':i[1],
-                        'EventInputStat':i[2],
-                        'Runnumber':i[3],
-                        'Fillnumber':i[4],
-                        'FileSize':i[5],
-                        'TotalLuminosity':i[6],
-                        'Luminosity':i[7],
-                        'InstLuminosity':i[8],
-                        'TCK':i[9]}
+        row = dict( zip( parameters , i ) )
+        if row['EventStat'] != None:
+          nbevents += row['EventStat']
+        if row['EventInputStat'] != None:
+          evinput += row['EventInputStat']
+        if row['FileSize'] != None:
+          fsize += row['FileSize']
+        if row['TotalLuminosity'] != None:
+          tLumi += row['TotalLuminosity']
+        if row['Luminosity'] != None:
+          lumi += row['Luminosity']
+        if row['InstLuminosity'] != None:
+          ilumi += row['InstLuminosity']
+        result[row['FileName']] = {'EventStat':row['EventStat'],
+                                   'EventInputStat':row['EventInputStat'],
+                                   'Runnumber':row['RunNumber'],
+                                   'Fillnumber':row['FillNumber'],
+                                   'FileSize':row['FileSize'],
+                                   'TotalLuminosity':row['TotalLuminosity'],
+                                   'Luminosity':row['Luminosity'],
+                                   'InstLuminosity':row['InstLuminosity'],
+                                   'TCK':row['TCK']}
       if nbfiles > 0:
         summary = {'Number Of Files':nbfiles,
                    'Number of Events':nbevents,
@@ -1606,8 +1642,8 @@ class BookkeepingManagerHandler( RequestHandler ):
     daqdesc = infos.get( 'DataTakingConditions', None )
     production = None
 
-    if simcond == None and daqdesc == None:
-      result = S_ERROR( 'SimulationConditions or DataTakingConditins is missing!' )
+    if simcond is None and daqdesc is None:
+      result = S_ERROR( 'SimulationConditions and DataTakingConditions are both missing!' )
 
     if 'Steps' not in infos:
       result = S_ERROR( "Missing Steps!" )
@@ -1619,7 +1655,15 @@ class BookkeepingManagerHandler( RequestHandler ):
       inputProdTotalProcessingPass = ''
       production = infos['Production']
       inputProdTotalProcessingPass = infos.get( 'InputProductionTotalProcessingPass', '' )
-      result = dataMGMT_.addProduction( production, simcond, daqdesc, steps, inputProdTotalProcessingPass )
+      configName = infos.get("ConfigName")
+      configVersion = infos.get("ConfigVersion")
+      result = dataMGMT_.addProduction( production = production,
+                                        simcond = simcond,
+                                        daq = daqdesc,
+                                        steps = steps,
+                                        inputproc = inputProdTotalProcessingPass,
+                                        configName = configName,
+                                        configVersion = configVersion )
     return result
 
   #############################################################################
@@ -1991,6 +2035,25 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   types_bulkupdateEventType = [list]
-  def export_bulkupdateEventType( self, eventtypes ):
+  @staticmethod
+  def export_bulkupdateEventType( eventtypes ):
     """more info in the BookkeepingClient.py"""
     return dataMGMT_.bulkupdateEventType( eventtypes )
+
+  #############################################################################
+  types_getRunConfigurationsAndDataTakingCondition = [int]
+  @staticmethod
+  def export_getRunConfigurationsAndDataTakingCondition( runnumber ):
+    """more info in the BookkeepingClient.py"""
+    return dataMGMT_.getRunConfigurationsAndDataTakingCondition( runnumber )
+  
+  types_deleteCertificationData = []
+  def export_deleteCertificationData( self ):
+    """more info in the BookkeepingClient.py"""
+    return dataMGMT_.deleteCertificationData()
+
+  #############################################################################
+  types_getAvailableTagsFromSteps = []
+  def export_getAvailableTagsFromSteps( self ):
+    """more info in the BookkeepingClient.py"""
+    return dataMGMT_.getAvailableTagsFromSteps()

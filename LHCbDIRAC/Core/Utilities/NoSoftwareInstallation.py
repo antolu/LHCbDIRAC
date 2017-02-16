@@ -33,14 +33,7 @@ class NoSoftwareInstallation( object ):
     """
 
     # platform ...........................................................
-    if 'SystemConfig' in self.job:
-      # FIXME: out-dated
-      systemConfig = self.job['SystemConfig']
-      if systemConfig.lower() == 'any':
-        platform = 'ANY'
-      else:
-        platform = ProductionEnvironment.getPlatformFromConfig( systemConfig )[0]
-    elif 'Platform' in self.job:
+    if 'Platform' in self.job:
       platform = self.job['Platform']
     else:
       platform = 'ANY'
@@ -50,10 +43,8 @@ class NoSoftwareInstallation( object ):
     if not localArch:
       raise RuntimeError( "/LocalSite/Architecture is missing and must be specified" )
 
-
     if platform.lower() == 'any':
       self.log.info( "Platform requested by the job is set to 'ANY', using the local platform" )
-
     else:
       self.log.info( "Platform requested by the job is set to '%s'" % platform )
       if not ProductionEnvironment.getPlatformsCompatibilities( platform, localArch ):

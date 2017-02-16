@@ -1,0 +1,73 @@
+{
+   "id": "%(ID)s",
+   "cmd": null,
+   "cpus": %(CPU)s,
+   "mem": %(MEM)s,
+   "disk": 0,
+   "instances": %(INSTANCES)s,
+   "constraints": [
+      [
+         "hostname",
+         "UNIQUE"
+      ]
+   ],
+   "container": {
+      "type": "DOCKER",
+      "volumes": [
+         {
+            "containerPath": "/opt/dirac/etc/grid-security",
+            "hostPath": "/etc/grid-security",
+            "mode": "RO"
+         },
+         {
+            "containerPath": "/opt/dirac/etc/dirac.cfg",
+            "hostPath": "/etc/dirac/LHCb-Certification.cfg",
+            "mode": "RO"
+         }
+      ],
+      "docker": {
+         "image": "gitlab-registry.cern.ch/lhcb-dirac/lhcbdirac:%(VERSION)s",
+         "network": "BRIDGE",
+         "portMappings": [
+            {
+               "containerPort": %(PORT)s,
+               "hostPort": 0
+            }
+         ],
+         "privileged": false,
+         "parameters": [
+            {
+               "key": "label",
+               "value": "dirac_component=%(COMPONENT)s"
+            }
+         ],
+         "forcePullImage": false
+      }
+   },
+   "healthChecks": [
+      {
+         "protocol": "COMMAND",
+         "command": {
+            "value": "/opt/dirac/dockerEntrypoint.sh python /opt/dirac/dirac_self_ping.py %(PORT)s/%(COMPONENT)s"
+         },
+         "gracePeriodSeconds": 300,
+         "intervalSeconds": 60,
+         "timeoutSeconds": 20,
+         "maxConsecutiveFailures": 3,
+         "ignoreHttp1xx": false
+      }
+   ],
+   "labels": {
+      "check_http": "http://lbdiracgw:1234/ping?host={host}&port={port}&service=%(COMPONENT)s",
+      "check_interval": "20s",
+      "system": "prod"
+   },
+   "args": [
+      "dirac-service",
+      "%(COMPONENT)s"
+   ],
+   "upgradeStrategy": {
+      "minimumHealthCapacity": 0.4,
+      "maximumOverCapacity": 1
+   }
+}

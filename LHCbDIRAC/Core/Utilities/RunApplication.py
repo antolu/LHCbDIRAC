@@ -4,17 +4,25 @@
 import sys
 import re
 import multiprocessing
-from distutils.version import LooseVersion
+import shlex
+from distutils.version import LooseVersion #pylint: disable=import-error,no-name-in-module
 
 from DIRAC import gConfig, gLogger
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.List import fromChar
-from DIRAC.Core.Utilities.Subprocess import shellCall
-
-from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getCMTConfig, getScriptsLocation, runEnvironmentScripts, addCommandDefaults
+from DIRAC.Core.Utilities.Subprocess import systemCall
 
 __RCSID__ = "$Id$"
 
+class LbRunError(RuntimeError):
+  """ Exception for command errors
+  """
+  pass
+
+class LHCbApplicationError(RuntimeError):
+  """ Exception for application errors
+  """
+  pass
 
 class RunApplication(object):
   """ Encapsulate logic for running an LHCb application
@@ -24,27 +32,27 @@ class RunApplication(object):
     """ c'tor - holds common variables
     """
     # Standard LHCb scripts
-    self.groupLogin = 'LbLogin.sh'
     self.runApp = 'lb-run'
+    self.lhcbEnvironment = None # This may be added (the result of LbLogin), but by default it won't be
 
     # What to run
-    self.applicationName = 'Gauss'
-    self.applicationVersion = 'v1r0'
+    self.applicationName = '' # e.g. Gauss
+    self.applicationVersion = '' # e.g v42r1
 
-    # How to run it
-    self.command = 'gaudirun.py'
+    # Define the environment
     self.extraPackages = []
-    self.systemConfig = 'Any'
+    self.systemConfig = 'ANY'
     self.runTimeProject = ''
     self.runTimeProjectVersion = ''
-
-    self.prodConf = False
-    self.prodConfFileName = ''
-    self.step_number = 0
     self.site = ''
-    self.optFile = ''
+
+    # What to run and how
+    self.command = 'gaudirun.py'
+    self.commandOptions = []
+    self.prodConf = False
+    self.prodConfFileName = 'prodConf.py'
+    self.step_number = 0
     self.extraOptionsLine = ''
-    self.prodConfFileName = ''
     self.multicore = False
 
     self.applicationLog = 'applicationLog.txt'
@@ -54,154 +62,165 @@ class RunApplication(object):
     self.log = gLogger.getSubLogger( "RunApplication" )
     self.opsH = Operations()
 
-
   def run( self ):
-    """ Invoke lb-run
+    """ Invoke lb-run (what you call after having setup the object)
     """
-    self.log.info( "Executing application %s %s for CMT configuration %s" % ( self.applicationName,
-                                                                              self.applicationVersion,
-                                                                              self.systemConfig ) )
+    self.log.info( "Executing application %s %s for CMT configuration '%s'" % ( self.applicationName,
+                                                                                self.applicationVersion,
+                                                                                self.systemConfig ) )
 
 
-    # First, getting lbLogin location
-    result = getScriptsLocation()
-    if not result['OK']:
-      return result
+    extraPackagesString, runtimeProjectString, externalsString = self._lbRunCommandOptions()
 
-    lbLogin = result['Value'][self.groupLogin]
+    # "CMT" Config
+    # if a CMTConfig is provided, then only that should be called (this should be safeguarded with the following method)
+    # if not, we call --list-configs (waiting for "-c BEST") and then:
+    #   - try only the first that is compatible with the current setup
+    #     (what's in LocalSite/Architecture, and this should be already checked by the method below)
+    if self.systemConfig.lower() == 'any':
+      self.systemConfig = self._findSystemConfig()
+    configString = "-c %s" % self.systemConfig
 
-    # FIXME: need to use or not?
-  #   mySiteRoot = result['Value']['MYSITEROOT']
+    # App
+    app = self.applicationName
+    if self.applicationVersion:
+      app += '/' + self.applicationVersion
 
-    lbLoginEnv = runEnvironmentScripts( [lbLogin] )
-    if not lbLoginEnv['OK']:
-      raise RuntimeError( lbLoginEnv['Message'] )
+    # Command
+    if self.command == 'gaudirun.py':
+      command = self._gaudirunCommand()
+    else:
+      command = self.command
 
-    lbLoginEnv = lbLoginEnv['Value']
+    finalCommand = ' '.join( [self.runApp, configString, extraPackagesString, runtimeProjectString, externalsString, app, command] )
 
-    # extra packages (for setup phase)
+    # Run it!
+    runResult = self._runApp( finalCommand, self.lhcbEnvironment )
+    if not runResult['OK']:
+      self.log.error( "Problem executing lb-run: %s" % runResult['Message'] )
+      raise LbRunError( "Can't start %s %s" % ( self.applicationName, self.applicationVersion ) )
+
+    if runResult['Value'][0]: # if exit status != 0
+      self.log.error( "lb-run or its application exited with status %d" % runResult['Value'][0] )
+      raise LHCbApplicationError( "%s %s exited with status %d" % ( self.applicationName, self.applicationVersion, runResult['Value'][0] ) )
+
+    self.log.info( "%s execution completed successfully" % self.applicationName )
+
+    return runResult
+
+  def _findSystemConfig( self ):
+    """ Invokes lb-run --list-platform to find the "best" CMT config available
+    """
+    lbRunListConfigs = "lb-run --list-platforms %s/%s" % (self.applicationName, self.applicationVersion)
+    self.log.always( "Calling %s" % lbRunListConfigs )
+
+    res = systemCall( timeout = 0,
+                      cmdSeq = shlex.split( lbRunListConfigs ) )
+    if not res['OK']:
+      self.log.error( "Problem executing lb-run --list-platforms: %s" % res['Message'] )
+      raise LbRunError( "Problem executing lb-run --list-platforms" )
+    platforms = res['Value']
+    if platforms[0]:
+      raise LbRunError( "Problem executing lb-run (returned %s)" %platforms )
+    platformsAvailable = platforms[1].split('\n')
+    platformsAvailable = [ plat for plat in platformsAvailable if plat and '-opt' in plat ] #ignoring "debug" platforms
+
+    # FIXME: this won't work with centos7, but we should get a solution from the core software before
+    platformsAvailable.sort( key = LooseVersion, reverse = True )
+    return platformsAvailable[0]
+
+  def _lbRunCommandOptions( self ):
+    """ Return lb-run command options
+    """
+
+    # extra packages (for setup phase) (added using '--use')
     extraPackagesString = ''
-    for epName, epVer in self.extraPackages:
+    for ep in self.extraPackages:
+      if len(ep) == 1:
+        epName = ep[0]
+        epVer = ''
+      elif len(ep) == 2:
+        epName, epVer = ep
+
+      if epName.lower() == 'prodconf':
+        self.prodConf = True
       if epVer:
-        extraPackagesString = extraPackagesString + ' --use="%s %s" ' % ( epName, epVer )
+        extraPackagesString += ' --use="%s %s" ' % ( epName, epVer )
       else:
-        extraPackagesString = extraPackagesString + ' --use="%s"' % epName
+        extraPackagesString += ' --use="%s"' % epName
 
     # run time project
     runtimeProjectString = ''
     if self.runTimeProject:
       self.log.verbose( 'Requested run time project: %s' % ( self.runTimeProject ) )
-      runtimeProjectString = '--runtime-project %s %s' % ( self.runTimeProject , self.runTimeProjectVersion )
+      runtimeProjectString = ' --runtime-project %s/%s' % ( self.runTimeProject , self.runTimeProjectVersion )
 
-    externals = ''
+    externalsString = ''
 
-    if self.opsH.getValue( 'ExternalsPolicy/%s' % ( self.site ) ):
+    externals = []
+    if self.site:
       externals = self.opsH.getValue( 'ExternalsPolicy/%s' % ( self.site ), [] )
-      externals = ' '.join( externals )
-      self.log.info( 'Found externals policy for %s = %s' % ( self.site, externals ) )
-    else:
+      if externals:
+        self.log.info( 'Found externals policy for %s = %s' % ( self.site, externals ) )
+        for external in externals:
+          externalsString += ' --ext=%s' % external
+
+    if not externalsString:
       externals = self.opsH.getValue( 'ExternalsPolicy/Default', [] )
-      externals = ' '.join( externals )
-      self.log.info( 'Using default externals policy for %s = %s' % ( self.site, externals ) )
+      if externals:
+        self.log.info( 'Using default externals policy for %s = %s' % ( self.site, externals ) )
+        for external in externals:
+          externalsString += ' --ext=%s' % external
 
-    # Config
-    compatibleCMTConfigs = getCMTConfig( self.systemConfig )
-    if not compatibleCMTConfigs['OK']:
-      return compatibleCMTConfigs
-    compatibleCMTConfigs = compatibleCMTConfigs['Value']
-    compatibleCMTConfigs.sort( key = LooseVersion, reverse = True )
-    self.log.verbose( "Compatible ordered CMT Configs list: %s" % ','.join( compatibleCMTConfigs ) )
-
-    if self.command == 'gaudirun.py':
-      command = self.gaudirunCommand()
-
-    # Trying all the CMT configs available
-    runResult = ''
-    for compatibleCMTConfig in compatibleCMTConfigs:
-      self.log.verbose( "Using %s for setup" % compatibleCMTConfig )
-      configString = "-c %s" % compatibleCMTConfig
-
-      finalCommandAsList = [self.runApp, self.applicationName, self.applicationVersion, extraPackagesString, configString,
-                            command, runtimeProjectString, externals]
-      finalCommand = ' '.join( finalCommandAsList )
-
-      runResult = self._runApp( finalCommand, compatibleCMTConfig, lbLoginEnv )
-      if not runResult['OK']:
-        self.log.warn( "Problem executing lb-run: %s" % runResult['Message'] )
-        self.log.warn( "Can't call lb-run using %s, trying the next, if any\n\n" % compatibleCMTConfig )
-        continue
-
-    if not runResult['OK']:
-      raise RuntimeError( "Can't start %s %s" % ( self.applicationName, self.applicationVersion ) )
-
-    self.log.info( "Status after the application execution is %s" % str( runResult ) )
+    return extraPackagesString, runtimeProjectString, externalsString
 
 
 
-  def gaudirunCommand( self ):
+  def _gaudirunCommand( self ):
     """ construct a gaudirun command
     """
-    gaudiRunFlags = self.opsH.getValue( '/GaudiExecution/gaudirunFlags', 'gaudirun.py' )
-
-    # if self.optionsLine or self.jobType.lower() == 'user':
-    if not self.prodConf:
-      command = '%s %s %s' % ( gaudiRunFlags, self.optFile, 'gaudi_extra_options.py' )
-    else:  # everything but user jobs
-      if self.extraOptionsLine:
-        fopen = open( 'gaudi_extra_options.py', 'w' )
-        fopen.write( self.extraOptionsLine )
-        fopen.close()
-        command = '%s %s %s %s' % ( gaudiRunFlags, self.optFile, self.prodConfFileName, 'gaudi_extra_options.py' )
-      else:
-        command = '%s %s %s' % ( gaudiRunFlags, self.optFile, self.prodConfFileName )
-    self.log.always( 'Command = %s' % command )
+    command = self.opsH.getValue( '/GaudiExecution/gaudirunFlags', 'gaudirun.py' )
 
     # multicore?
     if self.multicore:
       cpus = multiprocessing.cpu_count()
       if cpus > 1:
         if _multicoreWN():
-          gaudiRunFlags = gaudiRunFlags + ' --ncpus -1 '
+          command += ' --ncpus -1 '
         else:
           self.log.info( "Would have run with option '--ncpus -1', but it is not allowed here" )
 
+    if self.commandOptions:
+      command += ' '
+      command += ' '.join(self.commandOptions)
 
-    # Set some parameter names
-    dumpEnvName = 'Environment_Dump_%s_%s_Step%s.log' % ( self.applicationName,
-                                                          self.applicationVersion,
-                                                          self.step_number )
-    scriptName = '%s_%s_Run_%s.sh' % ( self.applicationName,
-                                       self.applicationVersion,
-                                       self.step_number )
-    coreDumpName = '%s_Step%s' % ( self.applicationName,
-                                   self.step_number )
+    if self.prodConf:
+      command += ' '
+      command += self.prodConfFileName
 
-    # Wrap final execution command with defaults
-    finalCommand = addCommandDefaults( command,
-                                       envDump = dumpEnvName,
-                                       coreDumpLog = coreDumpName )['Value']  # should always be S_OK()
+    if self.extraOptionsLine:
+      command += ' '
+      with open( 'gaudi_extra_options.py', 'w' ) as fopen:
+        fopen.write( self.extraOptionsLine )
+      command += 'gaudi_extra_options.py'
 
-    return finalCommand
+    return command
 
 
 
-  def _runApp( self, finalCommand, compatibleCMTConfig, env = None ):
+  def _runApp( self, command, env = None ):
     """ Actual call of a command
     """
-    self.log.verbose( "Calling %s" % finalCommand )
+    print 'Command called: \n%s' % command # Really printing here as we want to see and maybe cut/paste
 
-    res = shellCall( 0, finalCommand,
-                     env = env,
-                     callbackFunction = self.__redirectLogOutput,
-                     bufferLimit = 20971520 )
-
-    print res
-
+    res = systemCall( timeout = 0,
+                      cmdSeq = shlex.split(command),
+                      env = env, #this may be the LbLogin env
+                      callbackFunction = self.__redirectLogOutput )
     return res
 
-
   def __redirectLogOutput( self, fd, message ):
-    """ Callback function for the Subprocess.shellcall
+    """ Callback function for the Subprocess calls
         Manages log files
 
         fd is stdin/stderr
@@ -240,7 +259,7 @@ def _multicoreWN():
   tags = fromChar( gConfig.getValue( '/Resources/Sites/%s/%s/CEs/%s/Queues/%s/Tag' % ( siteName.split( '.' )[0], queue,
                                                                                        siteName, gridCE ), '' ) )
 
-  if 'MultiProcessor' in tags:
+  if tags and 'MultiProcessor' in tags:
     return True
   else:
     return False

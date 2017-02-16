@@ -21,7 +21,7 @@ def __printDictionary( dictionary, offset = 0, shift = 0, empty = "Empty directo
   key_max = 0
   value_max = 0
   for key, value in dictionary.iteritems():
-    key_max = max( key_max, len( key ) )
+    key_max = max( key_max, len( str( key ) ) )
     value_max = max( value_max, len( str( value ) ) )
   center = key_max + offset
   newOffset = offset + ( shift if shift else key_max )
@@ -43,7 +43,7 @@ def __printDictionary( dictionary, offset = 0, shift = 0, empty = "Empty directo
         for val in sorted( value ):
           gLogger.notice( '%s%s' % ( newOffset * ' ', val ) )
     elif not isinstance( value, dict ):
-      gLogger.notice( '%s : %s' % ( key.rjust( center ), str( value ) ) )
+      gLogger.notice( '%s : %s' % ( str( key ).rjust( center ), str( value ) ) )
 
 def printDMResult( result, shift = 4, empty = "Empty directory", script = None, depth = 999, offset = 0 ):
   """ Printing results returned with 'Successful' and 'Failed' items """
@@ -344,9 +344,13 @@ class DMScript( object ):
     return DIRAC.S_OK()
 
   def setSites( self, arg ):
-    siteShortNames = { 'CERN':'LCG.CERN.ch', 'CNAF':'LCG.CNAF.it', 'GRIDKA':'LCG.GRIDKA.de',
-                      'NIKHEF':'LCG.NIKHEF.nl', 'SARA':'LCG.SARA.nl', 'PIC':'LCG.PIC.es',
-                      'RAL':'LCG.RAL.uk', 'IN2P3':'LCG.IN2P3.fr', 'RRCKI':'LCG.RRCKI.ru' }
+    from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
+    try:
+      siteShortNames = DMSHelpers().getShortSiteNames( withStorage = False, tier = ( 0, 1 ) )
+    except AttributeError:
+      siteShortNames = { 'CERN':'LCG.CERN.cern', 'CNAF':'LCG.CNAF.it', 'GRIDKA':'LCG.GRIDKA.de',
+                         'NIKHEF':'LCG.NIKHEF.nl', 'SARA':'LCG.SARA.nl', 'PIC':'LCG.PIC.es',
+                         'RAL':'LCG.RAL.uk', 'IN2P3':'LCG.IN2P3.fr', 'RRCKI':'LCG.RRCKI.ru' }
     sites = arg.split( ',' )
     self.options['Sites'] = [siteShortNames.get( site.upper(), site ) for site in sites]
     return DIRAC.S_OK()
@@ -501,7 +505,6 @@ class DMScript( object ):
     NOTE: The file format is equivalent to the file format when the content is
     a list of LFNs."""
     try:
-      import sys
       in_file = open( arg, 'r' ) if arg else sys.stdin
       jobids = self.getJobIDsFromList( in_file.read().splitlines() )
       if arg:

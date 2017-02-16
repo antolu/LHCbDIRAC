@@ -16,7 +16,7 @@ from DIRAC.Resources.Storage.StorageElement                 import StorageElemen
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers        import DMSHelpers, resolveSEGroup
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient   import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient        import TransformationClient
-from LHCbDIRAC.DataManagementSystem.Client.DMScript         import printDMResult, ProgressBar
+from LHCbDIRAC.DataManagementSystem.Client.DMScript         import printDMResult, ProgressBar, DMScript
 from LHCbDIRAC.BookkeepingSystem.Client.ScriptExecutors import scaleSize
 
 __RCSID__ = "$Id$"
@@ -116,7 +116,7 @@ def executeRemoveReplicas( dmScript, allDisk = False ):
     minReplicas = 0
 
   for switch in Script.getUnprocessedSwitches():
-    if switch[0] == "n" or switch[0].lower() == "nolfc":
+    if switch[0] == "n" or switch[0] == "NoFC":
       checkFC = False
     elif switch[0] == 'Force':
       force = True
@@ -433,6 +433,12 @@ def executeAccessURL( dmScript ):
         protocol.insert( protocol.index( 'root' ), 'xroot' )
       elif 'xroot' in protocol and 'root' not in protocol:
         protocol.insert( protocol.index( 'xroot' ) + 1, 'root' )
+      elif 'xroot' in protocol and 'root' in protocol:
+        indexOfRoot = protocol.index( 'root' )
+        indexOfXRoot = protocol.index( 'xroot' )
+        if indexOfXRoot > indexOfRoot:
+          protocol[indexOfRoot], protocol[indexOfXRoot] = protocol[indexOfXRoot], protocol[indexOfRoot]
+
   lfnList, seList = parseArguments( dmScript )
   if not lfnList:
     gLogger.notice( "No list of LFNs provided" )
@@ -631,64 +637,62 @@ def executeLfnReplicas( dmScript ):
   active = True
   preferDisk = False
   diskOnly = False
+  forJobs = False
   switches = Script.getUnprocessedSwitches()
   for switch in switches:
     if switch[0] in ( "a", "All" ):
       active = False
-    if switch[0] == 'DiskOnly':
+    elif switch[0] == 'DiskOnly':
       diskOnly = True
-    if switch[0] == 'PreferDisk':
+    elif switch[0] == 'PreferDisk':
       preferDisk = True
+    elif switch[0] == 'ForJobs':
+      forJobs = True
 
   if not lfnList:
     gLogger.fatal( "No LFNs supplies" )
     Script.showHelp()
     return 1
-  return printLfnReplicas( lfnList, active, diskOnly, preferDisk )
+  return printLfnReplicas( lfnList, active = active, diskOnly = diskOnly, preferDisk = preferDisk, forJobs = forJobs )
 
-def printLfnReplicas( lfnList, active = True, diskOnly = False, preferDisk = False ):
+def printLfnReplicas( lfnList, active = True, diskOnly = False, preferDisk = False, forJobs = False ):
   """
   get the replica list for a list of LFNs and print them depending on options
   """
   dm = DataManager()
   fc = FileCatalog()
   while True:
-    dmMethod = dm.getActiveReplicas if active else dm.getReplicas
-    res = dmMethod( lfnList, diskOnly = diskOnly, preferDisk = preferDisk )
+    if forJobs:
+      res = dm.getReplicasForJobs( lfnList, diskOnly = diskOnly )
+    else:
+      res = dm.getReplicas( lfnList, active = active, diskOnly = diskOnly, preferDisk = preferDisk )
     if not res['OK']:
       break
-    if active and not res['Value']['Successful'] and not res['Value']['Failed']:
+    if active and not forJobs and not res['Value']['Successful'] and not res['Value']['Failed']:
       active = False
     else:
       break
-  if res['OK']:
-    if active:
-      res = dm.checkActiveReplicas( res['Value'] )
-      value = res['Value']
-    else:
-      replicas = res['Value']['Successful']
-      value = {'Failed': res['Value']['Failed'], 'Successful' : {}}
-      for lfn in sorted( replicas ):
-        value['Successful'].setdefault( lfn, {} )
-        for se in sorted( replicas[lfn] ):
-          res = fc.getReplicaStatus( {lfn:se} )
-          if not res['OK']:
-            value['Failed'][lfn] = "Can't get replica status"
-          else:
-            value['Successful'][lfn][se] = "(%s) %s" % ( res['Value']['Successful'][lfn], replicas[lfn][se] )
-      res = S_OK( value )
+  if res['OK'] and not active:
+    replicas = res['Value']['Successful']
+    value = {'Failed': res['Value']['Failed'], 'Successful' : {}}
+    for lfn in sorted( replicas ):
+      value['Successful'].setdefault( lfn, {} )
+      for se in sorted( replicas[lfn] ):
+        res = fc.getReplicaStatus( {lfn:se} )
+        if not res['OK']:
+          value['Failed'][lfn] = "Can't get replica status"
+        else:
+          value['Successful'][lfn][se] = "(%s) %s" % ( res['Value']['Successful'][lfn], replicas[lfn][se] )
+    res = S_OK( value )
   return printDMResult( res, empty = "No %sreplica found" % ( 'active disk ' if diskOnly else 'allowed ' if active else '' ), script = "dirac-dms-lfn-replicas" )
 
-def executePfnMetadata( dmScript ):
+def executePfnMetadata( dmScript, check = False, exists = False, summary = False ):
   """
   get options for pfn-metadata
   """
 
   lfnList, seList = parseArguments( dmScript )
 
-  check = False
-  exists = False
-  summary = False
   for opt, _val in Script.getUnprocessedSwitches():
     if opt == 'Check':
       check = True
@@ -755,7 +759,9 @@ def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = 
             pfnMetadata = seMetadata['Successful'][url].copy()
             if isinstance( pfnMetadata.get( 'Mode' ), ( int, long ) ):
               pfnMetadata['Mode'] = '%o' % pfnMetadata['Mode']
-            metadata['Successful'].setdefault( url, {} )[se] = pfnMetadata if not exists else {'Exists': 'True (%sCached)' % ( '' if pfnMetadata.get( 'Cached' ) else 'Not ' )}
+            metadata['Successful'].setdefault( url, {} )[se] = pfnMetadata if not exists \
+            else {'Exists': 'True (%sCached%s)' % ( ( '' if pfnMetadata.get( 'Cached' ) else 'Not ' ),
+                                                   ( ' and unavailable' if pfnMetadata.get( 'Unavailable' ) else '' ) )}
             if exists and not pfnMetadata.get( 'Size' ):
               metadata['Successful'][url][se].update( {'Exists':'Zero size'} )
             if check:
@@ -834,7 +840,6 @@ def executeReplicaStats( dmScript ):
   prWithReplicas = False
   prFailover = False
   prSEList = []
-  prNotSEList = []
   dumpAtSE = False
   dumpNotAtSE = False
   for switch in Script.getUnprocessedSwitches():
@@ -985,7 +990,6 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
     nfiles += 1
 
   gigaByte = 1000. * 1000. * 1000.
-  teraByte = gigaByte * 1000.
   if directories:
     dirStr = " in %s" % str( directories )
   else:
@@ -1003,16 +1007,18 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
       gLogger.notice( "   ...but all of them are also somewhere else" )
   if maxArch:
     for nrep in range( 1, maxArch + 1 ):
-      gLogger.notice( "%d archives: %d files" % ( nrep - 1, repStats.setdefault( -nrep, 0 ) ) )
+      gLogger.notice( "%3d archive replicas: %d files" % ( nrep - 1, repStats.setdefault( -nrep, 0 ) ) )
+    gLogger.notice( "---------------------" )
   for nrep in range( maxRep + 1 ):
-    gLogger.notice( "%d replicas: %d files" % ( nrep, repStats.setdefault( nrep, 0 ) ) )
+    gLogger.notice( "%3d  other  replicas: %d files" % ( nrep, repStats.setdefault( nrep, 0 ) ) )
+  gLogger.notice( "---------------------" )
 
   gLogger.notice( "\nSE statistics:" )
   for se in orderSEs( repSEs ):
     if dmsHelper.isSEFailover( se ):
       continue
     if not dmsHelper.isSEArchive( se ):
-      res = dmsHelper.getSitesForSE( se )
+      res = dmsHelper.getSitesForSE( se, connectionLevel = 'LOCAL' )
       if res['OK']:
         try:
           site = res['Value'][0]
@@ -1484,6 +1490,7 @@ def executeAddFile():
   """
     Add a file to a Grid storage element
   """
+
   args = Script.getPositionalArgs()
   if len( args ) < 1 or len( args ) > 4:
     Script.showHelp()
@@ -1510,6 +1517,8 @@ def executeAddFile():
 
   dm = DataManager()
   logLevel = gLogger.getLevel()
+
+  dms = DMScript()
   for lfnDict in lfnList:
     localFile = lfnDict['localfile']
     remoteFile = None
@@ -1551,7 +1560,8 @@ def executeAddFile():
     if not lfnDict['guid']:
       from LHCbDIRAC.Core.Utilities.File import makeGuid
       lfnDict['guid'] = makeGuid( localFile )[localFile]
-    lfn = lfnDict['lfn']
+    # normalize the LFN
+    lfn = dms.getLFNsFromList( lfnDict['lfn'] )[0]
     gLogger.notice( "\nUploading %s as %s" % ( localFile, lfn ) )
     gLogger.setLevel( 'FATAL' )
     res = dm.putAndRegister( lfn, localFile, lfnDict['SE'], lfnDict['guid'] )
@@ -1636,9 +1646,9 @@ def executeListDirectory( dmScript, days = 0, months = 0, years = 0, wildcard = 
         continue
       res = fc.listDirectory( currentDir, verbose )
       if not res['OK']:
-        gLogger.error( "Error retrieving directory contents", "%s %s" % ( currentDir, res['Message'] ) )
+        gLogger.error( "Error retrieving directory contents -", "%s %s/" % ( res['Message'].replace( currentDir, '' ), currentDir ) )
       elif currentDir in res['Value']['Failed']:
-        gLogger.error( "Error retrieving directory contents", "%s %s" % ( currentDir, res['Value']['Failed'][currentDir] ) )
+        gLogger.error( "Error retrieving directory contents -", "%s %s/" % ( res['Value']['Failed'][currentDir].replace( currentDir, '' ), currentDir ) )
       else:
         dirContents = res['Value']['Successful'][currentDir]
         empty = True
@@ -1721,9 +1731,8 @@ def registerBK2FC( lfnList, seList, printResult = False ):
 
   if lfnList:
 
-    from DIRAC.ConfigurationSystem.Client.Helpers.Resources     import getRegistrationProtocols
     fc = FileCatalog()
-    registrationProtocol = getRegistrationProtocols()
+    registrationProtocol = DMSHelpers().getRegistrationProtocols()
     seListString = ','.join( seList )
     level = gLogger.getLevel()
     for se in seList:

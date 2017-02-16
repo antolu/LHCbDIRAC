@@ -1106,6 +1106,30 @@ class BookkeepingClient( object ):
     server = self.__getServer()
     return server.bulkupdateEventType( eventtypes )
   
+  #############################################################################
+  def getRunConfigurationsAndDataTakingCondition( self, runnumber ):
+    """
+    It returns minimal information for a given run.
+    :param: int runnumber   
+    :return: S_OK()/S_ERROR ConfigName, ConfigVersion and DataTakingDescription
+    """
+    server = self.__getServer()
+    return server.getRunConfigurationsAndDataTakingCondition( int( runnumber ) )
+  
+  #############################################################################
+  def deleteCertificationData( self ):
+    """It destroy the data used by the integration test"""
+    server = self.__getServer()
+    return server.deleteCertificationData()
+  
+  #############################################################################
+  def getAvailableTagsFromSteps( self ):
+    """
+    It returns the all used datatbase tags: DDDB, CondDB, DQTag
+    """
+    server = self.__getServer()
+    return server.getAvailableTagsFromSteps()
+  
 class BKClientWithRetry():
   """
   Utility class wrapping BKClient with retries

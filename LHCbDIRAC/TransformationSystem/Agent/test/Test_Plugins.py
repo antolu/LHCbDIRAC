@@ -46,6 +46,7 @@ class PluginsTestCase( unittest.TestCase ):
     self.mockTC = MagicMock()
     self.mockDM = MagicMock()
     self.mockRM = MagicMock()
+    self.mockBKK = MagicMock()
     self.mockCatalog = MagicMock()
     self.mockCatalog.getFileSize.return_value()
     self.tPlugin = importlib.import_module( 'LHCbDIRAC.TransformationSystem.Agent.TransformationPlugin' )
@@ -53,8 +54,10 @@ class PluginsTestCase( unittest.TestCase ):
     self.tPlugin.DataManager = self.mockDM
     self.tPlugin.FileCatalog = self.mockCatalog
     self.tPlugin.rmClient = self.mockRM
-
     self.maxDiff = None
+    se = importlib.import_module( 'DIRAC.TransformationSystem.Client.Utilities' )
+    mockSE = MagicMock()
+    se.StorageElement = mockSE
 
     gLogger.setLevel( 'DEBUG' )
 
@@ -68,14 +71,24 @@ class PluginsBaseSuccess( PluginsTestCase ):
 
   def test__LHCbStandard( self ):
     # no input data, active
-    pluginStandard = TransformationPlugin( 'LHCbStandard' )
+    pluginStandard = TransformationPlugin( 'LHCbStandard',
+                                           transClient = self.mockTC,
+                                           dataManager = self.mockDM,
+                                           rmClient = self.mockRM,
+                                           bkClient = self.mockBKK,
+                                           fc = self.mockCatalog )
     pluginStandard.setParameters( paramsBase )
     res = pluginStandard.run()
     self.assert_( res['OK'] )
     self.assertEqual( res['Value'], [] )
 
     # input data, active
-    pluginStandard = TransformationPlugin( 'LHCbStandard' )
+    pluginStandard = TransformationPlugin( 'LHCbStandard',
+                                           transClient = self.mockTC,
+                                           dataManager = self.mockDM,
+                                           rmClient = self.mockRM,
+                                           bkClient = self.mockBKK,
+                                           fc = self.mockCatalog )
     pluginStandard.setParameters( paramsBase )
     pluginStandard.setInputData( data )
     params = {}
@@ -90,7 +103,12 @@ class PluginsBaseSuccess( PluginsTestCase ):
       self.assert_( len( t[1] ) <= 2 )
 
     # input data, flush
-    pluginStandard = TransformationPlugin( 'LHCbStandard' )
+    pluginStandard = TransformationPlugin( 'LHCbStandard',
+                                           transClient = self.mockTC,
+                                           dataManager = self.mockDM,
+                                           rmClient = self.mockRM,
+                                           bkClient = self.mockBKK,
+                                           fc = self.mockCatalog )
     pluginStandard.setParameters( paramsBase )
     pluginStandard.setInputData( data )
     params = {}

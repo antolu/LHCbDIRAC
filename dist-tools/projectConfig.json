@@ -1,1 +1,65 @@
-{"version": "v8r3", "used_projects": {"project": [["Dirac","v6r15p12",["bin","python","lib"]],["LHCbGrid","v10r0",["bin","python","lib"]]]},"heptools": {"version": 84, "binary_tag": "$CMTCONFIG", "packages": [["Python", "2.7.9.p1", ["bin"]], ["pygraphics","1.5_python2.7",["bin","python","lib"]], ["qt","4.8.4",["bin","python","lib"]], ["gcc","4.9.3",["bin","python","lib"]], ["mysql","5.5.27",["bin","python","lib"]], ["pytools", "1.9_python2.7", ["bin", "python"]]]}, "name": "LHCbDirac"}
+{
+  "name": "LHCbDirac",
+  "version": "v8r6-pre6",
+  "used_projects": {
+    "project": [
+      [ "Dirac", "v6r17p9",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "LHCbGrid", "v11r3",
+        [ "bin", "python", "lib" ]
+      ]
+    ]
+  },
+  "heptools": {
+    "binary_tag": "$CMTCONFIG",
+    "version": "86",
+    "packages": [
+      [ "Python", "2.7.10",
+        [ "bin" ]
+      ],
+      [ "pygraphics", "2.0",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "qt", "4.8.7",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "gcc", "4.9.3",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "mysql", "5.7.11",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "pyparsing", "2.1.8",
+        [ "bin", "python" ]
+      ],
+      [ "pytools", "2.0",
+        [ "bin", "python" ]
+      ],
+      [ "simplegeneric", "0.8.1",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "wcwidth", "0.1.7",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "prompt_toolkit", "1.0.3",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "pickleshare", "0.7.2",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "pathlib2", "2.1.0",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "backports", "1.0.0",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "pexpect", "4.2.0",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "ipython_genutils", "0.1.0",
+        [ "bin", "python", "lib" ]
+      ]
+    ]
+  }
+}

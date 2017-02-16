@@ -1,13 +1,16 @@
 """  TransformationPlugin is a class wrapping the supported LHCb transformation plugins
 """
 
+# pylint: disable=too-many-lines
+# pylint: disable=missing-docstring
+
 import time
 import os
 import random
 
 from DIRAC import S_OK, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks, randomize
-from DIRAC.Core.Utilities.Time import timeThis
+# from DIRAC.Core.Utilities.Time import timeThis
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import resolveSEGroup
 from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
 from DIRAC.TransformationSystem.Agent.TransformationPlugin import TransformationPlugin as DIRACTransformationPlugin
@@ -21,8 +24,6 @@ from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities import PluginUtili
 
 __RCSID__ = "$Id$"
 
-# pylint: disable=missing-docstring
-
 class TransformationPlugin( DIRACTransformationPlugin ):
   """ Extension of DIRAC TransformationPlugin - instantiated by the TransformationAgent
   """
@@ -33,7 +34,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
                 debug = False, transInThread = None ):
     """ The clients can be passed in.
     """
-    super( TransformationPlugin, self ).__init__( plugin, transClient = transClient, dataManager = dataManager )
+    super( TransformationPlugin, self ).__init__( plugin,
+                                                  transClient = transClient,
+                                                  dataManager = dataManager,
+                                                  fc = fc )
 
     if not bkClient:
       self.bkClient = BookkeepingClient()
@@ -62,7 +66,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       self.transClient = TransformationClient()
     else:
       self.transClient = transClient
-
     self.util = PluginUtilities( plugin = plugin,
                                  transClient = transClient, dataManager = dataManager,
                                  bkClient = self.bkClient, rmClient = self.rmClient,
@@ -107,7 +110,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def __del__( self ):
     self.util.logInfo( "Execution finished, timing: %.3f seconds" % ( time.time() - self.startTime ) )
 
-  @timeThis
+  # @timeThis
   def _removeProcessedFiles( self ):
     """
     Checks if the LFNs have descendants in the same transformation. Removes them from self.transReplicas
@@ -138,7 +141,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     sourceSE = 'CERN-RAW'
     rawTargets = self.util.getPluginParam( 'RAWStorageElements', ['Tier1-RAW'] )
     rawTargets = set( resolveSEGroup( rawTargets ) ) - set( [sourceSE] )
-    bufferTargets = self.util.getPluginParam( 'ProcessingStorageElements', ['Tier1-BUFFER'] )
+    bufferTargets = self.util.getPluginParam( 'ProcessingStorageElements', ['Tier1-Buffer'] )
     bufferTargets = set( resolveSEGroup( bufferTargets ) )
     useRunDestination = self.util.getPluginParam( 'UseRunDestination', False )
     preStageShares = self.util.getPluginParam( 'PrestageShares', 'CPUforRAW' )
@@ -448,7 +451,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       self.util.logException( "Exception in _ByRun plugin:", '', x )
       return S_ERROR( [] )
 
-  @timeThis
+  # @timeThis
   def __byRun( self, param = '', plugin = 'LHCbStandard', requireFlush = False, forceFlush = False ):
     """ Basic plugin for when you want to group files by run
     """
@@ -498,32 +501,51 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     inputData = self.transReplicas.copy()
     setInputData = set( inputData )
     runEvtType = {}
-    runList = []
     # Restart where we finished last time
     lastRun = self.util.getCachedLastRun()
-    # runList = [run for run in transRuns if run['RunNumber'] > lastRun]
+    runNumbers = sorted( [run['RunNumber'] for run in transRuns if run['RunNumber'] > lastRun] ) + \
+                 sorted( [run['RunNumber'] for run in transRuns if run['RunNumber'] <= lastRun] )
     # If none left, restart from the beginning
-    if not runList:
-      runList = transRuns
+    if not runNumbers:
+      runNumbers = [run['RunNumber'] for run in transRuns]
       lastRun = 0
       self.util.setCachedLastRun( lastRun )
-    nRunsLeft = len( runList )
-    missingAtSEs = False
-    self.util.logInfo( "Processing %d runs starting at run %d" % ( len( runList ), lastRun ) )
+    # Find out how many files we have currently Unused per run
+    res = self.transClient.getTransformationFilesCount( self.transID, 'RunNumber', {'Status':'Unused', 'RunNumber':runNumbers} )
+    if not res['OK']:
+      self.util.logError( "Error getting file counts per run", res['Message'] )
+      return res
+    unusedFilesPerRun = res['Value']
+    # Check that the total number of files we got for that run is equal to the number of Unused files
+    nRunsLeft = len( runNumbers )
+    for runID in list( runNumbers ):
+      runFiles = sum( len( lfns ) for lfns in runDict[runID].itervalues() )
+      if runFiles != unusedFilesPerRun.get( runID, 0 ):
+        runNumbers.remove( runID )
+    if nRunsLeft != len( runNumbers ):
+      self.util.logVerbose( "Removed %d runs with less files than Unused" % ( nRunsLeft - len( runNumbers ) ) )
+      nRunsLeft = len( runNumbers )
+    runList = sorted( ( run for run in transRuns if run['RunNumber'] in runNumbers ), cmp = ( lambda d1, d2: int( d1['RunNumber'] - d2['RunNumber'] ) ) )
+    if nRunsLeft:
+      self.util.logInfo( "Processing %d runs starting at run %d" % ( nRunsLeft, min( runNumbers ) ) )
+    else:
+      self.util.logInfo( "No runs to process, exit" )
+      return S_OK( [] )
     #
     # # # # # # # Loop on all selected runs # # # # # # #
     #
     timeout = False
     processedFiles = 0
-    for run in sorted( runList, cmp = ( lambda d1, d2: int( d1['RunNumber'] - d2['RunNumber'] ) ) ):
+    missingAtSEs = False
+    for run in runList:
       runID = run['RunNumber']
-      self.util.logDebug( "Processing run %d, still %d runs left" % ( runID, nRunsLeft ) )
+      self.util.logVerbose( "Processing run %d, still %d runs left" % ( runID, nRunsLeft ) )
       nRunsLeft -= 1
       runStatus = 'Flush' if transStatus == 'Flush' else run['Status']
       paramDict = runDict.get( runID, {} )
       targetSEs = [se for se in runSites.get( runID, '' ).split( ',' ) if se]
       #
-      # Loop on parameters (None if not by param
+      # Loop on parameters (None if not by param)
       #
       flushed = []
       for paramValue in sorted( paramDict ):
@@ -539,7 +561,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
            runStatus != 'Flush' and \
            not self.util.cacheExpired( runID ) and \
            ( plugin != 'LHCbStandard' or groupSize != 1 ):
-          self.util.logVerbose( "No new files since last time for run %d%s: skip..." % ( runID, paramStr ) )
+          self.util.logInfo( "No new files since last time for run %d%s: skip..." % ( runID, paramStr ) )
           continue
         self.util.logVerbose( "Of %d files, %d are new for %d%s" % ( len( runParamLfns ),
                                                                      len( newLfns ), runID, paramStr ) )
@@ -566,7 +588,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         # As it may use self.data, set both transReplicas and data members
         self.transReplicas = runParamReplicas
         # Check if files have already been processed
-        if self.params['Type'] not in typesWithNoCheck:
+        if False and self.params['Type'] not in typesWithNoCheck:
+          self.util.logInfo( "Removing processed files for %s" % paramStr )
           self._removeProcessedFiles()
         self.data = self.transReplicas
         status = runStatus
@@ -581,7 +604,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
               rawFiles = self.util.getNbRAWInRun( runID, evtType )
               if not retried and rawFiles and ancestorRawFiles > rawFiles:
                 # In case there are more ancestors than RAW files we may have to refresh the number of RAW files: try once
-                self.util.cachedNbRAWFiles[runID] = 0
+                self.util.cachedNbRAWFiles[runID][evtType] = 0
                 retried = True
               else:
                 runProcessed = ( ancestorRawFiles == rawFiles )
@@ -599,8 +622,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           elif rawFiles:
             self.util.logVerbose( "Only %d ancestor RAW files (of %d) available for run %d" %
                                   ( ancestorRawFiles, rawFiles, runID ) )
-          else:
-            self.util.logVerbose( "Run %d is not finished yet" % runID )
         if runStatus == 'Flush':
           flushed.append( ( paramValue, len( self.data ) ) )
         # Now calling the helper plugin... Set status to a fake value
@@ -612,15 +633,18 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           return res
         tasks = res['Value']
         if fromSEs:
-          nTasks = len( tasks )
-          for task in list( tasks ):
+          okTasks = []
+          for task in tasks:
             # If fromSEs is defined, check if in the list
-            if not fromSEs & set( task[0].split( ',' ) ):
-              tasks.remove( task )
-          if len( tasks ) != nTasks:
+            okSEs = fromSEs & set( task[0].split( ',' ) )
+            if okSEs:
+              # Restrict target SEs to those in fromSEs
+              okTasks.append( ( ','.join( sorted( okSEs ) ), task[1] ) )
+          if len( tasks ) != len( okTasks ):
             missingAtSEs = True
             self.util.logInfo( "%d tasks could not be created for run %d as files are not at required SEs" %
-                               ( nTasks - len( tasks ), runID ) )
+                               ( len( tasks ) - len( okTasks ), runID ) )
+          tasks = okTasks
         self.util.logVerbose( "Created %d tasks for run %d%s" %
                               ( len( tasks ), runID, paramStr ) )
         allTasks.extend( tasks )
@@ -1073,40 +1097,98 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     return S_OK( tasks )
 
+  def _ReduceReplicasKeepDestination( self ):
+    """ Plugin for reducing the number of replicas to NumberOfReplicas
+    """
+    # this is the number of replicas to be kept in addition to keepSEs and mandatorySEs
+    minKeep = -abs( self.util.getPluginParam( 'NumberOfReplicas', 1 ) )
+    return self._RemoveReplicasKeepDestination( minKeep = minKeep )
+
+  def _RemoveReplicasKeepDestination( self, minKeep = None ):
+    """ Plugin used to remove all replicas from a set of SEs except at run destination
+    """
+    fromSEs = set( resolveSEGroup( self.util.getPluginParam( 'FromSEs', [] ) ) )
+    keepSEs = resolveSEGroup( self.util.getPluginParam( 'KeepSEs', ['Tier1-Archive'] ) )
+    # this is the number of replicas to be kept in addition to keepSEs and mandatorySEs
+    # Remove 1 as we keep the run destination as well...
+    if minKeep is None:
+      minKeep = abs( self.util.getPluginParam( 'NumberOfReplicas', 1 ) )
+    if minKeep > 0:
+      minKeep -= 1
+    else:
+      minKeep += 1
+
+    # Group the  data by run
+    res = groupByRun( self.transFiles )
+    if not res['OK']:
+      return res
+    runFileDict = res['Value']
+    if not runFileDict:
+      # No files, no tasks!
+      return S_OK( [] )
+
+    res = self.util.getTransformationRuns( runFileDict )
+    if not res['OK']:
+      self.util.logError( "Error when getting transformation runs for runs %s" % str( runFileDict.keys() ), res['Message'] )
+      return res
+    runSites = dict( ( run['RunNumber'], set( run['SelectedSite'].split( ',' ) ) ) for run in res['Value'] if run['SelectedSite'] )
+
+    # Consider all runs in turn
+    tasks = []
+    for runID in runFileDict.keys():
+      runLfns = runFileDict[runID]
+      replicas = dict( ( lfn, ses ) for lfn, ses in self.transReplicas.iteritems() if lfn in runLfns )
+      existingSEs = set( se for lfn, ses in replicas.iteritems() for se in ses )
+      destinationSE = self.util.getSEForDestination( runID, existingSEs )
+      if destinationSE is None:
+        self.util.logWarn( "No destination found for run", str( runID ) )
+        continue
+      self.util.logVerbose( "Preparing tasks for run %d, destination %s" % ( runID, destinationSE ) )
+      res = self._removeReplicas( replicas = replicas, fromSEs = fromSEs, keepSEs = keepSEs + [destinationSE], minKeep = minKeep )
+      if not res['OK']:
+        self.util.logError( "Error creating tasks", res['Message'] )
+      else:
+        tasks += res['Value']
+        targetSEs = set( se for targets, _lfns in res['Value'] for se in targets.split( ',' ) )
+        runTargets = runSites.get( runID, set() )
+        if targetSEs - runTargets:
+          # Set destination sites for that run
+          runTargets = ','.join( sorted( targetSEs | runTargets ) )
+          self.util.logVerbose( "Setting destination for run %d to %s" % ( runID, runTargets ) )
+          res = self.transClient.setTransformationRunsSite( self.transID, runID, runTargets )
+          if not res['OK']:
+            self.util.logError( "Failed to set target SEs to run %d as %s" %
+                                ( runID, runTargets ), res['Message'] )
+    return S_OK( tasks )
+
   def _RemoveDataset( self ):
     """ Plugin used to remove disk replicas, keeping some (e.g. archives)
     """
-    keepSEs = resolveSEGroup( self.util.getPluginParam( 'KeepSEs', ['Tier1-ARCHIVE'] ) )
+    keepSEs = resolveSEGroup( self.util.getPluginParam( 'KeepSEs', ['Tier1-Archive'] ) )
     return self._removeReplicas( keepSEs = keepSEs, minKeep = 0 )
 
-  def _RemoveReplicas( self ):
+  def _RemoveReplicas( self, minKeep = None ):
     """ Plugin for removing replicas from specific SEs specified in FromSEs
     """
     fromSEs = resolveSEGroup( self.util.getPluginParam( 'FromSEs', [] ) )
-    keepSEs = resolveSEGroup( self.util.getPluginParam( 'KeepSEs', ['Tier1-ARCHIVE'] ) )
+    keepSEs = resolveSEGroup( self.util.getPluginParam( 'KeepSEs', ['Tier1-Archive'] ) )
     mandatorySEs = resolveSEGroup( self.util.getPluginParam( 'MandatorySEs', [] ) )
     # Allow removing explicitly from SEs in mandatorySEs
     mandatorySEs = [se for se in mandatorySEs if se not in fromSEs]
-    # this is the number of replicas to be kept in addition to keepSEs and mandatorySEs
-    minKeep = self.util.getPluginParam( 'NumberOfReplicas', 1 )
+    # this is the minimum number of replicas to be kept in addition to keepSEs and mandatorySEs
+    if minKeep is None:
+      minKeep = abs( self.util.getPluginParam( 'NumberOfReplicas', 1 ) )
 
     return self._removeReplicas( fromSEs = fromSEs, keepSEs = keepSEs, mandatorySEs = mandatorySEs, minKeep = minKeep )
 
   def _ReduceReplicas( self ):
     """ Plugin for reducing the number of replicas to NumberOfReplicas
     """
-    #
-    fromSEs = resolveSEGroup( self.util.getPluginParam( 'FromSEs', [] ) )
-    keepSEs = resolveSEGroup( self.util.getPluginParam( 'KeepSEs', ['Tier1-ARCHIVE'] ) )
-    mandatorySEs = resolveSEGroup( self.util.getPluginParam( 'MandatorySEs', [] ) )
-    # Allow removing explicitly from SEs in mandatorySEs
-    mandatorySEs = [se for se in mandatorySEs if se not in fromSEs]
     # this is the number of replicas to be kept in addition to keepSEs and mandatorySEs
     minKeep = -abs( self.util.getPluginParam( 'NumberOfReplicas', 1 ) )
+    return self._RemoveReplicas( minKeep = minKeep )
 
-    return self._removeReplicas( fromSEs = fromSEs, keepSEs = keepSEs, mandatorySEs = mandatorySEs, minKeep = minKeep )
-
-  def _removeReplicas( self, fromSEs = None, keepSEs = None, mandatorySEs = None, minKeep = 999 ):
+  def _removeReplicas( self, replicas = None, fromSEs = None, keepSEs = None, mandatorySEs = None, minKeep = 999 ):
     """ Utility actually implementing the logic to remove replicas or files
     """
     if fromSEs is None:
@@ -1118,10 +1200,12 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     self.util.logInfo( "Starting execution of plugin" )
     reduceSEs = minKeep < 0
     minKeep = abs( minKeep )
+    if replicas is None:
+      replicas = self.transReplicas
 
     storageElementGroups = {}
     notInKeepSEs = []
-    for replicaSE, lfns in getFileGroups( self.transReplicas ).iteritems():
+    for replicaSE, lfns in getFileGroups( replicas ).iteritems():
       replicaSE = replicaSE.split( ',' )
       if minKeep == 0 and keepSEs:
         # Check that the dataset exists at least at 1 keepSE
@@ -1157,7 +1241,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
               self.util.logVerbose( "Target SEs, 2nd level: %s" % targetSEs )
           elif fromSEs:
             # Here the fromSEs are only a preference (we want to keep only exactly minKeep replicas)
-            targetSEs = list( existingSet & fromSet ) + randomize( list( existingSet - fromSet ) )
+            targetSEs = randomize( list( existingSet & fromSet ) ) + randomize( list( existingSet - fromSet ) )
             targetSEs = targetSEs[0:-minKeep]
           else:
             # remove all replicas and keep only minKeep
@@ -1176,7 +1260,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         storageElementGroups.setdefault( stringTargetSEs, [] ).extend( lfns )
         self.util.logVerbose( "%d files to be removed at %s" % ( len( lfns ), stringTargetSEs ) )
       else:
-        self.util.logInfo( "Found %s files that don't need any replica deletion" % len( lfns ) )
+        self.util.logInfo( "Found %s files that don't need any replica deletion, set Processed" % len( lfns ) )
         self.transClient.setFileStatusForTransformation( self.transID, 'Processed', lfns )
 
     if notInKeepSEs:
@@ -1339,7 +1423,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return S_ERROR( e )
     finally:
       self.util.writeCacheFile()
-      if not skip and onlyAtList and self.pluginCallback:
+      if self.pluginCallback:
         self.pluginCallback( self.transID, invalidateCache = True )
     return S_OK( self.util.createTasks( storageElementGroups ) )
 

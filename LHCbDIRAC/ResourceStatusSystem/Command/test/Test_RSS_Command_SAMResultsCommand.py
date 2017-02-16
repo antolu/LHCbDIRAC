@@ -29,7 +29,6 @@
 #class dgetGOCSiteName( DummyReturn ) : pass
 #class dinitAPIs( DummyReturn )       : pass
 #
-#class dSAMResultsClient( DummyReturn )    : pass
 #class dResourceStatusClient( DummyReturn ): pass
 #
 #################################################################################
@@ -74,7 +73,6 @@
 #
 #    global dummyResults
 #    dummyResults[ 'dinitAPIs' ] = {
-#                                   'SAMResultsClient'     : dSAMResultsClient(),
 #                                   'ResourceStatusClient' : dResourceStatusClient()
 #                                   }
 #
@@ -95,19 +93,16 @@
 #
 #    c.args = ( 'Site', None )
 #    dummyResults[ 'dgetGOCSiteName' ] = { 'OK' : True, 'Value' : 'Site1' }
-#    dummyResults[ 'dSAMResultsClient' ] = { 'OK' : True, 'Value' : 1 }
 #    res = c.doCommand()
 #    self.assertEquals( res, { 'Result' : { 'OK' : True, 'Value' : 1 } } )
 #
 #    c.args = ( 'Site', None, None )
 #    dummyResults[ 'dgetGOCSiteName' ] = { 'OK' : True, 'Value' : 'Site1' }
-#    dummyResults[ 'dSAMResultsClient' ] = { 'OK' : True, 'Value' : 1 }
 #    res = c.doCommand()
 #    self.assertEquals( res, { 'Result' : { 'OK' : True, 'Value' : 1 } } )
 #
 #    c.args = ( 'Site', None, 'SiteName' )
 #    dummyResults[ 'dgetGOCSiteName' ] = { 'OK' : True, 'Value' : 'Site1' }
-#    dummyResults[ 'dSAMResultsClient' ] = { 'OK' : True, 'Value' : 1 }
 #    res = c.doCommand()
 #    self.assertEquals( res, { 'Result' : { 'OK' : True, 'Value' : 1 } } )
 #
@@ -119,7 +114,6 @@
 #
 #    c.args = ( 'Resource', None )
 #    dummyResults[ 'dResourceStatusClient' ] = { 'OK' : True, 'Value' : 'SiteR1' }
-#    dummyResults[ 'dSAMResultsClient' ] = { 'OK' : True, 'Value' : 'R1' }
 #    res = c.doCommand()
 #    self.assertEquals( res, { 'Result' : { 'OK' : True, 'Value' : 'R1' } } )
 #
@@ -132,21 +126,18 @@
 #    c.args = ( 'Resource', None, 'SiteName2' )
 #    dummyResults[ 'dResourceStatusClient' ] = None
 #    dummyResults[ 'dgetGOCSiteName' ] = { 'OK' : True, 'Value' : 'SiteR2' }
-#    dummyResults[ 'dSAMResultsClient' ] = { 'OK' : True, 'Value' : 'R2' }
 #    res = c.doCommand()
 #    self.assertEquals( res, { 'Result' : { 'OK' : True, 'Value' : 'R2' } })
 #
 #    c.args = ( 'Resource', None, 'SiteName2' )
 #    dummyResults[ 'dResourceStatusClient' ] = None
 #    dummyResults[ 'dgetGOCSiteName' ] = { 'OK' : True, 'Value' : 'SiteR2' }
-#    dummyResults[ 'dSAMResultsClient' ] = { 'OK' : False, 'Message' : 'Not R2' }
 #    res = c.doCommand()
 #    self.assertEquals( res, { 'Result' : { 'OK' : False, 'Message' : 'Not R2' } })
 #
 #    c.args = ( 'Resource', None, 'SiteName2', None )
 #    dummyResults[ 'dResourceStatusClient' ] = None
 #    dummyResults[ 'dgetGOCSiteName' ] = { 'OK' : True, 'Value' : 'SiteR2' }
-#    dummyResults[ 'dSAMResultsClient' ] = { 'OK' : False, 'Message' : 'Not R2' }
 #    res = c.doCommand()
 #    self.assertEquals( res, { 'Result' : { 'OK' : False, 'Message' : 'Not R2' } })
 #

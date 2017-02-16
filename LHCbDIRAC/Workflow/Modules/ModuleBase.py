@@ -370,9 +370,13 @@ class ModuleBase( object ):
 
     if 'extraPackages' in self.step_commons:
       self.extraPackages = self.step_commons['extraPackages']
-      if not self.extraPackages == '':
-        if not isinstance( self.extraPackages, list ):
-          self.extraPackages = self.extraPackages.split( ';' )
+      if self.extraPackages:
+        if isinstance( self.extraPackages, basestring ):
+          eps = self.extraPackages.split( ';' ) #pylint: disable=no-member
+          epList = []
+          for ep in eps:
+            epList.append(tuple(ep.split('.')))
+          self.extraPackages = epList
 
     stepInputData = []
     if 'inputData' in self.step_commons:
@@ -401,16 +405,19 @@ class ModuleBase( object ):
   #############################################################################
 
   def _determineOutputs( self ):
-    """ Determines the correct outputs.
-        For merging jobs the output has to be the same as the input.
+    """ Method that determines the correct outputs.
+
+        For merging jobs the output has normally to be the same as the input, but there might be exceptions
+        (like for the productions for the merging of histograms)
         For the others, we use what is in the step definition
-        We always remove the 'HIST'(s), when present
+
+        We always remove the 'HIST'(s), when present, from the list of output file types as these are treated differently.
+        There is  anyway also here the special case of histogram merging productions.
     """
 
     histoTypes = self.opsH.getValue( 'Productions/HistogramTypes', ['HIST', 'BRUNELHIST', 'DAVINCIHIST', 'GAUSSHIST' ] )
 
     stepOutputs = self.step_commons['listoutput']
-
     stepOutputsT = [x['outputDataType'] for x in stepOutputs]
     stepOutTypes = []
     for fts in stepOutputsT:
@@ -450,17 +457,22 @@ class ModuleBase( object ):
 
 
     histogram = False
-    for hist in histoTypes:
-      try:
-        stepOutTypes.remove( hist )
-        histogram = True
-      except ValueError:
-        pass
-      try:
-        stepOutTypes.remove( hist.lower() )
-        histogram = True
-      except ValueError:
-        pass
+
+    if self.jobType.lower() == 'merge' and len(stepOutTypes) == 1 and stepOutTypes[0] in [hts.lower() for hts in histoTypes] + ['root']:
+      # first here treating the special case of root/histo/ntuple merging jobs
+      pass
+    else:
+      for hist in histoTypes:
+        try:
+          stepOutTypes.remove( hist )
+          histogram = True
+        except ValueError:
+          pass
+        try:
+          stepOutTypes.remove( hist.lower() )
+          histogram = True
+        except ValueError:
+          pass
 
     return stepOutputs, stepOutTypes, histogram
 

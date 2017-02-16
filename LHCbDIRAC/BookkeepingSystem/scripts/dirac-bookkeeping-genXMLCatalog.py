@@ -2,18 +2,20 @@
 """
   Create a pool xml catalog slice for the specified LFNs
 """
-__RCSID__ = "$Id$"
 
-import sys, os, time
+import os
+import time
 
 import DIRAC
-from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
-from DIRAC.Core.Base import Script
 from DIRAC import gLogger
+from DIRAC.Core.Base import Script
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
+
+__RCSID__ = "$Id$"
 
 def __getLfnsFromFile( optFiles, gaudiVerbose ):
   import tempfile
-  a, tmpFile = tempfile.mkstemp( suffix = ".py" )
+  _a, tmpFile = tempfile.mkstemp( suffix = ".py" )
   runOpts = ""
   for opt in optFiles:
     if not os.path.exists( opt ):
@@ -26,29 +28,28 @@ def __getLfnsFromFile( optFiles, gaudiVerbose ):
     gaudiRun += " &>/dev/null"
   gLogger.info( "Extract list of input files from", optFiles )
 
-  if  os.system( "which gaudirun.py &>/dev/null" ) != 0:
-    gLogger.info( "SetupProject LHCb for getting environment" )
-    command = ". SetupProject.sh LHCb --no-user" + ( " &>/dev/null;" if not gaudiVerbose else ' ;' ) + gaudiRun
+  if  os.system( "which gaudirun.py >&/dev/null" ) != 0:
+    gLogger.info( "lb-run LHCb for getting environment" )
+    command = "lb-run LHCb/latest " + gaudiRun
     rc = os.system( command )
   else:
-      rc = os.system( gaudiRun )
+    rc = os.system( gaudiRun )
   if rc:
-      gLogger.always( "Error when parsing options files", optFiles )
-      DIRAC.exit( rc )
+    gLogger.always( "Error when parsing options files", optFiles )
+    DIRAC.exit( rc )
 
   optDict = eval( open( tmpFile, 'r' ).read() )
   os.remove( tmpFile )
   appInput = optDict.get( 'EventSelector', {} ).get( 'Input' )
   if not appInput:
-      gLogger.always( "Options file do not set EventSelector().Input" )
-      DIRAC.exit( 1 )
+    gLogger.always( "Options file do not set EventSelector().Input" )
+    DIRAC.exit( 1 )
 
   return [inp.split()[0].split( "'" )[1].replace( 'LFN:', '' ) for inp in appInput]
 
 def execute():
 
   catalog = 'pool_xml_catalog.xml'
-  site = 'LCG.CERN.ch'
   depth = 1
   optFiles = []
   newOptFile = ''
@@ -72,6 +73,12 @@ def execute():
                                        '  %s [option|cfgfile] ... ' % Script.scriptName] ) )
   Script.parseCommandLine( ignoreErrors = True )
 
+  from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
+  try:
+    site = DMSHelpers().getShortSiteNames()['CERN']
+  except ( AttributeError, KeyError ):
+    site = 'LCG.CERN.cern'
+
   t0 = time.time()
   switches = Script.getUnprocessedSwitches()
   for o, a in switches:
@@ -81,7 +88,7 @@ def execute():
       catalog = a
       ext = os.path.splitext( catalog )
       if len( ext[1] ) == 0 and '/dev/' not in catalog:
-          catalog += os.path.extsep + "xml"
+        catalog += os.path.extsep + "xml"
     elif o in ( "Depth" ):
       try:
         depth = int( a )
@@ -95,7 +102,7 @@ def execute():
       newOptFile = a
       ext = os.path.splitext( newOptFile )
       if len( ext[1] ) == 0:
-          newOptFile += os.path.extsep + "py"
+        newOptFile += os.path.extsep + "py"
     elif o in ( "Ignore" ):
       ignore = True
     elif o in ( "GaudiVerbose" ):
@@ -216,5 +223,3 @@ if __name__ == "__main__":
 
   execute()
   DIRAC.exit( 0 )
-
-

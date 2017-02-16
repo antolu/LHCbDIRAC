@@ -10,9 +10,9 @@
 
 import os
 import sqlite3
-from DIRAC                                                       import gConfig, S_OK, S_ERROR
+from DIRAC                                                       import gConfig, S_OK
 from DIRAC.Core.Base.AgentModule                                 import AgentModule
-from DIRAC.FrameworkSystem.Client.NotificationClient             import NotificationClient
+from DIRAC.Interfaces.API.DiracAdmin                             import DiracAdmin
 from DIRAC.ConfigurationSystem.Client                            import PathFinder
 from LHCbDIRAC.ProductionManagementSystem.Utilities.Utils        import _getMemberMails
 
@@ -25,9 +25,9 @@ class NotifyAgent( AgentModule ):
 
   def __init__( self, *args, **kwargs ):
 
-    super(NotifyAgent, self).__init__(args, kwargs)
+    super(NotifyAgent, self).__init__(*args, **kwargs)
 
-    self.notification = None
+    self.diracAdmin = None
     self.csS = None
     self.fromAddress = None
 
@@ -40,7 +40,24 @@ class NotifyAgent( AgentModule ):
     ''' NotifyAgent initialization
     '''
 
-    self.notification = NotificationClient()
+    with sqlite3.connect(self.cacheFile) as conn:
+
+      try:
+        conn.execute('''CREATE TABLE IF NOT EXISTS ProductionManagementCache(
+                      reqId VARCHAR(64) NOT NULL DEFAULT "",
+                      reqType VARCHAR(64) NOT NULL DEFAULT "",
+                      reqWG VARCHAR(64) NOT NULL DEFAULT "",
+                      reqName VARCHAR(64) NOT NULL DEFAULT "",
+                      SimCondition VARCHAR(64) NOT NULL DEFAULT "",
+                      ProPath VARCHAR(64) NOT NULL DEFAULT "",
+                      thegroup VARCHAR(64) NOT NULL DEFAULT "",
+                      reqInform VARCHAR(64) NOT NULL DEFAULT ""
+                     );''')
+
+      except sqlite3.OperationalError:
+        self.log.error('Email cache database is locked')
+
+    self.diracAdmin = DiracAdmin()
 
     self.csS = PathFinder.getServiceSection( 'ProductionManagement/ProductionRequest' )
 
@@ -63,14 +80,11 @@ class NotifyAgent( AgentModule ):
       # This is for the ProductionManagementSystem's Utilities
       # *******************************************************
 
-      link = "https://lhcb-portal-dirac.cern.ch/DIRAC/s:%s/g:" % PathFinder.getDIRACSetup() + \
-             "/?view=tabs&theme=Grey&url_state=1|*LHCbDIRAC.ProductionRequestManager.classes.ProductionRequestManager:"
-
       if not self.csS:
         self.log.error( 'No ProductionRequest section in configuration' )
         return S_OK()
 
-      result = conn.execute("SELECT DISTINCT thegroup from ProductionManagementCache;")
+      result = conn.execute("SELECT DISTINCT thegroup, reqName, reqWG, reqInform from ProductionManagementCache;")
 
       html_header = """\
             <!DOCTYPE html>
@@ -90,66 +104,81 @@ class NotifyAgent( AgentModule ):
 
       for group in result:
 
+        link = "https://lhcb-portal-dirac.cern.ch/DIRAC/s:" + PathFinder.getDIRACSetup() + "/g:" + group[0] + \
+               "/?view=tabs&theme=Grey&url_state=1|*LHCbDIRAC.ProductionRequestManager.classes.ProductionRequestManager:"
+
         aggregated_body = ""
         html_elements = ""
 
-        if group[0] == 'lhcb_bk':
-          header = "New Productions are requested and they have customized Simulation Conditions. " \
-                   "As member of <span style='color:green'>" + group[0] + "</span> group, your are asked either to register new Simulation conditions " \
-                   "or to reject the requests. In case some other member of the group has already done that, " \
-                   "please ignore this mail.\n"
+        # Check if group is not empty
+        if group[0]:
 
-        elif group[0] in [ 'lhcb_ppg', 'lhcb_tech' ]:
-          header = "New Productions are requested. As member of <span style='color:green'>" + group[0] + "</span> group, your are asked either to sign or " \
-                   "to reject it. In case some other member of the group has already done that, please ignore this mail.\n"
-        else:
-          header = "As member of <span style='color:green'>" + group[0] + "</span> group, your are asked to review the below requests.\n"
+          if group[0] == 'lhcb_bk':
+            header = "New Productions are requested and they have customized Simulation Conditions. " \
+                     "As member of <span style='color:green'>" + group[0] + "</span> group, your are asked either to register new Simulation conditions " \
+                     "or to reject the requests. In case some other member of the group has already done that, " \
+                     "please ignore this mail.\n"
 
-        cursor = conn.execute("SELECT reqId, reqType, reqName, SimCondition, ProPath from ProductionManagementCache "
-                              "WHERE thegroup = ?", (group[0],) )
-
-        for reqId, reqType, reqWG, reqName, SimCondition, ProPath in cursor:
-
-          html_elements += "<tr>" + \
-                           "<td>" + reqId + "</td>" + \
-                           "<td>" + reqName + "</td>" + \
-                           "<td>" + reqType + "</td>" + \
-                           "<td>" + reqWG + "</td>" + \
-                           "<td>" + SimCondition + "</td>" + \
-                           "<td>" + ProPath + "</td>" + \
-                           "<td class='link'><a href='" + link + "' target='_blank'> Link </a></td>" + \
-                           "</tr>"
-
-        html_body = """\
-          <p>{header}</p>
-          <table>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Working Group</th>
-                <th>Conditions</th>
-                <th>Processing pass</th>
-                <th>Link</th>
-            </tr>
-            {html_elements}
-          </table>
-        </body>
-        </html>
-        """.format(header=header, html_elements=html_elements)
-
-        aggregated_body = html_header + html_body
-
-        for people in _getMemberMails( group[0] ):
-
-          res = self.notification.sendMail( people, "Notifications for production requests", aggregated_body, self.fromAddress, True )
-
-          if res['OK']:
-            conn.execute("DELETE FROM ProductionManagementCache;")
-            conn.execute("VACUUM;")
+          elif group[0] in [ 'lhcb_ppg', 'lhcb_tech' ]:
+            header = "New Productions are requested. As member of <span style='color:green'>" + group[0] + "</span> group, your are asked either to sign or " \
+                     "to reject it. In case some other member of the group has already done that, please ignore this mail.\n"
           else:
-            self.log.error( "_inform_people: can't send email: %s" % res['Message'] )
-            return S_OK()
+            header = "As member of <span style='color:green'>" + group[0] + "</span> group, your are asked to review the below requests.\n"
+
+          cursor = conn.execute( "SELECT reqId, reqType, reqWG, reqName, SimCondition, ProPath from ProductionManagementCache "
+                                "WHERE thegroup = ? and reqName=? and reqWG=? ", ( group[0], group[1], group[2] ) )
+
+          for reqId, reqType, reqWG, reqName, SimCondition, ProPath in cursor:
+
+            html_elements += "<tr>" + \
+                             "<td>" + reqId + "</td>" + \
+                             "<td>" + reqName + "</td>" + \
+                             "<td>" + reqType + "</td>" + \
+                             "<td>" + reqWG + "</td>" + \
+                             "<td>" + SimCondition + "</td>" + \
+                             "<td>" + ProPath + "</td>" + \
+                             "<td class='link'><a href='" + link + "' target='_blank'> Link </a></td>" + \
+                             "</tr>"
+
+          html_body = """\
+            <p>{header}</p>
+            <table>
+              <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Type</th>
+                  <th>Working Group</th>
+                  <th>Conditions</th>
+                  <th>Processing pass</th>
+                  <th>Link</th>
+              </tr>
+              {html_elements}
+            </table>
+          </body>
+          </html>
+          """.format(header=header, html_elements=html_elements)
+
+          aggregated_body = html_header + html_body
+
+          informPeople = None
+          if group[3]:
+            informPeople = group[3].split( ',' )
+          if informPeople:
+            for emailaddress in informPeople:
+              res = self.diracAdmin.sendMail( emailaddress, "Notifications for production requests - Group %s; %s; %s" % ( group[0], group[2], group[1] ),
+                                              aggregated_body, self.fromAddress, html = True )
+
+          for people in _getMemberMails( group[0] ):
+
+            res = self.diracAdmin.sendMail( people, "Notifications for production requests - Group %s; %s; %s" % ( group[0], group[2], group[1] ),
+                                            aggregated_body, self.fromAddress, html = True )
+
+            if res['OK']:
+              conn.execute("DELETE FROM ProductionManagementCache;")
+              conn.execute("VACUUM;")
+            else:
+              self.log.error( "_inform_people: can't send email: %s" % res['Message'] )
+              return S_OK()
 
       # **************************************
       # This is for the ProductionStatusAgent
@@ -178,69 +207,79 @@ class NotifyAgent( AgentModule ):
 
       cursor = conn.execute("SELECT production, from_status, to_status, time from ProductionStatusAgentCache;")
 
-      for production, from_status, to_status, time in cursor:
+      # Check if the results are non-empty
+      if cursor.rowcount > 0:
 
-        html_elements += "<tr>" + \
-                         "<td>" + production + "</td>" + \
-                         "<td class='" + from_status + "'>" + from_status + "</td>" + \
-                         "<td class='" + to_status + "'>" + to_status + "</td>" + \
-                         "<td>" + time + "</td>" + \
-                         "</tr>"
+        for production, from_status, to_status, time in cursor:
 
-      html_body1 = """\
-        <p class="setup">Transformations updated</p>
-        <table>
-          <tr>
-              <th>Production</th>
-              <th>From</th>
-              <th>To</th>
-              <th>Time</th>
-          </tr>
-          {html_elements}
-        </table>
-      </body>
-      </html>
-      """.format(html_elements=html_elements)
+          html_elements += "<tr>" + \
+                           "<td>" + production + "</td>" + \
+                           "<td class='" + from_status + "'>" + from_status + "</td>" + \
+                           "<td class='" + to_status + "'>" + to_status + "</td>" + \
+                           "<td>" + time + "</td>" + \
+                           "</tr>"
 
-      cursor = conn.execute("SELECT prod_requests, time from ProductionStatusAgentReqCache;")
+        html_body1 = """\
+          <p class="setup">Transformations updated</p>
+          <table>
+            <tr>
+                <th>Production</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Time</th>
+            </tr>
+            {html_elements}
+          </table>
+        """.format(html_elements=html_elements)
 
-      for prod_requests, time in cursor:
+        cursor = conn.execute("SELECT prod_requests, time from ProductionStatusAgentReqCache;")
 
-        html_elements2 += "<tr>" + \
-                          "<td>" + prod_requests + "</td>" + \
-                          "<td>" + time + "</td>" + \
-                          "</tr>"
+        # Check if the results are non-empty
+        if cursor.rowcount > 0:
 
-      html_body2 = """\
-        <br />
-        <p class="setup">Production Requests updated to Done status</p>
-        <table>
-          <tr>
-              <th>Production Requests</th>
-              <th>Time</th>
-          </tr>
-          {html_elements2}
-        </table>
-      </body>
-      </html>
-      """.format(html_elements=html_elements2)
+          for prod_requests, time in cursor:
 
-      aggregated_body = html_header2 + html_body1 + html_body2
+            html_elements2 += "<tr>" + \
+                              "<td>" + prod_requests + "</td>" + \
+                              "<td>" + time + "</td>" + \
+                              "</tr>"
 
-      res = self.notification.sendMail( 'vladimir.romanovsky@cern.ch', "Transformation Status Updates", aggregated_body,
-                                        'vladimir.romanovsky@cern.ch', localAttempt = False )
+          html_body2 = """\
+            <br />
+            <p class="setup">Production Requests updated to Done status</p>
+            <table>
+              <tr>
+                  <th>Production Requests</th>
+                  <th>Time</th>
+              </tr>
+              {html_elements2}
+            </table>
+          </body>
+          </html>
+          """.format(html_elements2=html_elements2)
 
-      if res['OK']:
+        else:
+          html_body2 = """\
+          </body>
+          </html>
+          """
 
-        conn.execute("DELETE FROM ProductionStatusAgentCache;")
-        conn.execute("VACUUM;")
+        aggregated_body = html_header2 + html_body1 + html_body2
 
-        conn.execute("DELETE FROM ProductionStatusAgentReqCache;")
-        conn.execute("VACUUM;")
+        res = self.diracAdmin.sendMail( 'vladimir.romanovsky@cern.ch', "Transformation Status Updates", aggregated_body,
+                                        'vladimir.romanovsky@cern.ch', html = True )
 
-      else:
-        self.log.error( "Can't send email: %s" % res['Message'] )
-        return S_OK()
+        if res['OK']:
+
+          conn.execute("DELETE FROM ProductionStatusAgentCache;")
+          conn.execute("VACUUM;")
+
+          conn.execute("DELETE FROM ProductionStatusAgentReqCache;")
+          conn.execute("VACUUM;")
+
+        else:
+          self.log.error( "Can't send email: %s" % res['Message'] )
+          return S_OK()
 
     return S_OK()
 

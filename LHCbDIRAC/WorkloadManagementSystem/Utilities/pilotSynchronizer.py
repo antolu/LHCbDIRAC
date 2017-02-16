@@ -3,10 +3,16 @@
   Module that keeps the pilot parameters file synchronized with the information
   in the Operations/Pilot section of the CS. If there are additions in the CS, these are incorporated
   to the file.
+  The module uploads to a web server the latest version of the pilot scripts.
 
 """
 
-import urllib
+import json
+import urllib 
+import shutil
+import os
+import glob
+from git import Repo
 
 from DIRAC                                    import gLogger, S_OK, gConfig, S_ERROR
 from DIRAC.Core.DISET.HTTPDISETConnection     import HTTPDISETConnection
@@ -21,67 +27,181 @@ class pilotSynchronizer( object ):
 
   '''
 
-  def __init__( self ):
+  def __init__( self, paramDict ):
     ''' c'tor
 
         Just setting defaults
     '''
-    self.pilotFileName = 'LHCb-pilot.json'
-    # FIXME: pilotFileServer should contain the url of the web server where we will upload the LHCb-Pilot.json file
-    self.pilotFileServer = '128.141.170.61'
-
-
+    self.pilotFileName = 'pilot.json'  # default filename of the pilot json file
+    self.pilotFileServer = paramDict['pilotFileServer']  # domain name of the web server used to upload the pilot json file and the pilot scripts
+    self.pilotRepo = paramDict['pilotRepo']  # repository of the pilot
+    self.pilotVORepo = paramDict['pilotVORepo']  # repository of the VO that can contain a pilot extension
+    self.pilotLocalRepo = 'pilotLocalRepo'  # local repository to be created
+    self.pilotVOLocalRepo = 'pilotVOLocalRepo'  # local VO repository to be created
+    self.pilotSetup = gConfig.getValue( '/DIRAC/Setup', '' )
+    self.projectDir = paramDict['projectDir']
+    self.pilotVOScriptPath = paramDict['pilotVOScriptPath']  # where the find the pilot scripts in the VO pilot repository
+    self.pilotScriptsPath = paramDict['pilotScriptsPath']  # where the find the pilot scripts in the pilot repository
+    self.pilotVersion = ''
+    self.pilotVOVersion =''
 
   def sync( self, _eventName, _params ):
     ''' Main synchronizer method.
     '''
     gLogger.notice( '-- Synchronizing the content of the pilot file %s with the content of the CS --' % self.pilotFileName  )
 
-    pilotDict = self._syncFile()
-
-    result = self._upload( pilotDict )
+    result = self._syncFile()
     if not result['OK']:
-      gLogger.error( "Error uploading the pilot file: %s" %result['Message'] )
+      gLogger.error( "Error uploading the pilot file: %s" % result['Message'] )
       return result
+
+    gLogger.notice( '-- Synchronizing the pilot scripts %s with the content of the repository --' % self.pilotRepo )
+
+    self._syncScripts()
 
     return S_OK()
 
   def _syncFile( self ):
-    ''' Compares CS with the file and does the necessary modifications.
+    ''' Creates the pilot dictionary from the CS, ready for encoding as JSON
     '''
 
     gLogger.info( '-- Getting the content of the CS --' )
-    pilotDict = {}
+    pilotDict = { 'Setups' : {}, 'CEs' : {} }
     setups = gConfig.getSections( '/Operations/' )
     if not setups['OK']:
       gLogger.error( setups['Message'] )
       return setups
-    setups['Value'].remove( 'SoftwareDistribution' )
+
+    try:
+      setups['Value'].remove( 'SoftwareDistribution' )
+    except:
+      pass
+
     for setup in setups['Value']:
-      options = gConfig.getOptionsDict( 'Operations/%s/Pilot' % setup )
+      options = gConfig.getOptionsDict( '/Operations/%s/Pilot' % setup )
       if not options['OK']:
         gLogger.error( options['Message'] )
         return options
-      pilotDict[setup] = options['Value']
-      commands = gConfig.getOptionsDict( 'Operations/%s/Pilot/Commands' % setup )
-      if commands['OK']:
-        pilotDict[setup]['Commands'] = commands['Value']
-      else:
-        gLogger.debug( "List of commands not found: %s" % commands['Message'] )
+      # We include everything that's in the Pilot section for this setup
+      if setup == self.pilotSetup:
+        self.pilotVOVersion = options['Value']['Version']
+      pilotDict['Setups'][setup] = options['Value']
+      ceTypesCommands = gConfig.getOptionsDict( '/Operations/%s/Pilot/Commands' % setup )
+      if ceTypesCommands['OK']:
+        # It's ok if the Pilot section doesn't list any Commands too
+        pilotDict['Setups'][setup]['Commands'] = {}
+        for ceType in ceTypesCommands['Value']:
+          # FIXME: inconsistent that we break Commands down into a proper list but other things are comma-list strings
+          pilotDict['Setups'][setup]['Commands'][ceType] = ceTypesCommands['Value'][ceType].split(', ')
+          # pilotDict['Setups'][setup]['Commands'][ceType] = ceTypesCommands['Value'][ceType]
+      if 'CommandExtensions' in pilotDict['Setups'][setup]:
+        # FIXME: inconsistent that we break CommandExtensionss down into a proper list but other things are comma-list strings
+        pilotDict['Setups'][setup]['CommandExtensions'] = pilotDict['Setups'][setup]['CommandExtensions'].split(', ')
+        # pilotDict['Setups'][setup]['CommandExtensions'] = pilotDict['Setups'][setup]['CommandExtensions']
+
+    sitesSection = gConfig.getSections( '/Resources/Sites/' )
+    if not sitesSection['OK']:
+      gLogger.error( sitesSection['Message'] )
+      return sitesSection
+
+    for grid in sitesSection['Value']:
+      gridSection = gConfig.getSections( '/Resources/Sites/' + grid )
+      if not gridSection['OK']:
+        gLogger.error( gridSection['Message'] )
+        return gridSection
+
+      for site in gridSection['Value']:
+        ceList = gConfig.getSections( '/Resources/Sites/' + grid + '/' + site + '/CEs/' )
+        if not ceList['OK']:
+          # Skip but log it
+          gLogger.error( 'Site ' + site + ' has no CEs! - skipping' )
+          continue
+
+        for ce in ceList['Value']:
+          ceType = gConfig.getValue( '/Resources/Sites/' + grid + '/' + site + '/CEs/' + ce + '/CEType')
+
+          if ceType is None:
+            # Skip but log it
+            gLogger.error( 'CE ' + ce + ' at ' + site + ' has no option CEType! - skipping' )
+          else:
+            pilotDict['CEs'][ce] = { 'Site' : site, 'GridCEType' : ceType }
+
+    defaultSetup = gConfig.getValue( '/DIRAC/DefaultSetup' )
+    if defaultSetup:
+      pilotDict['DefaultSetup'] = defaultSetup
 
     gLogger.verbose( "Got %s"  %str(pilotDict) )
+    result = self._upload( pilotDict = pilotDict )
+    if not result['OK']:
+      gLogger.error( "Error uploading the pilot file: %s" %result['Message'] )
+      return result
+    return S_OK()
 
-    return pilotDict
-
-  def _upload ( self, pilotDict ):
-    """ Method to upload the pilot file to the server.
+  def _syncScripts(self):
+    """Clone the pilot scripts from the repository and upload them to the web server
     """
-    gLogger.info( "Synchronizing the content of the pilot file" )
-    params = urllib.urlencode( {'filename':self.pilotFileName, 'data':pilotDict } )
+    gLogger.info( '-- Uploading the pilot scripts --' )
+    if os.path.isdir( self.pilotVOLocalRepo ):
+      shutil.rmtree( self.pilotVOLocalRepo )
+    os.mkdir( self.pilotVOLocalRepo )
+    repo_VO = Repo.init( self.pilotVOLocalRepo )
+    upstream = repo_VO.create_remote( 'upstream', self.pilotVORepo )
+    upstream.fetch()
+    upstream.pull( upstream.refs[0].remote_head )
+    if repo_VO.tags:
+      repo_VO.git.checkout( repo_VO.tags[self.pilotVOVersion], b = 'pilotScripts' )
+    else:
+      repo_VO.git.checkout( 'upstream/master', b = 'pilotVOScripts' )
+    scriptDir = ( os.path.join( self.pilotVOLocalRepo, self.projectDir, self.pilotVOScriptPath, "*.py" ) )
+    for fileVO in glob.glob( scriptDir ):
+      result = self._upload( filename = os.path.basename( fileVO ), pilotScript = fileVO )
+    if not result['OK']:
+      gLogger.error( "Error uploading the VO pilot script: %s" % result['Message'] )
+      return result
+    if os.path.isdir( self.pilotLocalRepo ):
+      shutil.rmtree( self.pilotLocalRepo )
+    os.mkdir( self.pilotLocalRepo )
+    repo = Repo.init( self.pilotLocalRepo )
+    releases = repo.create_remote( 'releases', self.pilotRepo )
+    releases.fetch()
+    releases.pull( releases.refs[0].remote_head )
+    if repo.tags:
+      with open( os.path.join( self.pilotVOLocalRepo, self.projectDir, 'releases.cfg' ), 'r' ) as releases_file:
+        lines = [line.rstrip( '\n' ) for line in releases_file]
+        lines = [s.strip() for s in lines]
+        if self.pilotVOVersion in lines:
+          self.pilotVersion = lines[( lines.index( self.pilotVOVersion ) ) + 3].split( ':' )[1]
+      repo.git.checkout( repo.tags[self.pilotVersion], b = 'pilotScripts' )
+    else:
+      repo.git.checkout( 'master', b = 'pilotVOScripts' )
+    try:
+      scriptDir = os.path.join( self.pilotLocalRepo, self.pilotScriptsPath, "*.py" )
+      for filename in glob.glob( scriptDir ):
+        result = self._upload( filename = os.path.basename( filename ), pilotScript = filename )
+      if not os.path.isfile( os.path.join( self.pilotLocalRepo, self.pilotScriptsPath, "dirac-install.py" ) ):
+        result = self._upload( filename = 'dirac-install.py', pilotScript = os.path.join( self.pilotLocalRepo, "Core/scripts/dirac-install.py" ) )
+    except ValueError:
+      gLogger.error( "Error uploading the pilot scripts: %s" % result['Message'] )
+      return result
+    return S_OK()
+
+
+  def _upload ( self, pilotDict = None, filename = '', pilotScript = '' ):
+    """ Method to upload the pilot json file and the pilot scripts to the server.
+    """
+
+    if pilotDict:
+      params = urllib.urlencode( {'filename':self.pilotFileName, 'data':json.dumps( pilotDict ) } )
+    else:
+      with open( pilotScript, "rb" ) as f:
+        script = f.read()
+      params = urllib.urlencode( {'filename':filename, 'data':script} )
     headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
-    con = HTTPDISETConnection( self.pilotFileServer, '8443' )
+    con = HTTPDISETConnection( self.pilotFileServer, '443' )
     con.request( "POST", "/DIRAC/upload", params, headers )
     resp = con.getresponse()
     if resp.status != 200:
       return S_ERROR( resp.status )
+    else:
+      gLogger.info( '-- File and scripts upload done --' )
     return S_OK()

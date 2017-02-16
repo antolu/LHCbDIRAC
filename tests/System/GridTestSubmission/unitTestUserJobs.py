@@ -1,10 +1,12 @@
 """ This submits user jobs and then starts a thread that checks their results
 """
 
-from DIRAC.Core.Base.Script import parseCommandLine
-parseCommandLine()
+#pylint: disable=wrong-import-position,unused-wildcard-import,wildcard-import
 
 import unittest
+
+from DIRAC.Core.Base.Script import parseCommandLine
+parseCommandLine()
 
 from DIRAC import gLogger
 from DIRAC.Core.Security.ProxyInfo import getProxyInfo

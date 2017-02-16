@@ -8,13 +8,11 @@
 
 import os
 import shutil
-import sys
 
 from DIRAC import S_OK, S_ERROR, gLogger
-from DIRAC.Core.Utilities.Subprocess                       import shellCall
 
-from LHCbDIRAC.Core.Utilities.ProductionEnvironment         import getProjectEnvironment, addCommandDefaults, createDebugScript
-from LHCbDIRAC.Workflow.Modules.ModuleBase                  import ModuleBase
+from LHCbDIRAC.Core.Utilities.RunApplication import RunApplication, LbRunError, LHCbApplicationError
+from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
 __RCSID__ = "$Id$"
 
@@ -78,7 +76,7 @@ class ErrorLogging( ModuleBase ):
                                            workflowStatus, stepStatus,
                                            wf_commons, step_commons, step_number, step_id )
 
-      result = self._resolveInputVariables()
+      self._resolveInputVariables()
 
       if self.applicationName.lower() not in ( 'gauss', 'boole' ):
         self.log.info( 'Not Gauss nor Boole, exiting' )
@@ -91,54 +89,33 @@ class ErrorLogging( ModuleBase ):
         self.log.info( 'Application log file from previous module not found locally: %s' % self.applicationLog )
         return S_OK()
 
-      # Now obtain the project environment for execution
-      result = getProjectEnvironment( self.systemConfig,
-                                      self.applicationName,
-                                      applicationVersion = self.applicationVersion,
-                                      extraPackages = self.extraPackages )
-      if not result['OK']:
-        self.log.error( 'Could not obtain project environment with result: %s' % ( result ) )
-        return S_OK()
-
-      projectEnvironment = result['Value']
-      command = 'python $APPCONFIGROOT/scripts/LogErr.py %s %s %s' % ( self.applicationLog,
-                                                                       self.applicationName,
-                                                                       self.applicationVersion )
+      command = 'python %s %s %s %s' % ( self.executable, self.applicationLog, self.applicationName, self.applicationVersion )
 
       # Set some parameter names
       scriptName = 'Error_Log_%s_%s_Run_%s.sh' % ( self.applicationName,
                                                    self.applicationVersion,
                                                    self.step_number )
-      dumpEnvName = 'Environment_Dump_ErrorLogging_Step%s.log' % ( self.step_number )
-      coreDumpName = 'ErrorLogging_Step%s' % ( self.step_number )
-
-      # Wrap final execution command with defaults
-      finalCommand = addCommandDefaults( command,
-                                         envDump = dumpEnvName,
-                                         coreDumpLog = coreDumpName )['Value']  # should always be S_OK()
-
-      # Create debug shell script to reproduce the application execution
-      debugResult = createDebugScript( scriptName,
-                                       command,
-                                       env = projectEnvironment,
-                                       envLogFile = dumpEnvName,
-                                       coreDumpLog = coreDumpName )  # will add command defaults internally
-      if debugResult['OK']:
-        self.log.verbose( 'Created debug script %s for Step %s' % ( debugResult['Value'], self.step_number ) )
 
       for x in [self.defaultName, scriptName, self.errorLogFile]:
-        if os.path.exists( x ): os.remove( x )
+        if os.path.exists( x ):
+          os.remove( x )
 
-      result = shellCall( 120, finalCommand, env = projectEnvironment, callbackFunction = self.redirectLogOutput )
-      status = result['Value'][0]
-      self.log.info( "Status after the ErrorLogging execution is %s (if non-zero this is ignored)" % ( status ) )
+      # How to run the application
+      ra = RunApplication()
+      # lb-run stuff
+      ra.applicationName = self.applicationName
+      ra.applicationVersion = self.applicationVersion
+      ra.systemConfig = self.systemConfig
+      # actual stuff to run
+      ra.command = command
 
-      if status:
+      # Now really running
+      try:
+        ra.run() # This would trigger an exception in case of failure, or application status != 0
+      except RuntimeError as e:
         self.log.info( "Error logging for %s %s step %s completed with errors:" % ( self.applicationName,
                                                                                     self.applicationVersion,
                                                                                     self.step_number ) )
-        self.log.info( "==================================\n StdError:\n" )
-        self.log.info( self.stdError )
         self.log.info( 'Exiting without affecting workflow status' )
         return S_OK()
 
@@ -151,28 +128,16 @@ class ErrorLogging( ModuleBase ):
                                                                                    self.step_number ) )
       shutil.copy( self.defaultName, self.errorLogName )
 
-      # TODO - report to error logging service when suitable method is available
       return S_OK()
 
+    except (LHCbApplicationError, LbRunError) as e: # This is the case for real application errors
+      self.setApplicationStatus( repr(e) )
+      return S_ERROR( str(e) )
     except Exception as e: #pylint:disable=broad-except
       self.log.exception( "Failure in ErrorLogging execute module", lException = e )
-      return S_ERROR( e )
+      return S_ERROR( "Error in ErrorLogging module" )
 
     finally:
       super( ErrorLogging, self ).finalize( self.version )
-
-  #############################################################################
-
-  def redirectLogOutput( self, fd, message ):
-    sys.stdout.flush()
-    if message:
-      if self.errorLogFile:
-        log = open( self.errorLogFile, 'a' )
-        log.write( message + '\n' )
-        log.close()
-      else:
-        self.log.error( "Error Log file not defined" )
-      if fd == 1:
-        self.stdError += message
 
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

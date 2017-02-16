@@ -1,8 +1,10 @@
+.. _administrate_oracle:
+
 =======================================
 LHCbBookkeeping database administration
 =======================================
 
-This document contains all the information needed to manage the Bookkeeping Oracle 
+This document contains all the information needed to manage the Bookkeeping Oracle
 database.
 
 Login to the database
@@ -11,11 +13,11 @@ Login to the database
 We are using 3 database accounts:
 
     1. LHCB_DIRACBOOKKEEPING_users (reader account)
-    
+
     2. LHCB_DIRACBOOKKEEPING_server (write account)
-    
+
     3. LHCB_DIRACBOOKKEEPING (main account)
-    
+
 
 The main account is always locked. Every time when you want to use it you have to unlock.
 
@@ -26,37 +28,37 @@ Before login to the development db, you have to unlock the database:
 Important: you must only unlock the following account: lhcbr   lhcb_diracbookkeeping
 
 You have two ways to login:
- 
- 
+
+
  1. using sqldeveloper
- 
+
     ConnectionName: give a name
-    
+
     UserName: LHCB_DIRACBOOKKEEPING
-    
+
     Password: xxxx
-    
+
     Hostname: itrac50087-v.cern.ch
-    
+
     Port: 10121
-    
+
     Service name: lhcb_diracbookkeeping.cern.ch
- 
+
  You can retreive the information using the tns.ora. You can found it:
- 
+
     vi $TNS_ADMIN/phydb/tnsnames.phydb.ora
-    
+
     You have to search to LHCB_DIRACBOOKKEEPING and after you will found the Service name and Hostname
- 
- 
+
+
  2. using sqlplus
- 
+
     source /afs/cern.ch/project/oracle/script/setoraenv.csh
-    
+
     setoraenv -s 12101
-    
+
     sqlplus LHCB_DIRACBOOKKEEPING/password@LHCB_DIRACBOOKKEEPING
-    
+
 
 Compile oracle stored procedure
 ===============================
@@ -68,15 +70,15 @@ You can find it in the tar.gz file in the release in case you want to update the
 NOTE: I recommend to use the stored procedure, which is in the tar.gz.
 
     1. Login the database using sqlplus
-    
+
     2. in the termineal execute @/home/user/oracle_schema_storedprocedures.sql
-    
+
     3. commit;
-    
+
     In case of error you have to use 'show errors' command
-    
+
     In case of a schema change, you can find the command that needs to be executed: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/blob/master/LHCbDIRAC/BookkeepingSystem/DB/oracle_schema_commands.sql
-    
+
 
 Discover slow queries in the db
 ===============================
@@ -88,40 +90,40 @@ https://cern.ch/session-manager is a portal provided by IT/DB where you can logo
 Login to the session manager:
 
     You have a reader and writer account. All the select queries are running in the reader account.
-    
+
     Login form:
-    
-    
+
+
     UserName: LHCB_DIRACBOOKKEEPING_users
-    
+
     Password: pass
-    
+
     Database: LHCBR
-    
+
 
 How to identify problematic queries:
 
-    
+
     You can find the queries which takes very long using https://cern.ch/session-manager, but it maybe normal. You can check the execution plan
     in the following way.
-    
+
         1. Login to sqlplus (you have to use the main owner account)
-        
+
         2. set autot traceo
-        
+
         3. set timing on
-        
+
         4. set linesize 1000
-        
+
         5. execute the qurey
-        
-    After when the query will finish then you will have the execution plan and you will have the real execution time as well. I propose to look the following 
+
+    After when the query will finish then you will have the execution plan and you will have the real execution time as well. I propose to look the following
     parameters:
-    
+
         Cost (%CPU) , consistent gets, physical reads
-        
+
         For example:
-        
+
 
 
     Elapsed: 00:00:00.12
@@ -158,19 +160,19 @@ How to identify problematic queries:
         1  sorts (memory)
         0  sorts (disk)
       131  rows processed
-      
-      
-      Problems: 
+
+
+      Problems:
           - the cost is a big number.
           - the consistent gets is very high
           - physical reads are very high
-    
 
 
-Note: 
 
-    -You may have query which needs to read lot of data. In this case the consistent gets and physical reads are very high numbers. 
-In that example if the consistent gets and physical reads are very high for example more than 10k we have problem. This is because the query only returned 131 rows. 
+Note:
+
+    -You may have query which needs to read lot of data. In this case the consistent gets and physical reads are very high numbers.
+In that example if the consistent gets and physical reads are very high for example more than 10k we have problem. This is because the query only returned 131 rows.
     - TABLE ACCESS FULL is not good. You have to make sure that the query uses an index. This is not always true.
     -parallel execution you have to make sure if the query is running parallel, the processes does not send to much data between each other. If you run a query parallel and the consistent gets is very high then you have a problem. Contact to oracle IT/DB if you do not know what to do...
     -CARTESIAN join: If you see that word in the execution plan, the query is wrong.
@@ -199,13 +201,13 @@ Steps are used to process/produce data. The steps are used by the Production Man
    OPTIONSFORMAT
    ISMULTICORE
    SYSTEMCONFIG
-   MCTCK 
+   MCTCK
 
 The steps table has 3 triggers::
    STEP_INSERT: This trigger is used to replace NULL, None to an empty string.
    steps_before_insert: It checks that the processing pass contains a '/'.
    step_update: The steps which are already used can not be modified.
-   
+
 Modifying steps
 ===============
 
@@ -213,7 +215,7 @@ We may want to modify an already used steps. A step can be modified if the trigg
    alter trigger step_update disable;
    update steps set stepname='Reco16Smog for 2015 pA', processingpass='Reco16Smog' where stepid=129609; an alternative is to used the StepManager page
    alter trigger step_update enable;
-   
+
 ==================================
 Processing pass in the Bookkeeping
 ==================================
@@ -230,8 +232,8 @@ In this example we have created the following processing pass: /Real Data/Reco16
 
 The following query can be used to check the step:
 
-SELECT * FROM (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID 
-      FROM processing v   START WITH id in (select distinct id from processing where name='Real Data')  
+SELECT * FROM (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID
+      FROM processing v   START WITH id in (select distinct id from processing where name='Real Data')
 CONNECT BY NOCYCLE PRIOR  id=parentid) v   where v.path='/Real Data/Reco16Smog';
 
 If we know the processing id, we can use the following query to found out the processing pass:
@@ -240,7 +242,3 @@ SELECT v.id,v.path FROM (SELECT distinct  LEVEL-1 Pathlen, SYS_CONNECT_BY_PATH(n
    FROM processing
    WHERE LEVEL > 0 and id=1915
    CONNECT BY PRIOR id=parentid order by Pathlen desc) v where rownum<=1;
-   
-
-   
- 

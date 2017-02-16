@@ -6,12 +6,13 @@ import os
 import time
 import re
 import socket
+import shlex
 from xml.dom.minidom import Document, DocumentType
 
 import DIRAC
 
 from DIRAC import gLogger, S_OK, S_ERROR, gConfig
-from DIRAC.Core.Utilities.Subprocess import shellCall
+from DIRAC.Core.Utilities.Subprocess import systemCall
 from DIRAC.Resources.Catalog.PoolXMLFile import getGUID
 from DIRAC.Workflow.Utilities.Utils import getStepCPUTimes
 
@@ -62,7 +63,6 @@ class BookkeepingReport( ModuleBase ):
                step_number = None, step_id = None, saveOnFile = True ):
     """ Usual executor
     """
-
     try:
 
       super( BookkeepingReport, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
@@ -85,9 +85,10 @@ class BookkeepingReport( ModuleBase ):
 
       return S_OK()
 
-    except Exception as e: #pylint:disable=broad-except
+    except Exception as e:  # pylint:disable=broad-except
       self.log.exception( "Failure in BookkeepingReport execute module", lException = e )
-      return S_ERROR( e )
+      self.setApplicationStatus( repr( e ) )
+      return S_ERROR( str( e ) )
 
     finally:
       super( BookkeepingReport, self ).finalize( self.version )
@@ -255,6 +256,7 @@ class BookkeepingReport( ModuleBase ):
         - WNCPUPOWER
         - WNCACHE
         - WNCPUHS06
+        - WNMJFHS06
         - Production
         - DiracJobId
         - Name
@@ -290,11 +292,7 @@ class BookkeepingReport( ModuleBase ):
       # THIS OR THE NEXT
       # typedParams.append( ( "WorkerNode", nodeInfo['HostName'] ) )
 
-    host = None
-    if os.environ.has_key( "HOSTNAME" ):
-      host = os.environ[ "HOSTNAME" ]
-    elif os.environ.has_key( "HOST" ):
-      host = os.environ[ "HOST" ]
+    host = os.environ.get( "HOSTNAME", os.environ.get( "HOST" ) )
     if host is not None:
       typedParams.append( ( "WorkerNode", host ) )
 
@@ -305,10 +303,12 @@ class BookkeepingReport( ModuleBase ):
 
     typedParams.append( ( "WNMEMORY", memory ) )
 
-    tempVar = gConfig.getValue( "/LocalSite/CPUNormalizationFactor", "1" )
-    typedParams.append( ( "WNCPUHS06", tempVar ) )
-    tempVar = gConfig.getValue( "/LocalSite/CPUScalingFactor", "1" )
-    typedParams.append( ( "WNMJFHS06", tempVar ) )
+    diracPower = gConfig.getValue( "/LocalSite/CPUNormalizationFactor", "0" )
+    typedParams.append( ( "WNCPUHS06", diracPower ) )
+    mjfPower = gConfig.getValue( "/LocalSite/CPUScalingFactor", "0" )
+    # Trick to know that the value is obtained from MJF: # from diracPower
+    if mjfPower != diracPower:
+      typedParams.append( ( "WNMJFHS06", mjfPower ) )
     typedParams.append( ( "Production", self.production_id ) )
     typedParams.append( ( "DiracJobId", str( self.jobID ) ) )
     typedParams.append( ( "Name", self.step_id ) )
@@ -336,13 +336,13 @@ class BookkeepingReport( ModuleBase ):
     try:
       noOfEvents = self.xf_o.inputEventsTotal if self.xf_o.inputEventsTotal else self.xf_o.outputEventsTotal
     except AttributeError:
-      #This happens iff the XML summary can't be created (e.g. for merging MDF files)
+      # This happens iff the XML summary can't be created (e.g. for merging MDF files)
       res = self.bkClient.getFileMetadata( self.stepInputData )
       if not res['OK']:
         raise AttributeError( "Can't get the BKK file metadata" )
-      noOfEvents = sum(fileMeta['EventStat'] for fileMeta in res['Value']['Successful'].itervalues())
+      noOfEvents = sum( fileMeta['EventStat'] for fileMeta in res['Value']['Successful'].itervalues() )
 
-    typedParams.append( ( "NumberOfEvents", noOfEvents) )
+    typedParams.append( ( "NumberOfEvents", noOfEvents ) )
 
     # Add TypedParameters to the XML file
     for typedParam in typedParams:
@@ -420,11 +420,11 @@ class BookkeepingReport( ModuleBase ):
         try:
           fileStats = str( self.xf_o.outputsEvents[output] )
         except AttributeError as e:
-          #This happens iff the XML summary can't be created (e.g. for merging MDF files)
+          # This happens iff the XML summary can't be created (e.g. for merging MDF files)
           self.log.warn( "XML summary not created, unable to determine the output events and setting to 'Unknown': %s" % repr( e ) )
           fileStats = 'Unknown'
         except KeyError as e:
-          self.log.warn( repr(e) )
+          self.log.warn( repr( e ) )
           if ( 'hist' in outputtype.lower() ) or ( '.root' in outputtype.lower() ):
             self.log.warn( "HIST file %s not found in XML summary, event stats set to 'Unknown'" % output )
             fileStats = 'Unknown'
@@ -445,7 +445,7 @@ class BookkeepingReport( ModuleBase ):
 
       if not self.step_commons.has_key( 'md5' ) or output not in self.step_commons[ 'md5' ]:
         comm = 'md5sum ' + str( output )
-        resultTuple = shellCall( 0, comm )
+        resultTuple = systemCall( 0, shlex.split( comm ) )
         status = resultTuple[ 'Value' ][ 0 ]
         out = resultTuple[ 'Value' ][ 1 ]
       else:

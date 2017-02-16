@@ -1,0 +1,84 @@
+{
+  "id": "/datamanagement/filecatalog",
+  "cmd": null,
+  "cpus": 0.1,
+  "mem": 800,
+  "disk": 0,
+  "instances": 2,
+  "constraints": [
+    [
+      "hostname",
+      "UNIQUE"
+    ]
+  ],
+  "container": {
+    "type": "DOCKER",
+    "volumes": [
+      {
+        "containerPath": "/opt/dirac/etc/grid-security",
+        "hostPath": "/etc/grid-security",
+        "mode": "RO"
+      },
+      {
+        "containerPath": "/opt/dirac/etc/dirac.cfg",
+        "hostPath": "/etc/dirac/Mesos-Test.cfg",
+        "mode": "RO"
+      }
+    ],
+    "docker": {
+      "image": "gitlab-registry.cern.ch/chaen/lhcbdirac:v8r3p2",
+      "network": "BRIDGE",
+      "portMappings": [
+        {
+          "containerPort": 9197,
+          "hostPort": 0,
+          "servicePort": 10002,
+          "protocol": "tcp",
+          "labels": {}
+        }
+      ],
+      "privileged": false,
+      "parameters": [
+        {
+          "key": "label",
+          "value": "dirac_component=DataManagement/FileCatalog"
+        }
+      ],
+      "forcePullImage": false
+    }
+  },
+  "healthChecks": [
+    {
+      "protocol": "COMMAND",
+      "command": {
+        "value": "/opt/dirac/dockerEntrypoint.sh python /opt/dirac/dirac_self_ping.py 9197/DataManagement/FileCatalog"
+      },
+      "gracePeriodSeconds": 300,
+      "intervalSeconds": 60,
+      "timeoutSeconds": 20,
+      "maxConsecutiveFailures": 3,
+      "ignoreHttp1xx": false
+    }
+  ],
+  "labels": {
+    "check_http": "http://lbdiracgw02:1234/ping?host={host}&port={port}&service=DataManagement/FileCatalog",
+    "check_interval": "20s",
+    "system": "prod"
+  },
+  "portDefinitions": [
+    {
+      "port": 10002,
+      "protocol": "tcp",
+      "labels": {}
+    }
+  ],
+  "args": [
+    "dirac-service",
+    "-ddd",
+    "DataManagement/FileCatalog"
+  ],
+  "upgradeStrategy": {
+    "minimumHealthCapacity": 0.4,
+    "maximumOverCapacity": 1
+  }
+}

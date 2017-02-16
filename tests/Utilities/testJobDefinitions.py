@@ -1,30 +1,31 @@
 """ Collection of user jobs for testing purposes
 """
 
-#pylint: disable=missing-docstring
+# pylint: disable=missing-docstring
 
 # imports
 
-from DIRAC import S_ERROR, S_OK
-from DIRAC.tests.Utilities.utils import find_all
-from DIRAC.tests.Utilities.testJobDefinitions import *
 import time
 import os
 import errno
+
+from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
+from DIRAC.tests.Utilities.testJobDefinitions import *
+from DIRAC.Core.Utilities.Proxy import executeWithUserProxy
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 
-# FIXME: use this to submit on behalf of another user
-from DIRAC.Core.Utilities.Proxy import executeWithUserProxy
 
 # parameters
 
 jobClass = LHCbJob
 diracClass = DiracLHCb
 
-tier1s = ['LCG.CERN.ch', 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr', 'LCG.NIKHEF.nl',
-          'LCG.PIC.es', 'LCG.RAL.uk', 'LCG.SARA.nl', 'LCG.RRCKI.ru']
-
+try:
+  tier1s = DMSHelpers().getTiers( tier = ( 0, 1 ) )
+except AttributeError:
+  tier1s = ['LCG.CERN.cern', 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr',
+            'LCG.NIKHEF.nl', 'LCG.PIC.es', 'LCG.RAL.uk', 'LCG.RRCKI.ru', 'LCG.SARA.nl']
 
 # List of jobs
 wdir = os.getcwd()
@@ -32,123 +33,123 @@ wdir = os.getcwd()
 @executeWithUserProxy
 def helloWorldTestT2s():
 
-  J = baseToAllJobs( 'helloWorldTestT2s', jobClass )
-  J.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
-  J.setExecutable( "exe-script.py", "", "helloWorld.log" )
-  J.setBannedSites( tier1s )
-  return endOfAllJobs( J )
+  job = baseToAllJobs( 'helloWorldTestT2s', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script.py", "", "helloWorld.log" )
+  job.setBannedSites( tier1s )
+  return endOfAllJobs( job )
 
 @executeWithUserProxy
 def helloWorldTestCERN():
 
-  J = baseToAllJobs( 'helloWorld-test-CERN', jobClass )
-  J.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
-  J.setExecutable( "exe-script.py", "", "helloWorld.log" )
-  J.setDestination( 'LCG.CERN.ch' )
-  return endOfAllJobs( J )
+  job = baseToAllJobs( 'helloWorld-test-CERN', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script.py", "", "helloWorld.log" )
+  job.setDestination( 'LCG.CERN.cern' )
+  return endOfAllJobs( job )
 
 @executeWithUserProxy
 def helloWorldTestIN2P3():
-  J = baseToAllJobs( 'helloWorld-test-IN2P3', jobClass )
-  J.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
-  J.setExecutable( "exe-script.py", "", "helloWorld.log" )
-  J.setDestination( 'LCG.IN2P3.fr' )
-  return endOfAllJobs( J )
+  job = baseToAllJobs( 'helloWorld-test-IN2P3', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script.py", "", "helloWorld.log" )
+  job.setDestination( 'LCG.IN2P3.fr' )
+  return endOfAllJobs( job )
 
 @executeWithUserProxy
 def helloWorldTestGRIDKA():
-  J = baseToAllJobs( 'helloWorld-test-GRIDKA', jobClass )
-  J.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
-  J.setExecutable( "exe-script.py", "", "helloWorld.log" )
-  J.setDestination( 'LCG.GRIDKA.de' )
-  return endOfAllJobs( J )
+  job = baseToAllJobs( 'helloWorld-test-GRIDKA', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script.py", "", "helloWorld.log" )
+  job.setDestination( 'LCG.GRIDKA.de' )
+  return endOfAllJobs( job )
 
 @executeWithUserProxy
 def helloWorldTestARC():
 
-  J = baseToAllJobs( 'helloWorld-test-ARC', jobClass )
-  J.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
-  J.setExecutable( "exe-script.py", "", "helloWorld.log" )
-  J.setDestination( ['LCG.RAL.uk'] )
-  return endOfAllJobs( J )
+  job = baseToAllJobs( 'helloWorld-test-ARC', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script.py", "", "helloWorld.log" )
+  job.setDestination( ['LCG.RAL.uk'] )
+  return endOfAllJobs( job )
 
 @executeWithUserProxy
 def helloWorldTestSSH():
 
-  J = baseToAllJobs( 'helloWorld-test-SSH', jobClass )
-  J.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
-  J.setExecutable( "exe-script.py", "", "helloWorld.log" )
-  J.setDestination( ['DIRAC.YANDEX.ru', 'DIRAC.OSC.us', 'DIRAC.Zurich.ch'] )
-  return endOfAllJobs( J )
+  job = baseToAllJobs( 'helloWorld-test-SSH', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script.py", "", "helloWorld.log" )
+  job.setDestination( ['DIRAC.YANDEX.ru', 'DIRAC.OSC.us', 'DIRAC.Zurich.ch'] )
+  return endOfAllJobs( job )
 
 @executeWithUserProxy
 def helloWorldTestSSHCondor():
 
-  J = baseToAllJobs( 'helloWorld-test-SSHCondor', jobClass )
-  J.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
-  J.setExecutable( "exe-script.py", "", "helloWorld.log" )
-  J.setDestination( ['DIRAC.Syracuse.us'] )
-  return endOfAllJobs( J )
+  job = baseToAllJobs( 'helloWorld-test-SSHCondor', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script.py", "", "helloWorld.log" )
+  job.setDestination( ['DIRAC.Syracuse.us'] )
+  return endOfAllJobs( job )
 
 @executeWithUserProxy
 def helloWorldTestVAC():
 
-  J = baseToAllJobs( 'helloWorld-test-VAC', jobClass )
-  J.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
-  J.setExecutable( "exe-script.py", "", "helloWorld.log" )
-  J.setDestination( ['VAC.Manchester.uk'] )
-  return endOfAllJobs( J )
+  job = baseToAllJobs( 'helloWorld-test-VAC', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script.py", "", "helloWorld.log" )
+  job.setDestination( ['VAC.Manchester.uk'] )
+  return endOfAllJobs( job )
 
 @executeWithUserProxy
 def helloWorldTestCLOUD():
 
-  J = baseToAllJobs( 'helloWorld-test-CLOUD', jobClass )
-  J.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
-  J.setExecutable( "exe-script.py", "", "helloWorld.log" )
-  J.setDestination( ['CLOUD.CERN.ch', 'CLOUD.EGI.eu'] )
-  return endOfAllJobs( J )
+  job = baseToAllJobs( 'helloWorld-test-CLOUD', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script.py", "", "helloWorld.log" )
+  job.setDestination( ['CLOUD.CERN.cern', 'CLOUD.EGI.eu'] )
+  return endOfAllJobs( job )
 
 @executeWithUserProxy
 def helloWorldTestBOINC():
 
-  J = baseToAllJobs( 'helloWorld-test-BOINC', jobClass )
-  J.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
-  J.setExecutable( "exe-script.py", "", "helloWorld.log" )
-  J.setDestination( ['BOINC.World.org'] )
-  return endOfAllJobs( J )
+  job = baseToAllJobs( 'helloWorld-test-BOINC', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script.py", "", "helloWorld.log" )
+  job.setDestination( ['BOINC.World.org'] )
+  return endOfAllJobs( job )
 
 @executeWithUserProxy
 def helloWorldTestSLC6():
 
-  J = baseToAllJobs( 'helloWorld-test-SLC6', jobClass )
-  J.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
-  J.setExecutable( "exe-script.py", "", "helloWorld.log" )
-  J.setPlatform( 'x86_64-slc6' )
-  return endOfAllJobs( J )
+  job = baseToAllJobs( 'helloWorld-test-SLC6', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script.py", "", "helloWorld.log" )
+  job.setPlatform( 'x86_64-slc6' )
+  return endOfAllJobs( job )
 
 @executeWithUserProxy
 def helloWorldTestSLC5():
 
-  J = baseToAllJobs( 'helloWorld-test-SLC5', jobClass )
-  J.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
-  J.setExecutable( "exe-script.py", "", "helloWorld.log" )
-  J.setPlatform( 'x86_64-slc5' )
-  return endOfAllJobs( J )
+  job = baseToAllJobs( 'helloWorld-test-SLC5', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script.py", "", "helloWorld.log" )
+  job.setPlatform( 'x86_64-slc5' )
+  return endOfAllJobs( job )
 
 @executeWithUserProxy
 def jobWithOutput():
 
-  timenow = time.strftime("%s")
-  with open( os.path.join( wdir,timenow+"testFileUpload.txt" ), "w" ) as f:
+  timenow = time.strftime( "%s" )
+  with open( os.path.join( wdir, timenow + "testFileUpload.txt" ), "w" ) as f:
     f.write( timenow )
-  J = baseToAllJobs( 'jobWithOutput', jobClass )
-  J.setInputSandbox( [find_all( timenow+'testFileUpload.txt', wdir, 'GridTestSubmission' )[0]] + \
+  job = baseToAllJobs( 'jobWithOutput', jobClass )
+  job.setInputSandbox( [find_all( timenow + 'testFileUpload.txt', wdir, 'GridTestSubmission' )[0]] + \
                      [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
-  J.setExecutable( "exe-script.py", "", "helloWorld.log" )
-  J.setOutputData( [timenow+'testFileUpload.txt'] )
-  res = endOfAllJobs( J )
+  job.setExecutable( "exe-script.py", "", "helloWorld.log" )
+  job.setOutputData( [timenow + 'testFileUpload.txt'] )
+  res = endOfAllJobs( job )
   try:
-    os.remove( os.path.join( wdir,timenow+"testFileUpload.txt" ) )
+    os.remove( os.path.join( wdir, timenow + "testFileUpload.txt" ) )
   except OSError as e:
     return e.errno == errno.ENOENT
   return res
@@ -156,17 +157,17 @@ def jobWithOutput():
 @executeWithUserProxy
 def jobWithOutputAndPrepend():
 
-  timenow = time.strftime("%s")
-  with open( os.path.join( wdir,timenow+"testFileUploadNewPath.txt" ), "w" ) as f:
+  timenow = time.strftime( "%s" )
+  with open( os.path.join( wdir, timenow + "testFileUploadNewPath.txt" ), "w" ) as f:
     f.write( timenow )
-  J = baseToAllJobs( 'jobWithOutputAndPrepend', jobClass )
-  J.setInputSandbox( [find_all( timenow+'testFileUploadNewPath.txt', wdir, 'GridTestSubmission' )[0]] + \
+  job = baseToAllJobs( 'jobWithOutputAndPrepend', jobClass )
+  job.setInputSandbox( [find_all( timenow + 'testFileUploadNewPath.txt', wdir, 'GridTestSubmission' )[0]] + \
                      [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
-  J.setExecutable( "exe-script.py", "", "helloWorld.log" )
-  J.setOutputData( [timenow+'testFileUploadNewPath.txt'], filePrepend = 'testFilePrepend' )
-  res = endOfAllJobs( J )
+  job.setExecutable( "exe-script.py", "", "helloWorld.log" )
+  job.setOutputData( [timenow + 'testFileUploadNewPath.txt'], filePrepend = 'testFilePrepend' )
+  res = endOfAllJobs( job )
   try:
-    os.remove( os.path.join( wdir,timenow+"testFileUploadNewPath.txt" ) )
+    os.remove( os.path.join( wdir, timenow + "testFileUploadNewPath.txt" ) )
   except OSError as e:
     return e.errno == errno.ENOENT
   return res
@@ -174,19 +175,19 @@ def jobWithOutputAndPrepend():
 @executeWithUserProxy
 def jobWithOutputAndPrependWithUnderscore():
 
-  timenow = time.strftime("%s")
-  with open( os.path.join( wdir,timenow+"testFileUpload_NewPath.txt" ), "w")  as f:
+  timenow = time.strftime( "%s" )
+  with open( os.path.join( wdir, timenow + "testFileUpload_NewPath.txt" ), "w" )  as f:
     f.write( timenow )
-  J = baseToAllJobs( 'jobWithOutputAndPrependWithUnderscore', jobClass )
-  J.setInputSandbox( [find_all( timenow+'testFileUpload_NewPath.txt', wdir, 'GridTestSubmission' )[0]] + \
+  job = baseToAllJobs( 'jobWithOutputAndPrependWithUnderscore', jobClass )
+  job.setInputSandbox( [find_all( timenow + 'testFileUpload_NewPath.txt', wdir, 'GridTestSubmission' )[0]] + \
                      [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
-  J.setExecutable( "exe-script.py", "", "helloWorld.log" )
-  res = J.setOutputData( [timenow+'testFileUpload_NewPath.txt'], filePrepend = 'testFilePrepend' )
+  job.setExecutable( "exe-script.py", "", "helloWorld.log" )
+  res = job.setOutputData( [timenow + 'testFileUpload_NewPath.txt'], filePrepend = 'testFilePrepend' )
   if not res['OK']:
     return 0
-  res = endOfAllJobs( J )
+  res = endOfAllJobs( job )
   try:
-    os.remove( os.path.join( wdir,timenow+'testFileUpload_NewPath.txt' ) )
+    os.remove( os.path.join( wdir, timenow + 'testFileUpload_NewPath.txt' ) )
   except OSError as e:
     return e.errno == errno.ENOENT
   return res
@@ -194,17 +195,17 @@ def jobWithOutputAndPrependWithUnderscore():
 @executeWithUserProxy
 def jobWithOutputAndReplication():
 
-  timenow = time.strftime("%s")
-  with open( os.path.join( wdir,timenow+"testFileReplication.txt" ), "w" ) as f:
+  timenow = time.strftime( "%s" )
+  with open( os.path.join( wdir, timenow + "testFileReplication.txt" ), "w" ) as f:
     f.write( timenow )
-  J = baseToAllJobs( 'jobWithOutputAndReplication', jobClass )
-  J.setInputSandbox( [find_all( timenow+'testFileReplication.txt', wdir, 'GridTestSubmission' )[0]] + \
+  job = baseToAllJobs( 'jobWithOutputAndReplication', jobClass )
+  job.setInputSandbox( [find_all( timenow + 'testFileReplication.txt', wdir, 'GridTestSubmission' )[0]] + \
                      [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
-  J.setExecutable( "exe-script.py", "", "helloWorld.log" )
-  J.setOutputData( [timenow+'testFileReplication.txt'], replicate = 'True' )
-  res = endOfAllJobs( J )
+  job.setExecutable( "exe-script.py", "", "helloWorld.log" )
+  job.setOutputData( [timenow + 'testFileReplication.txt'], replicate = 'True' )
+  res = endOfAllJobs( job )
   try:
-    os.remove( os.path.join( wdir,timenow+'testFileReplication.txt' ) )
+    os.remove( os.path.join( wdir, timenow + 'testFileReplication.txt' ) )
   except OSError as e:
     return e.errno == errno.ENOENT
   return res
@@ -212,27 +213,27 @@ def jobWithOutputAndReplication():
 @executeWithUserProxy
 def jobWith2OutputsToBannedSE():
 
-  timenow = time.strftime("%s")
-  with open( os.path.join( wdir,timenow+"testFileUploadBanned-1.txt" ), "w" ) as f:
-    f.write( timenow ) 
-  with open( os.path.join( wdir,timenow+"testFileUploadBanned-2.txt" ), "w" ) as f:
+  timenow = time.strftime( "%s" )
+  with open( os.path.join( wdir, timenow + "testFileUploadBanned-1.txt" ), "w" ) as f:
     f.write( timenow )
-  J = baseToAllJobs( 'jobWith2OutputsToBannedSE', jobClass )
-  J.setInputSandbox( [find_all( timenow+'testFileUploadBanned-1.txt', wdir, 'GridTestSubmission' )[0]] \
-                     + [find_all( timenow+'testFileUploadBanned-2.txt', wdir, 'GridTestSubmission' )[0]] \
+  with open( os.path.join( wdir, timenow + "testFileUploadBanned-2.txt" ), "w" ) as f:
+    f.write( timenow )
+  job = baseToAllJobs( 'jobWith2OutputsToBannedSE', jobClass )
+  job.setInputSandbox( [find_all( timenow + 'testFileUploadBanned-1.txt', wdir, 'GridTestSubmission' )[0]] \
+                     + [find_all( timenow + 'testFileUploadBanned-2.txt', wdir, 'GridTestSubmission' )[0]] \
                      + [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] \
                      + [find_all( 'partialConfig.cfg', '.', 'GridTestSubmission' )[0] ] )
-  J.setExecutable( "exe-script.py", "", "helloWorld.log" )
-  J.setConfigArgs( 'partialConfig.cfg' )
-  J.setDestination( 'LCG.PIC.es' )
-  J.setOutputData( [timenow+'testFileUploadBanned-1.txt', timenow+'testFileUploadBanned-2.txt'], OutputSE = ['PIC-USER'] )
-  res = endOfAllJobs( J )
+  job.setExecutable( "exe-script.py", "", "helloWorld.log" )
+  job.setConfigArgs( 'partialConfig.cfg' )
+  job.setDestination( 'LCG.PIC.es' )
+  job.setOutputData( [timenow + 'testFileUploadBanned-1.txt', timenow + 'testFileUploadBanned-2.txt'], OutputSE = ['PIC-USER'] )
+  res = endOfAllJobs( job )
   try:
-    os.remove( os.path.join( wdir,timenow+'testFileUploadBanned-1.txt' ) )
+    os.remove( os.path.join( wdir, timenow + 'testFileUploadBanned-1.txt' ) )
   except OSError as e:
     return e.errno == errno.ENOENT
   try:
-    os.remove( os.path.join( wdir,timenow+'testFileUploadBanned-2.txt' ) )
+    os.remove( os.path.join( wdir, timenow + 'testFileUploadBanned-2.txt' ) )
   except OSError as e:
     return e.errno == errno.ENOENT
   return res
@@ -240,45 +241,45 @@ def jobWith2OutputsToBannedSE():
 @executeWithUserProxy
 def jobWithSingleInputData():
 
-  J = baseToAllJobs( 'jobWithSingleInputData', jobClass )
-  J.setInputSandbox( [find_all( 'exe-script-with-input-single-location.py', '.', 'GridTestSubmission' )[0]] )
-  J.setExecutable( "exe-script-with-input-single-location.py", "", "exeWithInput.log" )
-  J.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
-  J.setInputDataPolicy( 'download' )
-  res = endOfAllJobs( J )
+  job = baseToAllJobs( 'jobWithSingleInputData', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script-with-input-single-location.py', '.', 'GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script-with-input-single-location.py", "", "exeWithInput.log" )
+  job.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
+  job.setInputDataPolicy( 'download' )
+  res = endOfAllJobs( job )
   return res
 
 @executeWithUserProxy
 def jobWithSingleInputDataSpreaded():
 
-  J = baseToAllJobs( 'jobWithSingleInputDataSpreaded', jobClass )
-  J.setInputSandbox( [find_all( 'exe-script-with-input.py', '.', 'GridTestSubmission' )[0]] )
-  J.setExecutable( "exe-script-with-input.py", "", "exeWithInput.log" )
-  J.setInputData( '/lhcb/user/f/fstagni/test/testInputFile.txt' )  # this file should be at CERN-USER and IN2P3-USER
-  J.setInputDataPolicy( 'download' )
-  res = endOfAllJobs( J )
+  job = baseToAllJobs( 'jobWithSingleInputDataSpreaded', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script-with-input.py', '.', 'GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script-with-input.py", "", "exeWithInput.log" )
+  job.setInputData( '/lhcb/user/f/fstagni/test/testInputFile.txt' )  # this file should be at CERN-USER and IN2P3-USER
+  job.setInputDataPolicy( 'download' )
+  res = endOfAllJobs( job )
   return res
 
 @executeWithUserProxy
 def jobWithInputDataAndAncestor():
 
-  J = baseToAllJobs( 'jobWithInputDataAndAncestor', jobClass )
-  J.setInputSandbox( [find_all( 'exe-script-with-input-and-ancestor.py', '.', 'GridTestSubmission' )[0]] )
-  J.setExecutable( "exe-script-with-input-and-ancestor.py", "", "exeWithInput.log" )
+  job = baseToAllJobs( 'jobWithInputDataAndAncestor', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script-with-input-and-ancestor.py', '.', 'GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script-with-input-and-ancestor.py", "", "exeWithInput.log" )
   # WARNING: Collision10!!
-  J.setInputData( '/lhcb/data/2010/SDST/00008375/0005/00008375_00053941_1.sdst' )  # this file should be at SARA-RDST
+  job.setInputData( '/lhcb/data/2010/SDST/00008375/0005/00008375_00053941_1.sdst' )  # this file should be at SARA-RDST
   # the ancestor should be /lhcb/data/2010/RAW/FULL/LHCb/COLLISION10/81616/081616_0000000213.raw (CERN and SARA)
-  J.setAncestorDepth( 1 )  #pylint: disable=no-member
-  J.setInputDataPolicy( 'download' )
-  res = endOfAllJobs( J )
+  job.setAncestorDepth( 1 )  # pylint: disable=no-member
+  job.setInputDataPolicy( 'download' )
+  res = endOfAllJobs( job )
   return res
 
 @executeWithUserProxy
 def gaussJob():
 
-  J = baseToAllJobs( 'gaussJob', jobClass )
-  J.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '.', 'GridTestSubmission' )[0]] )
-  J.setOutputSandbox( '00012345_00067890_1.sim' )
+  job = baseToAllJobs( 'gaussJob', jobClass )
+  job.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '.', 'GridTestSubmission' )[0]] )
+  job.setOutputSandbox( '00012345_00067890_1.sim' )
 
   optGauss = "$APPCONFIGOPTS/Gauss/Sim08-Beam3500GeV-md100-2011-nu2.py;"
   optDec = "$DECFILESROOT/options/34112104.py;"
@@ -287,21 +288,21 @@ def gaussJob():
   optCompr = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;"
   optPConf = "prodConf_Gauss_00012345_00067890_1.py"
   options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
-  J.setApplication( 'Gauss', 'v45r5', options, #pylint: disable=no-member
-                    extraPackages = 'AppConfig.v3r179;DecFiles.v27r14p1;ProdConf.v1r9',
-                    systemConfig = 'x86_64-slc5-gcc43-opt' )
-  J.setDIRACPlatform()  #pylint: disable=no-member
-  J.setCPUTime( 172800 )
-  res = endOfAllJobs( J )
+  job.setApplication( 'Gauss', 'v45r5', options,  # pylint: disable=no-member
+                      extraPackages = 'AppConfig.v3r179;DecFiles.v27r14p1;ProdConf.v1r9',
+                      systemConfig = 'x86_64-slc5-gcc43-opt' )
+  job.setDIRACPlatform()  # pylint: disable=no-member
+  job.setCPUTime( 172800 )
+  res = endOfAllJobs( job )
   return res
 
 
 @executeWithUserProxy
 def booleJob():
 
-  J = baseToAllJobs( 'booleJob', jobClass )
-  J.setInputSandbox( [find_all( 'prodConf_Boole_00012345_00067890_1.py', '.', 'GridTestSubmission' )[0]] )
-  J.setOutputSandbox( '00012345_00067890_1.digi' )
+  job = baseToAllJobs( 'booleJob', jobClass )
+  job.setInputSandbox( [find_all( 'prodConf_Boole_00012345_00067890_1.py', '.', 'GridTestSubmission' )[0]] )
+  job.setOutputSandbox( '00012345_00067890_1.digi' )
 
   opts = "$APPCONFIGOPTS/Boole/Default.py;"
   optDT = "$APPCONFIGOPTS/Boole/DataType-2011.py;"
@@ -310,14 +311,14 @@ def booleJob():
   optPConf = "prodConf_Boole_00012345_00067890_1.py"
   options = opts + optDT + optTCK + optComp + optPConf
 
-  J.setApplication( 'Boole', 'v26r3', options, #pylint: disable=no-member
-                    inputData = '/lhcb/user/f/fstagni/test/12345/12345678/00012345_00067890_1.sim',
-                    extraPackages = 'AppConfig.v3r171;ProdConf.v1r9',
-                    systemConfig = 'x86_64-slc5-gcc43-opt' )
+  job.setApplication( 'Boole', 'v26r3', options,  # pylint: disable=no-member
+                      inputData = '/lhcb/user/f/fstagni/test/12345/12345678/00012345_00067890_1.sim',
+                      extraPackages = 'AppConfig.v3r171;ProdConf.v1r9',
+                      systemConfig = 'x86_64-slc5-gcc43-opt' )
 
-  J.setDIRACPlatform() #pylint: disable=no-member
-  J.setCPUTime( 172800 )
-  res = endOfAllJobs( J )
+  job.setDIRACPlatform()  # pylint: disable=no-member
+  job.setCPUTime( 172800 )
+  res = endOfAllJobs( job )
   return res
 
 
@@ -328,10 +329,10 @@ def wrongJob():
   print "This will generate a job that should become Completed, use the failover, and only later it will be Done"
 
   from tests.Workflow.Integration.Test_UserJobs import createJob
-  J = baseToAllJobs( 'wrongJob', jobClass )
-  J = createJob( local = False )
-  J.setName( "gaudirun-gauss-completed-than-done" )
-  res = endOfAllJobs( J )
+  job = baseToAllJobs( 'wrongJob', jobClass )
+  job = createJob( local = False )
+  job.setName( "gaudirun-gauss-completed-than-done" )
+  res = endOfAllJobs( job )
   return res
 
 

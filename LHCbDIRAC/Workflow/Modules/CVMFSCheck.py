@@ -84,8 +84,8 @@ class CVMFSCheck( ModuleBase ):
       self.log.exception( "Failure in CVMFSCheck execute module", lException = e )
       self.workflow_commons.setdefault( 'SAMResults', {})[ 'CVMFS' ] = 'CRITICAL'
       self.workflow_commons.setdefault( 'SAMDetails', {})[ 'CVMFS' ] = e
-      self.setApplicationStatus( e )
-      return S_ERROR( e )
+      self.setApplicationStatus( repr(e) )
+      return S_ERROR( str(e) )
 
     finally:
       super( CVMFSCheck, self ).finalize( self.version )

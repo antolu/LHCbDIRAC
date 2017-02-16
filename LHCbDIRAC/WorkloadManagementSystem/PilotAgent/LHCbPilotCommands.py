@@ -67,7 +67,7 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
         try:
           var = line.split( '=' )[0].strip()
           value = line.split( '=' )[1].strip()
-          # FIXME: horrible hack... (there's a function that ends in the next line...)
+          # Horrible hack... (there's a function that ends in the next line...)
           if '{' in value:
             value = value + '\n}'
           environment[var] = value
@@ -81,11 +81,17 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
       environment['LHCb_release_area'] = '/cvmfs/lhcb.cern.ch/lib/lhcb/'
     # when we reach here we expect to know the release version to install
 
-    self.__invokeCmd( '. $LHCb_release_area/LBSCRIPTS/prod/InstallArea/scripts/LbLogin.sh && printenv > environmentLbLogin',
-                      environment )
+    # check for need of devLbLogin
+    if 'devLbLogin' in self.pp.genericOption:
+      self.__invokeCmd( '. $LHCb_release_area/LBSCRIPTS/dev/InstallArea/scripts/LbLogin.sh && printenv > environmentLbLogin',
+                        environment )
+    else:
+      self.__invokeCmd( '. $LHCb_release_area/LBSCRIPTS/prod/InstallArea/scripts/LbLogin.sh && printenv > environmentLbLogin',
+                        environment )
+
     environment = __parseEnvironmentFile( 'environmentLbLogin' )
 
-    self.__invokeCmd( 'lb-run LHCbDirac %s > environmentLHCbDirac' % self.pp.releaseVersion, environment )
+    self.__invokeCmd( 'lb-run LHCbDirac/%s > environmentLHCbDirac' % self.pp.releaseVersion, environment )
     return __parseEnvironmentFile( 'environmentLHCbDirac' )
 
 
@@ -205,7 +211,7 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
 
     super( LHCbConfigureBasics, self )._getSecurityCFG()
 
-class LHCbCleanPilotEnv ( LHCbConfigureBasics ):
+class LHCbCleanPilotEnv( LHCbConfigureBasics ):
   """Delete the pilot.cfg and the pilot.json, needed for VMs.
      Force the use of the CS given by command line. The command avoids the use of the CS server address (lhcb-conf2)
      which would not work for some resources, e.g. BOINC.

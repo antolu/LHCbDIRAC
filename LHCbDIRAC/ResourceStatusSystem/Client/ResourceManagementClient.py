@@ -468,15 +468,6 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
   #.............................................................................
   #
 
-  def getSLSStorage( self, site = None, token = None,
-                     availability = None, refreshPeriod = None,
-                     validityDuration = None, totalSpace = None,
-                     guaranteedSpace = None, freeSpace = None ):
-
-    # Deprecation warning
-    gLogger.warn( "DEPRECATED: use getSEStorageSpace" )
-    return self._query( 'select', 'SLSStorage', locals() )
-
   def getSEStorageSpace( self, seName ):
     """ getSEStorageSpace
 

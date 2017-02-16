@@ -70,7 +70,7 @@ validationFlag = ast.literal_eval( '{{validationFlag#GENERAL: Set True for valid
 pr.startRun = int( '{{startRun#GENERAL: run start, to set the start run#0}}' )
 pr.endRun = int( '{{endRun#GENERAL: run end, to set the end of the range#0}}' )
 pr.runsList = '{{runsList#GENERAL: discrete list of run numbers (do not mix with start/endrun)#}}'
-pr.targets = ['{{WorkflowDestination#GENERAL: Workflow destination site e.g. LCG.CERN.ch#}}'] * len( pr.prodsTypeList )
+pr.targets = ['{{WorkflowDestination#GENERAL: Workflow destination site e.g. LCG.CERN.cern#}}'] * len( pr.prodsTypeList )
 extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepNumber:options#}}'
 if extraOptions:
   pr.extraOptions = ast.literal_eval( extraOptions )
@@ -93,10 +93,15 @@ except SyntaxError:
 p1Policy = '{{p1Policy#PROD-P1: data policy (download or protocol)#download}}'
 p1RemoveInputs = ast.literal_eval( '{{p1RemoveInputs#PROD-P1: removeInputs flag#False}}' )
 p1StepMask = '{{P1StepMask#PROD-P1: step output to save, semicolon separated (default is last)#}}'
+p1FileMask = '{{P1FileMask#PROD-P1: file types in output to save, semicolon separated (default is all)#}}'
 p1multicoreFlag = '{{P1MulticoreFLag#PROD-P1: multicore flag#True}}'
 p1outputMode = '{{P1OutputMode#PROD-P1: output mode#Local}}'
 p1eventsRequested = '{{P1EventsRequested#PROD-P1: events requested (-1 = ALL)#-1}}'
 p1ancestorDepth = int( '{{P1AncestorDepth#PROD-P1: ancestor depth#0}}' )
+try:
+  p1compressionLvl = ast.literal_eval( '{{P1CompressionLevel#PROD-P1: Compression Level per step, e.g. ["Compression-ZLIB-1","Compression-LZMA-4"]#}}' )
+except SyntaxError:
+  p1compressionLvl = []
 
 # p2 params
 p2Plugin = '{{p2PluginType#PROD-P2: production plugin name#LHCbStandard}}'
@@ -111,10 +116,15 @@ except SyntaxError:
 p2Policy = '{{p2Policy#PROD-P2: data policy (download or protocol)#download}}'
 p2RemoveInputs = ast.literal_eval( '{{p2RemoveInputs#PROD-P2: removeInputs flag#False}}' )
 p2StepMask = '{{P2StepMask#PROD-P2: step output to save, semicolon separated (default is last#}}'
+p2FileMask = '{{P2FileMask#PROD-P2: file types in output to save, semicolon separated (default is all)#}}'
 p2multicoreFlag = '{{P2MulticoreFLag#PROD-P2: multicore flag#True}}'
 p2outputMode = '{{P2OutputMode#PROD-P2: output mode#Local}}'
 p2eventsRequested = '{{P2EventsRequested#PROD-P2: events requested (-1 = ALL)#-1}}'
 p2ancestorDepth = int( '{{P2AncestorDepth#PROD-P2: ancestor depth#0}}' )
+try:
+  p2compressionLvl = ast.literal_eval( '{{P1CompressionLevel#PROD-P1: Compression Level per step, e.g. ["Compression-ZLIB-1","Compression-LZMA-4"]#}}' )
+except SyntaxError:
+  p2compressionLvl = []
 
 # p3 params
 p3Plugin = '{{p3PluginType#PROD-P3: production plugin name#LHCbStandard}}'
@@ -129,10 +139,15 @@ except SyntaxError:
 p3Policy = '{{p3Policy#PROD-P3: data policy (download or protocol)#download}}'
 p3RemoveInputs = ast.literal_eval( '{{p3RemoveInputs#PROD-P3: removeInputs flag#False}}' )
 p3StepMask = '{{P3StepMask#PROD-P3: step output to save, semicolon separated (default is last#}}'
+p3FileMask = '{{P3FileMask#PROD-P3: file types in output to save, semicolon separated (default is all)#}}'
 p3multicoreFlag = '{{P3MulticoreFLag#PROD-P3: multicore flag#True}}'
 p3outputMode = '{{P3OutputMode#PROD-P3: output mode#Any}}'
 p3eventsRequested = '{{P3EventsRequested#PROD-P3: events requested (-1 = ALL)#-1}}'
 p3ancestorDepth = int( '{{P3AncestorDepth#PROD-P3: ancestor depth#0}}' )
+try:
+  p3compressionLvl = ast.literal_eval( '{{P1CompressionLevel#PROD-P1: Compression Level per step, e.g. ["Compression-ZLIB-1","Compression-LZMA-4"]#}}' )
+except SyntaxError:
+  p3compressionLvl = []
 
 parentReq = '{{_parent}}'
 if not parentReq:
@@ -227,9 +242,11 @@ pr.plugins = [p1Plugin, p2Plugin, p3Plugin][0:len( pr.prodsTypeList )]
 pr.inputs = [inputDataList, [], []][0:len( pr.prodsTypeList )]
 pr.inputDataPolicies = [p1Policy, p2Policy, p3Policy][0:len( pr.prodsTypeList )]
 pr.outputFileSteps = [p1StepMask, p2StepMask, p3StepMask]
+pr.outputFileMasks = [p1FileMask, p2FileMask, p3FileMask]
 pr.multicore = [p1multicoreFlag, p2multicoreFlag, p3multicoreFlag]
 pr.outputModes = [p1outputMode, p2outputMode, p3outputMode]
 pr.events = [p1eventsRequested, p2eventsRequested, p3eventsRequested]
 pr.ancestorDepths = [p1ancestorDepth, p2ancestorDepth, p3ancestorDepth]
+pr.compressionLvl = [p1compressionLvl, p2compressionLvl, p3compressionLvl]
 
 pr.buildAndLaunchRequest()

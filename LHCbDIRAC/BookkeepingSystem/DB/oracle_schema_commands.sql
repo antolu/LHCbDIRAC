@@ -49,7 +49,9 @@ create or replace type metadata0bj is object (
   inserttimestamp timestamp(6),
   luminosity number,
   instluminosity number ,
-  VISIBILITYFLAG CHAR(1)
+  VISIBILITYFLAG CHAR(1),
+  fileid number,
+  filetypeid number
  );
 /
 create or replace type metadata_table is table of metadata0bj;
@@ -70,8 +72,8 @@ before update or insert on newrunquality
 referencing new as new old as old
 for each row  
 begin
-   update files set files.qualityid= :new.qualityid where jobid in (select j.jobid from jobs j where j.runnumber= :new.runnumber and j.production<0);
-   update files set files.qualityid= :new.qualityid where files.fileid in (select f.fileid from files f, jobs j where j.jobid=f.jobid and j.runnumber= :new.runnumber and f.gotreplica='Yes'and j.production in (select prod.production from productionscontainer prod where prod.processingid= :new.processingid));
+   update files SET insertTimestamp=sys_extract_utc(systimestamp + interval '5' minute), files.qualityid= :new.qualityid where jobid in (select j.jobid from jobs j where j.runnumber= :new.runnumber and j.production<0);
+   update files SET insertTimestamp=sys_extract_utc(systimestamp + interval '5' minute), files.qualityid= :new.qualityid where files.fileid in (select f.fileid from files f, jobs j where j.jobid=f.jobid and j.runnumber= :new.runnumber and f.gotreplica='Yes'and j.production in (select prod.production from productionscontainer prod where prod.processingid= :new.processingid));
 end;
 
 
@@ -111,3 +113,12 @@ create or replace  type jobMetadata is object(lfn varchar2(256),
   WNMJFHS06                   FLOAT);
  drop type bulk_collect_jobMetadata;
 create or replace type bulk_collect_jobMetadata is table of jobMetadata;
+
+ALTER TABLE productionscontainer ADD configurationid number;
+ALTER TABLE productionscontainer ADD FOREIGN KEY (CONFIGURATIONID) REFERENCES configurations(CONFIGURATIONID);
+
+alter table jobs ADD CONSTRAINT FK_Prodcont_prod FOREIGN KEY(production) REFERENCES productionscontainer(production);
+
+ALTER TABLE jobs ADD HLT2TCK varchar2(20);
+
+

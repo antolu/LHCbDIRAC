@@ -5,8 +5,6 @@
 
 """
 
-__RCSID__ = "$Id$"
-
 import os
 import glob
 import fnmatch
@@ -22,6 +20,8 @@ from DIRAC.ResourceStatusSystem.Client.ResourceStatus    import ResourceStatus
 from LHCbDIRAC.Core.Utilities.File                        import makeGuid
 from LHCbDIRAC.Core.Utilities.ClientTools                 import mergeRootFiles
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+
+__RCSID__ = "$Id$"
 
 COMPONENT_NAME = 'DiracLHCb'
 
@@ -145,7 +145,7 @@ class DiracLHCb( Dirac ):
           return self._errorReport( "Location of .root should be 'Sandbox' or 'OutputFiles'." )
 
     # Perform the root merger
-    res = mergeRootFiles( outputFileName, inputFiles, daVinciVersion = '' )
+    res = mergeRootFiles( outputFileName, inputFiles )
     if not res['OK']:
       return self._errorReport( res['Message'], "Failed to perform final ROOT merger" )
     return S_OK()
@@ -420,6 +420,9 @@ class DiracLHCb( Dirac ):
       dqFlag = check['Value']
       query['DataQuality'] = dqFlag
 
+    for key, val in query.items():
+      if isinstance( val, basestring ) and val.lower() == 'all':
+        query.pop( key )
     result = self.bkQuery( query )
     self.log.verbose( result )
     return result
@@ -751,7 +754,7 @@ class DiracLHCb( Dirac ):
   def lhcbProxyInit( self, *args ):
     """ just calling the dirac-proxy-init script
     """
-    os.system( "dirac-proxy-init -o LogLevel=NOTICE -t %s" % "' '".join( args ) )
+    os.system( "dirac-proxy-init -o LogLevel=NOTICE -t --rfc %s" % "' '".join( args ) )
 
   #############################################################################
 
@@ -974,7 +977,7 @@ class DiracLHCb( Dirac ):
       # Now get bunches of files,
       # Sort in decreasing size
       files.sort( cmp = ( lambda f1, f2: fileSizes[f2] - fileSizes[f1] ) )
-      while( files ):
+      while files:
         # print [( lfn, fileSizes[lfn] ) for lfn in files]
         group = []
         sizeTot = 0
@@ -992,4 +995,3 @@ class DiracLHCb( Dirac ):
     if printOutput:
       print self.pPrint.pformat( lfnGroups )
     return S_OK( lfnGroups )
-
