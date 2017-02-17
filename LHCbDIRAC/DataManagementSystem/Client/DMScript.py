@@ -379,15 +379,17 @@ class DMScript( object ):
     else:
       gLogger.error( 'getLFNsFromList: invalid type %s' % type( lfns ) )
       return []
-    if not directories:
-      vo = self.__voName()
-      if vo:
-        vo = '/%s/' % vo
-        lfnList = [l.split( 'LFN:' )[-1].strip().replace( '"', ' ' ).replace( ',', ' ' ).replace( "'", " " ).replace( ':', ' ' ) for l in lfnList]
-        lfnList = [ vo + lfn.split( vo )[-1].split()[0] if vo in lfn else lfn if lfn == vo[:-1] else '' for lfn in lfnList]
-        lfnList = [lfn.split( '?' )[0] for lfn in lfnList]
+    vo = self.__voName()
+    if vo:
+      vo = '/%s/' % vo
+      lfnList = [l.split( 'LFN:' )[-1].strip().replace( '"', ' ' ).replace( ',', ' ' ).replace( "'", " " ).replace( ':', ' ' ).replace( '(', ' ' ).replace( ')', ' ' ) for l in lfnList]
+      lfnList = [ vo + lfn.split( vo )[-1].split()[0] if vo in lfn else lfn if lfn == vo[:-1] else '' for lfn in lfnList]
+      lfnList = [lfn.split( '?' )[0] for lfn in lfnList]
+      if directories:
+        lfnList = [lfn for lfn in lfnList if lfn.endswith( '/' )]
+      else:
         lfnList = [lfn for lfn in lfnList if not lfn.endswith( '/' )]
-    return sorted( lfn for lfn in set( lfnList ) if lfn or directories )
+    return sorted( lfn for lfn in set( lfnList ) if lfn )
 
   @staticmethod
   def getJobIDsFromList( jobids ):
@@ -439,6 +441,8 @@ class DMScript( object ):
       return resolveSEGroup( self.options.get( switch, default ) )
     value = self.options.get( switch, default )
     if switch in ( 'LFNs', 'Directory' ):
+      if value == default and switch == 'Directory':
+        value = self.options.get( 'LFNs', default )
       if not value:
         if not sys.stdin.isatty():
           self.setLFNsFromTerm()
