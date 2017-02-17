@@ -10,6 +10,44 @@ from pilotTools import CommandBase #pylint: disable=import-error
 
 __RCSID__ = "$Id$"
 
+
+############################################################## Utilities functions
+
+def invokeCmd( cmd, environment ):
+  """ Controlled invoke of command via subprocess.Popen
+  """
+  print "Executing %s" % cmd
+  cmdExecution = subprocess.Popen( cmd, shell = True, env = environment,
+                                   stdout = subprocess.PIPE, stderr = subprocess.PIPE, close_fds = False )
+  if cmdExecution.wait() != 0:
+    for line in cmdExecution.stderr:
+      sys.stdout.write( line )
+    raise OSError( "Can't do %s" % cmd )
+
+  for line in cmdExecution.stdout:
+    sys.stdout.write( line )
+
+def parseEnvironmentFile( eFile ):
+  """ getting the produced environment saved in the file
+  """
+  environment = {}
+  fp = open( eFile, 'r' )
+  for line in fp:
+    try:
+      var = line.split( '=' )[0].strip()
+      value = line.split( '=' )[1].strip()
+      # Horrible hack... (there's a function that ends in the next line...)
+      if '{' in value:
+        value = value + '\n}'
+      environment[var] = value
+    except IndexError:
+      continue
+  return environment
+
+
+
+############################################################## LHCb pilot commands
+
 class LHCbCommandBase( CommandBase ):
   """ Simple extension, just for LHCb parameters
   """
@@ -38,7 +76,7 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
       try:
         self.pp.installEnv = self._do_lb_login()
       except OSError, e:
-        self.log.error( "LbLogin not successful, ABORTING" )
+        self.log.error( "Invocation of LbLogin NOT successful ===> +++ABORTING+++" )
         sys.exit( 1 )
       self.log.info( "LbLogin DONE" )
       self.pp.installEnv = self._do_lb_run()
@@ -59,7 +97,7 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
       super( LHCbInstallDIRAC, self ).execute()
 
   def _do_lb_login( self ):
-    """ do LbLogin. If it doesn't work, the __invokeCmd will raise OSError
+    """ do LbLogin. If it doesn't work, the invokeCmd will raise OSError
     """
     environment = os.environ.copy()
     if 'LHCb_release_area' not in environment:
@@ -67,25 +105,27 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
 
     # check for need of devLbLogin
     if 'devLbLogin' in self.pp.genericOption:
-      __invokeCmd( '. $LHCb_release_area/LbLoginDev.sh && printenv > environmentLbLogin',
-                   environment )
+      invokeCmd( '. $LHCb_release_area/LBSCRIPTS/dev/InstallArea/scripts/LbLogin.sh && printenv > environmentLbLogin',
+                 environment )
     else:
-      __invokeCmd( '. $LHCb_release_area/LbLogin.sh && printenv > environmentLbLogin',
-                   environment )
+      invokeCmd( '. $LHCb_release_area/LBSCRIPTS/prod/InstallArea/scripts/LbLogin.sh && printenv > environmentLbLogin',
+                 environment )
 
-    return __parseEnvironmentFile( 'environmentLbLogin' )
+    return parseEnvironmentFile( 'environmentLbLogin' )
 
   def _do_lb_run( self ):
     """ do lb-run LHCbDIRAC of the requested version. If the version does not exist, raise OSError
     """
-    __invokeCmd( 'lb-run LHCbDirac/%s > environmentLHCbDirac' % self.pp.releaseVersion, self.pp.installEnv )
-    return __parseEnvironmentFile( 'environmentLHCbDirac' )
+    invokeCmd( 'lb-run LHCbDirac/%s > environmentLHCbDirac' % self.pp.releaseVersion, self.pp.installEnv )
+    return parseEnvironmentFile( 'environmentLHCbDirac' )
 
 class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
   """ Only case here, for now, is if to set or not the CAs and VOMS location, that should be found in CVMFS
   """
 
   def _getBasicsCFG( self ):
+    """ Fill in the sharedArea
+    """
     super( LHCbConfigureBasics, self )._getBasicsCFG()
 
     # Adding SharedArea (which should be in CVMFS)
@@ -103,6 +143,8 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
 
 
   def _getSecurityCFG( self ):
+    """ Locate X509_CERT_DIR
+    """
 
     self.log.debug( "self.pp.installEnv: %s" % str( self.pp.installEnv ) )
 
@@ -210,37 +252,3 @@ class LHCbConfigureArchitecture( LHCbCommandBase, ConfigureArchitecture ):
 
     self.log.info( 'Setting variable CMTCONFIG=%s' % localArchitecture )
     os.environ['CMTCONFIG'] = localArchitecture
-
-
-# Utilities functions
-
-def __parseEnvironmentFile( eFile ):
-  """ getting the produced environment saved in the file
-  """
-  environment = {}
-  fp = open( eFile, 'r' )
-  for line in fp:
-    try:
-      var = line.split( '=' )[0].strip()
-      value = line.split( '=' )[1].strip()
-      # Horrible hack... (there's a function that ends in the next line...)
-      if '{' in value:
-        value = value + '\n}'
-      environment[var] = value
-    except IndexError:
-      continue
-  return environment
-
-def __invokeCmd( cmd, environment ):
-  """ Controlled invoke of command via subprocess.Popen
-  """
-  print "Executing %s" % cmd
-  cmdExecution = subprocess.Popen( cmd, shell = True, env = environment,
-                                   stdout = subprocess.PIPE, stderr = subprocess.PIPE, close_fds = False )
-  if cmdExecution.wait() != 0:
-    for line in cmdExecution.stderr:
-      sys.stdout.write( line )
-    raise OSError( "Can't do %s" % cmd )
-
-  for line in cmdExecution.stdout:
-    sys.stdout.write( line )
