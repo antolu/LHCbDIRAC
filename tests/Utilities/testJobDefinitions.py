@@ -332,6 +332,10 @@ def gaudiApplicationScriptJob():
   job.setApplicationScript( 'root', '6.06.02', 'script_wrapper.py',
                             systemConfig = 'x86_64-slc6-gcc49-opt' )
   job.setOutputSandbox( 'FitResultsToyData*.root' )
+  job.setDIRACPlatform()  # pylint: disable=no-member
+  job.setCPUTime( 172800 )
+  res = endOfAllJobs( job )
+  return res
 
 
 @executeWithUserProxy
@@ -341,7 +345,6 @@ def wrongJob():
   print "This will generate a job that should become Completed, use the failover, and only later it will be Done"
 
   from tests.Workflow.Integration.Test_UserJobs import createJob
-  job = baseToAllJobs( 'wrongJob', jobClass )
   job = createJob( local = False )
   job.setName( "gaudirun-gauss-completed-than-done" )
   res = endOfAllJobs( job )
