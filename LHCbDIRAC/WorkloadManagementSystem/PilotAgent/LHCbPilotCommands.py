@@ -25,7 +25,8 @@ class LHCbGetPilotVersion( LHCbCommandBase, GetPilotVersion ):
   pass
 
 class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
-  """ Try lb-run LHCbDIRAC and fall back to dirac-install when the requested version is not in CVMFS
+  """ Try lb-run LHCbDIRAC and fall back to dirac-install when the requested version is not in CVMFS.
+      When we reach here we expect to know the release version to install
   """
 
   def execute( self ):
@@ -34,6 +35,12 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
     try:
       # also setting the correct environment to be used by dirac-configure, or whatever follows
       # (by default this is not needed, since with dirac-install works in the local directory)
+      try:
+        self.pp.installEnv = self._do_lb_login()
+      except OSError, e:
+        self.log.error( "LbLogin not successful, ABORTING" )
+        sys.exit( 1 )
+      self.log.info( "LbLogin DONE" )
       self.pp.installEnv = self._do_lb_run()
       self.log.info( "lb-run DONE, for release %s" % self.pp.releaseVersion )
 
@@ -47,72 +54,32 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
       fd.close()
 
     except OSError, e:
-      print "Exception when trying lbrun:", e
+      self.log.error( "Exception when trying lbrun:", e )
       self.log.warn( "lb-run NOT DONE: starting traditional DIRAC installation" )
       super( LHCbInstallDIRAC, self ).execute()
 
-      # saving as installation environment
-      self.pp.installEnv = os.environ
+  def _do_lb_login( self ):
+    """ do LbLogin. If it doesn't work, the __invokeCmd will raise OSError
+    """
+    environment = os.environ.copy()
+    if 'LHCb_release_area' not in environment:
+      environment['LHCb_release_area'] = '/cvmfs/lhcb.cern.ch/lib/lhcb/'
+
+    # check for need of devLbLogin
+    if 'devLbLogin' in self.pp.genericOption:
+      __invokeCmd( '. $LHCb_release_area/LbLoginDev.sh && printenv > environmentLbLogin',
+                   environment )
+    else:
+      __invokeCmd( '. $LHCb_release_area/LbLogin.sh && printenv > environmentLbLogin',
+                   environment )
+
+    return __parseEnvironmentFile( 'environmentLbLogin' )
 
   def _do_lb_run( self ):
     """ do lb-run LHCbDIRAC of the requested version. If the version does not exist, raise OSError
     """
-
-    def __parseEnvironmentFile( eFile ):
-      """ getting the produced environment saved in the file
-      """
-      environment = {}
-      fp = open( eFile, 'r' )
-      for line in fp:
-        try:
-          var = line.split( '=' )[0].strip()
-          value = line.split( '=' )[1].strip()
-          # Horrible hack... (there's a function that ends in the next line...)
-          if '{' in value:
-            value = value + '\n}'
-          environment[var] = value
-        except IndexError:
-          continue
-      return environment
-
-
-    environment = os.environ
-    if 'LHCb_release_area' not in environment:
-      environment['LHCb_release_area'] = '/cvmfs/lhcb.cern.ch/lib/lhcb/'
-    # when we reach here we expect to know the release version to install
-
-    # check for need of devLbLogin
-    if 'devLbLogin' in self.pp.genericOption:
-      self.__invokeCmd( '. $LHCb_release_area/LBSCRIPTS/dev/InstallArea/scripts/LbLogin.sh && printenv > environmentLbLogin',
-                        environment )
-    else:
-      self.__invokeCmd( '. $LHCb_release_area/LBSCRIPTS/prod/InstallArea/scripts/LbLogin.sh && printenv > environmentLbLogin',
-                        environment )
-
-    environment = __parseEnvironmentFile( 'environmentLbLogin' )
-
-    self.__invokeCmd( 'lb-run LHCbDirac/%s > environmentLHCbDirac' % self.pp.releaseVersion, environment )
+    __invokeCmd( 'lb-run LHCbDirac/%s > environmentLHCbDirac' % self.pp.releaseVersion, self.pp.installEnv )
     return __parseEnvironmentFile( 'environmentLHCbDirac' )
-
-
-
-  def __invokeCmd( self, cmd, environment ):
-    """ Controlled invoke of command via subprocess.Popen
-    """
-
-    self.log.debug( "Executing %s" % cmd )
-
-    cmdExecution = subprocess.Popen( cmd, shell = True, env = environment,
-                                     stdout = subprocess.PIPE, stderr = subprocess.PIPE, close_fds = False )
-    if cmdExecution.wait() != 0:
-      self.log.warn( "Problem executing . %s" % cmd )
-      for line in cmdExecution.stderr:
-        sys.stdout.write( line )
-      raise OSError( "Can't do %s" % cmd )
-
-    for line in cmdExecution.stdout:
-      sys.stdout.write( line )
-
 
 class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
   """ Only case here, for now, is if to set or not the CAs and VOMS location, that should be found in CVMFS
@@ -243,3 +210,37 @@ class LHCbConfigureArchitecture( LHCbCommandBase, ConfigureArchitecture ):
 
     self.log.info( 'Setting variable CMTCONFIG=%s' % localArchitecture )
     os.environ['CMTCONFIG'] = localArchitecture
+
+
+# Utilities functions
+
+def __parseEnvironmentFile( eFile ):
+  """ getting the produced environment saved in the file
+  """
+  environment = {}
+  fp = open( eFile, 'r' )
+  for line in fp:
+    try:
+      var = line.split( '=' )[0].strip()
+      value = line.split( '=' )[1].strip()
+      # Horrible hack... (there's a function that ends in the next line...)
+      if '{' in value:
+        value = value + '\n}'
+      environment[var] = value
+    except IndexError:
+      continue
+  return environment
+
+def __invokeCmd( cmd, environment ):
+  """ Controlled invoke of command via subprocess.Popen
+  """
+  print "Executing %s" % cmd
+  cmdExecution = subprocess.Popen( cmd, shell = True, env = environment,
+                                   stdout = subprocess.PIPE, stderr = subprocess.PIPE, close_fds = False )
+  if cmdExecution.wait() != 0:
+    for line in cmdExecution.stderr:
+      sys.stdout.write( line )
+    raise OSError( "Can't do %s" % cmd )
+
+  for line in cmdExecution.stdout:
+    sys.stdout.write( line )
