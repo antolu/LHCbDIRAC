@@ -133,9 +133,11 @@ def executeFilePath( dmScript ):
     dmScript.setLFNsFromFile( lfn )
   lfnList = sorted( dmScript.getOption( 'LFNs', [] ) )
 
-  if len( lfnList ) == 0:
-    Script.showHelp()
-    diracExit( 0 )
+  if not lfnList:
+    lfnList = sorted( dmScript.getOption( 'Directory', [] ) )
+    if not lfnList:
+      Script.showHelp()
+      diracExit( 0 )
 
   dirMetadata = ( 'Production', 'ConfigName', 'ConditionDescription', 'EventType',
                  'FileType', 'ConfigVersion', 'ProcessingPass', 'Path' )
@@ -171,17 +173,33 @@ def executeFilePath( dmScript ):
   else:
     directories = {}
     for lfn in lfnList:
-      directories.setdefault( os.path.dirname( lfn ), [] ).append( lfn )
+      dirName = os.path.dirname( lfn )
+      if not dirName:
+        continue
+      if '/RAW/' in dirName:
+        # For RAW files, eliminate the tail (run number)
+        while True:
+          if os.path.basename( dirName ).isdigit():
+            dirName = os.path.dirname( dirName )
+          else:
+            break
+      else:
+        tail = os.path.basename( dirName )
+        # Eliminate the tailing '/0000'
+        if len( tail ) == 4 and tail.isdigit():
+          dirName = os.path.dirname( dirName )
+      directories.setdefault( dirName, [] ).append( lfn )
 
-    chunkSize = 10
+    chunkSize = 2
     progressBar = ProgressBar( len( directories ), title = 'Getting metadata for %d directories' % len( directories ),
                                chunk = chunkSize )
     success = {}
     failed = set()
-    for dirChunk in breakListIntoChunks( sorted( directories ), chunkSize ):
+    for dirChunk in breakListIntoChunks( directories, chunkSize ):
       progressBar.loop()
       res = bkClient.getDirectoryMetadata( dirChunk )
       if not res['OK']:
+        progressBar.endLoop( message = 'Error getting directory metadata' )
         printDMResult( res )
         diracExit( 1 )
       success.update( res['Value']['Successful'] )
