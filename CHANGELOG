@@ -1,3 +1,17 @@
+[v8r6-pre7]
+Use DIRAC v6r17p10
+
+* log and messages
+* submitting gauss job to Jenkins
+* added gaudiApplicationScript job
+* Identifying correctly LbLogin errors
+* added rooFit test job
+* simpler tests
+* removed test for ProductionLogAnalysis.py
+* partial removal of AnalyseLogFile
+* basic fix for loading WMSSecureGW
+* log outputs fix
+
 [v8r6-pre6]
 Use DIRAC v6r17p9
 
