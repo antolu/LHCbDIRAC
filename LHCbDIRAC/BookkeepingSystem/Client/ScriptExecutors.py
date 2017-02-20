@@ -1156,17 +1156,23 @@ def executeRunInfo( item ):
   Get the TCK for a range of runs, and then prints each TCK with run ranges
   """
   runsDict = {}
-  if item not in ( 'Tck', 'DataTakingDescription', 'ProcessingPass' ):
+  if item not in ( 'Tck', 'DataTakingDescription', 'ProcessingPass', 'Ranges' ):
     gLogger.fatal( "Incorrect run information item" )
     return 0
   force = False
   byRange = False
+  activity = None
+  dqFlag = None
   for switch in Script.getUnprocessedSwitches():
-    if switch[0] == 'Force':
+    if switch[0] in ( 'Force', 'Fast' ):
       force = True
-    if switch[0] == 'ByRange':
+    elif switch[0] == 'ByRange':
       byRange = True
-    if switch[0] == 'Runs':
+    elif switch[0] == 'Activity':
+      activity = switch[1].capitalize()
+    elif switch[0] == 'DQFlag':
+      dqFlag = switch[1].split( ',' )
+    elif switch[0] == 'Runs':
       # Add a fake run number to force parseRuns to return a list
       try:
         runRange = switch[1]
@@ -1175,63 +1181,113 @@ def executeRunInfo( item ):
         gLogger.fatal( "Bad run range" )
         diracExit( 1 )
 
-  if not runsDict:
+  getRanges = ( item == 'Ranges' )
+  byRange = byRange or getRanges
+  if activity:
+    progressBar = ProgressBar( 1, title = "Getting run list for activity %s" % activity, step = 20 )
+    runsList = BKQuery( "/LHCb/%s//Real Data//RAW" % activity ).getBKRuns()
+    progressBar.endLoop( message = 'Obtained %d runs' % len( runsList ) )
+    if runsDict:
+      runsList = sorted( set( runsList ) & set( runsDict['RunNumber'] ) )
+      gLogger.notice( "Only %d runs in range %s" % ( len( runsList ), runRange ) )
+  elif not runsDict:
     Script.showHelp()
     diracExit( 1 )
-  runsList = runsDict['RunNumber']
-  # Remove the fake run number
-  runsList.remove( 0 )
-  runDict = {}
-  if len( runRange ) < 30:
-    progressBar = ProgressBar( 1, title = "Getting runs for run range %s " % runRange, step = 20 )
   else:
-    progressBar = ProgressBar( 1, title = "Getting runs for %d runs " % len( runsList ), step = 20 )
-  res = bkClient.getRunStatus( runsList )
-  progressBar.endLoop()
-  if not res['OK']:
-    gLogger.fatal( "Error getting run list", res['Message'] )
-    diracExit( 1 )
-  runsList = res['Value']['Successful'].keys()
-  progressBar = ProgressBar( len( runsList ), title = "Getting %s for %d runs " % ( item, len( runsList ) ), step = 20 )
-  for run in sorted( runsList ):
-    progressBar.loop()
-    res = bkClient.getRunInformations( run )
-    if res['OK']:
-      itemValue = res['Value'].get( item )
-      streams = res['Value'].get( 'Stream', [] )
-      if ( 90000000 in streams or force ) and itemValue:
-        runDict[run] = itemValue
-  progressBar.endLoop()
-  itemList = []
-  for run in sorted( runDict ):
-    if runDict[run] not in itemList:
-      itemList.append( runDict[run] )
+    runsList = runsDict['RunNumber']
+    # Remove the fake run number
+    runsList.remove( 0 )
+    if len( runRange ) < 30:
+      progressBar = ProgressBar( 1, title = "Getting runs for run range %s " % runRange, step = 20 )
+    else:
+      progressBar = ProgressBar( 1, title = "Getting runs for %d runs " % len( runsList ), step = 20 )
+    res = bkClient.getRunStatus( runsList )
+    progressBar.endLoop()
+    if not res['OK']:
+      gLogger.fatal( "Error getting run list", res['Message'] )
+      diracExit( 1 )
+    runsList = res['Value']['Successful'].keys()
+
+  if dqFlag:
+    nruns = len( runsList )
+    chunkSize = 10
+    progressBar = ProgressBar( len( runsList ), title = "Getting DQFlag for %d runs " % len( runsList ), chunk = chunkSize )
+    for runChunk in breakListIntoChunks( runsList, chunkSize ):
+      progressBar.loop()
+      res = bkClient.getRunFilesDataQuality( runChunk )
+      if not res['OK']:
+        gLogger.fatal( 'Error getting DQFlag', res['Message'] )
+        diracExit( 1 )
+      dq = dict( ( r, dq ) for r, dq, s in res['Value'] if s == 90000000 )
+      for run in runChunk:
+        if dq.get( run ) not in dqFlag:
+          runsList.remove( run )
+    progressBar.endLoop()
+    if len( runsList ) != nruns:
+      gLogger.notice( "Only %d runs have DQ flag in %s" % ( len( runsList ), ','.join( dqFlag ) ) )
+
+  if getRanges and force:
+    counted = 'runs'
+    runDict = dict.fromkeys( runsList, 1 )
+  else:
+    counted = 'files'
+    runDict = {}
+    progressBar = ProgressBar( len( runsList ), title = "Getting %s for %d runs " % ( item, len( runsList ) ), step = 20 )
+    for run in sorted( runsList ):
+      progressBar.loop()
+      res = bkClient.getRunInformations( run )
+      if res['OK']:
+        streams = res['Value'].get( 'Stream', [] )
+        if getRanges:
+          files = res['Value'].get( 'Number of file', [] )
+          itemValue = dict( zip( streams, files ) ).get( 90000000, 0 )
+        else:
+          itemValue = res['Value'].get( item )
+        if ( 90000000 in streams or force ) and itemValue:
+          runDict[run] = itemValue
+    progressBar.endLoop()
+  if getRanges:
+    itemList = [1]
+  else:
+    itemList = []
+    for run in sorted( runDict ):
+      if runDict[run] not in itemList:
+        itemList.append( runDict[run] )
   itemDict = {}
   rangesDict = {}
   for itemValue in itemList:
     firstRun = None
     # Add a fake run (None) in order to print out the last range
     for run in sorted( runDict ) + [None]:
-      runValue = runDict.get( run )
-      if runValue == itemValue and not firstRun:
+      runValue = 1 if getRanges and run else runDict.get( run )
+      if runValue == itemValue and firstRun is None:
         firstRun = run
         lastRun = run
-      elif ( runValue != itemValue or ( lastRun - run ) > 100 ) and firstRun:
+        if getRanges and run:
+          count = runDict[run]
+      elif ( runValue != itemValue or abs( lastRun - run ) > 100 ) and firstRun is not None:
         if lastRun != firstRun:
           rangeStr = '%d:%d' % ( firstRun, lastRun )
         else:
           rangeStr = '%d' % firstRun
-        rangesDict[rangeStr] = itemValue
+        rangesDict[rangeStr] = '%d %s' % ( count, counted ) if getRanges else itemValue
         itemDict.setdefault( itemValue, [] ).append( rangeStr )
-        firstRun = None
+        firstRun = run
+        lastRun = run
+        if getRanges and run:
+          count = runDict[run]
       else:
         lastRun = run
+        if getRanges and run:
+          count += runDict[run]
   if byRange:
+    if item == 'Ranges':
+      gLogger.notice( "Total number of runs: %d" % len( runDict ) )
     for rangeStr in sorted( rangesDict ):
       gLogger.notice( '%s : %s' % ( rangeStr, rangesDict[rangeStr] ) )
   else:
-    for itemValue, ranges in itemDict.iteritems():
-      gLogger.notice( '%s :' % itemValue, ', '.join( ranges ) )
+    for itemValue in sorted( itemDict ):
+      gLogger.notice( '%s :' % itemValue, ', '.join( itemDict[itemValue] ) )
 
 def executeRejectionStats( dmScript ):
   """

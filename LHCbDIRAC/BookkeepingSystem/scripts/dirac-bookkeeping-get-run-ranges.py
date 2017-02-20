@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ########################################################################
-# File :    dirac-bookkeeping-get-tck
+# File :    dirac-bookkeeping-get-run-ranges
 # Author :  Zoltan Mathe
 ########################################################################
 """
@@ -11,9 +11,9 @@ __RCSID__ = "$Id$"
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import Script
 
 if __name__ == "__main__":
-  Script.registerSwitch( '', 'Runs=', 'Run range or list' )
-  Script.registerSwitch( '', 'ByRange', 'List by range rather than by item value' )
-  Script.registerSwitch( '', 'Force', 'Include runs even if no FULL stream is present' )
+  Script.registerSwitch( '', 'Activity=', 'Specify the BK activity (e.g. Collision15)' )
+  Script.registerSwitch( '', 'Runs=', 'Run range or list (can be used with --Activity to reduce the run range)' )
+  Script.registerSwitch( '', 'Fast', 'Include runs even if no FULL stream is present (much faster)' )
   Script.registerSwitch( '', 'DQFlag=', 'Specify the DQ flag (default: all)' )
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
@@ -22,4 +22,4 @@ if __name__ == "__main__":
   Script.parseCommandLine( ignoreErrors = True )
 
   from LHCbDIRAC.BookkeepingSystem.Client.ScriptExecutors import executeRunInfo
-  executeRunInfo( 'Tck' )
+  executeRunInfo( 'Ranges' )
