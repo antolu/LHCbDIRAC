@@ -402,7 +402,7 @@ class BookkeepingManagerHandler( RequestHandler ):
     except Exception as _:
       iscPickleFormat = True
       in_dict = cPickle.loads( parameters )
-    gLogger.debug( "The following dictionary received: %s" % in_dict )
+    gLogger.info( "The following dictionary received: %s" % in_dict )
     methodName = in_dict.get( 'MethodName', default )
     if methodName == 'getFiles':
       retVal = self.__getFiles( in_dict )
@@ -2024,6 +2024,7 @@ class BookkeepingManagerHandler( RequestHandler ):
   @staticmethod
   def export_getProductionProducedEvents( prodid ):
     """more info in the BookkeepingClient.py"""
+    gLogger.info( "Retrieving the number of processed event for production", prodid )
     return dataMGMT_.getProductionProducedEvents( prodid )
 
   #############################################################################
