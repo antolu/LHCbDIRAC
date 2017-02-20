@@ -2,7 +2,7 @@
 """
 
 import sys
-import re
+import os
 import multiprocessing
 import shlex
 from distutils.version import LooseVersion #pylint: disable=import-error,no-name-in-module
@@ -63,7 +63,7 @@ class RunApplication(object):
     self.opsH = Operations()
 
   def run( self ):
-    """ Invoke lb-run (what you call after having setup the object)
+    """ Invokes lb-run (what you call after having setup the object)
     """
     self.log.info( "Executing application %s %s for CMT configuration '%s'" % ( self.applicationName,
                                                                                 self.applicationVersion,
@@ -78,7 +78,7 @@ class RunApplication(object):
     #   - try only the first that is compatible with the current setup
     #     (what's in LocalSite/Architecture, and this should be already checked by the method below)
     if self.systemConfig.lower() == 'any':
-      self.systemConfig = self._findSystemConfig()
+      self.systemConfig = self._findSystemConfig( self.lhcbEnvironment )
     configString = "-c %s" % self.systemConfig
 
     # App
@@ -98,7 +98,11 @@ class RunApplication(object):
     runResult = self._runApp( finalCommand, self.lhcbEnvironment )
     if not runResult['OK']:
       self.log.error( "Problem executing lb-run: %s" % runResult['Message'] )
-      raise LbRunError( "Can't start %s %s" % ( self.applicationName, self.applicationVersion ) )
+      if self.lhcbEnvironment:
+        self.log.error( "LHCb environment used: %s" % self.lhcbEnvironment )
+      else:
+        self.log.error( "Environment: %s" % os.environ )
+      raise LbRunError( "Can not start %s %s" % ( self.applicationName, self.applicationVersion ) )
 
     if runResult['Value'][0]: # if exit status != 0
       self.log.error( "lb-run or its application exited with status %d" % runResult['Value'][0] )
@@ -108,16 +112,24 @@ class RunApplication(object):
 
     return runResult
 
-  def _findSystemConfig( self ):
+  def _findSystemConfig( self, env = None ):
     """ Invokes lb-run --list-platform to find the "best" CMT config available
+
+    Args:
+        env (dict): LHCb environment (from LbLogin)
     """
     lbRunListConfigs = "lb-run --list-platforms %s/%s" % (self.applicationName, self.applicationVersion)
     self.log.always( "Calling %s" % lbRunListConfigs )
 
     res = systemCall( timeout = 0,
-                      cmdSeq = shlex.split( lbRunListConfigs ) )
+                      cmdSeq = shlex.split( lbRunListConfigs ),
+                      env = env )
     if not res['OK']:
       self.log.error( "Problem executing lb-run --list-platforms: %s" % res['Message'] )
+      if env:
+        self.log.error( "LHCb environment used: %s" % env )
+      else:
+        self.log.error( "Environment: %s" % os.environ )
       raise LbRunError( "Problem executing lb-run --list-platforms" )
     platforms = res['Value']
     if platforms[0]:
@@ -210,39 +222,39 @@ class RunApplication(object):
 
   def _runApp( self, command, env = None ):
     """ Actual call of a command
+
+    Args:
+        env (dict): LHCb environment (from LbLogin)
     """
     print 'Command called: \n%s' % command # Really printing here as we want to see and maybe cut/paste
 
-    res = systemCall( timeout = 0,
-                      cmdSeq = shlex.split(command),
-                      env = env, #this may be the LbLogin env
-                      callbackFunction = self.__redirectLogOutput )
-    return res
+    return systemCall( timeout = 0,
+                       cmdSeq = shlex.split(command),
+                       env = env, #this may be the LbLogin env
+                       callbackFunction = self.__redirectLogOutput )
 
   def __redirectLogOutput( self, fd, message ):
-    """ Callback function for the Subprocess calls
-        Manages log files
+    """ Callback function for the Subprocess calls (manages log files)
 
-        fd is stdin/stderr
-        message is every line (?)
+    Args:
+        fd (int): stdin/stderr file descriptor
+        message (str): line to log
     """
     sys.stdout.flush()
     if message:
-      if re.search( 'INFO Evt', message ):
-        print message
-      if re.search( 'Reading Event record', message ):
+      if 'INFO Evt' in message or 'Reading Event record' in message: # These ones will appear in the std.out log too
         print message
       if self.applicationLog:
-        log = open( self.applicationLog, 'a' )
-        log.write( message + '\n' )
-        log.close()
+        with open( self.applicationLog, 'a' ) as log:
+          log.write( message + '\n' )
+          log.flush()
       else:
         log.error( "Application Log file not defined" )
       if fd == 1:
         if self.stdError:
-          error = open( self.stdError, 'a' )
-          error.write( message + '\n' )
-          error.close()
+          with open( self.stdError, 'a' ) as error:
+            error.write( message + '\n' )
+            error.flush()
 
 
 def _multicoreWN():
@@ -263,3 +275,10 @@ def _multicoreWN():
     return True
   else:
     return False
+
+
+def getLHCbEnvironment():
+  """ Run LbLogin and returns the environment created.
+      If LbLogin has run before and saved the environment (like for pilots), we use that.
+  """
+  pass

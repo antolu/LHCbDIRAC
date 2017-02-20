@@ -149,6 +149,10 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
     self.assert_( res['OK'] )
     jobsSubmittedList.append( res['Value'] )
 
+    res = gaudiApplicationScriptJob()
+    self.assert_( res['OK'] )
+    jobsSubmittedList.append( res['Value'] )
+
     res = wrongJob()
     self.assert_( res['OK'] )
     jobsSubmittedList.append( res['Value'] )

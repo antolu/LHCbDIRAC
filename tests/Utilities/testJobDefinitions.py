@@ -323,13 +323,28 @@ def booleJob():
 
 
 @executeWithUserProxy
+def gaudiApplicationScriptJob():
+
+  job = baseToAllJobs( 'gaudiApplicationScriptJob', jobClass )
+  job.setInputSandbox( [find_all( '_input_sandbox_1324_master.tgz', wdir, 'GridTestSubmission' )[0]] \
+                     + [find_all( 'runToys.c', wdir, 'GridTestSubmission' )[0]] \
+                     + [find_all( 'script_wrapper.py', wdir, 'GridTestSubmission' )[0]] )
+  job.setApplicationScript( 'root', '6.06.02', 'script_wrapper.py',
+                            systemConfig = 'x86_64-slc6-gcc49-opt' )
+  job.setOutputSandbox( 'FitResultsToyData*.root' )
+  job.setDIRACPlatform()  # pylint: disable=no-member
+  job.setCPUTime( 172800 )
+  res = endOfAllJobs( job )
+  return res
+
+
+@executeWithUserProxy
 def wrongJob():
 
   print "\n Submitting gaudiRun job (Gauss only) that will use a configuration file that contains wrong info"
   print "This will generate a job that should become Completed, use the failover, and only later it will be Done"
 
   from tests.Workflow.Integration.Test_UserJobs import createJob
-  job = baseToAllJobs( 'wrongJob', jobClass )
   job = createJob( local = False )
   job.setName( "gaudirun-gauss-completed-than-done" )
   res = endOfAllJobs( job )

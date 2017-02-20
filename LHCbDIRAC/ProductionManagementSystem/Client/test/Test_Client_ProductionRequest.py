@@ -135,10 +135,10 @@ class ProductionRequestSuccess( ClientTestCase ):
     prod = Production()
     prod.setParameter( 'ProcessingType', 'JDL', 'Test', 'ProductionGroupOrType' )
     prod.addApplicationStep( stepDict = stepMC,
-                             modulesList = ['GaudiApplication', 'AnalyseLogFile'] )
+                             modulesList = ['GaudiApplication'] )
     prod.addApplicationStep( stepDict = stepMC2,
                              inputData = 'previousStep',
-                             modulesList = ['GaudiApplication', 'AnalyseLogFile'] )
+                             modulesList = ['GaudiApplication'] )
     prod.priority = '1'
     prod.addFinalizationStep()
     prod.setFileMask( '', '4' )
@@ -174,7 +174,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     prod.setParameter( 'ProcessingType', 'JDL', 'Test', 'ProductionGroupOrType' )
     prod.addApplicationStep( stepDict = step1Dict,
                              inputData = 'previousStep',
-                             modulesList = ['GaudiApplication', 'AnalyseLogFile'] )
+                             modulesList = ['GaudiApplication'] )
     prod.addFinalizationStep()
     prod.setFileMask( '', ['4'] )
 
@@ -203,7 +203,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     prod.setParameter( 'ProcessingType', 'JDL', 'Test', 'ProductionGroupOrType' )
     prod.addApplicationStep( stepDict = step1Dict,
                              inputData = 'previousStep',
-                             modulesList = ['GaudiApplication', 'AnalyseLogFile'] )
+                             modulesList = ['GaudiApplication'] )
     prod.addFinalizationStep()
     prod.setFileMask( '' )
 
@@ -227,7 +227,7 @@ class ProductionRequestSuccess( ClientTestCase ):
 
 
   def test_resolveStepsSuccess( self ):
-    
+
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.compressionLvl = [[''] for i in range(0,4)]
     pr.stepsList = ['123']
@@ -300,7 +300,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"999['SDST']",
                                           'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
-    
+
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.compressionLvl = [['Compression-LZMA-4']]
     pr.stepsList = ['998']
@@ -338,7 +338,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"997['SDST']",
                                           'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
-    
+
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.compressionLvl = [['Compression-LZMA-4']]
     pr.stepsList = ['996']
@@ -400,7 +400,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}
                                         ] )
-    
+
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.compressionLvl = [['','Compression-LZMA-4']]
     pr.stepsList = ['1098','996','997']

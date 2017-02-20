@@ -80,7 +80,7 @@ class ProductionRequest( object ):
     self.fractionToProcess = 0
     self.minFilesToProcess = 0
     self.modulesList = None # Usually:
-                            # ['GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
+                            # ['GaudiApplication', 'AnalyseXMLSummary',
                             # 'ErrorLogging', 'BookkeepingReport', 'StepAccounting' ]
 
     # parameters of each production (the length of each list has to be the same as the number of productions

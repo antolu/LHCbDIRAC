@@ -2,6 +2,8 @@
 """ Submission of test jobs for use by Jenkins
 """
 
+#pylint: disable=wrong-import-position,unused-wildcard-import,wildcard-import
+
 import os.path
 
 from DIRAC.Core.Base.Script import parseCommandLine
@@ -55,15 +57,29 @@ if not result['OK']:
 
 # Simple Hello Word job to DIRAC.Jenkins.ch, that needs to be matched by a MP WN
 gLogger.info( "\n Submitting hello world job targeting DIRAC.Jenkins.ch and a MP WN" )
-helloJ = LHCbJob()
-helloJ.setName( "helloWorld-TEST-TO-Jenkins-MP" )
-helloJ.setInputSandbox( [find_all( 'exe-script.py', '..', 'GridTestSubmission' )[0]] )
-helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
-helloJ.setCPUTime( 17800 )
-helloJ.setDestination( 'DIRAC.Jenkins.ch' )
-helloJ.setTag('MultiProcessor')
-result = dirac.submit( helloJ ) # this should make the difference!
+helloJMP = LHCbJob()
+helloJMP.setName( "helloWorld-TEST-TO-Jenkins-MP" )
+helloJMP.setInputSandbox( [find_all( 'exe-script.py', '..', 'GridTestSubmission' )[0]] )
+helloJMP.setExecutable( "exe-script.py", "", "helloWorld.log" )
+helloJMP.setCPUTime( 17800 )
+helloJMP.setDestination( 'DIRAC.Jenkins.ch' )
+helloJMP.setTag('MultiProcessor')
+result = dirac.submit( helloJMP ) # this should make the difference!
 gLogger.info( "Hello world job MP: ", result )
+if not result['OK']:
+  gLogger.error( "Problem submitting job", result['Message'] )
+  exit( 1 )
+
+# Simple GaudiApplication job to DIRAC.Jenkins.ch
+gLogger.info( "\n Submitting gaudi application job targeting DIRAC.Jenkins.ch" )
+gaudiJ = LHCbJob()
+gaudiJ.setName( "GaudiJob-TO-Jenkins" )
+gaudiJ.setApplication('Gauss', 'v49r5', '$APPCONFIGOPTS/Gauss/DataType-2012.py',
+                      extraPackages = 'AppConfig.v3r277;DecFiles.v29r10')
+gaudiJ.setCPUTime( 17800 )
+gaudiJ.setDestination( 'DIRAC.Jenkins.ch' )
+result = dirac.submit( gaudiJ )
+gLogger.info( "Gaudi job: ", result )
 if not result['OK']:
   gLogger.error( "Problem submitting job", result['Message'] )
   exit( 1 )
