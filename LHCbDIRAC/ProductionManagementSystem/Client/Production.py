@@ -476,7 +476,7 @@ class Production( object ):
     outputLFNs = result['Value']
     parameters['OutputLFNs'] = outputLFNs
 
-    outputDirectories = []
+    outputDirectories = [] # the list of output directories is later used for consistency check and for removing output data
     del outputLFNs['BookkeepingLFNs']  # since ProductionOutputData uses the file mask
     for i in outputLFNs.values():
       for j in i:

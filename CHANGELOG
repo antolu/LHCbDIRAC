@@ -108,6 +108,26 @@ Use DIRAC v6r17p5
 * pylints
 * Add documentation for deployment on Mesos
 
+[v8r5p8]
+use DIRAC v6r17p10
+
+* Better error handling of the PopularityAnalysisAgent
+* improve recommandation
+* improve print out
+* new options --TopDir and --Depth to print list of directories to a limited number of levels
+* allow to limit the check to a (list of) SE
+* don't set level to FATAL
+* when filetype is requested, don't exclude it + many minor fixes
+* improve printout
+* When getting a (list of) directories, require they are ending with "/"
+* for getting BK directory metadata, improve the directory list selection
+* Revert to externals v6r4p2 for GSI and  pyparsing
+* minimal test
+* Using filter for output directories
+* change the log level
+* log the production id
+* Add option --ByStream
+
 [v8r5p7]
 use DIRAC v6r17p9
 

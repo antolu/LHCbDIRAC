@@ -14,7 +14,21 @@
 '''
 __RCSID__ = "$Id$"
 
+from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
 
+def __getSEsFromOptions( dmScript ):
+  seList = dmScript.getOption( 'SEs', [] )
+  sites = dmScript.getOption( 'Sites', [] )
+  if sites:
+    siteSEs = []
+    dmsHelper = DMSHelpers()
+    for site in sites:
+      siteSEs += dmsHelper.getSEsForSite( site ).get( 'Value', [] )
+    if seList and siteSEs:
+      seList = list( set( seList ) & set( siteSEs ) )
+    else:
+      seList += siteSEs
+  return seList
 
 if __name__ == '__main__':
 
@@ -26,9 +40,7 @@ if __name__ == '__main__':
                                        'Usage:',
                                        '  %s [option|cfgfile] [values]' % Script.scriptName, ] ) )
   dmScript = DMScript()
-  dmScript.registerNamespaceSwitches()  # Directory
-  dmScript.registerFileSwitches()  # File, LFNs
-  dmScript.registerBKSwitches()
+  dmScript.registerDMSwitches()
   Script.registerSwitch( '', 'FixIt', '   Take action to fix the catalogs and storage' )
   Script.registerSwitch( '', 'Replace', '   Replace bad or missing replicas (default=False)' )
   Script.registerSwitch( '', 'NoBK', '   Do not check with BK' )
@@ -62,5 +74,11 @@ if __name__ == '__main__':
     bkQuery.setOption( 'ReplicaFlag', 'All' )
     cc.bkQuery = bkQuery
 
+  cc.seList = __getSEsFromOptions( dmScript )
   from LHCbDIRAC.DataManagementSystem.Client.CheckExecutors import doCheckFC2SE
-  doCheckFC2SE( cc, bkCheck = bkCheck, fixIt = fixIt, replace = replace )
+  try:
+    doCheckFC2SE( cc, bkCheck = bkCheck, fixIt = fixIt, replace = replace )
+  except RuntimeError as e:
+    gLogger.fatal( str( e ) )
+  except Exception as e:
+    gLogger.exception( 'Exception', lException = e )

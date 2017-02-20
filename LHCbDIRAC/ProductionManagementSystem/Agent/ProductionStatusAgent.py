@@ -1005,12 +1005,12 @@ class ProductionStatusAgent( AgentModule ):
           elif tInfo['isIdle'] == 'Yes' and self._isReallyDone( summary ):
             if summary['type'] == 'Simulation':
               # 'Idle' && isIdle() && isDone for MC logic
-              if tInfo['Used']:
+              if tInfo['Used']: # for standard sim requests, only the merge will go to ValidatingOutput
                 if self._producersAreIdle( summary ):
                   self.__updateTransformationStatus( tID, 'Idle', 'ValidatingOutput', updatedT )
                 # else
                 #  it can happened that MC is !isIdle()
-              else:
+              else: # for standard sim requests, all but the merge will go to ValidatingInput
                 if self._mergersAreProcIdle( summary ):
                   # Note: 'isSimulation' should not be there (it should stay in 'Active')
                   self.__updateTransformationStatus( tID, 'Idle', 'ValidatingInput', updatedT )
@@ -1048,12 +1048,12 @@ class ProductionStatusAgent( AgentModule ):
           # else:
           #  'Active' && ! isIdle() (or unknown) is not interesting
         elif tInfo['state'] == 'ValidatedOutput':
-          if ( summary['type'] == 'Simulation' ) and summary['isDone'] and tInfo['Used']:
+          if ( summary['type'] == 'Simulation' ) and summary['isDone'] and tInfo['Used']: # for standard sim requests, only the merge
             self.__updateTransformationStatus( tID, 'ValidatedOutput', 'Completed', updatedT )
           else:
             self.log.warn( "Logical bug: transformation %s unexpectedly has 'ValidatedOutput'" & tID )
         elif tInfo['state'] == 'ValidatingInput':
-          if ( summary['type'] == 'Simulation' ) and summary['isDone'] and not tInfo['Used']:
+          if ( summary['type'] == 'Simulation' ) and summary['isDone'] and not tInfo['Used']: # for standard sim requests, all but the merge
             self.__updateTransformationStatus( tID, 'ValidatingInput', 'RemovingFiles', updatedT )
           else:
             self.log.warn( "Logical bug: transformation %s is unexpectedly 'ValidatingInput'" & tID )

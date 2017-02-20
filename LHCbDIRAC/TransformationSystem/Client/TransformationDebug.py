@@ -292,13 +292,15 @@ class TransformationDebug( object ):
     completed = True
     if not rep:
       SEStat[None] = SEStat.setdefault( None, 0 ) + 1
+    if not listSEs:
+      listSEs = ['Some']
     for se in listSEs:
       if self.transType == "Replication":
-        if se not in rep:
+        if se == 'Some' or se not in rep:
           SEStat[se] = SEStat.setdefault( se, 0 ) + 1
           completed = False
       elif self.transType == "Removal":
-        if se in rep:
+        if se == 'Some' or se in rep:
           SEStat[se] = SEStat.setdefault( se, 0 ) + 1
           completed = False
       else:
