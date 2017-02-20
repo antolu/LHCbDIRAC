@@ -44,7 +44,7 @@ class UtilitiesTestCase( unittest.TestCase ):
                                                                  'Failed':{}}}
 
     self.cc = ConsistencyChecks( transClient = Mock(), dm = self.dmMock, bkClient = self.bkClientMock )
-    self.cc.fileType = ['SEMILEPTONIC.DST', 'LOG', 'RAW']
+    self.fileTypes = [['SEMILEPTONIC.DST', 'LOG', 'RAW'], ['SEMILEPTONIC.DST', 'LOG', 'RAW'], ['SEMILEPTONIC.DST'], ['SEMILEPTONIC.DST']]
     self.cc.fileTypesExcluded = ['LOG']
     self.cc.prod = 0
     self.maxDiff = None
@@ -55,39 +55,67 @@ class UtilitiesTestCase( unittest.TestCase ):
 class ConsistencyChecksSuccess( UtilitiesTestCase ):
 
   def test__selectByFileType( self ):
-    lfnDict = {'aa.raw': {'bb.raw':{'FileType': 'RAW', 'RunNumber': 97019},
-                          'bb.log':{'FileType': 'LOG'},
-                          '/bb/pippo/aa.dst':{'FileType': 'DST'},
-                          '/lhcb/1_2_1.Semileptonic.dst':{'FileType': 'SEMILEPTONIC.DST'}},
-               'cc.raw': {'dd.raw':{'FileType': 'RAW', 'RunNumber': 97019},
-                          'bb.log':{'FileType': 'LOG'},
-                          '/bb/pippo/aa.dst':{'FileType': 'LOG'},
-                          '/lhcb/1_1.semileptonic.dst':{'FileType': 'SEMILEPTONIC.DST'}}
-              }
 
-    res = self.cc._selectByFileType( lfnDict )
+    lfnDicts = [{'aa.raw': {'bb.raw':{'FileType': 'RAW', 'RunNumber': 97019},
+                            'bb.log':{'FileType': 'LOG'},
+                            '/bb/pippo/aa.dst':{'FileType': 'DST'},
+                            '/lhcb/1_2_1.Semileptonic.dst':{'FileType': 'SEMILEPTONIC.DST'}},
+                 'cc.raw': {'dd.raw':{'FileType': 'RAW', 'RunNumber': 97019},
+                            'bb.log':{'FileType': 'LOG'},
+                            '/bb/pippo/aa.dst':{'FileType': 'LOG'},
+                            '/lhcb/1_1.semileptonic.dst':{'FileType': 'SEMILEPTONIC.DST'}}
+                },
+                {'aa.raw': {'/bb/pippo/aa.dst':{'FileType': 'LOG'},
+                            'bb.log':{'FileType': 'LOG'}}
+                },
+                {'aa.raw': {'bb.raw':{'FileType': 'RAW', 'RunNumber': 97019},
+                            'bb.log':{'FileType': 'LOG'},
+                            '/bb/pippo/aa.dst':{'FileType': 'DST'},
+                            '/lhcb/1_2_1.Semileptonic.dst':{'FileType': 'SEMILEPTONIC.DST'}},
+                 'cc.raw': {'dd.raw':{'FileType': 'RAW', 'RunNumber': 97019},
+                            'bb.log':{'FileType': 'LOG'},
+                            '/bb/pippo/aa.dst':{'FileType': 'LOG'},
+                            '/lhcb/1_1.semileptonic.dst':{'FileType': 'SEMILEPTONIC.DST'}}
+                },
+                {'aa.raw': {'/bb/pippo/aa.dst':{'FileType': 'LOG'},
+                            'bb.log':{'FileType': 'LOG'}}
+                },
+               ]
 
-    lfnDictExpected = {'aa.raw':
-                       {'/lhcb/1_2_1.Semileptonic.dst': {'FileType': 'SEMILEPTONIC.DST'},
-                        'bb.log': {'FileType': 'LOG'},
-                        'bb.raw': {'RunNumber': 97019, 'FileType': 'RAW'}},
-                       'cc.raw':
-                       {'dd.raw': {'RunNumber': 97019, 'FileType': 'RAW'},
-                        'bb.log':{'FileType': 'LOG'},
-                        '/bb/pippo/aa.dst':{'FileType': 'LOG'},
-                        '/lhcb/1_1.semileptonic.dst': {'FileType': 'SEMILEPTONIC.DST'}}}
-    self.assertEqual( res, lfnDictExpected )
+    lfnDictsExpected =  [ { 'aa.raw':
+                            { '/lhcb/1_2_1.Semileptonic.dst': {'FileType': 'SEMILEPTONIC.DST'},
+                              'bb.log': {'FileType': 'LOG'},
+                              'bb.raw': {'RunNumber': 97019, 'FileType': 'RAW'}},
+                            'cc.raw':
+                            { 'dd.raw': {'RunNumber': 97019, 'FileType': 'RAW'},
+                              'bb.log':{'FileType': 'LOG'},
+                              '/bb/pippo/aa.dst':{'FileType': 'LOG'},
+                              '/lhcb/1_1.semileptonic.dst': {'FileType': 'SEMILEPTONIC.DST'}}
+                          },
+                          { 'aa.raw':
+                            {'/bb/pippo/aa.dst':{'FileType': 'LOG'},
+                             'bb.log':{'FileType': 'LOG'}}
+                          },
+                          { 'aa.raw':
+                            { '/lhcb/1_2_1.Semileptonic.dst': {'FileType': 'SEMILEPTONIC.DST'}},
+                            'cc.raw':
+                            { '/lhcb/1_1.semileptonic.dst': {'FileType': 'SEMILEPTONIC.DST'}}
+                          },
+                          {}
+                        ]
 
-    lfnDict = {'aa.raw': {'/bb/pippo/aa.dst':{'FileType': 'LOG'},
-                          'bb.log':{'FileType': 'LOG'}
-                         }
-              }
-    res = self.cc._selectByFileType( lfnDict )
-    lfnDictExpected = {'aa.raw': {'/bb/pippo/aa.dst':{'FileType': 'LOG'},
-                                  'bb.log':{'FileType': 'LOG'}
-                                 }
-                      }
-    self.assertEqual( res, lfnDictExpected )
+    # testing various cases
+    for fileType, lfnDict, lfnDictExpected in zip( self.fileTypes, lfnDicts, lfnDictsExpected) :
+      self.cc.fileType = fileType
+
+      res = self.cc._selectByFileType( lfnDict )
+
+      self.assertEqual( res, lfnDictExpected )
+
+      res = self.cc._selectByFileType( lfnDict )
+      self.assertEqual( res, lfnDictExpected )
+
+
 
   def test__getFileTypesCount( self ):
     lfnDict = {'aa.raw': {'bb.log':{'FileType': 'LOG'},
@@ -104,6 +132,7 @@ class ConsistencyChecksSuccess( UtilitiesTestCase ):
     self.assertEqual( res, resExpected )
 
   def test_getDescendants( self ):
+    self.cc.fileType = ['SEMILEPTONIC.DST', 'LOG', 'RAW']
     res = self.cc.getDescendants( ['aa.raw'] )
     filesWithDescendants, filesWithoutDescendants, filesWitMultipleDescendants, descendants, inFCNotInBK, inBKNotInFC, removedFiles, inFailover = res
     self.assertEqual( filesWithDescendants, {'aa.raw':['bb.log', 'bb.raw']} )
