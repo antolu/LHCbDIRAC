@@ -1,3 +1,8 @@
+""" Unit test of ConsistencyChecks
+"""
+
+#pylint: disable=invalid-name,missing-docstring,protected-access
+
 import unittest
 from mock import Mock
 
@@ -64,9 +69,12 @@ class ConsistencyChecksSuccess( UtilitiesTestCase ):
 
     lfnDictExpected = {'aa.raw':
                        {'/lhcb/1_2_1.Semileptonic.dst': {'FileType': 'SEMILEPTONIC.DST'},
+                        'bb.log': {'FileType': 'LOG'},
                         'bb.raw': {'RunNumber': 97019, 'FileType': 'RAW'}},
                        'cc.raw':
                        {'dd.raw': {'RunNumber': 97019, 'FileType': 'RAW'},
+                        'bb.log':{'FileType': 'LOG'},
+                        '/bb/pippo/aa.dst':{'FileType': 'LOG'},
                         '/lhcb/1_1.semileptonic.dst': {'FileType': 'SEMILEPTONIC.DST'}}}
     self.assertEqual( res, lfnDictExpected )
 
@@ -75,7 +83,10 @@ class ConsistencyChecksSuccess( UtilitiesTestCase ):
                          }
               }
     res = self.cc._selectByFileType( lfnDict )
-    lfnDictExpected = {}
+    lfnDictExpected = {'aa.raw': {'/bb/pippo/aa.dst':{'FileType': 'LOG'},
+                                  'bb.log':{'FileType': 'LOG'}
+                                 }
+                      }
     self.assertEqual( res, lfnDictExpected )
 
   def test__getFileTypesCount( self ):
@@ -95,7 +106,7 @@ class ConsistencyChecksSuccess( UtilitiesTestCase ):
   def test_getDescendants( self ):
     res = self.cc.getDescendants( ['aa.raw'] )
     filesWithDescendants, filesWithoutDescendants, filesWitMultipleDescendants, descendants, inFCNotInBK, inBKNotInFC, removedFiles, inFailover = res
-    self.assertEqual( filesWithDescendants, {'aa.raw':['bb.raw']} )
+    self.assertEqual( filesWithDescendants, {'aa.raw':['bb.log', 'bb.raw']} )
     self.assertEqual( filesWithoutDescendants, {} )
     self.assertEqual( filesWitMultipleDescendants, {} )
     self.assertEqual( descendants, ['bb.raw'] )
