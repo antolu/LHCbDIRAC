@@ -68,9 +68,10 @@ def doCheckFC2SE( cc, bkCheck = True, fixIt = False, replace = False ):
       prStr = ' (first %d)' % maxFiles
     else:
       prStr = ''
-    gLogger.error( "%d files are in the FC but have replica = NO in BK%s:\nAffected runs: %s\n%s" %
-                   ( len( cc.existLFNsBKRepNo ), prStr, ','.join( sorted( affectedRuns ) if affectedRuns else 'None' ),
-                     '\n'.join( sorted( cc.existLFNsBKRepNo )[0:maxFiles] ) ) )
+    gLogger.error( "%d files are in the FC but have replica = NO in BK%s:\nAffected runs: %s" %
+                   ( len( cc.existLFNsBKRepNo ), prStr, ','.join( sorted( affectedRuns ) if affectedRuns else 'None' ) ) )
+    if not gLogger.info( '\n'.join( sorted( cc.existLFNsBKRepNo ) ) ):
+      gLogger.error( '\n'.join( sorted( cc.existLFNsBKRepNo )[0:maxFiles] ) )
     if fixIt:
       gLogger.notice( "Going to fix them, setting the replica flag" )
       res = bk.addFiles( cc.existLFNsBKRepNo.keys() )
@@ -112,8 +113,8 @@ def doCheckFC2SE( cc, bkCheck = True, fixIt = False, replace = False ):
     seOK = False
     gLogger.error( "%d files are in the BK and FC but are missing at some SEs" % len( cc.existLFNsNoSE ) )
     fixStr = "removing them from catalogs" if not replace else "re-replicating them"
-    for lfn in cc.existLFNsNoSE:
-      gLogger.info( lfn )
+    if not gLogger.info( '\n'.join( cc.existLFNsNoSE ) ):
+      gLogger.error( '\n'.join( cc.existLFNsNoSE[0:maxFiles] ) )
     if fixIt:
       gLogger.notice( "Going to fix, " + fixStr )
       removeLfns = []
@@ -147,8 +148,8 @@ def doCheckFC2SE( cc, bkCheck = True, fixIt = False, replace = False ):
     if cc.existLFNsNotExisting:
       gLogger.error( "%d files don't exist at any SE" % len( cc.existLFNsNotExisting ) )
     toRemove = sorted( set( cc.existLFNsBadFiles ) | set( cc.existLFNsNotExisting ) )
-    for lfn in toRemove:
-      gLogger.info( lfn )
+    if not gLogger.info( '\n'.join( toRemove ) ):
+      gLogger.error( '\n'.join( toRemove[0:maxFiles] ) )
     if fixIt:
       gLogger.notice( "Going to fix them, removing files from catalogs and storage" )
       __removeFile( toRemove )
@@ -163,7 +164,7 @@ def doCheckFC2SE( cc, bkCheck = True, fixIt = False, replace = False ):
     seOK = False
     gLogger.error( "%d replicas have a bad checksum" % len( cc.existLFNsBadReplicas ) )
     for lfn, se in cc.existLFNsBadReplicas.iteritems():
-      gLogger.info( '%s @ %s' % ( lfn, ','.join( sorted( se ) ) ) )
+      gLogger.error( '%s @ %s' % ( lfn, ','.join( sorted( se ) ) ) )
     fixStr = "remove replicas from SE and catalogs" if not replace else "re-replicating them"
     if fixIt:
       gLogger.notice( "Going to fix, " + fixStr )

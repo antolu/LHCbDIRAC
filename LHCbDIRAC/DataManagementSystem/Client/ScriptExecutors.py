@@ -526,7 +526,7 @@ def removeFiles( lfnList, setProcessed = False ):
   progressBar = ProgressBar( len( lfnList ), title = "Removing %d files" % len( lfnList ), chunk = chunkSize )
   for lfnChunk in breakListIntoChunks( lfnList, chunkSize ):
     progressBar.loop()
-    gLogger.setLevel( 'FATAL' )
+    # gLogger.setLevel( 'FATAL' )
     res = dm.removeFile( lfnChunk, force = False )
     gLogger.setLevel( savedLevel )
     if not res['OK']:

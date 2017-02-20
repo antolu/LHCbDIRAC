@@ -7,6 +7,7 @@ __RCSID__ = "$Id$"
 
 import DIRAC
 from DIRAC.Core.Base import Script
+from DIRAC import gConfig, gLogger
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 from DIRAC.Core.DISET.RPCClient import RPCClient
 
@@ -234,13 +235,12 @@ def getStorageSummary( totalUsage, grandTotal, dirName, fileTypes, prodID, ses )
           grandTotal['Size'] += res['Value'][se]['Size']
   return totalUsage, grandTotal
 
-def execute( unit, minimum ):
+def execute( unit, minimum, depth ):
 
-  from DIRAC import gConfig, gLogger
-
-  gLogger.setLevel( 'FATAL' )
+  # gLogger.setLevel( 'FATAL' )
   lcg = False
   full = False
+  topDirectories = False
   bkBrowse = False
   users = None
   summary = False
@@ -253,6 +253,11 @@ def execute( unit, minimum ):
       lcg = True
     elif switch[0].lower() == "full":
       full = True
+    elif switch[0] == 'TopDirectories':
+      if not topDirectories:
+        topDirectories = depth
+    elif switch[0] == 'Depth':
+      topDirectories = int( switch[1] )
     elif switch[0] == "BrowseBK":
       bkBrowse = True
     elif switch[0] == "Users":
@@ -354,8 +359,8 @@ def execute( unit, minimum ):
   if not users:
     if prString == "Storage usage for ":
       prString += 'all SEs'
-    print prString
-  if full:
+    gLogger.notice( prString )
+  if full or topDirectories:
     dirData = {}
     for prodID in sorted( prods ):
       for fileType in fileTypes:
@@ -365,8 +370,19 @@ def execute( unit, minimum ):
             print 'Failed to get directories', res['Message']
             DIRAC.exit( 2 )
           dirData.update( res[ 'Value' ] )
-    for resDir in sorted( dirData ):
-      print resDir, " -> ", dirData[ resDir ]
+    if full:
+      for resDir in sorted( dirData ):
+        gLogger.notice( resDir + " -> ", str( dirData[ resDir ] ) )
+    if topDirectories:
+      gLogger.notice( 'Depth-4 directories:' )
+      topDirData = {}
+      for resDir, usage in dirData.iteritems():
+        topDir = '/'.join( resDir.split( '/' )[:topDirectories + 1] ) + '/'
+        topDirData.setdefault( topDir, {'Files':0, 'Size':0} )
+        topDirData[topDir]['Files'] += usage['Files']
+        topDirData[topDir]['Size'] += usage['Size']
+      for resDir in sorted( topDirData ):
+        gLogger.notice( resDir + " -> ", str( topDirData[ resDir ] ) )
 
   totalUsage = None
   grandTotal = None
@@ -447,9 +463,12 @@ if __name__ == "__main__":
 
   unit = 'TB'
   minimum = 0.1
+  depth = 4
   Script.registerSwitch( "u:", "Unit=", "   Unit to use [%s] (MB,GB,TB,PB)" % unit )
   Script.registerSwitch( "l", "LCG", "  Group results by tape and disk" )
   Script.registerSwitch( '', "Full", "  Output the directories matching selection" )
+  Script.registerSwitch( '', 'TopDirectories', '  Same as --Full but group by depth-%d directories' % depth )
+  Script.registerSwitch( '', 'Depth=', '   Specify the depth for top directories (default: %d)' % depth )
   Script.registerSwitch( '', "BrowseBK", "   Loop overall paths matching the BK query" )
   Script.registerSwitch( '', "Users=", "   Get storage usage for a (list of) user(s)" )
   Script.registerSwitch( '', 'Summary', '  Only print a summary for users' )
@@ -463,4 +482,4 @@ if __name__ == "__main__":
 
   Script.parseCommandLine( ignoreErrors = False )
 
-  execute( unit, minimum )
+  execute( unit, minimum, depth )

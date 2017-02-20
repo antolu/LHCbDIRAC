@@ -133,9 +133,11 @@ def executeFilePath( dmScript ):
     dmScript.setLFNsFromFile( lfn )
   lfnList = sorted( dmScript.getOption( 'LFNs', [] ) )
 
-  if len( lfnList ) == 0:
-    Script.showHelp()
-    diracExit( 0 )
+  if not lfnList:
+    lfnList = sorted( dmScript.getOption( 'Directory', [] ) )
+    if not lfnList:
+      Script.showHelp()
+      diracExit( 0 )
 
   dirMetadata = ( 'Production', 'ConfigName', 'ConditionDescription', 'EventType',
                  'FileType', 'ConfigVersion', 'ProcessingPass', 'Path' )
@@ -171,17 +173,33 @@ def executeFilePath( dmScript ):
   else:
     directories = {}
     for lfn in lfnList:
-      directories.setdefault( os.path.dirname( lfn ), [] ).append( lfn )
+      dirName = os.path.dirname( lfn )
+      if not dirName:
+        continue
+      if '/RAW/' in dirName:
+        # For RAW files, eliminate the tail (run number)
+        while True:
+          if os.path.basename( dirName ).isdigit():
+            dirName = os.path.dirname( dirName )
+          else:
+            break
+      else:
+        tail = os.path.basename( dirName )
+        # Eliminate the tailing '/0000'
+        if len( tail ) == 4 and tail.isdigit():
+          dirName = os.path.dirname( dirName )
+      directories.setdefault( dirName, [] ).append( lfn )
 
-    chunkSize = 10
+    chunkSize = 2
     progressBar = ProgressBar( len( directories ), title = 'Getting metadata for %d directories' % len( directories ),
                                chunk = chunkSize )
     success = {}
     failed = set()
-    for dirChunk in breakListIntoChunks( sorted( directories ), chunkSize ):
+    for dirChunk in breakListIntoChunks( directories, chunkSize ):
       progressBar.loop()
       res = bkClient.getDirectoryMetadata( dirChunk )
       if not res['OK']:
+        progressBar.endLoop( message = 'Error getting directory metadata' )
         printDMResult( res )
         diracExit( 1 )
       success.update( res['Value']['Successful'] )
@@ -1219,57 +1237,106 @@ def executeRejectionStats( dmScript ):
   """
   Extract statistics for a BK query
   """
+  byStream = False
+  for switch in Script.getUnprocessedSwitches():
+    if switch[0] == 'ByStream':
+      byStream = True
+
   lfns = dmScript.getOption( 'LFNs', [] )
   bkQuery = dmScript.getBKQuery()
   if not bkQuery and not lfns:
     gLogger.notice( "No BK query given..." )
     diracExit( 1 )
 
+  fileTypes = ['']
   if bkQuery:
-    bkQuery.setVisible( 'All' )
-    bkQuery.setOption( 'ReplicaFlag', 'All' )
+    bkQuery.setOption( 'ReplicaFlag', bkQuery.isVisible() )
+    fileTypes = bkQuery.getFileTypeList()
     gLogger.notice( "Using BK query", str( bkQuery ) )
-    lfns += bkQuery.getLFNs( printSEUsage = False, printOutput = False )
+    if byStream:
+      streams = sorted( fileTypes )
+    else:
+      streams = ['all']
 
-  if not lfns:
-    gLogger.notice ( "No files found" )
-    diracExit( 0 )
+  else:
+    streams = ['all']
 
   chunkSize = 100
-  progressBar = ProgressBar( len( lfns ), title = "Getting metadata for %d files " % len( lfns ), chunk = chunkSize )
-  eventStat = 0
+  eventStatByStream = {}
+  eventInputStatByStream = {}
   uniqueJobs = {}
-  for lfnChunk in breakListIntoChunks( lfns, chunkSize ):
-    progressBar.loop()
-    for lfn in lfnChunk:
-      uniqueJobs.setdefault( os.path.basename( lfn ).split( '.' )[0], lfn )
-    res = bkClient.getFileMetadata( lfnChunk )
-    if not res['OK']:
-      gLogger.fatal( "Error getting files metadata", res['Message'] )
-      diracExit( 1 )
-    eventStat += sum( meta['EventStat'] for meta in res['Value']['Successful'].itervalues() )
-  progressBar.endLoop()
+  jobInputStat = {}
+  lfnsByStream = {}
+  jobs = {}
+  for stream in streams:
+    if bkQuery:
+      if byStream:
+        bkQuery.setFileType( stream )
+      lfns = bkQuery.getLFNs( printSEUsage = False, printOutput = False )
 
-  jobLfns = uniqueJobs.values()
+    if not lfns:
+      gLogger.notice ( "No files found" )
+      if not byStream:
+        diracExit( 0 )
+      continue
+
+    lfnsByStream[stream] = lfns
+    progressBar = ProgressBar( len( lfns ), title = "Getting metadata for %d files %s" % ( len( lfns ), ( "(stream %s)" % stream ) if byStream else "" ), chunk = chunkSize )
+    eventStat = 0
+    for lfnChunk in breakListIntoChunks( lfns, chunkSize ):
+      progressBar.loop()
+      for lfn in lfnChunk:
+        uniqueJobs.setdefault( os.path.basename( lfn ).split( '.' )[0], lfn )
+      res = bkClient.getFileMetadata( lfnChunk )
+      if not res['OK']:
+        gLogger.fatal( "Error getting files metadata", res['Message'] )
+        diracExit( 1 )
+      eventStat += sum( meta['EventStat'] for meta in res['Value']['Successful'].itervalues() )
+    progressBar.endLoop()
+    eventStatByStream[stream] = eventStat
+
+    jobLfns = set( uniqueJobs.values() ) & set( lfns )
+    if jobLfns:
+      progressBar = ProgressBar( len( lfns ), title = "Getting metadata for %d jobs" % len( jobLfns ), chunk = chunkSize )
+      for lfnChunk in breakListIntoChunks( jobLfns, chunkSize ):
+        res = bkClient.bulkJobInfo( lfnChunk )
+        if not res['OK']:
+          gLogger.fatal( "Error getting job information", res['Message'] )
+          diracExit( 1 )
+        success = res['Value']['Successful']
+        for lfn in success:
+          if isinstance( success[lfn], list ) and len( success[lfn] ) == 1:
+            success[lfn] = success[lfn][0]
+          jobName = os.path.basename( lfn ).split( '.' )[0]
+          jobInputStat[jobName] = success[lfn]['EventInputStat']
+      progressBar.endLoop()
+    if byStream:
+      eventInputStat = 0
+      for lfn in lfns:
+        jobName = os.path.basename( lfn ).split( '.' )[0]
+        jobs.setdefault( stream, set() ).add( jobName )
+        eventInputStat += jobInputStat[jobName]
+    else:
+      jobs[stream] = set( jobInputStat )
+      eventInputStat = sum( jobInputStat.values() )
+    eventInputStatByStream[stream] = eventInputStat
+
+  tab = '\t' if byStream else ''
   eventInputStat = 0
-  jobSet = set()
-  progressBar = ProgressBar( len( lfns ), title = "Getting metadata for %d jobs" % len( jobLfns ), chunk = chunkSize )
-  for lfnChunk in breakListIntoChunks( jobLfns, chunkSize ):
-    res = bkClient.bulkJobInfo( lfnChunk )
-    if not res['OK']:
-      gLogger.fatal( "Error getting job information", res['Message'] )
-      diracExit( 1 )
-    success = res['Value']['Successful']
-    for lfn in success:
-      if isinstance( success[lfn], list ) and len( success[lfn] ) == 1:
-        success[lfn] = success[lfn][0]
-      jobID = success[lfn]['DIRACJobId']
-      # Consider each job only once in case there is more than one output per job
-      if jobID not in jobSet:
-        eventInputStat += success[lfn]['EventInputStat']
-      jobSet.add( jobID )
-  progressBar.endLoop()
-
-  gLogger.notice( "Event stat: %d on %d files" % ( eventStat, len( lfns ) ) )
-  gLogger.notice( "EventInputStat: %d from %d jobs" % ( eventInputStat, len( jobSet ) ) )
-  gLogger.notice( "Retention: %.2f %%" % ( 100.* eventStat / eventInputStat ) )
+  multiStream = len( fileTypes ) > 1 and not byStream and len( jobs['all'] ) == len( lfnsByStream['all'] )
+  if multiStream:
+    gLogger.notice( "*** WARNING *** %d streams with as many jobs as files, rescaled input stat" % len( fileTypes ) )
+    rescale = len( fileTypes )
+  else:
+    rescale = 1
+  for stream in streams:
+    eventStat = eventStatByStream[stream]
+    prInput = eventInputStat != eventInputStatByStream[stream]
+    if prInput:
+      eventInputStat = eventInputStatByStream[stream] / float( rescale )
+    if len( fileTypes ) > 1:
+      gLogger.notice( 'For %s stream%s:' % ( stream, '' if byStream else 's' ) )
+    gLogger.notice( tab + "Event stat: %d on %d files" % ( eventStat, len( lfnsByStream[stream] ) ) )
+    if prInput:
+      gLogger.notice( tab + "EventInputStat: %d" % eventInputStat, ( "from %d jobs" % len( jobs[stream] ) ) if jobs[stream] != lfnsByStream[stream] else '' )
+    gLogger.notice( tab + "Retention: %.2f %%" % ( 100.* eventStat / eventInputStat ) )
