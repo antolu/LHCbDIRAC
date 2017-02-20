@@ -1097,7 +1097,7 @@ class MCInsertTestCase( unittest.TestCase ):
                       <TypedParameter Name="WNCPUHS06" Type="Info" Value="11.4"/>
                       <TypedParameter Name="Production" Type="Info" Value="%jProduction%"/>
                       <TypedParameter Name="DiracJobId" Type="Info" Value="147844677"/>
-                      <TypedParameter Name="Name" Type="Info" Value="00056438_00001025_1"/>
+                      <TypedParameter Name="Name" Type="Info" Value="00056438_00001025_test_1"/>
                       <TypedParameter Name="JobStart" Type="Info" Value="%jStart%"/>
                       <TypedParameter Name="JobEnd" Type="Info" Value="%jEnd%"/>
                       <TypedParameter Name="Location" Type="Info" Value="LCG.CERN.ch"/>
@@ -1109,16 +1109,16 @@ class MCInsertTestCase( unittest.TestCase ):
                       <TypedParameter Name="StatisticsRequested" Type="Info" Value="-1"/>
                       <TypedParameter Name="StepID" Type="Info" Value="%jStepid%"/>
                       <TypedParameter Name="NumberOfEvents" Type="Info" Value="411"/>
-                      <OutputFile Name="/lhcb/MC/2012/SIM/00056438/0000/00056438_00001025_1.sim" TypeName="SIM" TypeVersion="ROOT">
+                      <OutputFile Name="/lhcb/MC/2012/SIM/00056438/0000/00056438_00001025_test_1.sim" TypeName="SIM" TypeVersion="ROOT">
                               <Parameter Name="EventTypeId" Value="11104131"/>
                               <Parameter Name="EventStat" Value="411"/>
                               <Parameter Name="FileSize" Value="862802861"/>
                               <Parameter Name="MD5Sum" Value="ae647981ea419cc9f8e8fa0a2d6bfd3d"/>
                               <Parameter Name="Guid" Value="546014C4-55C6-E611-8E94-02163E00F6B2"/>
                       </OutputFile>
-                      <OutputFile Name="/lhcb/MC/2012/LOG/00056438/0000/00001025/Gauss_00056438_00001025_1.log" TypeName="LOG" TypeVersion="1">
+                      <OutputFile Name="/lhcb/MC/2012/LOG/00056438/0000/00001025/Gauss_00056438_00001025_test_1.log" TypeName="LOG" TypeVersion="1">
                               <Parameter Name="FileSize" Value="319867"/>
-                              <Replica Location="Web" Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Gauss_00056438_00001025_1.log"/>
+                              <Replica Location="Web" Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Gauss_00056438_00001025_test_1.log"/>
                               <Parameter Name="MD5Sum" Value="e4574c9083d1163d43ba6ac033cbd769"/>
                               <Parameter Name="Guid" Value="E4574C90-83D1-163D-43BA-6AC033CBD769"/>
                       </OutputFile>
@@ -1141,7 +1141,7 @@ class MCInsertTestCase( unittest.TestCase ):
                     <TypedParameter Name="WNCPUHS06" Type="Info" Value="11.4"/>
                     <TypedParameter Name="Production" Type="Info" Value="%jProduction%"/>
                     <TypedParameter Name="DiracJobId" Type="Info" Value="147844677"/>
-                    <TypedParameter Name="Name" Type="Info" Value="00056438_00001025_2"/>
+                    <TypedParameter Name="Name" Type="Info" Value="00056438_00001025_test_2"/>
                     <TypedParameter Name="JobStart" Type="Info" Value="%jStart%"/>
                     <TypedParameter Name="JobEnd" Type="Info" Value="%jEnd%"/>
                     <TypedParameter Name="Location" Type="Info" Value="LCG.CERN.ch"/>
@@ -1153,17 +1153,17 @@ class MCInsertTestCase( unittest.TestCase ):
                     <TypedParameter Name="StatisticsRequested" Type="Info" Value="-1"/>
                     <TypedParameter Name="StepID" Type="Info" Value="%jStepid%"/>
                     <TypedParameter Name="NumberOfEvents" Type="Info" Value="411"/>
-                    <InputFile Name="/lhcb/MC/2012/SIM/00056438/0000/00056438_00001025_1.sim"/>
-                    <OutputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_2.digi" TypeName="DIGI" TypeVersion="ROOT">
+                    <InputFile Name="/lhcb/MC/2012/SIM/00056438/0000/00056438_00001025_test_1.sim"/>
+                    <OutputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_2.digi" TypeName="DIGI" TypeVersion="ROOT">
                               <Parameter Name="EventTypeId" Value="11104131"/>
                               <Parameter Name="EventStat" Value="411"/>
                               <Parameter Name="FileSize" Value="241904920"/>
                               <Parameter Name="MD5Sum" Value="a76f78f3c86cc36c663d18b4e16861b9"/>
                               <Parameter Name="Guid" Value="7EF857D2-AAC6-E611-BBBC-02163E00F6B2"/>
                     </OutputFile>
-                    <OutputFile Name="/lhcb/MC/2012/LOG/00056438/0000/00001025/Boole_00056438_00001025_2.log" TypeName="LOG" TypeVersion="1">
+                    <OutputFile Name="/lhcb/MC/2012/LOG/00056438/0000/00001025/Boole_00056438_00001025_test_2.log" TypeName="LOG" TypeVersion="1">
                               <Parameter Name="FileSize" Value="131897"/>
-                              <Replica Location="Web" Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Boole_00056438_00001025_2.log"/>
+                              <Replica Location="Web" Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Boole_00056438_00001025_test_2.log"/>
                               <Parameter Name="MD5Sum" Value="2d9cdd2116535cd484cf06cdb1620d75"/>
                               <Parameter Name="Guid" Value="2D9CDD21-1653-5CD4-84CF-06CDB1620D75"/>
                     </OutputFile>
@@ -1182,7 +1182,7 @@ class MCInsertTestCase( unittest.TestCase ):
                     <TypedParameter Name="WNCPUHS06" Type="Info" Value="11.4"/>
                     <TypedParameter Name="Production" Type="Info" Value="%jProduction%"/>
                     <TypedParameter Name="DiracJobId" Type="Info" Value="147844677"/>
-                    <TypedParameter Name="Name" Type="Info" Value="00056438_00001025_3"/>
+                    <TypedParameter Name="Name" Type="Info" Value="00056438_00001025_test_3"/>
                     <TypedParameter Name="JobStart" Type="Info" Value="%jStart%"/>
                     <TypedParameter Name="JobEnd" Type="Info" Value="%jEnd%"/>
                     <TypedParameter Name="Location" Type="Info" Value="LCG.CERN.ch"/>
@@ -1194,17 +1194,17 @@ class MCInsertTestCase( unittest.TestCase ):
                     <TypedParameter Name="StatisticsRequested" Type="Info" Value="-1"/>
                     <TypedParameter Name="StepID" Type="Info" Value="%jStepid%"/>
                     <TypedParameter Name="NumberOfEvents" Type="Info" Value="411"/>
-                    <InputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_2.digi"/>
-                    <OutputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_3.digi" TypeName="DIGI" TypeVersion="ROOT">
+                    <InputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_2.digi"/>
+                    <OutputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_3.digi" TypeName="DIGI" TypeVersion="ROOT">
                               <Parameter Name="EventTypeId" Value="11104131"/>
                               <Parameter Name="EventStat" Value="411"/>
                               <Parameter Name="FileSize" Value="164753549"/>
                               <Parameter Name="MD5Sum" Value="a47bd5214a02b77f2507e0f4dd0b1fb5"/>
                               <Parameter Name="Guid" Value="6A6A5873-ABC6-E611-A680-02163E00F6B2"/>
                     </OutputFile>
-                    <OutputFile Name="/lhcb/MC/2012/LOG/00056438/0000/00001025/Moore_00056438_00001025_3.log" TypeName="LOG" TypeVersion="1">
+                    <OutputFile Name="/lhcb/MC/2012/LOG/00056438/0000/00001025/Moore_00056438_00001025_test_3.log" TypeName="LOG" TypeVersion="1">
                               <Parameter Name="FileSize" Value="57133"/>
-                              <Replica Location="Web" Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Moore_00056438_00001025_3.log"/>
+                              <Replica Location="Web" Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Moore_00056438_00001025_test_3.log"/>
                               <Parameter Name="MD5Sum" Value="c62640e23c464305ff1c3b7b58b3027c"/>
                               <Parameter Name="Guid" Value="C62640E2-3C46-4305-FF1C-3B7B58B3027C"/>
                     </OutputFile>
@@ -1224,7 +1224,7 @@ class MCInsertTestCase( unittest.TestCase ):
                     <TypedParameter Name="WNCPUHS06" Type="Info" Value="11.4"/>
                     <TypedParameter Name="Production" Type="Info" Value="%jProduction%"/>
                     <TypedParameter Name="DiracJobId" Type="Info" Value="147844677"/>
-                    <TypedParameter Name="Name" Type="Info" Value="00056438_00001025_4"/>
+                    <TypedParameter Name="Name" Type="Info" Value="00056438_00001025_test_4"/>
                     <TypedParameter Name="JobStart" Type="Info" Value="%jStart%"/>
                     <TypedParameter Name="JobEnd" Type="Info" Value="%jEnd%"/>
                     <TypedParameter Name="Location" Type="Info" Value="LCG.CERN.ch"/>
@@ -1236,17 +1236,17 @@ class MCInsertTestCase( unittest.TestCase ):
                     <TypedParameter Name="StatisticsRequested" Type="Info" Value="-1"/>
                     <TypedParameter Name="StepID" Type="Info" Value="%jStepid%"/>
                     <TypedParameter Name="NumberOfEvents" Type="Info" Value="411"/>
-                    <InputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_3.digi"/>
-                    <OutputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_4.digi" TypeName="DIGI" TypeVersion="ROOT">
+                    <InputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_3.digi"/>
+                    <OutputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_4.digi" TypeName="DIGI" TypeVersion="ROOT">
                                 <Parameter Name="EventTypeId" Value="11104131"/>
                                 <Parameter Name="EventStat" Value="411"/>
                                 <Parameter Name="FileSize" Value="159740940"/>
                                 <Parameter Name="MD5Sum" Value="b062307166b1a8e4fb905d3fb38394c7"/>
                                 <Parameter Name="Guid" Value="48911F46-ADC6-E611-BD04-02163E00F6B2"/>
                     </OutputFile>
-                    <OutputFile Name="/lhcb/MC/2012/LOG/00056438/0000/00001025/Moore_00056438_00001025_4.log" TypeName="LOG" TypeVersion="1">
+                    <OutputFile Name="/lhcb/MC/2012/LOG/00056438/0000/00001025/Moore_00056438_00001025_test_4.log" TypeName="LOG" TypeVersion="1">
                                 <Parameter Name="FileSize" Value="1621948"/>
-                                <Replica Location="Web" Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Moore_00056438_00001025_4.log"/>
+                                <Replica Location="Web" Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Moore_00056438_00001025_test_4.log"/>
                                 <Parameter Name="MD5Sum" Value="ea8bc998c1905a1c6ff192393a931766"/>
                                 <Parameter Name="Guid" Value="EA8BC998-C190-5A1C-6FF1-92393A931766"/>
                     </OutputFile>
@@ -1265,7 +1265,7 @@ class MCInsertTestCase( unittest.TestCase ):
                     <TypedParameter Name="WNCPUHS06" Type="Info" Value="11.4"/>
                     <TypedParameter Name="Production" Type="Info" Value="%jProduction%"/>
                     <TypedParameter Name="DiracJobId" Type="Info" Value="147844677"/>
-                    <TypedParameter Name="Name" Type="Info" Value="00056438_00001025_5"/>
+                    <TypedParameter Name="Name" Type="Info" Value="00056438_00001025_test_5"/>
                     <TypedParameter Name="JobStart" Type="Info" Value="%jStart%"/>
                     <TypedParameter Name="JobEnd" Type="Info" Value="%jEnd%"/>
                     <TypedParameter Name="Location" Type="Info" Value="LCG.CERN.ch"/>
@@ -1277,17 +1277,17 @@ class MCInsertTestCase( unittest.TestCase ):
                     <TypedParameter Name="StatisticsRequested" Type="Info" Value="-1"/>
                     <TypedParameter Name="StepID" Type="Info" Value="%jStepid%"/>
                     <TypedParameter Name="NumberOfEvents" Type="Info" Value="411"/>
-                    <InputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_4.digi"/>
-                    <OutputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_5.digi" TypeName="DIGI" TypeVersion="ROOT">
+                    <InputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_4.digi"/>
+                    <OutputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_5.digi" TypeName="DIGI" TypeVersion="ROOT">
                                 <Parameter Name="EventTypeId" Value="11104131"/>
                                 <Parameter Name="EventStat" Value="411"/>
                                 <Parameter Name="FileSize" Value="166543538"/>
                                 <Parameter Name="MD5Sum" Value="3f15ea07bc80df0e8fd7a00bf21bf426"/>
                                 <Parameter Name="Guid" Value="E88994D2-AEC6-E611-9D2C-02163E00F6B2"/>
                     </OutputFile>
-                    <OutputFile Name="/lhcb/MC/2012/LOG/00056438/0000/00001025/Noether_00056438_00001025_5.log" TypeName="LOG" TypeVersion="1">
+                    <OutputFile Name="/lhcb/MC/2012/LOG/00056438/0000/00001025/Noether_00056438_00001025_test_5.log" TypeName="LOG" TypeVersion="1">
                                 <Parameter Name="FileSize" Value="30967"/>
-                                <Replica Location="Web" Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Noether_00056438_00001025_5.log"/>
+                                <Replica Location="Web" Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Noether_00056438_00001025_test_5.log"/>
                                 <Parameter Name="MD5Sum" Value="bbe1d585f4961281968c48ed6f115f98"/>
                                 <Parameter Name="Guid" Value="BBE1D585-F496-1281-968C-48ED6F115F98"/>
                     </OutputFile>
@@ -1306,7 +1306,7 @@ class MCInsertTestCase( unittest.TestCase ):
                     <TypedParameter Name="WNCPUHS06" Type="Info" Value="11.4"/>
                     <TypedParameter Name="Production" Type="Info" Value="%jProduction%"/>
                     <TypedParameter Name="DiracJobId" Type="Info" Value="147844677"/>
-                    <TypedParameter Name="Name" Type="Info" Value="00056438_00001025_6"/>
+                    <TypedParameter Name="Name" Type="Info" Value="00056438_00001025_test_6"/>
                     <TypedParameter Name="JobStart" Type="Info" Value="%jStart%"/>
                     <TypedParameter Name="JobEnd" Type="Info" Value="%jEnd%"/>
                     <TypedParameter Name="Location" Type="Info" Value="LCG.CERN.ch"/>
@@ -1318,17 +1318,17 @@ class MCInsertTestCase( unittest.TestCase ):
                     <TypedParameter Name="StatisticsRequested" Type="Info" Value="-1"/>
                     <TypedParameter Name="StepID" Type="Info" Value="%jStepid%"/>
                     <TypedParameter Name="NumberOfEvents" Type="Info" Value="411"/>
-                    <InputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_5.digi"/>
-                    <OutputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_6.digi" TypeName="DIGI" TypeVersion="ROOT">
+                    <InputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_5.digi"/>
+                    <OutputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_6.digi" TypeName="DIGI" TypeVersion="ROOT">
                                 <Parameter Name="EventTypeId" Value="11104131"/>
                                 <Parameter Name="EventStat" Value="411"/>
                                 <Parameter Name="FileSize" Value="166994688"/>
                                 <Parameter Name="MD5Sum" Value="e1d47cd7962d2dc4181508ab26b19fba"/>
                                 <Parameter Name="Guid" Value="58DB8F37-B0C6-E611-9B3C-02163E00F6B2"/>
                     </OutputFile>
-                    <OutputFile Name="/lhcb/MC/2012/LOG/00056438/0000/00001025/Moore_00056438_00001025_6.log" TypeName="LOG" TypeVersion="1">
+                    <OutputFile Name="/lhcb/MC/2012/LOG/00056438/0000/00001025/Moore_00056438_00001025_test_6.log" TypeName="LOG" TypeVersion="1">
                                 <Parameter Name="FileSize" Value="56250"/>
-                                <Replica Location="Web" Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Moore_00056438_00001025_6.log"/>
+                                <Replica Location="Web" Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Moore_00056438_00001025_test_6.log"/>
                                 <Parameter Name="MD5Sum" Value="6521d54c12608adc7b06c92e43d7d824"/>
                                 <Parameter Name="Guid" Value="6521D54C-1260-8ADC-7B06-C92E43D7D824"/>
                     </OutputFile>
@@ -1347,7 +1347,7 @@ class MCInsertTestCase( unittest.TestCase ):
                     <TypedParameter Name="WNCPUHS06" Type="Info" Value="11.4"/>
                     <TypedParameter Name="Production" Type="Info" Value="%jProduction%"/>
                     <TypedParameter Name="DiracJobId" Type="Info" Value="147844677"/>
-                    <TypedParameter Name="Name" Type="Info" Value="00056438_00001025_7"/>
+                    <TypedParameter Name="Name" Type="Info" Value="00056438_00001025_test_7"/>
                     <TypedParameter Name="JobStart" Type="Info" Value="%jStart%"/>
                     <TypedParameter Name="JobEnd" Type="Info" Value="%jEnd%"/>
                     <TypedParameter Name="Location" Type="Info" Value="LCG.CERN.ch"/>
@@ -1359,17 +1359,17 @@ class MCInsertTestCase( unittest.TestCase ):
                     <TypedParameter Name="StatisticsRequested" Type="Info" Value="-1"/>
                     <TypedParameter Name="StepID" Type="Info" Value="%jStepid%"/>
                     <TypedParameter Name="NumberOfEvents" Type="Info" Value="411"/>
-                    <InputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_6.digi"/>
-                    <OutputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_7.digi" TypeName="DIGI" TypeVersion="ROOT">
+                    <InputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_6.digi"/>
+                    <OutputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_7.digi" TypeName="DIGI" TypeVersion="ROOT">
                                 <Parameter Name="EventTypeId" Value="11104131"/>
                                 <Parameter Name="EventStat" Value="411"/>
                                 <Parameter Name="FileSize" Value="161641611"/>
                                 <Parameter Name="MD5Sum" Value="f7f2d353164382712bec0ddfc46943ec"/>
                                 <Parameter Name="Guid" Value="EAB2A0D4-B1C6-E611-A70C-02163E00F6B2"/>
                     </OutputFile>
-                    <OutputFile Name="/lhcb/MC/2012/LOG/00056438/0000/00001025/Moore_00056438_00001025_7.log" TypeName="LOG" TypeVersion="1">
+                    <OutputFile Name="/lhcb/MC/2012/LOG/00056438/0000/00001025/Moore_00056438_00001025_test_7.log" TypeName="LOG" TypeVersion="1">
                                 <Parameter Name="FileSize" Value="1709809"/>
-                                <Replica Location="Web" Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Moore_00056438_00001025_7.log"/>
+                                <Replica Location="Web" Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Moore_00056438_00001025_test_7.log"/>
                                 <Parameter Name="MD5Sum" Value="a2209db13ee25ba252c6c52839232999"/>
                                 <Parameter Name="Guid" Value="A2209DB1-3EE2-5BA2-52C6-C52839232999"/>
                     </OutputFile>
@@ -1388,7 +1388,7 @@ class MCInsertTestCase( unittest.TestCase ):
                     <TypedParameter Name="WNCPUHS06" Type="Info" Value="11.4"/>
                     <TypedParameter Name="Production" Type="Info" Value="%jProduction%"/>
                     <TypedParameter Name="DiracJobId" Type="Info" Value="147844677"/>
-                    <TypedParameter Name="Name" Type="Info" Value="00056438_00001025_8"/>
+                    <TypedParameter Name="Name" Type="Info" Value="00056438_00001025_test_8"/>
                     <TypedParameter Name="JobStart" Type="Info" Value="%jStart%"/>
                     <TypedParameter Name="JobEnd" Type="Info" Value="%jEnd%"/>
                     <TypedParameter Name="Location" Type="Info" Value="LCG.CERN.ch"/>
@@ -1400,17 +1400,17 @@ class MCInsertTestCase( unittest.TestCase ):
                     <TypedParameter Name="StatisticsRequested" Type="Info" Value="-1"/>
                     <TypedParameter Name="StepID" Type="Info" Value="%jStepid%"/>
                     <TypedParameter Name="NumberOfEvents" Type="Info" Value="411"/>
-                    <InputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_7.digi"/>
-                    <OutputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_8.digi" TypeName="DIGI" TypeVersion="ROOT">
+                    <InputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_7.digi"/>
+                    <OutputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_8.digi" TypeName="DIGI" TypeVersion="ROOT">
                                 <Parameter Name="EventTypeId" Value="11104131"/>
                                 <Parameter Name="EventStat" Value="411"/>
                                 <Parameter Name="FileSize" Value="168778046"/>
                                 <Parameter Name="MD5Sum" Value="391359b6a37856985b831c09e0653427"/>
                                 <Parameter Name="Guid" Value="342F831B-B3C6-E611-94AA-02163E00F6B2"/>
                     </OutputFile>
-                    <OutputFile Name="/lhcb/MC/2012/LOG/00056438/0000/00001025/Noether_00056438_00001025_8.log" TypeName="LOG" TypeVersion="1">
+                    <OutputFile Name="/lhcb/MC/2012/LOG/00056438/0000/00001025/Noether_00056438_00001025_test_8.log" TypeName="LOG" TypeVersion="1">
                                 <Parameter Name="FileSize" Value="31116"/>
-                                <Replica Location="Web" Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Noether_00056438_00001025_8.log"/>
+                                <Replica Location="Web" Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Noether_00056438_00001025_test_8.log"/>
                                 <Parameter Name="MD5Sum" Value="0a622440c036b46811912e48ceee076f"/>
                                 <Parameter Name="Guid" Value="0A622440-C036-B468-1191-2E48CEEE076F"/>
                     </OutputFile>
@@ -1755,7 +1755,7 @@ class MCProductionTest ( MCXMLReportInsert ):
     """
     test the job information method
     """
-    retVal = self.bk.getJobInformation( {'LFN':['/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_8.digi', '/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_7.digi']} )
+    retVal = self.bk.getJobInformation( {'LFN':['/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_8.digi', '/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_7.digi']} )
     self.assert_( len( retVal['Value'] ) == 2 )
     params = ['WNMJFHS06', 'WNCPUPower', 'JobName', 'Production', 'EventInputStat', 'Location', 'TotalLuminosity', 'WNCPUHS06', 'StatisticsRequested', 'Exectime', 'JobId',
               'DiracVersion', 'WNCache', 'WNModel', 'NumberOfEvents', 'ConfigName', 'WNMemory', 'RunNumber',
@@ -1765,7 +1765,7 @@ class MCProductionTest ( MCXMLReportInsert ):
         
     d1 = {'WNMJFHS06': 0.0,
           'WNCPUPower': '1',
-          'JobName': '00056438_00001025_8',
+          'JobName': '00056438_00001025_test_8',
           'Production': self.production,
           'EventInputStat': 411,
           'Location': 'LCG.CERN.ch',
@@ -1792,7 +1792,7 @@ class MCProductionTest ( MCXMLReportInsert ):
     
     d2 = {'WNMJFHS06': 0.0,
             'WNCPUPower': '1',
-            'JobName': '00056438_00001025_7',
+            'JobName': '00056438_00001025_test_7',
             'Production': self.production,
             'EventInputStat': 411,
             'Location': 'LCG.CERN.ch',
@@ -1829,6 +1829,7 @@ class MCProductionTest ( MCXMLReportInsert ):
         self.assert_( False, "The XML report has not registered correctly" )
    
     retVal = self.bk.getJobInformation( {'Production':2} )
+    print 'SSSS',retVal
     self.assert_( retVal['OK'] )
     self.assert_( len( retVal['Value'] ) == 8 )
     
@@ -1848,13 +1849,13 @@ class MCProductionTest ( MCXMLReportInsert ):
     """
     test the file type version
     """
-    retVal = self.bk.getFileTypeVersion( ['/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_8.digi', '/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_7.digi'] )
+    retVal = self.bk.getFileTypeVersion( ['/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_8.digi', '/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_7.digi'] )
     self.assert_( retVal['OK'] )
-    self.assert_( retVal['Value']['/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_8.digi'] )
-    self.assertEqual( retVal['Value']['/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_8.digi'], 'ROOT' )
+    self.assert_( retVal['Value']['/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_8.digi'] )
+    self.assertEqual( retVal['Value']['/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_8.digi'], 'ROOT' )
     
-    self.assert_( retVal['Value']['/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_7.digi'] )
-    self.assertEqual( retVal['Value']['/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_7.digi'], 'ROOT' )
+    self.assert_( retVal['Value']['/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_7.digi'] )
+    self.assertEqual( retVal['Value']['/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_7.digi'], 'ROOT' )
     
 if __name__ == '__main__':
   
@@ -1862,9 +1863,9 @@ if __name__ == '__main__':
   mcTestSuite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCXMLReportInsert ) )
   mcTestSuite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCProductionTest ) )
   unittest.TextTestRunner( verbosity = 2, failfast = True ).run( mcTestSuite )
-  suite = unittest.defaultTestLoader.loadTestsFromTestCase( RAWDataInsert )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestMethods ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestRemoveFiles ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestDestoryDataset ) )
-  unittest.TextTestRunner( verbosity = 2, failfast = True ).run( suite )
+  #suite = unittest.defaultTestLoader.loadTestsFromTestCase( RAWDataInsert )
+  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestMethods ) )
+  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestRemoveFiles ) )
+  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestDestoryDataset ) )
+  #unittest.TextTestRunner( verbosity = 2, failfast = True ).run( suite )
   
