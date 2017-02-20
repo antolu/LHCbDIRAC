@@ -42,6 +42,7 @@ def parseEnvironmentFile( eFile ):
       environment[var] = value
     except IndexError:
       continue
+  fp.close()
   return environment
 
 

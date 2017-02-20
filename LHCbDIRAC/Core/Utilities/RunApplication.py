@@ -63,7 +63,7 @@ class RunApplication(object):
     self.opsH = Operations()
 
   def run( self ):
-    """ Invoke lb-run (what you call after having setup the object)
+    """ Invokes lb-run (what you call after having setup the object)
     """
     self.log.info( "Executing application %s %s for CMT configuration '%s'" % ( self.applicationName,
                                                                                 self.applicationVersion,
@@ -99,9 +99,9 @@ class RunApplication(object):
     if not runResult['OK']:
       self.log.error( "Problem executing lb-run: %s" % runResult['Message'] )
       if self.lhcbEnvironment:
-        self.log.info( "Environment used: %s" % self.lhcbEnvironment )
+        self.log.error( "LHCb environment used: %s" % self.lhcbEnvironment )
       else:
-        self.log.info( "Environment: %s" % os.environ )
+        self.log.error( "Environment: %s" % os.environ )
       raise LbRunError( "Can not start %s %s" % ( self.applicationName, self.applicationVersion ) )
 
     if runResult['Value'][0]: # if exit status != 0
@@ -114,6 +114,9 @@ class RunApplication(object):
 
   def _findSystemConfig( self, env = None ):
     """ Invokes lb-run --list-platform to find the "best" CMT config available
+
+    Args:
+        env (dict): LHCb environment (from LbLogin)
     """
     lbRunListConfigs = "lb-run --list-platforms %s/%s" % (self.applicationName, self.applicationVersion)
     self.log.always( "Calling %s" % lbRunListConfigs )
@@ -124,9 +127,9 @@ class RunApplication(object):
     if not res['OK']:
       self.log.error( "Problem executing lb-run --list-platforms: %s" % res['Message'] )
       if env:
-        self.log.info( "Environment used: %s" % env )
+        self.log.error( "LHCb environment used: %s" % env )
       else:
-        self.log.info( "Environment: %s" % os.environ )
+        self.log.error( "Environment: %s" % os.environ )
       raise LbRunError( "Problem executing lb-run --list-platforms" )
     platforms = res['Value']
     if platforms[0]:
@@ -219,6 +222,9 @@ class RunApplication(object):
 
   def _runApp( self, command, env = None ):
     """ Actual call of a command
+
+    Args:
+        env (dict): LHCb environment (from LbLogin)
     """
     print 'Command called: \n%s' % command # Really printing here as we want to see and maybe cut/paste
 
@@ -228,11 +234,11 @@ class RunApplication(object):
                        callbackFunction = self.__redirectLogOutput )
 
   def __redirectLogOutput( self, fd, message ):
-    """ Callback function for the Subprocess calls
-        Manages log files
+    """ Callback function for the Subprocess calls (manages log files)
 
-        fd is stdin/stderr
-        message is every line (?)
+    Args:
+        fd (int): stdin/stderr file descriptor
+        message (str): line to log
     """
     sys.stdout.flush()
     if message:
