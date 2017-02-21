@@ -93,7 +93,7 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
       # The content of environmentLHCbDirac will be the same as the content of environmentLbRunDirac if lb-run LHCbDIRAC is successful
       fd = open( 'environmentLHCbDirac', 'w' )
       for var, val in self.pp.installEnv.iteritems():
-        if var == '_' or 'SSH' in var or '{' in val or '}' in val:
+        if var == '_' or 'SSH' in var or '{' in val or '}' in val or ' ' in val:
           continue
         bl = "%s=%s\n" % ( var, val )
         fd.write( bl )
