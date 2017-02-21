@@ -15,6 +15,8 @@ if __name__ == "__main__":
   Script.registerSwitch( '', 'Runs=', 'Run range or list (can be used with --Activity to reduce the run range)' )
   Script.registerSwitch( '', 'Fast', 'Include runs even if no FULL stream is present (much faster)' )
   Script.registerSwitch( '', 'DQFlag=', 'Specify the DQ flag (default: all)' )
+  Script.registerSwitch( '', 'RunGap=', 'Gap between run ranges, in number of runs' )
+  Script.registerSwitch( '', 'TimeGap=', 'Gap between run ranges, in number of days' )
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
                                        '  %s [option|cfgfile] ... ' % Script.scriptName ] ) )
