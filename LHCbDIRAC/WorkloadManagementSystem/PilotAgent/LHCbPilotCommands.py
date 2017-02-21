@@ -95,7 +95,7 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
       for var, val in self.pp.installEnv.iteritems():
         if var == '_' or 'SSH' in var or '{' in val or '}' in val or ' ' in val:
           continue
-        bl = "%s=%s\n" % ( var, val )
+        bl = "export %s=%s\n" % ( var, val.rstrip(":") )
         fd.write( bl )
       fd.close()
 
