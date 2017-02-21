@@ -228,8 +228,8 @@ function fullLHCbPilot(){
   LHCbDIRACPilotInstall
 
   #this should have been created, we source it so that we can continue
-  echo '==> sourcing bashrc'
-  source $PILOTINSTALLDIR/bashrc
+  echo '==> sourcing environmentLHCbDirac'
+  source $PILOTINSTALLDIR/environmentLHCbDirac
 
   echo '==> Adding the LocalSE, for the subsequent tests'
   dirac-configure -FDMH --UseServerCertificate -L CERN-SWTEST -O $PILOTINSTALLDIR/$PILOTCFG $PILOTINSTALLDIR/$PILOTCFG $DEBUG
@@ -281,8 +281,8 @@ function submitAndMatch(){
     python dirac-pilot.py -S $DIRACSETUP -l LHCb -g $lcgVersion -C $CSURL -N $JENKINS_CE -Q $JENKINS_QUEUE -n $JENKINS_SITE --cert --certLocation=/home/dirac/certs/ -M 3 -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,CheckCECapabilities,CheckWNCapabilities,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements,LaunchAgent $DEBUG
   fi
 
-  echo '==> sourcing bashrc'
-  source $PILOTINSTALLDIR/bashrc
+  echo '==> sourcing environmentLHCbDirac'
+  source $PILOTINSTALLDIR/environmentLHCbDirac
   echo '==> Adding the LocalSE, for the subsequent tests'
   dirac-configure -FDMH --UseServerCertificate -L CERN-SWTEST -O $PILOTINSTALLDIR/$PILOTCFG $PILOTINSTALLDIR/$PILOTCFG $DEBUG
 
