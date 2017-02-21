@@ -2,6 +2,7 @@
 Set of functions used by the DMS scripts
 """
 import os
+import datetime
 
 from DIRAC  import gLogger, S_OK, exit as diracExit
 from DIRAC.Core.Utilities.List import breakListIntoChunks
@@ -1159,19 +1160,30 @@ def executeRunInfo( item ):
   if item not in ( 'Tck', 'DataTakingDescription', 'ProcessingPass', 'Ranges' ):
     gLogger.fatal( "Incorrect run information item" )
     return 0
-  force = False
+  force = None
   byRange = False
   activity = None
   dqFlag = None
+  runGap = 100
+  timeGap = 365
   for switch in Script.getUnprocessedSwitches():
     if switch[0] in ( 'Force', 'Fast' ):
-      force = True
+      # Set True only if not changed by another option
+      if force is None:
+        force = True
     elif switch[0] == 'ByRange':
       byRange = True
     elif switch[0] == 'Activity':
       activity = switch[1].capitalize()
     elif switch[0] == 'DQFlag':
       dqFlag = switch[1].split( ',' )
+    elif switch[0] == 'RunGap':
+      runGap = int( switch[1] )
+    elif switch[0] == 'TimeGap':
+      # Must get run informations to apply it
+      timeGap = int( switch[1] )
+      runGap = 100000000
+      force = False
     elif switch[0] == 'Runs':
       # Add a fake run number to force parseRuns to return a list
       try:
@@ -1226,6 +1238,7 @@ def executeRunInfo( item ):
     if len( runsList ) != nruns:
       gLogger.notice( "Only %d runs have DQ flag in %s" % ( len( runsList ), ','.join( dqFlag ) ) )
 
+  runTime = {}
   if getRanges and force:
     counted = 'runs'
     runDict = dict.fromkeys( runsList, 1 )
@@ -1238,6 +1251,7 @@ def executeRunInfo( item ):
       res = bkClient.getRunInformations( run )
       if res['OK']:
         streams = res['Value'].get( 'Stream', [] )
+        runTime[run] = ( res['Value'].get( 'RunStart' ), res['Value'].get( 'RunEnd' ), res['Value']['DataTakingDescription'] )
         if getRanges:
           files = res['Value'].get( 'Number of file', [] )
           itemValue = dict( zip( streams, files ) ).get( 90000000, 0 )
@@ -1257,29 +1271,49 @@ def executeRunInfo( item ):
   rangesDict = {}
   for itemValue in itemList:
     firstRun = None
+    lastRun = None
+    runStart = None
+    runEnd = None
+    lastDesc = None
+    count = 0
     # Add a fake run (None) in order to print out the last range
     for run in sorted( runDict ) + [None]:
       runValue = 1 if getRanges and run else runDict.get( run )
+      runStart = runTime.get( run, ( None, None ) )[0]
+      runDesc = runTime.get( run, ( None, None, None ) )[2]
+      # Determine if there is a need to change the run range
+      # Can be a change of conditions, a runGap in time or a runGap in #of runs
+      gap = False
+      if lastDesc:
+        gap = ( runDesc != lastDesc )
+      if not gap and runStart and runEnd:
+        runDiff = runStart - runEnd
+        gap = ( runDiff > datetime.timedelta( days = timeGap ) )
+      if not gap and lastRun and run:
+        gap = ( abs( lastRun - run ) > runGap )
+
       if runValue == itemValue and firstRun is None:
         firstRun = run
-        lastRun = run
-        if getRanges and run:
-          count = runDict[run]
-      elif ( runValue != itemValue or abs( lastRun - run ) > 100 ) and firstRun is not None:
+      elif ( runValue != itemValue or gap ) and firstRun is not None:
         if lastRun != firstRun:
           rangeStr = '%d:%d' % ( firstRun, lastRun )
         else:
           rangeStr = '%d' % firstRun
+        if lastDesc:
+          rangeStr += ' (%s)' % lastDesc
         rangesDict[rangeStr] = '%d %s' % ( count, counted ) if getRanges else itemValue
         itemDict.setdefault( itemValue, [] ).append( rangeStr )
         firstRun = run
-        lastRun = run
-        if getRanges and run:
-          count = runDict[run]
-      else:
-        lastRun = run
-        if getRanges and run:
+      elif getRanges and run:
           count += runDict[run]
+      # Update parameters with this run's information
+      lastRun = run
+      lastDesc = runDesc
+      runEnd = runTime.get( run, ( None, None, None ) )[1]
+      if run == firstRun and getRanges and run:
+        count = runDict[run]
+
+
   if byRange:
     if item == 'Ranges':
       gLogger.notice( "Total number of runs: %d" % len( runDict ) )
