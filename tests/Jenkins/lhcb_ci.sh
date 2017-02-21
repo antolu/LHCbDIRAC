@@ -238,7 +238,7 @@ function fullLHCbPilot(){
 
   #this should have been created, we source it so that we can continue
   echo '==> sourcing environmentLHCbDirac'
-  source $PILOTINSTALLDIR/environmentLHCbDirac
+  source $PILOTINSTALLDIR/bashrc
 
   echo -e '\n----PATH:'$PATH'\n----' | tr ":" "\n"
   echo -e '\n----LD_LIBRARY_PATH:'$LD_LIBRARY_PATH'\n----' | tr ":" "\n"
