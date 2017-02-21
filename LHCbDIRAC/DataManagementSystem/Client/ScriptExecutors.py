@@ -1442,7 +1442,7 @@ def executeGetFile( dmScript ):
   """
   lfnList, _ses = parseArguments( dmScript )
 
-  dirList = dmScript.options.get( 'Directory', ['.'] )
+  dirList = sorted( dmScript.options.get( 'Directory', ['.'] ) )
   if len( dirList ) > 1:
     gLogger.fatal( "Not allowed to specify more than one destination directory" )
     return 2
