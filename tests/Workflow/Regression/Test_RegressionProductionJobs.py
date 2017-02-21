@@ -28,54 +28,23 @@ class RegressionTestCase( IntegrationTest ):
     self.diracLHCb = DiracLHCb()
     self.bkkClient = BookkeepingClient()
 
-    location40651 = find_all( '40651.xml', '..', 'Regression' )[0]
-    self.j_mc_40651 = LHCbJob( location40651 )
-    self.j_mc_40651.setConfigArgs( 'pilot.cfg' )
-
-    location40652 = find_all( '40652.xml', '..', 'Regression' )[0]
-    self.j_mc_40652 = LHCbJob( location40652 )
-    self.j_mc_40652.setConfigArgs( 'pilot.cfg' )
-
-#     location20194 = find_all( '20194.xml', '.', 'Regression' )[0]
-#     self.j_reco_20194 = LHCbJob( location20194 )
-#     self.j_reco_20194.setConfigArgs( 'pilot.cfg' )
-
-    # Reco from Collision15em
-    location46146 = find_all( '46146.xml', '..', 'Regression' )[0]
-    self.j_reco_46146 = LHCbJob( location46146 )
-    self.j_reco_46146.setConfigArgs( 'pilot.cfg' )
+    print "\n****************************************** Start running test"
 
 #     location31017 = find_all( '31017.xml', '.', 'Regression' )[0]
 #     self.j_stripp_31017 = LHCbJob( location31017 )
 #     self.j_stripp_31017.setConfigArgs( 'pilot.cfg' )
-
-    # Turbo Stripping Collision15em
-    location46403 = find_all( '46403.xml', '..', 'Regression' )[0]
-    self.j_stripp_46403 = LHCbJob( location46403 )
-    self.j_stripp_46403.setConfigArgs( 'pilot.cfg' )
-
-    location51753 = find_all( '51753.xml', '..', 'Regression' )[0]
-    self.j_MCmerge_51753 = LHCbJob( location51753 )
-    self.j_MCmerge_51753.setConfigArgs( 'pilot.cfg' )
-
-    location21211 = find_all( '21211.xml', '..', 'Regression' )[0]
-    self.j_merge_21211 = LHCbJob( location21211 )
-    self.j_merge_21211.setConfigArgs( 'pilot.cfg' )
-
-    location20657 = find_all( '20657.xml', '..', 'Regression' )[0]
-    self.j_mergeMDF_20657 = LHCbJob( location20657 )
-    self.j_mergeMDF_20657.setConfigArgs( 'pilot.cfg' )
-
-    location31057 = find_all( '31057.xml', '..', 'Regression' )[0]
-    self.j_swimming_31057 = LHCbJob( location31057 )
-    self.j_swimming_31057.setConfigArgs( 'pilot.cfg' )
 
 #   def tearDown( self ):
 #     pass
 
 class MCSuccess( RegressionTestCase ):
   def test_Regression_Production( self ):
-    res = self.j_mc_40651.runLocal( self.diracLHCb, self.bkkClient )
+
+    location40651 = find_all( '40651.xml', '..', 'Regression' )[0]
+    j_mc_40651 = LHCbJob( location40651 )
+    j_mc_40651.setConfigArgs( 'pilot.cfg' )
+
+    res = j_mc_40651.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
 #     for found, expected in getOutput( 'MC' ):
@@ -83,7 +52,11 @@ class MCSuccess( RegressionTestCase ):
 
 class MCReconstructionSuccess( RegressionTestCase ):
   def test_Regression_Production( self ):
-    res = self.j_mc_40652.runLocal( self.diracLHCb, self.bkkClient )
+    location40652 = find_all( '40652.xml', '..', 'Regression' )[0]
+    j_mc_40652 = LHCbJob( location40652 )
+    j_mc_40652.setConfigArgs( 'pilot.cfg' )
+
+    res = j_mc_40652.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
 #     for found, expected in getOutput( 'MC' ):
@@ -91,8 +64,12 @@ class MCReconstructionSuccess( RegressionTestCase ):
 
 class RecoSuccess( RegressionTestCase ):
   def test_Regression_Production( self ):
-#     res = self.j_reco_20194.runLocal( self.diracLHCb, self.bkkClient )
-    res = self.j_reco_46146.runLocal( self.diracLHCb, self.bkkClient )
+    # Reco from Collision15em
+    location46146 = find_all( '46146.xml', '..', 'Regression' )[0]
+    j_reco_46146 = LHCbJob( location46146 )
+    j_reco_46146.setConfigArgs( 'pilot.cfg' )
+
+    res = j_reco_46146.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
 #     for found, expected in getOutput( 'Reco' ):
@@ -100,7 +77,12 @@ class RecoSuccess( RegressionTestCase ):
 
 class StrippSuccess( RegressionTestCase ):
   def test_Regression_Production( self ):
-    res = self.j_stripp_46403.runLocal( self.diracLHCb, self.bkkClient )
+    # Turbo Stripping Collision15em
+    location46403 = find_all( '46403.xml', '..', 'Regression' )[0]
+    j_stripp_46403 = LHCbJob( location46403 )
+    j_stripp_46403.setConfigArgs( 'pilot.cfg' )
+
+    res = j_stripp_46403.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
 #     for found, expected in getOutput( 'Stripp' ):
@@ -108,7 +90,11 @@ class StrippSuccess( RegressionTestCase ):
 
 class MCMergeSuccess( RegressionTestCase ):
   def test_Regression_Production( self ):
-    res = self.j_MCmerge_51753.runLocal( self.diracLHCb, self.bkkClient )
+    location51753 = find_all( '51753.xml', '..', 'Regression' )[0]
+    j_MCmerge_51753 = LHCbJob( location51753 )
+    j_MCmerge_51753.setConfigArgs( 'pilot.cfg' )
+
+    res = j_MCmerge_51753.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
 #     for found, expected in getOutput( 'Merge' ):
@@ -117,7 +103,11 @@ class MCMergeSuccess( RegressionTestCase ):
 # FIXME: to update
 class MergeMultStreamsSuccess( RegressionTestCase ):
   def test_Regression_Production( self ):
-    res = self.j_merge_21211.runLocal( self.diracLHCb, self.bkkClient )
+    location21211 = find_all( '21211.xml', '..', 'Regression' )[0]
+    j_merge_21211 = LHCbJob( location21211 )
+    j_merge_21211.setConfigArgs( 'pilot.cfg' )
+
+    res = j_merge_21211.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
 #     for found, expected in getOutput( 'MergeM' ):
@@ -125,13 +115,21 @@ class MergeMultStreamsSuccess( RegressionTestCase ):
 
 class MergeMDFSuccess( RegressionTestCase ):
   def test_Regression_Production( self ):
-    res = self.j_mergeMDF_20657.runLocal( self.diracLHCb, self.bkkClient )
+    location20657 = find_all( '20657.xml', '..', 'Regression' )[0]
+    j_mergeMDF_20657 = LHCbJob( location20657 )
+    j_mergeMDF_20657.setConfigArgs( 'pilot.cfg' )
+
+    res = j_mergeMDF_20657.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
 # FIXME: to update
 class SwimmingSuccess( RegressionTestCase ):
   def test_Regression_Production( self ):
-    res = self.j_swimming_31057.runLocal( self.diracLHCb, self.bkkClient )
+    location31057 = find_all( '31057.xml', '..', 'Regression' )[0]
+    j_swimming_31057 = LHCbJob( location31057 )
+    j_swimming_31057.setConfigArgs( 'pilot.cfg' )
+
+    res = j_swimming_31057.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
 
