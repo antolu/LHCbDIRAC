@@ -1442,6 +1442,8 @@ def executeGetFile( dmScript ):
   """
   lfnList, _ses = parseArguments( dmScript )
 
+  # We cannot use the getOptions() method here as that method only returns LFN directories
+  #   here we define a local directory
   dirList = sorted( dmScript.options.get( 'Directory', ['.'] ) )
   if len( dirList ) > 1:
     gLogger.fatal( "Not allowed to specify more than one destination directory" )
