@@ -227,18 +227,9 @@ function fullLHCbPilot(){
   #first simply install via the pilot
   LHCbDIRACPilotInstall
 
-  echo -e '\n----PATH:'$PATH'\n----' | tr ":" "\n"
-  echo -e '\n----LD_LIBRARY_PATH:'$LD_LIBRARY_PATH'\n----' | tr ":" "\n"
-  echo -e '\n----DYLD_LIBRARY_PATH:'$DYLD_LIBRARY_PATH'\n----' | tr ":" "\n"
-  echo -e '\n----PYTHONPATH:'$PYTHONPATH'\n----' | tr ":" "\n"
-
-  echo -e '\n----python'
-  echo $(python -V)
-  echo $(which python)
-
-  #this should have been created, we source it so that we can continue
+  #this should have been created, we source it so that we can continue (otherwise the dirac commands below are not found)
   echo '==> sourcing environmentLHCbDirac'
-  source $PILOTINSTALLDIR/bashrc
+  source $PILOTINSTALLDIR/environmentLHCbDirac
 
   echo -e '\n----PATH:'$PATH'\n----' | tr ":" "\n"
   echo -e '\n----LD_LIBRARY_PATH:'$LD_LIBRARY_PATH'\n----' | tr ":" "\n"

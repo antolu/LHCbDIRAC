@@ -34,7 +34,7 @@ class GaussSuccess( RunApplicationTestCase ):
 
   gLogger.always("\n ***************** Trying out GAUSS")
 
-  def test_Gauss_Production_PR33857( self ):
+  def test_Gauss_Production_PR33857_1( self ):
     """ Using ProdConf (production style)
 
         This is taken from PR 33857 (and would fall back to SetupProject)
@@ -121,7 +121,7 @@ class BooleSuccess( RunApplicationTestCase ):
 
   gLogger.always("\n ***************** Trying out BOOLE")
 
-  def test_Boole_Production_PR33857( self ):
+  def test_Boole_Production_PR33857_2( self ):
     """ Using ProdConf (production style)
 
         This is taken from PR 33857
@@ -149,7 +149,7 @@ class BooleSuccess( RunApplicationTestCase ):
     self.assertTrue(res['OK'])
     self.assertEqual(res['Value'], (0, '', ''))
 
-  def test_Boole_Production_PR33857_2( self ):
+  def test_Boole_2_Production_PR33857( self ):
     """ Same as before but using "ANY" as CMT config
     """
     gLogger.always("**** Boole v30r1")
@@ -181,7 +181,7 @@ class MooreSuccess( RunApplicationTestCase ):
 
   gLogger.always("\n ***************** Trying out MOORE")
 
-  def test_Moore_Production_PR33857( self ):
+  def test_Moore_Production_PR33857_3( self ):
     """ Using ProdConf (production style)
 
         This is taken from PR 33857
@@ -206,7 +206,7 @@ class MooreSuccess( RunApplicationTestCase ):
     self.assertTrue(res['OK'])
     self.assertEqual(res['Value'], (0, '', ''))
 
-  def test_Moore_Production_PR33857_2( self ):
+  def test_Moore_2_Production_PR33857_4( self ):
     """ Using ProdConf (production style)
 
         This is taken from PR 33857
@@ -237,7 +237,7 @@ class BrunelSuccess( RunApplicationTestCase ):
 
   gLogger.always("\n ***************** Trying out BRUNEL")
 
-  def test_Brunel_Production_PR33857( self ):
+  def test_Brunel_Production_PR33857_5( self ):
     """ Using ProdConf (production style)
 
         This is taken from PR 33857
@@ -271,7 +271,7 @@ class DaVinciSuccess( RunApplicationTestCase ):
 
   gLogger.always("\n ***************** Trying out DAVINCI")
 
-  def test_DaVinci_Production_PR33857( self ):
+  def test_DaVinci_Production_PR33857_6( self ):
     """ Using ProdConf (production style)
 
         This is taken from PR 33857
@@ -300,7 +300,7 @@ class DaVinciSuccess( RunApplicationTestCase ):
     self.assertEqual(res['Value'], (0, '', ''))
 
 
-  def test_DaVinci_Production_PR33857_2( self ):
+  def test_DaVinci_2_Production_PR33857_7( self ):
     """ Using ProdConf (production style)
 
         This is taken from PR 33857
