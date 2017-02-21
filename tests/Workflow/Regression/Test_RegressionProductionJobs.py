@@ -28,11 +28,7 @@ class RegressionTestCase( IntegrationTest ):
     self.diracLHCb = DiracLHCb()
     self.bkkClient = BookkeepingClient()
 
-    print "\n****************************************** Start running test"
-
-#     location31017 = find_all( '31017.xml', '.', 'Regression' )[0]
-#     self.j_stripp_31017 = LHCbJob( location31017 )
-#     self.j_stripp_31017.setConfigArgs( 'pilot.cfg' )
+    print "\n\n****************************************************** Start running test"
 
 #   def tearDown( self ):
 #     pass
