@@ -1747,7 +1747,7 @@ def registerBK2FC( lfnList, seList, printResult = False ):
         continue
       success = res['Value']['Successful']
       for lfn, metadata in success.iteritems():
-        if metadata['Cached']:
+        if metadata.get( 'Cached', metadata['Accessible'] ):
           checksum = metadata['Checksum']
           size = metadata['Size']
           if size != bkMetadata[lfn]['FileSize']:
