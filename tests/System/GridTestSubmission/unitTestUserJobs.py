@@ -153,6 +153,10 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
     self.assert_( res['OK'] )
     jobsSubmittedList.append( res['Value'] )
 
+    res = daVinciLHCbScriptJob_v41r2()
+    self.assert_( res['OK'] )
+    jobsSubmittedList.append( res['Value'] )
+
     res = daVinciLHCbScriptJob_v42r1()
     self.assert_( res['OK'] )
     jobsSubmittedList.append( res['Value'] )
