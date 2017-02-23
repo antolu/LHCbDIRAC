@@ -1,7 +1,7 @@
 """ This submits user jobs and then starts a thread that checks their results
 """
 
-#pylint: disable=wrong-import-position,unused-wildcard-import,wildcard-import
+#pylint: disable=wrong-import-position,unused-wildcard-import,wildcard-import,invalid-name,missing-docstring
 
 import unittest
 
@@ -150,6 +150,10 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
     jobsSubmittedList.append( res['Value'] )
 
     res = gaudiApplicationScriptJob()
+    self.assert_( res['OK'] )
+    jobsSubmittedList.append( res['Value'] )
+
+    res = daVinciLHCbScriptJob_v42r1()
     self.assert_( res['OK'] )
     jobsSubmittedList.append( res['Value'] )
 
