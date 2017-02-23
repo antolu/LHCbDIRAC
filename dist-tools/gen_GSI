@@ -8,7 +8,7 @@ function canonicalize
 basedir=`canonicalize $0`
 basedir=`dirname $basedir`
 basedir=`canonicalize $basedir/..`
-ext_ver="v6r5p4"
+ext_ver="v6r4p2"
 
 DIRACPLAT=$1
 PYTHON_VERSION_TWODIGIT=$2

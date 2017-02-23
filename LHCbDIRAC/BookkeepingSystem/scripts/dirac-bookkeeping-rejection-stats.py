@@ -13,6 +13,8 @@ if __name__ == "__main__":
   dmScript.registerBKSwitches()
   dmScript.registerFileSwitches()
 
+  Script.registerSwitch( '', 'ByStream', '   Get rejection for each stream' )
+
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
                                        '  %s [option|cfgfile]' % Script.scriptName, ] ) )

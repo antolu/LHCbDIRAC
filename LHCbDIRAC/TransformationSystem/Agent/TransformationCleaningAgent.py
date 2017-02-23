@@ -7,6 +7,8 @@
 
 # # from DIRAC
 from DIRAC                                                        import S_OK, S_ERROR
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations          import Operations
+from DIRAC.ConfigurationSystem.Client.ConfigurationData           import gConfigurationData
 from DIRAC.DataManagementSystem.Client.DataManager                import DataManager
 from DIRAC.Resources.Catalog.FileCatalog                          import FileCatalog
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers              import resolveSEGroup
@@ -32,13 +34,13 @@ class TransformationCleaningAgent( DiracTCAgent ):
 
     self.directoryLocations = ['TransformationDB', 'StorageUsage' ]
     self.archiveAfter = 7
+    self.fileTypesToKeep = ['GAUSSHIST']
 
     self.activeStorages = []
 
     self.bkClient = None
     self.transClient = None
     self.storageUsageClient = None
-    self.dm = None
 
   #############################################################################
 
@@ -56,12 +58,11 @@ class TransformationCleaningAgent( DiracTCAgent ):
     self.bkClient = BookkeepingClient()
     self.transClient = TransformationClient()
     self.storageUsageClient = StorageUsageClient()
-    self.dm = DataManager()
 
     return S_OK()
 
   def cleanMetadataCatalogFiles( self, transID ):
-    """ clean the metadata using BKK and Replica Manager. Replace the one from base class
+    """ clean the metadata using BKK and Data Manager. Replace the one from base class
     """
     res = self.bkClient.getProductionFiles( transID, 'ALL', 'Yes' )
     if not res['OK']:
@@ -77,7 +78,10 @@ class TransformationCleaningAgent( DiracTCAgent ):
           yesReplica.append( lfn )
     if fileToRemove:
       self.log.info( "Attempting to remove %d possible remnants from the catalog and storage" % len( fileToRemove ) )
-      res = self.dm.removeFile( fileToRemove )
+      # Executing with shifter proxy
+      gConfigurationData.setOptionInCFG( '/DIRAC/Security/UseServerCertificate', 'false' )
+      res = DataManager().removeFile( fileToRemove, force = True )
+      gConfigurationData.setOptionInCFG( '/DIRAC/Security/UseServerCertificate', 'true' )
       if not res['OK']:
         return res
       for lfn, reason in res['Value']['Failed'].iteritems():
@@ -105,10 +109,10 @@ class TransformationCleaningAgent( DiracTCAgent ):
 
     res = DiracTCAgent.getTransformationDirectories( self, transID )
 
-    if res['OK']:
-      directories = res['Value']
-    else:
+    if not res['OK']:
       return res
+
+    directories = res['Value']
 
     if 'StorageUsage' in self.directoryLocations:
       res = self.storageUsageClient.getStorageDirectories( '', '', transID, [] )
@@ -120,5 +124,18 @@ class TransformationCleaningAgent( DiracTCAgent ):
 
     if not directories:
       self.log.info( "No output directories found" )
+
+    # FIXME: we should be removing from the list of directories those directories created for file types that are part of those:
+    # - uploaded (as output files)
+    # - not merged by subsequent steps
+    # but this is pretty difficult to identify at run time, so we better remove the "RemovingFiles" production status
+    # and replace it with a flush (this applies only to MC).
+    # For the moment we just have a created list
+    fileTypesToKeep = Operations().getValue( 'Transformations/FileTypesToKeep', self.fileTypesToKeep )
+    fileTypesToKeepDirs = []
+    for fileTypeToKeep in fileTypesToKeep:
+      fileTypesToKeepDirs.extend([x for x in directories if fileTypeToKeep in x])
+    directories = list( set(directories).difference( set(fileTypesToKeepDirs) ) )
+
     directories = sorted( directories )
     return S_OK( directories )
