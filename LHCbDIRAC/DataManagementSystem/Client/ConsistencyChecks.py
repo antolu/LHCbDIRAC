@@ -83,6 +83,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
     self._fileType = []
     self._fileTypesExcluded = []
     self._lfns = []
+    self._seList = []
     self._verbose = False
     self.noFC = False
     self.directories = []
@@ -1160,13 +1161,17 @@ class ConsistencyChecks( DiracConsistencyChecks ):
   lfns = property( get_lfns, set_lfns )
 
   def set_verbose( self, value ):
+    """ Setter """
     self._verbose = bool( value )
   def get_verbose( self ):
+    """ Getter """
     return self._verbose
   verbose = property( get_verbose, set_verbose )
 
   def set_seList( self, value ):
+    """ Setter """
     self._seList = set( resolveSEGroup( value ) )
   def get_seList( self ):
+    """ Getter """
     return self._seList
   seList = property( get_seList, set_seList )
