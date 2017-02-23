@@ -17,10 +17,10 @@ __RCSID__ = "$Id$"
 
 class DataIntegrityClient( DIRACDataIntegrityClient ):
 
-  def __init__(self):
+  def __init__( self ):
     """ Extending DIRAC's DIRACDataIntegrityClient init
     """
-    super(DataIntegrityClient, self).__init__()
+    super( DataIntegrityClient, self ).__init__()
 
     self.cc = ConsistencyChecks()
 
@@ -149,7 +149,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
       return S_OK( resDict )
     lfns = []
     for repDict in replicas:
-      lfns.append(repDict)
+      lfns.append( repDict )
     missingLFNs, noFlagLFNs, _okLFNs = self.cc._getBKMetadata( lfns )
     if missingLFNs:
       self._reportProblematicFiles( missingLFNs, 'LFNBKMissing' )
@@ -182,7 +182,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
 
     lfns = []
     for repDict in replicas:
-      lfns.append(repDict)
+      lfns.append( repDict )
     missingLFNs, noFlagLFNs, _okLFNs = self.cc._getBKMetadata( lfns )
     if missingLFNs:
       self._reportProblematicFiles( missingLFNs, 'LFNBKMissing' )
@@ -303,7 +303,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     if not res['OK']:
       gLogger.error( 'Failed to get metadata for lfns.', res['Message'] )
       return res
-    lfnMetadataDict = res['Value']['Successful']
+    pfnMetadataDict = res['Value']['Successful']
     # If the replicas are completely missing
     missingReplicas = []
     for lfn, reason in res['Value']['Failed'].iteritems():
@@ -315,12 +315,12 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     unavailableReplicas = []
     zeroSizeReplicas = []
     # If the files are not accessible
-    for lfn, lfnMetadata in lfnMetadataDict.iteritems():
-      if lfnMetadata['Lost']:
+    for lfn, metadata in pfnMetadataDict.iteritems():
+      if metadata.get( 'Lost', False ):
         lostReplicas.append( ( lfn, se, 'PFNLost' ) )
-      if lfnMetadata['Unavailable']:
+      if metadata.get( 'Unavailable', not metadata['Accessible'] ):
         unavailableReplicas.append( ( lfn, 'deprecatedUrl', se, 'PFNUnavailable' ) )
-      if lfnMetadata['Size'] == 0:
+      if metadata['Size'] == 0:
         zeroSizeReplicas.append( ( lfn, 'deprecatedUrl', se, 'PFNZeroSize' ) )
     if lostReplicas:
       self.reportProblematicReplicas( lostReplicas, se, 'PFNLost' )
@@ -329,7 +329,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     if zeroSizeReplicas:
       self.reportProblematicReplicas( zeroSizeReplicas, se, 'PFNZeroSize' )
     gLogger.info( 'Checking the integrity of physical files at %s complete' % se )
-    return S_OK( lfnMetadataDict )
+    return S_OK( pfnMetadataDict )
 
   def reportProblematicReplicas( self, replicaTuple, se, reason, fixIt = False ):
     """ Simple wrapper function around setReplicaProblematic """
