@@ -8,6 +8,7 @@
 # # from DIRAC
 from DIRAC                                                        import S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations          import Operations
+from DIRAC.ConfigurationSystem.Client.ConfigurationData           import gConfigurationData
 from DIRAC.DataManagementSystem.Client.DataManager                import DataManager
 from DIRAC.Resources.Catalog.FileCatalog                          import FileCatalog
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers              import resolveSEGroup
@@ -40,7 +41,6 @@ class TransformationCleaningAgent( DiracTCAgent ):
     self.bkClient = None
     self.transClient = None
     self.storageUsageClient = None
-    self.dm = None
 
   #############################################################################
 
@@ -58,12 +58,11 @@ class TransformationCleaningAgent( DiracTCAgent ):
     self.bkClient = BookkeepingClient()
     self.transClient = TransformationClient()
     self.storageUsageClient = StorageUsageClient()
-    self.dm = DataManager()
 
     return S_OK()
 
   def cleanMetadataCatalogFiles( self, transID ):
-    """ clean the metadata using BKK and Replica Manager. Replace the one from base class
+    """ clean the metadata using BKK and Data Manager. Replace the one from base class
     """
     res = self.bkClient.getProductionFiles( transID, 'ALL', 'Yes' )
     if not res['OK']:
@@ -79,7 +78,10 @@ class TransformationCleaningAgent( DiracTCAgent ):
           yesReplica.append( lfn )
     if fileToRemove:
       self.log.info( "Attempting to remove %d possible remnants from the catalog and storage" % len( fileToRemove ) )
-      res = self.dm.removeFile( fileToRemove )
+      # Executing with shifter proxy
+      gConfigurationData.setOptionInCFG( '/DIRAC/Security/UseServerCertificate', 'false' )
+      res = DataManager().removeFile( fileToRemove, force = True )
+      gConfigurationData.setOptionInCFG( '/DIRAC/Security/UseServerCertificate', 'true' )
       if not res['OK']:
         return res
       for lfn, reason in res['Value']['Failed'].iteritems():

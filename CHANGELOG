@@ -122,6 +122,22 @@ Use DIRAC v6r17p5
 * pylints
 * Add documentation for deployment on Mesos
 
+[v8r5p9
+use DIRAC v6r17p11
+
+* fix for file removals for DFC
+* Fix for SE metadata
+* Improve gthe get-run-ranges capabilities
+* Add options
+* add comment
+* dirList must be a list
+* Fix directory option
+* Add new script and modify ScriptExecutors accordingly
+* print the list of LFNs in order
+* added more test cases
+* fix of test
+* avoid constarint failures
+
 [v8r5p8]
 use DIRAC v6r17p10
 

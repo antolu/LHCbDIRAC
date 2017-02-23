@@ -1442,7 +1442,9 @@ def executeGetFile( dmScript ):
   """
   lfnList, _ses = parseArguments( dmScript )
 
-  dirList = dmScript.getOption( 'Directory', ['.'] )
+  # We cannot use the getOptions() method here as that method only returns LFN directories
+  #   here we define a local directory
+  dirList = sorted( dmScript.options.get( 'Directory', ['.'] ) )
   if len( dirList ) > 1:
     gLogger.fatal( "Not allowed to specify more than one destination directory" )
     return 2
@@ -1745,7 +1747,7 @@ def registerBK2FC( lfnList, seList, printResult = False ):
         continue
       success = res['Value']['Successful']
       for lfn, metadata in success.iteritems():
-        if metadata['Cached']:
+        if metadata.get( 'Cached', metadata['Accessible'] ):
           checksum = metadata['Checksum']
           size = metadata['Size']
           if size != bkMetadata[lfn]['FileSize']:
