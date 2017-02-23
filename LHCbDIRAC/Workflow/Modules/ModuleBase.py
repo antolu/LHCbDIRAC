@@ -402,6 +402,9 @@ class ModuleBase( object ):
 
     self.dqTag = self.step_commons.get( 'DQTag', self.dqTag )
 
+    # This is resolved also in __resolveInputWorkflow but can be specialized per step (e.g. LHCbJob().setApplication())
+    self.numberOfEvents = int( self.step_commons.get( 'numberOfEvents', self.numberOfEvents ) )
+
   #############################################################################
 
   def _determineOutputs( self ):

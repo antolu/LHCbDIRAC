@@ -227,9 +227,18 @@ function fullLHCbPilot(){
   #first simply install via the pilot
   LHCbDIRACPilotInstall
 
-  #this should have been created, we source it so that we can continue
-  echo '==> sourcing bashrc'
-  source $PILOTINSTALLDIR/bashrc
+  #this should have been created, we source it so that we can continue (otherwise the dirac commands below are not found)
+  echo '==> sourcing environmentLHCbDirac'
+  source $PILOTINSTALLDIR/environmentLHCbDirac
+
+  echo -e '\n----PATH:'$PATH'\n----' | tr ":" "\n"
+  echo -e '\n----LD_LIBRARY_PATH:'$LD_LIBRARY_PATH'\n----' | tr ":" "\n"
+  echo -e '\n----DYLD_LIBRARY_PATH:'$DYLD_LIBRARY_PATH'\n----' | tr ":" "\n"
+  echo -e '\n----PYTHONPATH:'$PYTHONPATH'\n----' | tr ":" "\n"
+
+  echo -e '\n----python'
+  echo $(python -V)
+  echo $(which python)
 
   echo '==> Adding the LocalSE, for the subsequent tests'
   dirac-configure -FDMH --UseServerCertificate -L CERN-SWTEST -O $PILOTINSTALLDIR/$PILOTCFG $PILOTINSTALLDIR/$PILOTCFG $DEBUG
@@ -275,14 +284,14 @@ function submitAndMatch(){
   if [ ! -z "$PILOT_VERSION" ]
   then
     echo -e "==> Running python dirac-pilot.py -S $DIRACSETUP -l LHCb -r $PILOT_VERSION -g $lcgVersion -C $CSURL -N $JENKINS_CE -Q $JENKINS_QUEUE -n $JENKINS_SITE --cert --certLocation=/home/dirac/certs/ -M 2 -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,CheckCECapabilities,CheckWNCapabilities,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements,LaunchAgent $DEBUG"
-    python dirac-pilot.py -S $DIRACSETUP -l LHCb -r $PILOT_VERSION -g $lcgVersion -C $CSURL -N $JENKINS_CE -Q $JENKINS_QUEUE -n $JENKINS_SITE --cert --certLocation=/home/dirac/certs/ -M 3 -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,CheckCECapabilities,CheckWNCapabilities,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements,LaunchAgent $DEBUG
+    python dirac-pilot.py -S $DIRACSETUP -l LHCb -r $PILOT_VERSION -g $lcgVersion -C $CSURL -N $JENKINS_CE -Q $JENKINS_QUEUE -n $JENKINS_SITE --cert --certLocation=/home/dirac/certs/ -M 4 -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,CheckCECapabilities,CheckWNCapabilities,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements,LaunchAgent $DEBUG
   else
     echo -e "==> Running python dirac-pilot.py -S $DIRACSETUP -l LHCb -g $lcgVersion -C $CSURL -N $JENKINS_CE -Q $JENKINS_QUEUE -n $JENKINS_SITE --cert --certLocation=/home/dirac/certs/ -M 2 -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,CheckCECapabilities,CheckWNCapabilities,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements,LaunchAgent $DEBUG"
-    python dirac-pilot.py -S $DIRACSETUP -l LHCb -g $lcgVersion -C $CSURL -N $JENKINS_CE -Q $JENKINS_QUEUE -n $JENKINS_SITE --cert --certLocation=/home/dirac/certs/ -M 3 -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,CheckCECapabilities,CheckWNCapabilities,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements,LaunchAgent $DEBUG
+    python dirac-pilot.py -S $DIRACSETUP -l LHCb -g $lcgVersion -C $CSURL -N $JENKINS_CE -Q $JENKINS_QUEUE -n $JENKINS_SITE --cert --certLocation=/home/dirac/certs/ -M 4 -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,CheckCECapabilities,CheckWNCapabilities,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements,LaunchAgent $DEBUG
   fi
 
-  echo '==> sourcing bashrc'
-  source $PILOTINSTALLDIR/bashrc
+  echo '==> sourcing environmentLHCbDirac'
+  source $PILOTINSTALLDIR/environmentLHCbDirac
   echo '==> Adding the LocalSE, for the subsequent tests'
   dirac-configure -FDMH --UseServerCertificate -L CERN-SWTEST -O $PILOTINSTALLDIR/$PILOTCFG $PILOTINSTALLDIR/$PILOTCFG $DEBUG
 
@@ -365,10 +374,7 @@ function submitJob(){
 function sourcingEnv(){
 
   echo -e "==> Sourcing the environment (inlcuding LbLogin env)"
-
-  cp $TESTCODE/LHCbDIRAC/tests/Jenkins/sourcingEnv.py .
-  python sourcingEnv.py
-  source environmentLbLoginbashrc
+  source environmentLHCbDirac
 }
 
 

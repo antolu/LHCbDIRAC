@@ -24,7 +24,6 @@ cwd = os.path.realpath( '.' )
 dirac = DiracLHCb()
 
 # Simple Hello Word job to DIRAC.Jenkins.ch
-
 gLogger.info( "\n Submitting hello world job targeting DIRAC.Jenkins.ch" )
 helloJ = LHCbJob()
 helloJ.setName( "helloWorld-TEST-TO-Jenkins" )
@@ -38,8 +37,8 @@ if not result['OK']:
   gLogger.error( "Problem submitting job", result['Message'] )
   exit( 1 )
 
-# Simple Hello Word job to DIRAC.Jenkins.ch, with an input file
 
+# Simple Hello Word job to DIRAC.Jenkins.ch, with an input file
 gLogger.info( "\n Submitting hello world job, with input, targeting DIRAC.Jenkins.ch" )
 inputJ = LHCbJob()
 inputJ.setName( "helloWorld-TEST-INPUT-TO-Jenkins" )
@@ -54,6 +53,7 @@ gLogger.info( "Hello world job with input: ", result )
 if not result['OK']:
   gLogger.error( "Problem submitting job", result['Message'] )
   exit( 1 )
+
 
 # Simple Hello Word job to DIRAC.Jenkins.ch, that needs to be matched by a MP WN
 gLogger.info( "\n Submitting hello world job targeting DIRAC.Jenkins.ch and a MP WN" )
@@ -70,12 +70,14 @@ if not result['OK']:
   gLogger.error( "Problem submitting job", result['Message'] )
   exit( 1 )
 
+
 # Simple GaudiApplication job to DIRAC.Jenkins.ch
 gLogger.info( "\n Submitting gaudi application job targeting DIRAC.Jenkins.ch" )
 gaudiJ = LHCbJob()
 gaudiJ.setName( "GaudiJob-TO-Jenkins" )
 gaudiJ.setApplication('Gauss', 'v49r5', '$APPCONFIGOPTS/Gauss/DataType-2012.py',
-                      extraPackages = 'AppConfig.v3r277;DecFiles.v29r10')
+                      extraPackages = 'AppConfig.v3r277;DecFiles.v29r10',
+                      events = 1)
 gaudiJ.setCPUTime( 17800 )
 gaudiJ.setDestination( 'DIRAC.Jenkins.ch' )
 result = dirac.submit( gaudiJ )

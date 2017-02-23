@@ -337,6 +337,40 @@ def gaudiApplicationScriptJob():
   res = endOfAllJobs( job )
   return res
 
+@executeWithUserProxy
+def daVinciLHCbScriptJob_v41r2():
+  """ This job internally will try to run using 'x86_64-slc6-gcc49-opt'
+
+      DaVinci v41r2 is not on lb-run
+  """
+
+  job = baseToAllJobs( 'daVinciLHCbScriptJob', jobClass )
+  job.setInputSandbox( ['LFN:/lhcb/user/f/fstagni/GangaInputFile/LHCb-Scripts.tar.gz',
+                        'LFN:/lhcb/user/f/fstagni/GangaInputFile/minimal_DaVinciDev_v41r2.tgz'] )
+  job.setExecutable( 'GaudiExec_Job_6_script.py', arguments = '', logFile = 'Ganga_GaudiExec.log',
+                     systemConfig = 'x86_64-slc6-gcc49-opt' )
+  job.setDIRACPlatform()  # pylint: disable=no-member
+  job.setCPUTime( 172800 )
+  res = endOfAllJobs( job )
+  return res
+
+
+@executeWithUserProxy
+def daVinciLHCbScriptJob_v42r1():
+  """ This job internally will try to run using 'x86_64-slc6-gcc49-opt' while here 'x86_64-slc6-gcc48-opt' is set
+
+      DaVinci v42r1 uses lb-run only
+  """
+
+  job = baseToAllJobs( 'daVinciLHCbScriptJob', jobClass )
+  job.setInputSandbox( ['LFN:/lhcb/user/f/fstagni/GangaInputFile/LHCb-Scripts.tar.gz',
+                        'LFN:/lhcb/user/f/fstagni/GangaInputFile/minimal_DaVinciDev_v42r1.tgz'] )
+  job.setExecutable( 'GaudiExec_Job_6_script.py', arguments = '', logFile = 'Ganga_GaudiExec.log',
+                     systemConfig = 'x86_64-slc6-gcc48-opt' )
+  job.setDIRACPlatform()  # pylint: disable=no-member
+  job.setCPUTime( 172800 )
+  res = endOfAllJobs( job )
+  return res
 
 @executeWithUserProxy
 def wrongJob():

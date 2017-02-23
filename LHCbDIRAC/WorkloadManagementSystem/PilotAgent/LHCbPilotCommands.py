@@ -83,19 +83,22 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
       self.pp.installEnv = self._do_lb_run()
       self.log.info( "lb-run DONE, for release %s" % self.pp.releaseVersion )
 
-      # saving also in bashrc file for completeness... this is doing some horrible mangling unfortunately!
-      fd = open( 'bashrc', 'w' )
-      for var, val in self.pp.installEnv.iteritems():
-        if var == '_' or 'SSH' in var or '{' in val or '}' in val:
-          continue
-        bl = "%s=%s\n" % ( var, val )
-        fd.write( bl )
-      fd.close()
-
     except OSError, e:
       self.log.error( "Exception when trying lbrun:", e )
       self.log.warn( "lb-run NOT DONE: starting traditional DIRAC installation" )
       super( LHCbInstallDIRAC, self ).execute()
+
+    finally:
+      # saving also in environmentLHCbDirac file for completeness... this is doing some horrible mangling unfortunately!
+      # The content of environmentLHCbDirac will be the same as the content of environmentLbRunDirac if lb-run LHCbDIRAC is successful
+      fd = open( 'environmentLHCbDirac', 'w' )
+      for var, val in self.pp.installEnv.iteritems():
+        if var == '_' or 'SSH' in var or '{' in val or '}' in val or ' ' in val:
+          continue
+        bl = "export %s=%s\n" % ( var, val.rstrip(":") )
+        fd.write( bl )
+      fd.close()
+
 
   def _do_lb_login( self ):
     """ do LbLogin. If it doesn't work, the invokeCmd will raise OSError
@@ -117,8 +120,8 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
   def _do_lb_run( self ):
     """ do lb-run LHCbDIRAC of the requested version. If the version does not exist, raise OSError
     """
-    invokeCmd( 'lb-run LHCbDirac/%s > environmentLHCbDirac' % self.pp.releaseVersion, self.pp.installEnv )
-    return parseEnvironmentFile( 'environmentLHCbDirac' )
+    invokeCmd( 'lb-run LHCbDirac/%s > environmentLbRunDirac' % self.pp.releaseVersion, self.pp.installEnv )
+    return parseEnvironmentFile( 'environmentLbRunDirac' )
 
 class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
   """ Only case here, for now, is if to set or not the CAs and VOMS location, that should be found in CVMFS
