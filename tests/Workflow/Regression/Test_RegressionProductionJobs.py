@@ -28,8 +28,6 @@ class RegressionTestCase( IntegrationTest ):
     self.diracLHCb = DiracLHCb()
     self.bkkClient = BookkeepingClient()
 
-    print "\n\n****************************************************** Start running test"
-
 #   def tearDown( self ):
 #     pass
 

@@ -15,6 +15,7 @@ class IntegrationTest( unittest.TestCase ):
     cleanTestDir()
     self.dirac = DiracLHCb()
     gLogger.setLevel( 'DEBUG' )
+    print "\n\n****************************************************** Start running test"
 
   def tearDown( self ):
     cleanTestDir()
