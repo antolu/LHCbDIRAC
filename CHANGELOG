@@ -1,3 +1,19 @@
+
+[v8r6-pre9]
+Use DIRAC v6r17p11
+
+* added test dv v41r2
+* added tests for LHCbScript jobs
+* reading numberOfEvents from step
+* one more cycle
+* added limit of 1 event
+* using bash
+* test
+* fix for jenkins
+* using env file in test
+* Saving/using environment file
+* Use Externals v6r5p4 for GSI and LCG for pyparsing
+
 [v8r6-pre7]
 Use DIRAC v6r17p10
 
