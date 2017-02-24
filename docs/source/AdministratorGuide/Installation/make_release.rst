@@ -166,7 +166,7 @@ if the release has been correctly created.
 At this `link <https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/>`_ you'll find some Jenkins Jobs ready to be started.
 Please start the following Jenkins jobs and come back in about an hour to see the results for all of them.
 
-1. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/!RELEASE!__pylint_unit/ the !RELEASE! is the actual relase for exampel: https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/v8r5__pylint_unit/  
+1. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/!RELEASE!__pylint_unit/ the !RELEASE! is the actual relase for exampel: https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/v8r5__pylint_unit/
 
 This job will: run pylint (errors only), run all the unit tests found in the system, assess the coverage.
 The job should be considered successful if:
@@ -350,33 +350,9 @@ In order to push a new version on the Mesos cluster, 3 steps are needed:
 - Push it the lhcbdirac gitlab repository
 - Update the version of the running containers
 
-All these functionalities have been wrapped up in a script.
-
-For the time being, it can be run on any machine on which:
-
-- You can become root
-- docker is installed and running
-- pip is installed
-- git is installed
-- virtualenv is installed
-
-In case you want to set it up on one of your private CERN virtual machine::
-
-  yum install python-pip docker git
-  sudo pip install virtualenv
-  systemctl start docker
+All these functionalities have been wrapped up in a script, available on all the lbmesosadm* machines (01, 02)
 
 The next steps are the following::
-
-    # become root
-    sudo su -
-
-    # create a python virtualenv and enable it
-    virtualenv toto
-    source toto/bin/activate
-
-    # install the release script
-    pip install git+https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC.git@devel#subdirectory=container
 
     # build the new image
     # this will download the necessary files, and build
@@ -391,6 +367,3 @@ The next steps are the following::
     # The services and number of instances running
     # will be preserved
     dirac-docker-mgmt.py -v v8r5 --deploy
-
-    # exit from the virtualenv
-    deactivate
