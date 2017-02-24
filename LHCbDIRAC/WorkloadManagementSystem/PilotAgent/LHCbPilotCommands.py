@@ -1,10 +1,9 @@
 """ LHCb-specific pilot commands
 """
 
-import subprocess
-import os.path
-import sys
 import os
+import subprocess
+import sys
 
 from pilotCommands import GetPilotVersion, InstallDIRAC, ConfigureBasics, ConfigureCPURequirements, ConfigureSite, ConfigureArchitecture #pylint: disable=import-error
 from pilotTools import CommandBase #pylint: disable=import-error
@@ -96,8 +95,10 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
       # The content of environmentLHCbDirac will be the same as the content of environmentLbRunDirac if lb-run LHCbDIRAC is successful
       fd = open( 'environmentLHCbDirac', 'w' )
       for var, val in self.pp.installEnv.iteritems():
-        if var == '_' or 'SSH' in var or '{' in val or '}' in val or ' ' in val:
+        if var == '_' or 'SSH' in var or '{' in val or '}' in val:
           continue
+        if  ' ' in val and val[0] != '"':
+          val = "%s" % val
         bl = "export %s=%s\n" % ( var, val.rstrip(":") )
         fd.write( bl )
       fd.close()
@@ -228,8 +229,10 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
     os.remove( 'environmentLHCbDirac' ) # This should always exist, so no OSError should be raised
     fd = open( 'environmentLHCbDirac', 'w' )
     for var, val in self.pp.installEnv.iteritems():
-      if var == '_' or 'SSH' in var or '{' in val or '}' in val or ' ' in val:
+      if var == '_' or 'SSH' in var or '{' in val or '}' in val:
         continue
+      if  ' ' in val and val[0] != '"':
+        val = "%s" % val
       bl = "export %s=%s\n" % ( var, val.rstrip(":") )
       fd.write( bl )
     fd.close()
