@@ -6,7 +6,7 @@ from random import shuffle
 
 from DIRAC                              import gLogger, gConfig
 from DIRAC.Core.Utilities.SiteSEMapping import getSEsForSite
-from DIRAC.Core.Utilities.List          import uniqueElements
+from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
 
 __RCSID__ = "$Id$"
 
@@ -35,8 +35,9 @@ def getDestinationSEList( outputSE, site, outputmode = 'Any', run = None ):
     site = runDestination['Value'][run]
     outputmode = 'Local'
 
+  localMode = ( outputmode.lower() == "local" )
   # Add output SE defined in the job description
-  gLogger.info( 'Resolving workflow output SE description: %s' % outputSE )
+  gLogger.info( 'Resolving workflow output, SE description: %s' % outputSE )
 
   # Check if the SE is defined explicitly for the site
   prefix = site.split( '.' )[0]
@@ -47,68 +48,61 @@ def getDestinationSEList( outputSE, site, outputmode = 'Any', run = None ):
     gLogger.info( 'Found concrete SE %s' % outputSE )
     return [outputSE]
   # There is an alias defined for this Site
-  alias_se = gConfig.getValue( '/Resources/Sites/%s/%s/AssociatedSEs/%s' % ( prefix, site, outputSE ), [] )
-  if alias_se:
-    gLogger.info( "Found associated SE %s for site %s" % ( alias_se, site ) )
-    return alias_se
+  aliasSE = gConfig.getValue( '/Resources/Sites/%s/%s/AssociatedSEs/%s' % ( prefix, site, outputSE ), [] )
+  if aliasSE:
+    gLogger.info( "Found associated SE %s for site %s" % ( aliasSE, site ) )
+    return aliasSE
 
-  localSEs = getSEsForSite( site )
-  if not localSEs['OK']:
-    raise RuntimeError( localSEs['Message'] )
-  localSEs = localSEs['Value']
-  gLogger.verbose( "Local SE list is: %s" % ( localSEs ) )
-
+  # Assume outputSE is a StorageElementGroup that should be defines as such
   groupSEs = gConfig.getValue( '/Resources/StorageElementGroups/' + outputSE, [] )
   if not groupSEs:
-    raise RuntimeError( "Failed to resolve SE " + outputSE )
+    raise RuntimeError( "Failed to resolve SE group " + outputSE )
   shuffle( groupSEs )
   gLogger.verbose( "Group SE list is: %s" % ( groupSEs ) )
 
-  if outputmode.lower() == "local":
-    for se in localSEs:
-      if se in groupSEs:
-        gLogger.info( "Found eligible local SE: %s" % ( se ) )
-        return [se]
-
-    # check if country is already one with associated SEs
-    section = '/Resources/Countries/%s/AssociatedSEs/%s' % ( country, outputSE )
-    associatedSE = gConfig.getValue( section, [] )
-    if associatedSE:
-      gLogger.info( 'Found associated SEs %s in %s' % ( ', '.join( list( associatedSE ) ), section ) )
-      shuffle( associatedSE )
-      return associatedSE
-
-    # Final check for country associated SE
-    count = 0
-    assignedCountry = country
-    while count < 10:
-      gLogger.verbose( 'Loop count = %s' % ( count ) )
-      gLogger.verbose( "/Resources/Countries/%s/AssignedTo" % assignedCountry )
-      opt = gConfig.getOption( "/Resources/Countries/%s/AssignedTo" % assignedCountry )
-      if opt['OK'] and opt['Value']:
-        assignedCountry = opt['Value']
-        gLogger.verbose( '/Resources/Countries/%s/AssociatedSEs' % assignedCountry )
-        assocCheck = gConfig.getOption( '/Resources/Countries/%s/AssociatedSEs' % assignedCountry )
-        if assocCheck['OK'] and assocCheck['Value']:
+  # If "local" is requested get a local SE in the group
+  dmsHelper = DMSHelpers()
+  if localMode:
+    # At this point we haven't found a local SE yet
+    # outputSE is therefore a StorageElementGroup which may be defined for an associated country
+    # Check recursively for country associated SE
+    # Try and find a site in the associated countries that has a local SE in the groupSE
+    tier1 = site
+    while True:
+      # Get list of local SEs; it may not exist if the site has no local SEs
+      localSEs = dmsHelper.getSEsForSite( tier1 ).get( 'Value', [] )
+      gLogger.verbose( "Local SE list to %s is: %s" % ( tier1, localSEs ) )
+      # Find local SEs in the group
+      localGroupSEs = [se for se in groupSEs if se in localSEs]
+      if localGroupSEs:
+        gLogger.info( "Found eligible local SE at %s: %s" % ( tier1, ','.join( localGroupSEs ) ) )
+        return localGroupSEs
+      # Then look whether there is an associated SE matching
+      # gLogger.verbose( '/Resources/Countries/%s/AssociatedSEs/%s' % ( country, outputSE ) )
+      aliasSE = gConfig.getValue( '/Resources/Countries/%s/AssociatedSEs/%s' % ( country, outputSE ), [] )
+      if aliasSE:
+        # Found: return
+        gLogger.info( "Found associated SE for site %s in country %s: %s" % ( site, country, ','.join( aliasSE ) ) )
+        return aliasSE
+      # Check if that country has an associated Tier1 that is not the same
+      gLogger.verbose( "/Resources/Countries/%s/Tier1" % country )
+      newTier1 = gConfig.getValue( "/Resources/Countries/%s/Tier1" % country, None )
+      if newTier1 and newTier1 != tier1:
+        tier1 = newTier1
+      else:
+        # No or same tier1: try and move to an associated country
+        gLogger.verbose( "/Resources/Countries/%s/AssignedTo" % country )
+        country = gConfig.getValue( "/Resources/Countries/%s/AssignedTo" % country, None )
+        if not country:
+          # No point continuing
           break
-      count += 1
 
-    section = '/Resources/Countries/%s/AssociatedSEs/%s' % ( assignedCountry, outputSE )
-    alias_se = gConfig.getValue( section, [] )
-    if alias_se:
-      gLogger.info( "Found alias SE %s for site: %s" % ( alias_se, site ) )
-      return alias_se
-    else:
-      raise RuntimeError( "Could not establish alias SE for country %s from section: %s" % ( country, section ) )
+    # Here we haven't found any local or associated SE
+    raise RuntimeError( "No local SE was found at %s for %s" % ( site, outputSE ) )
 
-  # For collective Any and All modes return the whole group
-
-  # Make sure that local SEs are passing first
-  newSEList = []
-  for se in groupSEs:
-    if se in localSEs:
-      newSEList.append( se )
-  listOfSEs = uniqueElements( newSEList + groupSEs )
+  # Mode is "any": make sure that local SEs are passed first
+  localSEs = dmsHelper.getSEsForSite( site ).get( 'Value', [] )
+  listOfSEs = [se for se in groupSEs if se in localSEs] + [se for se in groupSEs if se not in localSEs]
   gLogger.verbose( 'Found unique SEs: %s' % ( listOfSEs ) )
   return listOfSEs
 
