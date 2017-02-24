@@ -4,6 +4,7 @@
 import subprocess
 import os.path
 import sys
+import os
 
 from pilotCommands import GetPilotVersion, InstallDIRAC, ConfigureBasics, ConfigureCPURequirements, ConfigureSite, ConfigureArchitecture #pylint: disable=import-error
 from pilotTools import CommandBase #pylint: disable=import-error
@@ -61,6 +62,8 @@ class LHCbCommandBase( CommandBase ):
     pilotParams.architectureScript = 'dirac-architecture'
 
 class LHCbGetPilotVersion( LHCbCommandBase, GetPilotVersion ):
+  """ Base is enough (pilotParams.pilotCFGFile = 'LHCb-pilot.json')
+  """
   pass
 
 class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
@@ -218,6 +221,18 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
     self.log.debug( 'X509_CERT_DIR = %s, %s' % ( self.pp.installEnv['X509_CERT_DIR'], os.environ['X509_CERT_DIR'] ) )
     self.log.debug( 'X509_VOMS_DIR = %s, %s' % ( self.pp.installEnv['X509_VOMS_DIR'], os.environ['X509_VOMS_DIR'] ) )
     self.log.debug( 'DIRAC_VOMSES = %s, %s' % ( self.pp.installEnv['DIRAC_VOMSES'], os.environ['DIRAC_VOMSES'] ) )
+
+    # re-saving also in environmentLHCbDirac file for completeness since we may have added/changed the security variables above
+    # The content of environmentLHCbDirac will be the same as the content of environmentLbRunDirac if lb-run LHCbDIRAC is successful
+    # plus the security-related variables of above
+    os.remove( 'environmentLHCbDirac' ) # This should always exist, so no OSError should be raised
+    fd = open( 'environmentLHCbDirac', 'w' )
+    for var, val in self.pp.installEnv.iteritems():
+      if var == '_' or 'SSH' in var or '{' in val or '}' in val or ' ' in val:
+        continue
+      bl = "export %s=%s\n" % ( var, val.rstrip(":") )
+      fd.write( bl )
+    fd.close()
 
     # In any case do not download VOMS and CAs
     self.cfg.append( '-DMH' )
