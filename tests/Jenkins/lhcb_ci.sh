@@ -374,7 +374,7 @@ function submitJob(){
 function sourcingEnv(){
 
   echo -e "==> Sourcing the environment (inlcuding LbLogin env)"
-  source environmentLHCbDirac
+  source $PILOTINSTALLDIR/environmentLHCbDirac
 }
 
 
