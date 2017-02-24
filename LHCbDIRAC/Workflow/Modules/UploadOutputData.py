@@ -62,17 +62,17 @@ class UploadOutputData( ModuleBase ):
 
     super( UploadOutputData, self )._resolveInputVariables()
 
-    if self.workflow_commons.has_key( 'outputDataStep' ):
+    if 'outputDataStep' in self.workflow_commons:
       self.outputDataStep = [str( ds ) for ds in self.workflow_commons['outputDataStep'].split( ';' )]
 
-    if self.workflow_commons.has_key( 'outputList' ):
+    if 'outputList' in self.workflow_commons:
       self.outputList = self.workflow_commons['outputList']
 
-    if self.workflow_commons.has_key( 'outputMode' ):
+    if 'outputMode' in self.workflow_commons:
       self.outputMode = self.workflow_commons['outputMode']
 
     # Use LHCb utility for local running via jobexec
-    if self.workflow_commons.has_key( 'ProductionOutputData' ):
+    if 'ProductionOutputData' in self.workflow_commons:
       self.prodOutputLFNs = self.workflow_commons['ProductionOutputData']
       if isinstance( self.prodOutputLFNs, basestring ):
         self.prodOutputLFNs = [i.strip() for i in self.prodOutputLFNs.split( ';' )]  # pylint: disable=no-member
@@ -127,7 +127,7 @@ class UploadOutputData( ModuleBase ):
       # Get final, resolved SE list for files
       final = {}
 
-      for fileName, metadata in fileMetadata.items():
+      for fileName, metadata in fileMetadata.iteritems():
         if not SEs:
           resolvedSE = getDestinationSEList( metadata['workflowSE'], self.siteName, self.outputMode,
                                              self.workflow_commons.get( 'runNumber' ) )
@@ -136,15 +136,15 @@ class UploadOutputData( ModuleBase ):
         final[fileName] = metadata
         final[fileName]['resolvedSE'] = resolvedSE
 
-      self.log.info( "The following files will be uploaded: %s" % ( ', '.join( final.keys() ) ) )
-      for fileName, metadata in final.items():
+      self.log.info( "The following files will be uploaded: %s" % ( ', '.join( final ) ) )
+      for fileName, metadata in final.iteritems():
         self.log.info( '--------%s--------' % fileName )
-        for name, val in metadata.items():
+        for name, val in metadata.iteritems():
           self.log.info( '%s = %s' % ( name, val ) )
 
       if not self._enableModule():
         # At this point can exit and see exactly what the module would have uploaded
-        self.log.info( "Would have attempted to upload the following files %s" % ', '.join( final.keys() ) )
+        self.log.info( "Would have attempted to upload the following files %s" % ', '.join( final ) )
         return S_OK()
 
 
@@ -224,7 +224,7 @@ class UploadOutputData( ModuleBase ):
       # Failover replicas are always added to the BK when they become available (actually, added to all the catalogs)
 
       failover = {}
-      for fileName, metadata in final.items():
+      for fileName, metadata in final.iteritems():
         targetSE = metadata['resolvedSE']
         self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( fileName,
                                                                                      ', '.join( targetSE ) ) )
@@ -251,7 +251,7 @@ class UploadOutputData( ModuleBase ):
           performBKRegistration.append( metadata )
 
       cleanUp = False
-      for fileName, metadata in failover.items():
+      for fileName, metadata in failover.iteritems():
         self.log.info( "Setting default catalog for failover transfer registration to master catalog" )
         random.shuffle( self.failoverSEs )
         targetSE = metadata['resolvedSE'][0]
@@ -287,7 +287,7 @@ class UploadOutputData( ModuleBase ):
 
       # For files correctly uploaded must report LFNs to job parameters
       if final:
-        report = ', '.join( final.keys() )
+        report = ', '.join( final )
         self.setJobParameter( 'UploadedOutputData', report )
 
       # ## 5. Can now register the successfully uploaded files in the BK i.e. set the BK replica flags
@@ -302,7 +302,7 @@ class UploadOutputData( ModuleBase ):
           self.log.error( result )
           return S_ERROR( "Could Not Perform BK Registration" )
         if 'Failed' in result['Value'] and result['Value']['Failed']:
-          for lfn, error in result['Value']['Failed'].items():
+          for lfn, error in result['Value']['Failed'].iteritems():
             lfnMetadata = {}
             for lfnMD in performBKRegistration:
               if lfnMD['lfn'] == lfn:
@@ -329,7 +329,7 @@ class UploadOutputData( ModuleBase ):
     """ Clean up uploaded data for the LFNs in the list
     """
     lfnList = []
-    for _fileName, metadata in final.items():
+    for metadata in final.itervalues():
       lfnList.append( metadata['lfn'] )
 
     self.log.verbose( "Cleaning up the request, for LFNs: %s" % ', '.join( lfnList ) )
