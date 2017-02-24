@@ -47,7 +47,8 @@ def parseEnvironmentFile( eFile ):
       value = '='.join( line.split( "=" )[1:] ).strip()
       if '{' in value: # horrible hack... (there's a function that ends in the next line...)
         value = value + '\n}'
-      environment[var] = value
+      if value:
+        environment[var] = value
     except IndexError:
       continue
   fp.close()
