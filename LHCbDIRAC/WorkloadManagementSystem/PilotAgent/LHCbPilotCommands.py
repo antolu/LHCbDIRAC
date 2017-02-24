@@ -15,6 +15,9 @@ __RCSID__ = "$Id$"
 
 def invokeCmd( cmd, environment ):
   """ Controlled invoke of command via subprocess.Popen
+
+  :param env: environment in a dict
+  :type env: dict
   """
   print "Executing %s" % cmd
   cmdExecution = subprocess.Popen( cmd, shell = True, env = environment,
@@ -29,6 +32,12 @@ def invokeCmd( cmd, environment ):
 
 def parseEnvironmentFile( eFile ):
   """ getting the produced environment saved in the file
+
+  :param eFile: file where to save env
+  :type eFile: str
+
+  :return: environment
+  :rtype: dict
   """
   environment = {}
   fp = open( eFile, 'r' )
@@ -44,6 +53,26 @@ def parseEnvironmentFile( eFile ):
   fp.close()
   return environment
 
+def saveEnvInFile( env, eFile ):
+  """ Save environment in file (delete if already present)
+
+  :param env: environment in a dict
+  :type env: dict
+  :param eFile: file where to save env
+  :type eFile: str
+  """
+  if os.path.isfile( eFile ):
+    os.remove( eFile )
+
+  fd = open( eFile, 'w' )
+  for var, val in env.iteritems():
+    if var == '_' or 'SSH' in var or '{' in val or '}' in val:
+      continue
+    if ' ' in val and val[0] != '"':
+      val = '"%s"' % val
+    bl = "export %s=%s\n" % ( var, val.rstrip(":") )
+    fd.write( bl )
+  fd.close()
 
 
 ############################################################## LHCb pilot commands
@@ -92,15 +121,7 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
     finally:
       # saving also in environmentLHCbDirac file for completeness... this is doing some horrible mangling unfortunately!
       # The content of environmentLHCbDirac will be the same as the content of environmentLbRunDirac if lb-run LHCbDIRAC is successful
-      fd = open( 'environmentLHCbDirac', 'w' )
-      for var, val in self.pp.installEnv.iteritems():
-        if var == '_' or 'SSH' in var or '{' in val or '}' in val:
-          continue
-        if ' ' in val and val[0] != '"':
-          val = '"%s"' % val
-        bl = "export %s=%s\n" % ( var, val.rstrip(":") )
-        fd.write( bl )
-      fd.close()
+      saveEnvInFile(self.pp.installEnv, 'environmentLHCbDirac')
 
 
   def _do_lb_login( self ):
@@ -225,16 +246,7 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
     # re-saving also in environmentLHCbDirac file for completeness since we may have added/changed the security variables above
     # The content of environmentLHCbDirac will be the same as the content of environmentLbRunDirac if lb-run LHCbDIRAC is successful
     # plus the security-related variables of above
-    os.remove( 'environmentLHCbDirac' ) # This should always exist, so no OSError should be raised
-    fd = open( 'environmentLHCbDirac', 'w' )
-    for var, val in self.pp.installEnv.iteritems():
-      if var == '_' or 'SSH' in var or '{' in val or '}' in val:
-        continue
-      if ' ' in val and val[0] != '"':
-        val = '"%s"' % val
-      bl = "export %s=%s\n" % ( var, val.rstrip(":") )
-      fd.write( bl )
-    fd.close()
+    saveEnvInFile( self.pp.installEnv, 'environmentLHCbDirac' )
 
     # In any case do not download VOMS and CAs
     self.cfg.append( '-DMH' )
