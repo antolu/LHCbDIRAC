@@ -37,6 +37,14 @@ class UploadOutputData( ModuleBase ):
     self.version = __RCSID__
     self.commandTimeOut = 10 * 60
     self.jobID = ''
+    # This returns all Tier1-Failover unless a specific one is defined for the site
+    self.failoverSEs = getDestinationSEList( 'Tier1-Failover', self.siteName, outputmode = 'Any' )
+    random.shuffle( self.failoverSEs )
+
+    self.existingCatalogs = []
+    result = gConfig.getSections( '/Resources/FileCatalogs' )
+    if result['OK']:
+      self.existingCatalogs = result['Value']
 
     # List all parameters here
     self.outputDataFileMask = ''
@@ -46,7 +54,6 @@ class UploadOutputData( ModuleBase ):
     self.request = None
     self.failoverTransfer = None
     self.prodOutputLFNs = []
-    self.failoverSEs = []
 
   #############################################################################
   def _resolveInputVariables( self ):
@@ -76,10 +83,6 @@ class UploadOutputData( ModuleBase ):
         self.log.error( "Could not create production LFNs", result['Message'] )
         return result
       self.prodOutputLFNs = result['Value']['ProductionOutputData']
-
-    # This returns all Tier1-Failover unless a specific one is defined for the site
-    self.failoverSEs = getDestinationSEList( 'Tier1-Failover', self.siteName, outputmode = 'Any' )
-    random.shuffle( self.failoverSEs )
 
   #############################################################################
 
@@ -250,6 +253,7 @@ class UploadOutputData( ModuleBase ):
       cleanUp = False
       for fileName, metadata in failover.iteritems():
         self.log.info( "Setting default catalog for failover transfer registration to master catalog" )
+        random.shuffle( self.failoverSEs )
         targetSE = metadata['resolvedSE'][0]
         metadata['resolvedSE'] = self.failoverSEs
 
