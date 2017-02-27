@@ -2,9 +2,7 @@
 """ "Integration" production jobs. StepIDs are taken from REAL productions that ran "recently"
 """
 
-#pylint: disable=line-too-long
-#pylint: disable=protected-access
-#pylint: disable=missing-docstring
+#pylint: disable=line-too-long,protected-access,missing-docstring,invalid-name,wrong-import-position
 
 import unittest
 

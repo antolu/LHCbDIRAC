@@ -17,7 +17,7 @@ class UtilitiesTestCase( unittest.TestCase ):
     self.dmMock.getReplicas.return_value = {'OK': True, 'Value':{'Successful':{'bb.raw':'metadataPippo'},
                                                                  'Failed':{}}}
 
-    self.cc = ConsistencyChecks( transClient = Mock(), dm = self.dmMock, bkClient = self.bkClientMock )
+    self.cc = ConsistencyChecks( transClient = Mock(), dm = self.dmMock, bkClient = bkc_mock )
     self.fileTypes = [['SEMILEPTONIC.DST', 'LOG', 'RAW'], ['SEMILEPTONIC.DST', 'LOG', 'RAW'], ['SEMILEPTONIC.DST'], ['SEMILEPTONIC.DST']]
     self.cc.fileTypesExcluded = ['LOG']
     self.cc.prod = 0

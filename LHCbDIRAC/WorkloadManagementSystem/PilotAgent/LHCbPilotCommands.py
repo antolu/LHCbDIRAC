@@ -1,8 +1,8 @@
 """ LHCb-specific pilot commands
 """
 
+import os
 import subprocess
-import os.path
 import sys
 
 from pilotCommands import GetPilotVersion, InstallDIRAC, ConfigureBasics, ConfigureCPURequirements, ConfigureSite, ConfigureArchitecture #pylint: disable=import-error
@@ -15,6 +15,9 @@ __RCSID__ = "$Id$"
 
 def invokeCmd( cmd, environment ):
   """ Controlled invoke of command via subprocess.Popen
+
+  :param env: environment in a dict
+  :type env: dict
   """
   print "Executing %s" % cmd
   cmdExecution = subprocess.Popen( cmd, shell = True, env = environment,
@@ -29,22 +32,48 @@ def invokeCmd( cmd, environment ):
 
 def parseEnvironmentFile( eFile ):
   """ getting the produced environment saved in the file
+
+  :param eFile: file where to save env
+  :type eFile: str
+
+  :return: environment
+  :rtype: dict
   """
   environment = {}
   fp = open( eFile, 'r' )
   for line in fp:
     try:
       var = line.split( '=' )[0].strip()
-      value = line.split( '=' )[1].strip()
-      # Horrible hack... (there's a function that ends in the next line...)
-      if '{' in value:
+      value = '='.join( line.split( "=" )[1:] ).strip()
+      if '{' in value: # horrible hack... (there's a function that ends in the next line...)
         value = value + '\n}'
-      environment[var] = value
+      if value:
+        environment[var] = value
     except IndexError:
       continue
   fp.close()
   return environment
 
+def saveEnvInFile( env, eFile ):
+  """ Save environment in file (delete if already present)
+
+  :param env: environment in a dict
+  :type env: dict
+  :param eFile: file where to save env
+  :type eFile: str
+  """
+  if os.path.isfile( eFile ):
+    os.remove( eFile )
+
+  fd = open( eFile, 'w' )
+  for var, val in env.iteritems():
+    if var == '_' or 'SSH' in var or '{' in val or '}' in val:
+      continue
+    if ' ' in val and val[0] != '"':
+      val = '"%s"' % val
+    bl = "export %s=%s\n" % ( var, val.rstrip(":") )
+    fd.write( bl )
+  fd.close()
 
 
 ############################################################## LHCb pilot commands
@@ -61,6 +90,8 @@ class LHCbCommandBase( CommandBase ):
     pilotParams.architectureScript = 'dirac-architecture'
 
 class LHCbGetPilotVersion( LHCbCommandBase, GetPilotVersion ):
+  """ Base is enough (pilotParams.pilotCFGFile = 'LHCb-pilot.json')
+  """
   pass
 
 class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
@@ -91,13 +122,7 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
     finally:
       # saving also in environmentLHCbDirac file for completeness... this is doing some horrible mangling unfortunately!
       # The content of environmentLHCbDirac will be the same as the content of environmentLbRunDirac if lb-run LHCbDIRAC is successful
-      fd = open( 'environmentLHCbDirac', 'w' )
-      for var, val in self.pp.installEnv.iteritems():
-        if var == '_' or 'SSH' in var or '{' in val or '}' in val or ' ' in val:
-          continue
-        bl = "export %s=%s\n" % ( var, val.rstrip(":") )
-        fd.write( bl )
-      fd.close()
+      saveEnvInFile(self.pp.installEnv, 'environmentLHCbDirac')
 
 
   def _do_lb_login( self ):
@@ -218,6 +243,11 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
     self.log.debug( 'X509_CERT_DIR = %s, %s' % ( self.pp.installEnv['X509_CERT_DIR'], os.environ['X509_CERT_DIR'] ) )
     self.log.debug( 'X509_VOMS_DIR = %s, %s' % ( self.pp.installEnv['X509_VOMS_DIR'], os.environ['X509_VOMS_DIR'] ) )
     self.log.debug( 'DIRAC_VOMSES = %s, %s' % ( self.pp.installEnv['DIRAC_VOMSES'], os.environ['DIRAC_VOMSES'] ) )
+
+    # re-saving also in environmentLHCbDirac file for completeness since we may have added/changed the security variables above
+    # The content of environmentLHCbDirac will be the same as the content of environmentLbRunDirac if lb-run LHCbDIRAC is successful
+    # plus the security-related variables of above
+    saveEnvInFile( self.pp.installEnv, 'environmentLHCbDirac' )
 
     # In any case do not download VOMS and CAs
     self.cfg.append( '-DMH' )

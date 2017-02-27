@@ -121,7 +121,7 @@ class BooleSuccess( RunApplicationTestCase ):
 
   gLogger.always("\n ***************** Trying out BOOLE")
 
-  def test_Boole_Production_PR33857_2( self ):
+  def test_Boole_1_Production_PR33857_2( self ):
     """ Using ProdConf (production style)
 
         This is taken from PR 33857
@@ -181,7 +181,7 @@ class MooreSuccess( RunApplicationTestCase ):
 
   gLogger.always("\n ***************** Trying out MOORE")
 
-  def test_Moore_Production_PR33857_3( self ):
+  def test_Moore_1_Production_PR33857_3( self ):
     """ Using ProdConf (production style)
 
         This is taken from PR 33857
@@ -271,7 +271,7 @@ class DaVinciSuccess( RunApplicationTestCase ):
 
   gLogger.always("\n ***************** Trying out DAVINCI")
 
-  def test_DaVinci_Production_PR33857_6( self ):
+  def test_DaVinci_1_Production_PR33857_6( self ):
     """ Using ProdConf (production style)
 
         This is taken from PR 33857
