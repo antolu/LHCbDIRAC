@@ -52,13 +52,13 @@ class UserJobFinalization( ModuleBase ):
     super( UserJobFinalization, self )._resolveInputVariables()
 
     # Use LHCb utility for local running via dirac-jobexec
-    if self.workflow_commons.has_key( 'UserOutputData' ):
+    if 'UserOutputData' in self.workflow_commons:
       userOutputData = self.workflow_commons[ 'UserOutputData' ]
       if not isinstance( userOutputData, list ):
         userOutputData = [ i.strip() for i in userOutputData.split( ';' ) ]
       self.userOutputData = userOutputData
 
-    if self.workflow_commons.has_key( 'UserOutputSE' ):
+    if 'UserOutputSE' in self.workflow_commons:
       specifiedSE = self.workflow_commons['UserOutputSE']
       if not isinstance( specifiedSE, list ):
         self.userOutputSE = [i.strip() for i in specifiedSE.split( ';' )]
@@ -66,13 +66,13 @@ class UserJobFinalization( ModuleBase ):
       self.log.verbose( 'No UserOutputSE specified, using default value: %s' % ( ', '.join( self.defaultOutputSE ) ) )
       self.userOutputSE = []
 
-    if self.workflow_commons.has_key( 'UserOutputPath' ):
+    if 'UserOutputPath' in self.workflow_commons:
       self.userOutputPath = self.workflow_commons['UserOutputPath']
 
-    if self.workflow_commons.has_key( 'ReplicateUserOutputData' ) and self.workflow_commons['ReplicateUserOutputData']:
+    if self.workflow_commons.get( 'ReplicateUserOutputData' ):
       self.replicateUserOutputData = True
 
-    if self.workflow_commons.has_key( 'UserOutputLFNPrepend' ):
+    if 'UserOutputLFNPrepend' in self.workflow_commons:
       self.userPrependString = self.workflow_commons['UserOutputLFNPrepend']
 
   #############################################################################
@@ -164,16 +164,16 @@ class UserJobFinalization( ModuleBase ):
 
       self.log.info( "Ordered list of output SEs is: %s" % ( ', '.join( orderedSEs ) ) )
       final = {}
-      for fileName, metadata in fileMetadata.items():
+      for fileName, metadata in fileMetadata.iteritems():
         final[fileName] = metadata
         final[fileName]['resolvedSE'] = orderedSEs
 
       # At this point can exit and see exactly what the module will upload
       if not self._enableModule():
-        self.log.info( "Module disabled would have attempted to upload the files %s" % ', '.join( final.keys() ) )
-        for fileName, metadata in final.items():
+        self.log.info( "Module disabled would have attempted to upload the files %s" % ', '.join( final ) )
+        for fileName, metadata in final.iteritems():
           self.log.info( '--------%s--------' % fileName )
-          for n, v in metadata.items():
+          for n, v in metadata.iteritems():
             self.log.info( '%s = %s' % ( n, v ) )
 
         return S_OK( "Module is disabled by control flag" )
@@ -189,7 +189,7 @@ class UserJobFinalization( ModuleBase ):
       replication = {}
       failover = {}
       uploaded = []
-      for fileName, metadata in final.items():
+      for fileName, metadata in final.iteritems():
         self.log.info( "Attempting to store %s to the following SE(s): %s" % ( fileName,
                                                                                ', '.join( metadata['resolvedSE'] ) ) )
         fileMetaDict = { 'Size'         : metadata['filedict']['Size'],
@@ -224,7 +224,7 @@ class UserJobFinalization( ModuleBase ):
             replication[lfn] = ( uploadedSE, replicateSE, fileMetaDict )
 
       cleanUp = False
-      for fileName, metadata in failover.items():
+      for fileName, metadata in failover.iteritems():
         random.shuffle( self.failoverSEs )
         targetSE = metadata['resolvedSE'][0]
         if len( metadata['resolvedSE'] ) > 1:
@@ -268,7 +268,7 @@ class UserJobFinalization( ModuleBase ):
         # do not try to replicate any files.
         return S_ERROR( "Failed To Upload Output Data" )
 
-      for lfn, ( uploadedSE, repSE, fileMetaDictItem ) in replication.items():
+      for lfn, ( uploadedSE, repSE, fileMetaDictItem ) in replication.iteritems():
         self.failoverTransfer._setFileReplicationRequest( lfn, repSE, fileMetaDictItem, uploadedSE )
 
       self.workflow_commons['Request'] = self.failoverTransfer.request
@@ -279,10 +279,10 @@ class UserJobFinalization( ModuleBase ):
 
       return S_OK( 'Output data uploaded' )
 
-    except Exception as e: #pylint:disable=broad-except
+    except Exception as e:  # pylint:disable=broad-except
       self.log.exception( "Failure in UserJobFinalization execute module", lException = e )
-      self.setApplicationStatus( repr(e) )
-      return S_ERROR( str(e) )
+      self.setApplicationStatus( repr( e ) )
+      return S_ERROR( str( e ) )
 
     finally:
       super( UserJobFinalization, self ).finalize( self.version )
@@ -317,7 +317,7 @@ class UserJobFinalization( ModuleBase ):
   def _getCurrentOwner( self ):
     """Simple function to return current DIRAC username.
     """
-    if self.workflow_commons.has_key( 'OwnerName' ):
+    if 'OwnerName' in self.workflow_commons:
       return self.workflow_commons['OwnerName']
 
     result = getProxyInfo()
@@ -327,7 +327,7 @@ class UserJobFinalization( ModuleBase ):
         return 'testUser'
       raise RuntimeError( 'Could not obtain proxy information' )
 
-    if not result['Value'].has_key( 'username' ):
+    if 'username' not in result['Value']:
       raise RuntimeError( 'Could not get username from proxy' )
 
     return result['Value']['username']
