@@ -3090,12 +3090,13 @@ and files.qualityid= dataquality.qualityid'
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-
+    
     retVal = self.__buildConditions( simdesc, datataking, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
     
+    hint = ''
     if ( not startDate or not endDate ) and tables.strip() == 'files f,jobs j  ,filetypes ft':
       hint = '/*+INDEX(j JOBS_PRODUCTIONID) INDEX(f FILES_JOB_EVENT_FILETYPE) INDEX(ft FILETYPES_ID_NAME)*/'
       
