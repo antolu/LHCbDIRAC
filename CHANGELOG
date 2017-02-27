@@ -1,3 +1,10 @@
+[v8r5p10]
+use DIRAC v6r17p11
+
+* remove the commented block
+* use hint for a certain queries
+* add more tests
+
 [v8r5p9
 use DIRAC v6r17p11
 
