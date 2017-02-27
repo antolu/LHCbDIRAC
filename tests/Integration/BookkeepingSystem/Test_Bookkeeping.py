@@ -1030,7 +1030,27 @@ class TestMethods( DataInsertTestCase ):
     self.assertEqual( retVal['Value']['TotalRecords'], 301 )
     self.assertEqual( len( retVal['Value']['Records'] ), 301 )
     self.assertEqual( retVal['Value']['ParameterNames'], paramNames )
-        
+  
+  def test_getRunInformation( self ):
+    """
+    Test the run metadata
+    """     
+    retVal = self.bk.getRunInformation( {'RunNumber':self.runnb} )
+    self.assert_( retVal['OK'] )
+    self.assert_( self.runnb not in retVal['Value'] )
+    self.assertEqual( sorted( retVal['Value'][int( self.runnb )].keys() ), sorted( ['ConfigName', 'JobEnd', 'ConditionDescription', 'ProcessingPass', 'FillNumber', 'DDDB', 'JobStart', 'TCK', 'CONDDB', 'ConfigVersion'] ) )
+    result = dict( retVal['Value'][int( self.runnb )] )
+    result.pop( 'JobStart' )
+    result.pop( 'JobEnd' )
+    self.assertDictEqual( result, {'ConfigName': 'Test',
+                                   'ConditionDescription': 'Beam450GeV-MagDown',
+                                   'ProcessingPass': '/Real Data',
+                                   'FillNumber': 29,
+                                   'DDDB': 'xyz',
+                                   'TCK': '-0x7f6bffff',
+                                   'CONDDB': 'xy',
+                                   'ConfigVersion': 'Test01'} )
+     
 class TestRemoveFiles( DataInsertTestCase ):
   
   def test_removeFiles( self ):
