@@ -3095,17 +3095,19 @@ and files.qualityid= dataquality.qualityid'
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-
+    
+    if ( not startDate or not endDate ) and tables.strip() == 'files f,jobs j  ,filetypes ft':
+      hint = '/*+INDEX(j JOBS_PRODUCTIONID) INDEX(f FILES_JOB_EVENT_FILETYPE) INDEX(ft FILETYPES_ID_NAME)*/'
+      
     if nbofEvents:
-      command = " select sum(f.eventstat) \
-      from %s where f.jobid= j.jobid %s " % ( tables, condition )
+      command = " select %s sum(f.eventstat) \
+      from %s where f.jobid= j.jobid %s " % ( hint, tables, condition )
     elif filesize:
-      command = " select sum(f.filesize) \
-      from %s where f.jobid= j.jobid %s " % ( tables, condition )
+      command = " select %s sum(f.filesize) \
+      from %s where f.jobid= j.jobid %s " % ( hint, tables, condition )
     else:
-      command = " select distinct f.filename \
-      from %s where f.jobid= j.jobid %s " % ( tables, condition )
-
+      command = " select %s distinct f.filename \
+      from %s where f.jobid= j.jobid %s " % ( hint, tables, condition )
     res = self.dbR_.query( command )
 
     return res
