@@ -1879,13 +1879,13 @@ class MCProductionTest ( MCXMLReportInsert ):
     
 if __name__ == '__main__':
   
-  #mcTestSuite = unittest.defaultTestLoader.loadTestsFromTestCase( MCProductionRegistration )
-  #mcTestSuite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCXMLReportInsert ) )
-  #mcTestSuite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCProductionTest ) )
-  #unittest.TextTestRunner( verbosity = 2, failfast = True ).run( mcTestSuite )
+  mcTestSuite = unittest.defaultTestLoader.loadTestsFromTestCase( MCProductionRegistration )
+  mcTestSuite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCXMLReportInsert ) )
+  mcTestSuite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCProductionTest ) )
+  unittest.TextTestRunner( verbosity = 2, failfast = True ).run( mcTestSuite )
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( RAWDataInsert )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestMethods ) )
-  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestRemoveFiles ) )
-  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestDestoryDataset ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestRemoveFiles ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestDestoryDataset ) )
   unittest.TextTestRunner( verbosity = 2, failfast = True ).run( suite )
   
