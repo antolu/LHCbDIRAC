@@ -1,5 +1,19 @@
-
 [v8r6-pre9]
+Use DIRAC v6r17p11
+
+ * clever naming
+ * get iterators and remove has_key
+ * review getDestinationSEList() and use for Failover
+ * corrected location
+ * using a fuction
+ * fix for spaces
+ * Release doc for Mesos
+ * interpreting DNs
+ * test fix
+ * fixed creation
+ * re-saving for security variables
+
+[v8r6-pre8]
 Use DIRAC v6r17p11
 
 * added test dv v41r2
