@@ -80,7 +80,7 @@ recoType = '{{RecoType#PROD-1:RECO(Stripp): DataReconstruction or DataReprocessi
 recoIDPolicy = '{{recoIDPolicy#PROD-1:RECO(Stripp): policy for input data access (download or protocol)#download}}'
 recoMulticoreFlag = '{{recoMulticoreFLag#PROD-1: multicore flag#True}}'
 recoAncestorDepth = int( '{{recoAncestorDepth#PROD-1: Ancestor Depth#0}}' )
-recoCompressionLvl = '{{recoCompressionLvl#PROD-3: compression level#Compression-ZLIB-1}}'
+recoCompressionLvl = '{{recoCompressionLvl#PROD-1: compression level#Compression-ZLIB-1}}'
 
 # stripp params
 strippPriority = int( '{{priority#PROD-2:Stripping: priority#5}}' )
@@ -95,7 +95,7 @@ except SyntaxError:
 strippIDPolicy = '{{strippIDPolicy#PROD-2:Stripping: policy for input data access (download or protocol)#download}}'
 strippMulticoreFlag = '{{strippMulticoreFLag#PROD-2: multicore flag#True}}'
 strippAncestorDepth = int( '{{strippAncestorDepth#PROD-2: Ancestor Depth#0}}' )
-strippCompressionLvl = '{{strippCompressionLvl#PROD-3: compression level#Compression-ZLIB-1}}'
+strippCompressionLvl = '{{strippCompressionLvl#PROD-2: compression level#Compression-ZLIB-1}}'
 
 # merging params
 mergingPriority = int( '{{MergePriority#PROD-3:Merging: priority#8}}' )
