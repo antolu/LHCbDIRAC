@@ -1005,12 +1005,14 @@ class PluginUtilities( DIRACPluginUtilities ):
 def getRemovalPlugins():
   return ( "DestroyDataset", 'DestroyDatasetWhenProcessed' ,
            'RemoveReplicasKeepDestination', "ReduceReplicasKeepDestination",
-           "RemoveDataset", "RemoveReplicas", 'RemoveReplicasWhenProcessed', 'ReduceReplicas' )
+           "RemoveDataset", "RemoveReplicas", 'RemoveReplicasWhenProcessed',
+           'RemoveReplicasWithAncestorsWhenProcessed', 'ReduceReplicas' )
 def getReplicationPlugins():
   return ( "LHCbDSTBroadcast", "LHCbMCDSTBroadcastRandom",
            "ArchiveDataset", "ReplicateDataset",
            'RAWReplication',
-           'FakeReplication', 'ReplicateToLocalSE', 'Healing' )
+           'FakeReplication', 'ReplicateToLocalSE', 'ReplicateWithAncestors',
+           'Healing' )
 
 def getShares( sType, normalise = False ):
   """
