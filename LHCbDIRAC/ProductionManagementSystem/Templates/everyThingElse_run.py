@@ -155,7 +155,11 @@ if not parentReq:
 else:
   pr.requestID = parentReq
 
-pr.resolveSteps()
+#
+# resolveSteps doesn't define any variables needed beyond this point, so
+# it's ok to skip it as it prevents others from being filled, namely the compressionLvl
+#
+#pr.resolveSteps()
 
 pr.prodGroup = '{{inProPass}}' + '/' + '{{pDsc}}'
 # used in case of a test e.g. certification etc.

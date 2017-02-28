@@ -114,7 +114,11 @@ mergingPriority = int( mergingPriority )
 removeInputMerge = ast.literal_eval( removeInputMerge )
 removeInputSelection = ast.literal_eval( removeInputSelection )
 
-pr.resolveSteps()
+#
+# resolveSteps doesn't define any variables needed beyond this point, so
+# it's ok to skip it as it prevents others from being filled, namely the compressionLvl
+#
+#pr.resolveSteps()
 
 ###########################################
 # LHCb conventions implied by the above
