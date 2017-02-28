@@ -225,12 +225,12 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       for replicaSE, lfns in replicaGroups.iteritems():
         replicaSE = set( replicaSE.split( ',' ) )
         if not assignedRAW:
-          # Files are not yet at a Tier1-RAW
-          if useRunDestination:
-            assignedRAW = self.util.getSEForDestination( runID, rawTargets )
+          # Files are not yet at a Tier1-RAW, if a destination already exists, use it
+          assignedRAW = self.util.getSEForDestination( runID, rawTargets )
           if assignedRAW:
             self.util.logVerbose( 'RAW destination obtained from run %d destination: %s' % ( runID, assignedRAW ) )
-          else:
+          elif not useRunDestination:
+            # Define the destination only if not requested to use it from the run destination
             res = self._getNextSite( existingCount, targetShares )
             if not res['OK']:
               self.util.logError( "Failed to get next destination SE", res['Message'] )
@@ -238,18 +238,19 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             else:
               assignedRAW = res['Value']
               self.util.logVerbose( "RAW destination assigned for run %d: %s" % ( runID, assignedRAW ) )
+          else:
+            self.util.logVerbose( "Run destination not yet defined for run %d" % runID )
           rawLogged = True
         elif not rawLogged:
           self.util.logVerbose( 'RAW destination existing for run %d: %s' % ( runID, assignedRAW ) )
 
         # # Now get a buffer destination is prestaging is required
         if preStageShares and not assignedBuffer:
-          if useRunDestination:
-            assignedBuffer = self.util.getSEForDestination( runID, bufferTargets )
+          assignedBuffer = self.util.getSEForDestination( runID, bufferTargets )
           if assignedBuffer:
             bufferLogged = True
             self.util.logVerbose( 'Buffer destination obtained from run %d destination: %s' % ( runID, assignedBuffer ) )
-          else:
+          elif not useRunDestination:
             # Files are not at a buffer for processing
             res = self._selectRunSite( runID, sourceSE, replicaSE | set( [assignedRAW] ), bufferTargets, preStageShares = preStageShares )
             if not res['OK']:
@@ -262,6 +263,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             else:
               self.util.logWarn( 'Failed to find Buffer destination SE for run', str( runID ) )
               continue
+          else:
+            self.util.logVerbose( "Run destination not yet defined for run %d" % runID )
         elif assignedBuffer and not bufferLogged:
           self.util.logVerbose( 'Buffer destination existing for run %d: %s' % ( runID, assignedBuffer ) )
 
