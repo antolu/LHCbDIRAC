@@ -1492,6 +1492,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         continue
       okSEs = replicaSEs & destSEs
       if okSEs:
+        # We have to choose only one SE to replicate to... There should in principle not be more but to be safe, take one only
         self._alreadyProcessedLFNs.setdefault( list( okSEs )[0], [] ).extend( lfns )
         self.util.logInfo( "Found %d files that are already present in the destination SEs (status set Processed)" % len( lfns ) )
         res = self.transClient.setFileStatusForTransformation( self.transID, 'Processed', lfns )
