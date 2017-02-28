@@ -1006,7 +1006,7 @@ def getRemovalPlugins():
   return ( "DestroyDataset", 'DestroyDatasetWhenProcessed' ,
            'RemoveReplicasKeepDestination', "ReduceReplicasKeepDestination",
            "RemoveDataset", "RemoveReplicas", 'RemoveReplicasWhenProcessed',
-           'RemoveReplicasWithAncestorsWhenProcessed', 'ReduceReplicas' )
+           'RemoveReplicasWithAncestors', 'ReduceReplicas' )
 def getReplicationPlugins():
   return ( "LHCbDSTBroadcast", "LHCbMCDSTBroadcastRandom",
            "ArchiveDataset", "ReplicateDataset",

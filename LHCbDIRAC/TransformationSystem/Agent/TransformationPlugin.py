@@ -1426,7 +1426,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         self.pluginCallback( self.transID, invalidateCache = True )
     return S_OK( self.util.createTasks( storageElementGroups, chunkSize = maxFiles ) )
 
-  def _RemoveReplicasWithAncestorsWhenProcessed( self ):
+  def _RemoveReplicasWithAncestors( self ):
     """ Same as _RemoveReplicasWhenProcessed but also remove parents
     This plugin is useful for removing at once RDST and RAW files after stripping
     """
