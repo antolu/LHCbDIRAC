@@ -37,9 +37,6 @@ class UploadOutputData( ModuleBase ):
     self.version = __RCSID__
     self.commandTimeOut = 10 * 60
     self.jobID = ''
-    # This returns all Tier1-Failover unless a specific one is defined for the site
-    self.failoverSEs = getDestinationSEList( 'Tier1-Failover', self.siteName, outputmode = 'Any' )
-    random.shuffle( self.failoverSEs )
 
     self.existingCatalogs = []
     result = gConfig.getSections( '/Resources/FileCatalogs' )
@@ -54,6 +51,7 @@ class UploadOutputData( ModuleBase ):
     self.request = None
     self.failoverTransfer = None
     self.prodOutputLFNs = []
+    self.failoverSEs = None
 
   #############################################################################
   def _resolveInputVariables( self ):
@@ -84,6 +82,7 @@ class UploadOutputData( ModuleBase ):
         return result
       self.prodOutputLFNs = result['Value']['ProductionOutputData']
 
+
   #############################################################################
 
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
@@ -105,6 +104,10 @@ class UploadOutputData( ModuleBase ):
       super( UploadOutputData, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
                                                workflowStatus, stepStatus,
                                                wf_commons, step_commons, step_number, step_id )
+
+      # This returns all Tier1-Failover unless a specific one is defined for the site
+      self.failoverSEs = getDestinationSEList( 'Tier1-Failover', self.siteName, outputmode = 'Any' )
+      random.shuffle( self.failoverSEs )
 
       self._resolveInputVariables()
 
