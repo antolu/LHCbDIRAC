@@ -1447,7 +1447,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def __addAncestors( self, pluginMethod = None ):
     """ Call a standard plugin and then add ancestors to tasks
     """
-    maxFiles = self.util.getPluginParam( 'MaxFiles', 100 ) / 2
+    maxFiles = self.util.getPluginParam( 'MaxFilesPerTask', 100 ) / 2
     tasks = pluginMethod( maxFiles = maxFiles )
     if not tasks['OK']:
       return tasks
@@ -1485,17 +1485,17 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """
     destSEs = set( resolveSEGroup( self.util.getPluginParam( 'DestinationSEs', [] ) ) )
     watermark = self.util.getPluginParam( 'MinFreeSpace', 30 )
-    maxFilesAtDestination = self.util.getPluginParam( 'MaxFilesAtDestination', 0 )
+    targetFilesAtDestination = self.util.getPluginParam( 'TargetFilesAtDestination', 0 )
     if not destSEs:
       self.util.logWarn( 'No destination SE given' )
       return S_OK( [] )
 
     # if there is a maximum number of files to get at destination, get the current usage
-    if maxFilesAtDestination:
+    if targetFilesAtDestination:
       self.util.readCacheFile( self.workDirectory )
       directories = set( os.path.dirname( lfn ) for lfn in self.transReplicas )
       # Get the maximum number of files that are allowed to be copied at this round (for prestaging mainly)
-      maxFilesAtSE = self.util.getMaxFilesAtSE( maxFilesAtDestination, directories, destSEs )
+      maxFilesAtSE = self.util.getMaxFilesAtSE( targetFilesAtDestination, directories, destSEs )
       if not maxFilesAtSE['OK']:
         return maxFilesAtSE
       maxFilesAtSE = maxFilesAtSE['Value']

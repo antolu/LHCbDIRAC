@@ -711,7 +711,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     """
     tasks = []
     if not chunkSize:
-      chunkSize = self.getPluginParam( 'MaxFiles', 100 )
+      chunkSize = self.getPluginParam( 'MaxFilesPerTask', 100 )
     for stringTargetSEs in sorted( storageElementGroups.keys() ):
       stringTargetLFNs = storageElementGroups[stringTargetSEs]
       for lfnGroup in breakListIntoChunks( sorted( stringTargetLFNs ), chunkSize ):
@@ -1032,7 +1032,7 @@ class PluginUtilities( DIRACPluginUtilities ):
         result[se] = result.setdefault( se, 0 ) + stat['Files']
     return S_OK( result )
 
-  def getMaxFilesAtSE( self, maxFilesAtDestination, directories, destSEs ):
+  def getMaxFilesAtSE( self, targetFilesAtDestination, directories, destSEs ):
     """
     Get the number of files already present at SEs for a list of directories
     Using the processing and RAW distribution shares, split the maximum number of files to be staged on these SEs
@@ -1062,12 +1062,12 @@ class PluginUtilities( DIRACPluginUtilities ):
     shares = shares['Value'][1]
     self.printShares( "Shares per RAW SE:", shares, counters = [], log = self.logVerbose )
 
-    # Share maxFilesAtDestination on the SEs taking into account current usage
+    # Share targetFilesAtDestination on the SEs taking into account current usage
     maxFilesAtSE = {}
     for rawSE, share in shares.iteritems():
       se = self.closerSEs( [rawSE], destSEs, local = True )
       if len( se ) == 1:
-        share *= maxFilesAtDestination / 100.
+        share *= targetFilesAtDestination / 100.
         maxFilesAtSE[se[0]] = max( 0, int( share - storageUsage.get( se[0], 0 ) ) )
     self.printShares( "Maximum number of files per SE:", maxFilesAtSE, counters = [], log = self.logVerbose )
     return S_OK( maxFilesAtSE )
