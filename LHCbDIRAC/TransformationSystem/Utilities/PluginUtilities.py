@@ -1008,6 +1008,9 @@ class PluginUtilities( DIRACPluginUtilities ):
     return S_OK( lfnProd )
 
   def getStorageUsage( self, directories, seList ):
+    """
+    Get from StorageUsage the actual number of files for a list of directories at a list of SEs
+    """
     suClient = RPCClient( 'DataManagement/StorageUsage' )
     dirList = set()
     for dirName in directories:
@@ -1030,24 +1033,36 @@ class PluginUtilities( DIRACPluginUtilities ):
     return S_OK( result )
 
   def getMaxFilesAtSE( self, maxFilesAtDestination, directories, destSEs ):
-    period = self.getPluginParam( 'Period', 12 )
+    """
+    Get the number of files already present at SEs for a list of directories
+    Using the processing and RAW distribution shares, split the maximum number of files to be staged on these SEs
+    and return the number of files that can possibly be added
+    """
+    # Add possibility to throttle the frequency of the plugin, but not clear if this is useful
+    period = self.getPluginParam( 'Period', 0 )
     now = datetime.datetime.utcnow()
     if self.lastCall and ( now - self.lastCall ) < datetime.timedelta( hours = period ):
       self.logInfo( "Skip this loop (less than %s hours since last call)" % period )
       return S_OK( None )
     self.lastCall = now
     self.writeCacheFile()
+
+    # Get current stprage usage per SE
     storageUsage = self.getStorageUsage( directories, destSEs )
     if not storageUsage['OK']:
       return storageUsage
     storageUsage = storageUsage['Value']
     self.printShares( "Current storage usage per SE:", storageUsage, counters = [], log = self.logVerbose )
+
+    # Get the shares (including processing fraction) at each site (from RAW SEs)
     shares = self.getPluginShares( section = 'CPUforRAW', backupSE = 'CERN-RAW' )
     if not shares['OK']:
       return shares
     self.shareMetrics = None
     shares = shares['Value'][1]
     self.printShares( "Shares per RAW SE:", shares, counters = [], log = self.logVerbose )
+
+    # Share maxFilesAtDestination on the SEs taking into account current usage
     maxFilesAtSE = {}
     for rawSE, share in shares.iteritems():
       se = self.closerSEs( [rawSE], destSEs, local = True )
