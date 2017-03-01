@@ -12,6 +12,7 @@ from DIRAC.Core.Utilities.Time import timeThis
 from DIRAC.Core.Utilities.File import mkDir
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
+from DIRAC.Core.DISET.RPCClient import RPCClient
 
 from DIRAC.TransformationSystem.Client.Utilities import PluginUtilities as DIRACPluginUtilities
 from DIRAC.TransformationSystem.Client.Utilities import isArchive, isFailover, getActiveSEs
@@ -72,6 +73,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     self.cachedDirMetadata = {}
     self.runsUsedForShares = set()
     self.shareMetrics = None
+    self.lastCall = None
     self.excludedStatuses = self.getPluginParam( 'IgnoreStatusForFlush', [ 'Removed', 'MissingInFC', 'Problematic' ] )
 
   def setDebug( self, val ):
@@ -105,11 +107,16 @@ class PluginUtilities( DIRACPluginUtilities ):
       counters = shares
     normCounters = normaliseShares( counters ) if counters else {}
 
-    log( title + " (metrics is %s)" % self.shareMetrics )
+    if self.shareMetrics:
+      title += " (metrics is %s)" % self.shareMetrics
+    log( title )
     for se in sorted( shares ):
-      infoStr = "%s: %4.1f |" % ( se.ljust( 15 ), shares[se] )
+      if isinstance( shares[se], ( int, long ) ):
+        infoStr = "%s: %d " % ( se.rjust( 15 ), shares[se] )
+      else:
+        infoStr = "%s: %4.1f " % ( se.rjust( 15 ), shares[se] )
       if se in counters:
-        infoStr += " %4.1f" % normCounters[se]
+        infoStr += "| %4.1f %%" % normCounters[se]
       log( infoStr )
 
   def getPluginShares( self, section = None, backupSE = None ):
@@ -151,9 +158,9 @@ class PluginUtilities( DIRACPluginUtilities ):
         shares[backupSE] = 100. - tier1Fraction
       else:
         return res
-      self.logInfo( "Fraction of RAW (%s) to be processed at each SE (%%):" % section )
-      for se in sorted( rawFraction ):
-        self.logInfo( "%s: %.1f" % ( se.ljust( 15 ), 100. * rawFraction[se] ) )
+      rawPercentage = dict( ( se, 100. * val ) for se, val in rawFraction.iteritems() )
+      self.printShares( "Fraction of RAW (%s) to be processed at each SE (%%):" % section,
+                        rawPercentage, counters = [] )
     else:
       shares = normaliseShares( res['Value'] )
       self.logInfo( "Obtained the following target distribution shares (%):" )
@@ -170,7 +177,7 @@ class PluginUtilities( DIRACPluginUtilities ):
       return res
     else:
       existingCount = res['Value']
-      self.printShares( "Target shares and usage for production (%):", shares, existingCount )
+      self.printShares( "Target shares and usage for production (%):", shares, counters = existingCount )
     if rawFraction:
       return S_OK( ( rawFraction, shares ) )
     else:
@@ -741,6 +748,7 @@ class PluginUtilities( DIRACPluginUtilities ):
         self.cachedProductions = pickle.load( f )
         self.cachedLastRun = pickle.load( f )
         self.cachedLFNProcessedPath = pickle.load( f )
+        self.lastCall = pickle.load( f )
         f.close()
         self.logVerbose( "Cache file %s successfully loaded" % cacheFile )
         # print '*****'
@@ -808,6 +816,7 @@ class PluginUtilities( DIRACPluginUtilities ):
         pickle.dump( self.cachedProductions, f )
         pickle.dump( self.cachedLastRun, f )
         pickle.dump( self.cachedLFNProcessedPath, f )
+        pickle.dump( self.lastCall, f )
         f.close()
         self.logVerbose( "Cache file %s successfully written" % self.cacheFile )
       except:
@@ -997,6 +1006,57 @@ class PluginUtilities( DIRACPluginUtilities ):
 
     lfnProd = dict( ( lfn, self.cachedDirMetadata.get( lfnDirs[lfn], 0 ) ) for lfn in lfns )
     return S_OK( lfnProd )
+
+  def getStorageUsage( self, directories, seList ):
+    suClient = RPCClient( 'DataManagement/StorageUsage' )
+    dirList = set()
+    for dirName in directories:
+      while True:
+        subDir = os.path.basename( dirName )
+        if subDir and not subDir.isdigit():
+          break
+        dirName = os.path.dirname( dirName )
+      dirList.add( dirName )
+    result = {}
+    if isinstance( seList, ( dict, set, tuple ) ):
+      seList = list( seList )
+    self.logVerbose( "Get storage usage for directories", ','.join( dirList ) )
+    for dirName in dirList:
+      res = suClient.getStorageSummary( dirName, None, None, seList )
+      if not res['OK']:
+        return res
+      for se, stat in res['Value'].iteritems():
+        result[se] = result.setdefault( se, 0 ) + stat['Files']
+    return S_OK( result )
+
+  def getMaxFilesAtSE( self, maxFilesAtDestination, directories, destSEs ):
+    period = self.getPluginParam( 'Period', 12 )
+    now = datetime.datetime.utcnow()
+    if self.lastCall and ( now - self.lastCall ) < datetime.timedelta( hours = period ):
+      self.logInfo( "Skip this loop (less than %s hours since last call)" % period )
+      return S_OK( None )
+    self.lastCall = now
+    self.writeCacheFile()
+    storageUsage = self.getStorageUsage( directories, destSEs )
+    if not storageUsage['OK']:
+      return storageUsage
+    storageUsage = storageUsage['Value']
+    self.printShares( "Current storage usage per SE:", storageUsage, counters = [], log = self.logVerbose )
+    shares = self.getPluginShares( section = 'CPUforRAW', backupSE = 'CERN-RAW' )
+    if not shares['OK']:
+      return shares
+    self.shareMetrics = None
+    shares = shares['Value'][1]
+    self.printShares( "Shares per RAW SE:", shares, counters = [], log = self.logVerbose )
+    maxFilesAtSE = {}
+    for rawSE, share in shares.iteritems():
+      se = self.closerSEs( [rawSE], destSEs, local = True )
+      if len( se ) == 1:
+        share *= maxFilesAtDestination / 100.
+        maxFilesAtSE[se[0]] = max( 0, int( share - storageUsage.get( se[0], 0 ) ) )
+    self.printShares( "Maximum number of files per SE:", maxFilesAtSE, counters = [], log = self.logVerbose )
+    return S_OK( maxFilesAtSE )
+
 
 #=================================================================
 # Set of utility functions used by LHCbDirac transformation system

@@ -7,6 +7,7 @@
 import time
 import os
 import random
+import sys
 
 from DIRAC import S_OK, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks, randomize
@@ -1483,9 +1484,25 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """
     destSEs = set( resolveSEGroup( self.util.getPluginParam( 'DestinationSEs', [] ) ) )
     watermark = self.util.getPluginParam( 'MinFreeSpace', 30 )
+    maxFilesAtDestination = self.util.getPluginParam( 'MaxFilesAtDestination', 0 )
     if not destSEs:
       self.util.logWarn( 'No destination SE given' )
       return S_OK( [] )
+
+    # if there is a maximum number of files to get at destination, get the current usage
+    if maxFilesAtDestination:
+      self.util.readCacheFile( self.workDirectory )
+      directories = set( os.path.dirname( lfn ) for lfn in self.transReplicas )
+      # Get the maximum number of files that are allowed to be copied at this round (for prestaging mainly)
+      maxFilesAtSE = self.util.getMaxFilesAtSE( maxFilesAtDestination, directories, destSEs )
+      if not maxFilesAtSE['OK']:
+        return maxFilesAtSE
+      maxFilesAtSE = maxFilesAtSE['Value']
+      # This happens when the cycle is to be skipped, then return
+      if not maxFilesAtSE:
+        return S_OK( [] )
+    else:
+      maxFilesAtSE = {}
 
     storageElementGroups = {}
 
@@ -1506,13 +1523,27 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       targetSEs = destSEs - replicaSEs
       candidateSEs = self.util.closerSEs( replicaSEs, targetSEs, local = True )
       if candidateSEs:
-        freeSpace = self.util.getStorageFreeSpace( candidateSEs )
-        shortSEs = [se for se in candidateSEs if freeSpace[se] < watermark]
-        if shortSEs:
-          self.util.logVerbose( "No enough space (%s TB) found at %s" % ( watermark, ','.join( shortSEs ) ) )
+        # If the max number of files to copy is negative, stop
+        shortSEs = [se for se in candidateSEs if maxFilesAtSE.get( se, sys.maxint ) <= 0]
         candidateSEs = [se for se in candidateSEs if se not in shortSEs]
-        if candidateSEs:
-          storageElementGroups.setdefault( candidateSEs[0], [] ).extend( lfns )
+        if not candidateSEs:
+          self.util.logVerbose( "No candidate SE where files are accepted (%s not allowed)" % ','.join( shortSEs ) )
+        else:
+          # Check if enough free space
+          freeSpace = self.util.getStorageFreeSpace( candidateSEs )
+          shortSEs = [se for se in candidateSEs if freeSpace[se] < watermark]
+          candidateSEs = [se for se in candidateSEs if se not in shortSEs]
+          if not candidateSEs:
+            self.util.logVerbose( "No enough space (%s TB) found at %s" % ( watermark, ','.join( shortSEs ) ) )
+          else:
+            # Select a single SE out of candidates; in most cases there is one only
+            candidateSE = candidateSEs[0]
+            maxToReplicate = maxFilesAtSE.get( candidateSE, sys.maxint )
+            if maxToReplicate < len( lfns ):
+              self.util.logVerbose( "Limit number of files for %s to %d (out of %d)" % ( candidateSE, maxToReplicate, len( lfns ) ) )
+            else:
+              self.util.logVerbose( "Number of files for %s: %d" % ( candidateSE, len( lfns ) ) )
+            storageElementGroups.setdefault( candidateSE, [] ).extend( lfns[:maxToReplicate] )
       else:
         self.util.logWarn( "Could not find a local SE for %d files, set them Problematic" % len( lfns ) )
         res = self.transClient.setFileStatusForTransformation( self.transID, 'Problematic', lfns )
