@@ -1472,11 +1472,12 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         newTasks.append( ( targetSE, ancChunk ) )
     # It is not possible to create a task with files that are not in the transformation!
     # therefore add them...
-    res = self.transClient.addFilesToTransformation( self.transID, addedAncestors )
-    if not res['OK']:
-      self.util.logError( 'Failed to add files to transformation', res['Message'] )
-      return res
-    self.util.logInfo( "Added %d ancestors to tasks" % len( addedAncestors ) )
+    if addedAncestors:
+      res = self.transClient.addFilesToTransformation( self.transID, addedAncestors )
+      if not res['OK']:
+        self.util.logError( 'Failed to add files to transformation', res['Message'] )
+        return res
+      self.util.logInfo( "Added %d ancestors to tasks" % len( addedAncestors ) )
     return S_OK( newTasks )
 
   def _ReplicateToLocalSE( self, maxFiles = None ):
