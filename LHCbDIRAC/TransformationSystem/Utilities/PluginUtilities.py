@@ -1007,21 +1007,11 @@ class PluginUtilities( DIRACPluginUtilities ):
     lfnProd = dict( ( lfn, self.cachedDirMetadata.get( lfnDirs[lfn], 0 ) ) for lfn in lfns )
     return S_OK( lfnProd )
 
-  def getStorageUsage( self, directories, seList ):
+  def __getStorageUsage( self, dirList, seList ):
     """
     Get from StorageUsage the actual number of files for a list of directories at a list of SEs
     """
     suClient = RPCClient( 'DataManagement/StorageUsage' )
-    dirList = set()
-    for dirName in directories:
-      # We strip off any numerical directory as we don't care about which productions created the files
-      # If not we may have only a few input files from a single production and then we would find there is almost nothing prestaged
-      while True:
-        subDir = os.path.basename( dirName )
-        if subDir and not subDir.isdigit():
-          break
-        dirName = os.path.dirname( dirName )
-      dirList.add( dirName )
     result = {}
     if isinstance( seList, ( dict, set, tuple ) ):
       seList = list( seList )
@@ -1040,6 +1030,16 @@ class PluginUtilities( DIRACPluginUtilities ):
     Using the processing and RAW distribution shares, split the maximum number of files to be staged on these SEs
     and return the number of files that can possibly be added
     """
+    dirList = set()
+    for dirName in directories:
+      # We strip off any numerical directory as we don't care about which productions created the files
+      # If not we may have only a few input files from a single production and then we would find there is almost nothing prestaged
+      while True:
+        subDir = os.path.basename( dirName )
+        if subDir and not subDir.isdigit():
+          break
+        dirName = os.path.dirname( dirName )
+      dirList.add( dirName )
     # Add possibility to throttle the frequency of the plugin, but not clear if this is useful
     period = self.getPluginParam( 'Period', 0 )
     now = datetime.datetime.utcnow()
@@ -1050,7 +1050,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     self.writeCacheFile()
 
     # Get current stprage usage per SE
-    storageUsage = self.getStorageUsage( directories, destSEs )
+    storageUsage = self.__getStorageUsage( dirList, destSEs )
     if not storageUsage['OK']:
       return storageUsage
     storageUsage = storageUsage['Value']
@@ -1064,13 +1064,47 @@ class PluginUtilities( DIRACPluginUtilities ):
     shares = shares['Value'][1]
     self.printShares( "Shares per RAW SE:", shares, counters = [], log = self.logVerbose )
 
+    # Get the number of files already assigned for each SE, as it should be substracted from possible number
+    res = self.transClient.getTransformationFiles( {'TransformationID':self.transID, 'Status':'Assigned'} )
+    if not res['OK']:
+      return res
+    recentFiles = dict.fromkeys( destSEs, 0 )
+    for fileDict in res['Value']:
+      dirName = os.path.dirname( fileDict['LFN'] )
+      while True:
+        subDir = os.path.basename( dirName )
+        if subDir and not subDir.isdigit():
+          break
+        dirName = os.path.dirname( dirName )
+      usedSE = fileDict['UsedSE']
+      if dirName in dirList and usedSE in destSEs:
+        recentFiles[usedSE] += 1
+
+    # Get the number of files Processed in the last 12 hours
+    res = self.transClient.getTransformationFiles( {'TransformationID':self.transID, 'Status':'Processed'} )
+    if not res['OK']:
+      return res
+    limitTime = datetime.datetime.now() - datetime.timedelta( hours = 12 )
+    for fileDict in res['Value']:
+      dirName = os.path.dirname( fileDict['LFN'] )
+      while True:
+        subDir = os.path.basename( dirName )
+        if subDir and not subDir.isdigit():
+          break
+        dirName = os.path.dirname( dirName )
+      usedSE = fileDict['UsedSE']
+      if dirName in dirList and usedSE in destSEs and fileDict['LastUpdate'] > limitTime:
+        recentFiles[usedSE] += 1
+    self.printShares( "Number of files Assigned or recently Processed", recentFiles, counters = [], log = self.logVerbose )
+
     # Share targetFilesAtDestination on the SEs taking into account current usage
     maxFilesAtSE = {}
     for rawSE, share in shares.iteritems():
       selectedSEs = self.closerSEs( [rawSE], destSEs, local = True )
       if len( selectedSEs ):
         share *= targetFilesAtDestination / 100.
-        maxFilesAtSE[selectedSEs[0]] = max( 0, int( share - storageUsage.get( selectedSEs[0], 0 ) ) )
+        selectedSE = selectedSEs[0]
+        maxFilesAtSE[selectedSE] = max( 0, int( share - storageUsage.get( selectedSE, 0 ) - recentFiles.get( selectedSE, 0 ) ) )
     self.printShares( "Maximum number of files per SE:", maxFilesAtSE, counters = [], log = self.logVerbose )
     return S_OK( maxFilesAtSE )
 
