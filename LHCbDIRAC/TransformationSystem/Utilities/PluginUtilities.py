@@ -712,7 +712,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     tasks = []
     if not chunkSize:
       chunkSize = self.getPluginParam( 'MaxFilesPerTask', 100 )
-    for stringTargetSEs in sorted( storageElementGroups.keys() ):
+    for stringTargetSEs in sorted( storageElementGroups ):
       stringTargetLFNs = storageElementGroups[stringTargetSEs]
       for lfnGroup in breakListIntoChunks( sorted( stringTargetLFNs ), chunkSize ):
         tasks.append( ( stringTargetSEs, lfnGroup ) )
