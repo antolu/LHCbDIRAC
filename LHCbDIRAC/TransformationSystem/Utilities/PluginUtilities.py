@@ -28,9 +28,8 @@ def __stripNumDirectory( dirName ):
   while True:
     subDir = os.path.basename( dirName )
     if subDir and not subDir.isdigit():
-      break
+      return dirName
     dirName = os.path.dirname( dirName )
-  return dirName
 
 class PluginUtilities( DIRACPluginUtilities ):
   """
