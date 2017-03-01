@@ -241,6 +241,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
               self.util.logVerbose( "RAW destination assigned for run %d: %s" % ( runID, assignedRAW ) )
           else:
             self.util.logVerbose( "Run destination not yet defined for run %d" % runID )
+            # We can go to next in the loop there
+            continue
           rawLogged = True
         elif not rawLogged:
           self.util.logVerbose( 'RAW destination existing for run %d: %s' % ( runID, assignedRAW ) )
@@ -1525,7 +1527,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       candidateSEs = self.util.closerSEs( replicaSEs, targetSEs, local = True )
       if candidateSEs:
         # If the max number of files to copy is negative, stop
-        shortSEs = [se for se in candidateSEs if maxFilesAtSE.get( se, sys.maxint ) <= 0]
+        shortSEs = [se for se in candidateSEs if maxFilesAtSE.get( se, sys.maxint ) == 0]
         candidateSEs = [se for se in candidateSEs if se not in shortSEs]
         if not candidateSEs:
           self.util.logVerbose( "No candidate SE where files are accepted (%s not allowed)" % ','.join( shortSEs ) )

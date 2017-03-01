@@ -212,7 +212,8 @@ def doCheckFC2BK( cc, fixIt = False, listAffectedRuns = False ):
     cc.existLFNsBKRepNo = sorted( set( cc.existLFNsBKRepNo ) - set( ccAux.existLFNsNoSE ) -
                                 set( ccAux.existLFNsNotExisting ) - set( ccAux.existLFNsBadFiles ) )
     if cc.existLFNsBKRepNo:
-      gLogger.notice( "====== Completed, %d files are in the FC and SE but have replica = NO in BK%s ======" % ( len( cc.existLFNsBKRepNo ) ) )
+      gLogger.notice( "====== Completed, %d files are in the FC and SE but have replica = NO in BK%s ======"
+                      % ( len( cc.existLFNsBKRepNo ) ) )
       res = bk.getFileMetadata( cc.existLFNsBKRepNo )
       if not res['OK']:
         gLogger.fatal( "Unable to get file metadata", res['Message'] )
@@ -223,10 +224,12 @@ def doCheckFC2BK( cc, fixIt = False, listAffectedRuns = False ):
       filesInvisible = set( lfn for lfn, meta in success.iteritems() if meta['VisibilityFlag'][0].upper() == 'N' )
       filesVisible = set( success ) - filesInvisible
       gLogger.notice( '%d files are visible, %d files are invisible' % ( len( filesVisible ), len( filesInvisible ) ) )
-      if not gLogger.info( '\n'.join( '%s : Visi %s' % ( lfn, success.get( lfn, {} ).get( 'VisibilityFlag', '?' ) ) for lfn in sorted( cc.existLFNsBKRepNo ) ) ):
+      if not gLogger.info( '\n'.join( '%s : Visi %s' % ( lfn, success.get( lfn, {} ).get( 'VisibilityFlag', '?' ) ) \
+                                      for lfn in sorted( cc.existLFNsBKRepNo ) ) ):
         if len( cc.existLFNsBKRepNo ) > maxFiles:
           gLogger.notice( 'First %d files:' % maxFiles )
-        gLogger.error( '\n'.join( '%s : Visi %s' % ( lfn, success.get( lfn, {} ).get( 'VisibilityFlag', '?' ) ) for lfn in sorted( cc.existLFNsBKRepNo )[0:maxFiles] ) )
+        gLogger.error( '\n'.join( '%s : Visi %s' % ( lfn, success.get( lfn, {} ).get( 'VisibilityFlag', '?' ) ) \
+                                  for lfn in sorted( cc.existLFNsBKRepNo )[0:maxFiles] ) )
       if listAffectedRuns:
         gLogger.notice( 'Affected runs: %s' % ','.join( affectedRuns ) )
       if fixIt:

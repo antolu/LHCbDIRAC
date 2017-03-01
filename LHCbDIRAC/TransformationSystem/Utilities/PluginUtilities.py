@@ -1014,6 +1014,8 @@ class PluginUtilities( DIRACPluginUtilities ):
     suClient = RPCClient( 'DataManagement/StorageUsage' )
     dirList = set()
     for dirName in directories:
+      # We strip off any numerical directory as we don't care about which productions created the files
+      # If not we may have only a few input files from a single production and then we would find there is almost nothing prestaged
       while True:
         subDir = os.path.basename( dirName )
         if subDir and not subDir.isdigit():
@@ -1065,10 +1067,10 @@ class PluginUtilities( DIRACPluginUtilities ):
     # Share targetFilesAtDestination on the SEs taking into account current usage
     maxFilesAtSE = {}
     for rawSE, share in shares.iteritems():
-      se = self.closerSEs( [rawSE], destSEs, local = True )
-      if len( se ) == 1:
+      selectedSEs = self.closerSEs( [rawSE], destSEs, local = True )
+      if len( selectedSEs ):
         share *= targetFilesAtDestination / 100.
-        maxFilesAtSE[se[0]] = max( 0, int( share - storageUsage.get( se[0], 0 ) ) )
+        maxFilesAtSE[selectedSEs[0]] = max( 0, int( share - storageUsage.get( selectedSEs[0], 0 ) ) )
     self.printShares( "Maximum number of files per SE:", maxFilesAtSE, counters = [], log = self.logVerbose )
     return S_OK( maxFilesAtSE )
 
