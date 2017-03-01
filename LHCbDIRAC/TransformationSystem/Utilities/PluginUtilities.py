@@ -563,7 +563,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     # Get number of ancestors for known files
     cachedLfns = self.cachedLFNAncestors.get( runID, {} )
     # If we cached a number, clean the cache
-    if cachedLfns and True in set( isinstance( val, ( long, int ) ) for val in cachedLfns.values() ):
+    if cachedLfns and True in set( isinstance( val, ( long, int ) ) for val in cachedLfns.itervalues() ):
       cachedLfns = {}
     setLfns = set( lfns )
     hitLfns = setLfns & set( cachedLfns )
