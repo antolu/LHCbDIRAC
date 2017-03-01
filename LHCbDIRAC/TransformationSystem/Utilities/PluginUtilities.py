@@ -24,6 +24,13 @@ from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import Resou
 
 __RCSID__ = "$Id$"
 
+def __stripNumDirectory( dirName ):
+  while True:
+    subDir = os.path.basename( dirName )
+    if subDir and not subDir.isdigit():
+      break
+    dirName = os.path.dirname( dirName )
+  return dirName
 
 class PluginUtilities( DIRACPluginUtilities ):
   """
@@ -1034,12 +1041,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     for dirName in directories:
       # We strip off any numerical directory as we don't care about which productions created the files
       # If not we may have only a few input files from a single production and then we would find there is almost nothing prestaged
-      while True:
-        subDir = os.path.basename( dirName )
-        if subDir and not subDir.isdigit():
-          break
-        dirName = os.path.dirname( dirName )
-      dirList.add( dirName )
+      dirList.add( __stripNumDirectory( dirName ) )
     # Add possibility to throttle the frequency of the plugin, but not clear if this is useful
     period = self.getPluginParam( 'Period', 0 )
     now = datetime.datetime.utcnow()
@@ -1070,12 +1072,7 @@ class PluginUtilities( DIRACPluginUtilities ):
       return res
     recentFiles = dict.fromkeys( destSEs, 0 )
     for fileDict in res['Value']:
-      dirName = os.path.dirname( fileDict['LFN'] )
-      while True:
-        subDir = os.path.basename( dirName )
-        if subDir and not subDir.isdigit():
-          break
-        dirName = os.path.dirname( dirName )
+      dirName = __stripNumDirectory( os.path.dirname( fileDict['LFN'] ) )
       usedSE = fileDict['UsedSE']
       if dirName in dirList and usedSE in destSEs:
         recentFiles[usedSE] += 1
@@ -1086,12 +1083,7 @@ class PluginUtilities( DIRACPluginUtilities ):
       return res
     limitTime = datetime.datetime.now() - datetime.timedelta( hours = 12 )
     for fileDict in res['Value']:
-      dirName = os.path.dirname( fileDict['LFN'] )
-      while True:
-        subDir = os.path.basename( dirName )
-        if subDir and not subDir.isdigit():
-          break
-        dirName = os.path.dirname( dirName )
+      dirName = __stripNumDirectory( os.path.dirname( fileDict['LFN'] ) )
       usedSE = fileDict['UsedSE']
       if dirName in dirList and usedSE in destSEs and fileDict['LastUpdate'] > limitTime:
         recentFiles[usedSE] += 1
