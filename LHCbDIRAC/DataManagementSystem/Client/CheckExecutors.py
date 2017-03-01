@@ -223,7 +223,8 @@ def doCheckFC2BK( cc, fixIt = False, listAffectedRuns = False ):
       success = res['Value']['Successful']
       filesInvisible = set( lfn for lfn, meta in success.iteritems() if meta['VisibilityFlag'][0].upper() == 'N' )
       filesVisible = set( success ) - filesInvisible
-      gLogger.notice( '%d files are visible, %d files are invisible' % ( len( filesVisible ), len( filesInvisible ) ) )
+      gLogger.notice( '%d files are visible, %d files are invisible' % \
+                      ( len( filesVisible ), len( filesInvisible ) ) )
       if not gLogger.info( '\n'.join( '%s : Visi %s' % ( lfn, success.get( lfn, {} ).get( 'VisibilityFlag', '?' ) ) \
                                       for lfn in sorted( cc.existLFNsBKRepNo ) ) ):
         if len( cc.existLFNsBKRepNo ) > maxFiles:
