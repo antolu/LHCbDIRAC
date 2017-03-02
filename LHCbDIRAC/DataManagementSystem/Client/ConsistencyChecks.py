@@ -115,6 +115,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
     self.ancestors = {}
 
     self._verbose = False
+    self._seList = None
 
   def __logVerbose( self, msg, msg1 = '' ):
     if self._verbose:
@@ -1039,6 +1040,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
         metadata = oSe.getFileMetadata( surlChunk )
         if not metadata['OK']:
           errMsg = "Error: getFileMetadata returns %s. Ignore those replicas" % ( metadata['Message'] )
+          progressBar.comment( errMsg )
           # Remove from list of replicas as we don't know whether it is OK or not
           for lfn in seFiles[se]:
             lfnNoInfo.setdefault( lfn, [] ).append( se )

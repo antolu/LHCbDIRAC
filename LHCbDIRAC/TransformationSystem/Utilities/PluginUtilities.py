@@ -12,6 +12,7 @@ from DIRAC.Core.Utilities.Time import timeThis
 from DIRAC.Core.Utilities.File import mkDir
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
+from DIRAC.Core.DISET.RPCClient import RPCClient
 
 from DIRAC.TransformationSystem.Client.Utilities import PluginUtilities as DIRACPluginUtilities
 from DIRAC.TransformationSystem.Client.Utilities import isArchive, isFailover, getActiveSEs
@@ -23,6 +24,12 @@ from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import Resou
 
 __RCSID__ = "$Id$"
 
+def __stripNumDirectory( dirName ):
+  while True:
+    subDir = os.path.basename( dirName )
+    if subDir and not subDir.isdigit():
+      return dirName
+    dirName = os.path.dirname( dirName )
 
 class PluginUtilities( DIRACPluginUtilities ):
   """
@@ -72,6 +79,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     self.cachedDirMetadata = {}
     self.runsUsedForShares = set()
     self.shareMetrics = None
+    self.lastCall = None
     self.excludedStatuses = self.getPluginParam( 'IgnoreStatusForFlush', [ 'Removed', 'MissingInFC', 'Problematic' ] )
 
   def setDebug( self, val ):
@@ -105,11 +113,16 @@ class PluginUtilities( DIRACPluginUtilities ):
       counters = shares
     normCounters = normaliseShares( counters ) if counters else {}
 
-    log( title + " (metrics is %s)" % self.shareMetrics )
+    if self.shareMetrics:
+      title += " (metrics is %s)" % self.shareMetrics
+    log( title )
     for se in sorted( shares ):
-      infoStr = "%s: %4.1f |" % ( se.ljust( 15 ), shares[se] )
+      if isinstance( shares[se], ( int, long ) ):
+        infoStr = "%s: %d " % ( se.rjust( 15 ), shares[se] )
+      else:
+        infoStr = "%s: %4.1f " % ( se.rjust( 15 ), shares[se] )
       if se in counters:
-        infoStr += " %4.1f" % normCounters[se]
+        infoStr += "| %4.1f %%" % normCounters[se]
       log( infoStr )
 
   def getPluginShares( self, section = None, backupSE = None ):
@@ -151,9 +164,9 @@ class PluginUtilities( DIRACPluginUtilities ):
         shares[backupSE] = 100. - tier1Fraction
       else:
         return res
-      self.logInfo( "Fraction of RAW (%s) to be processed at each SE (%%):" % section )
-      for se in sorted( rawFraction ):
-        self.logInfo( "%s: %.1f" % ( se.ljust( 15 ), 100. * rawFraction[se] ) )
+      rawPercentage = dict( ( se, 100. * val ) for se, val in rawFraction.iteritems() )
+      self.printShares( "Fraction of RAW (%s) to be processed at each SE (%%):" % section,
+                        rawPercentage, counters = [] )
     else:
       shares = normaliseShares( res['Value'] )
       self.logInfo( "Obtained the following target distribution shares (%):" )
@@ -170,7 +183,7 @@ class PluginUtilities( DIRACPluginUtilities ):
       return res
     else:
       existingCount = res['Value']
-      self.printShares( "Target shares and usage for production (%):", shares, existingCount )
+      self.printShares( "Target shares and usage for production (%):", shares, counters = existingCount )
     if rawFraction:
       return S_OK( ( rawFraction, shares ) )
     else:
@@ -556,7 +569,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     # Get number of ancestors for known files
     cachedLfns = self.cachedLFNAncestors.get( runID, {} )
     # If we cached a number, clean the cache
-    if cachedLfns and True in set( isinstance( val, ( long, int ) ) for val in cachedLfns.values() ):
+    if cachedLfns and True in set( isinstance( val, ( long, int ) ) for val in cachedLfns.itervalues() ):
       cachedLfns = {}
     setLfns = set( lfns )
     hitLfns = setLfns & set( cachedLfns )
@@ -704,8 +717,8 @@ class PluginUtilities( DIRACPluginUtilities ):
     """
     tasks = []
     if not chunkSize:
-      chunkSize = self.getPluginParam( 'MaxFiles', 100 )
-    for stringTargetSEs in sorted( storageElementGroups.keys() ):
+      chunkSize = self.getPluginParam( 'MaxFilesPerTask', 100 )
+    for stringTargetSEs in sorted( storageElementGroups ):
       stringTargetLFNs = storageElementGroups[stringTargetSEs]
       for lfnGroup in breakListIntoChunks( sorted( stringTargetLFNs ), chunkSize ):
         tasks.append( ( stringTargetSEs, lfnGroup ) )
@@ -741,6 +754,7 @@ class PluginUtilities( DIRACPluginUtilities ):
         self.cachedProductions = pickle.load( f )
         self.cachedLastRun = pickle.load( f )
         self.cachedLFNProcessedPath = pickle.load( f )
+        self.lastCall = pickle.load( f )
         f.close()
         self.logVerbose( "Cache file %s successfully loaded" % cacheFile )
         # print '*****'
@@ -808,6 +822,7 @@ class PluginUtilities( DIRACPluginUtilities ):
         pickle.dump( self.cachedProductions, f )
         pickle.dump( self.cachedLastRun, f )
         pickle.dump( self.cachedLFNProcessedPath, f )
+        pickle.dump( self.lastCall, f )
         f.close()
         self.logVerbose( "Cache file %s successfully written" % self.cacheFile )
       except:
@@ -998,6 +1013,93 @@ class PluginUtilities( DIRACPluginUtilities ):
     lfnProd = dict( ( lfn, self.cachedDirMetadata.get( lfnDirs[lfn], 0 ) ) for lfn in lfns )
     return S_OK( lfnProd )
 
+  def __getStorageUsage( self, dirList, seList ):
+    """
+    Get from StorageUsage the actual number of files for a list of directories at a list of SEs
+    """
+    suClient = RPCClient( 'DataManagement/StorageUsage' )
+    result = {}
+    if isinstance( seList, ( dict, set, tuple ) ):
+      seList = list( seList )
+    self.logVerbose( "Get storage usage for directories", ','.join( dirList ) )
+    for dirName in dirList:
+      res = suClient.getStorageSummary( dirName, None, None, seList )
+      if not res['OK']:
+        return res
+      for se, stat in res['Value'].iteritems():
+        result[se] = result.setdefault( se, 0 ) + stat['Files']
+    return S_OK( result )
+
+  def getMaxFilesAtSE( self, targetFilesAtDestination, directories, destSEs ):
+    """
+    Get the number of files already present at SEs for a list of directories
+    Using the processing and RAW distribution shares, split the maximum number of files to be staged on these SEs
+    and return the number of files that can possibly be added
+    """
+    dirList = set()
+    for dirName in directories:
+      # We strip off any numerical directory as we don't care about which productions created the files
+      # If not we may have only a few input files from a single production and then we would find there is almost nothing prestaged
+      dirList.add( __stripNumDirectory( dirName ) )
+    # Add possibility to throttle the frequency of the plugin, but not clear if this is useful
+    period = self.getPluginParam( 'Period', 0 )
+    now = datetime.datetime.utcnow()
+    if self.lastCall and ( now - self.lastCall ) < datetime.timedelta( hours = period ):
+      self.logInfo( "Skip this loop (less than %s hours since last call)" % period )
+      return S_OK( None )
+    self.lastCall = now
+    self.writeCacheFile()
+
+    # Get current stprage usage per SE
+    storageUsage = self.__getStorageUsage( dirList, destSEs )
+    if not storageUsage['OK']:
+      return storageUsage
+    storageUsage = storageUsage['Value']
+    self.printShares( "Current storage usage per SE:", storageUsage, counters = [], log = self.logVerbose )
+
+    # Get the shares (including processing fraction) at each site (from RAW SEs)
+    shares = self.getPluginShares( section = 'CPUforRAW', backupSE = 'CERN-RAW' )
+    if not shares['OK']:
+      return shares
+    self.shareMetrics = None
+    shares = shares['Value'][1]
+    self.printShares( "Shares per RAW SE:", shares, counters = [], log = self.logVerbose )
+
+    # Get the number of files already assigned for each SE, as it should be substracted from possible number
+    res = self.transClient.getTransformationFiles( {'TransformationID':self.transID, 'Status':'Assigned'} )
+    if not res['OK']:
+      return res
+    recentFiles = dict.fromkeys( destSEs, 0 )
+    for fileDict in res['Value']:
+      dirName = __stripNumDirectory( os.path.dirname( fileDict['LFN'] ) )
+      usedSE = fileDict['UsedSE']
+      if dirName in dirList and usedSE in destSEs:
+        recentFiles[usedSE] += 1
+
+    # Get the number of files Processed in the last 12 hours
+    res = self.transClient.getTransformationFiles( {'TransformationID':self.transID, 'Status':'Processed'} )
+    if not res['OK']:
+      return res
+    limitTime = datetime.datetime.now() - datetime.timedelta( hours = 12 )
+    for fileDict in res['Value']:
+      dirName = __stripNumDirectory( os.path.dirname( fileDict['LFN'] ) )
+      usedSE = fileDict['UsedSE']
+      if dirName in dirList and usedSE in destSEs and fileDict['LastUpdate'] > limitTime:
+        recentFiles[usedSE] += 1
+    self.printShares( "Number of files Assigned or recently Processed", recentFiles, counters = [], log = self.logVerbose )
+
+    # Share targetFilesAtDestination on the SEs taking into account current usage
+    maxFilesAtSE = {}
+    for rawSE, share in shares.iteritems():
+      selectedSEs = self.closerSEs( [rawSE], destSEs, local = True )
+      if len( selectedSEs ):
+        share *= targetFilesAtDestination / 100.
+        selectedSE = selectedSEs[0]
+        maxFilesAtSE[selectedSE] = max( 0, int( share - storageUsage.get( selectedSE, 0 ) - recentFiles.get( selectedSE, 0 ) ) )
+    self.printShares( "Maximum number of files per SE:", maxFilesAtSE, counters = [], log = self.logVerbose )
+    return S_OK( maxFilesAtSE )
+
+
 #=================================================================
 # Set of utility functions used by LHCbDirac transformation system
 #=================================================================
@@ -1005,12 +1107,14 @@ class PluginUtilities( DIRACPluginUtilities ):
 def getRemovalPlugins():
   return ( "DestroyDataset", 'DestroyDatasetWhenProcessed' ,
            'RemoveReplicasKeepDestination', "ReduceReplicasKeepDestination",
-           "RemoveDataset", "RemoveReplicas", 'RemoveReplicasWhenProcessed', 'ReduceReplicas' )
+           "RemoveDataset", "RemoveReplicas", 'RemoveReplicasWhenProcessed',
+           'RemoveReplicasWithAncestors', 'ReduceReplicas' )
 def getReplicationPlugins():
   return ( "LHCbDSTBroadcast", "LHCbMCDSTBroadcastRandom",
            "ArchiveDataset", "ReplicateDataset",
            'RAWReplication',
-           'FakeReplication', 'ReplicateToLocalSE', 'Healing' )
+           'FakeReplication', 'ReplicateToLocalSE', 'ReplicateWithAncestors',
+           'Healing' )
 
 def getShares( sType, normalise = False ):
   """
