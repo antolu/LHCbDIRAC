@@ -327,7 +327,7 @@ def gaudiApplicationScriptJob():
 
   job = baseToAllJobs( 'gaudiApplicationScriptJob', jobClass )
   job.setInputSandbox( [find_all( '_input_sandbox_1324_master.tgz', wdir, 'GridTestSubmission' )[0]] \
-                     + [find_all( 'runToys.c', wdir, 'GridTestSubmission' )[0]] \
+                     + [find_all( 'runToys.C', wdir, 'GridTestSubmission' )[0]] \
                      + [find_all( 'script_wrapper.py', wdir, 'GridTestSubmission' )[0]] )
   job.setApplicationScript( 'root', '6.06.02', 'script_wrapper.py',
                             systemConfig = 'x86_64-slc6-gcc49-opt' )
@@ -344,10 +344,10 @@ def daVinciLHCbScriptJob_v41r2():
       DaVinci v41r2 is not on lb-run
   """
 
-  job = baseToAllJobs( 'daVinciLHCbScriptJob', jobClass )
+  job = baseToAllJobs( 'daVinciLHCbScriptJob_v41r2', jobClass )
   job.setInputSandbox( ['LFN:/lhcb/user/f/fstagni/GangaInputFile/LHCb-Scripts.tar.gz',
                         'LFN:/lhcb/user/f/fstagni/GangaInputFile/minimal_DaVinciDev_v41r2.tgz'] )
-  job.setExecutable( 'GaudiExec_Job_6_script.py', arguments = '', logFile = 'Ganga_GaudiExec.log',
+  job.setExecutable( 'jobScript/GaudiExec_Job_6_script.py', arguments = '', logFile = 'Ganga_GaudiExec.log',
                      systemConfig = 'x86_64-slc6-gcc49-opt' )
   job.setDIRACPlatform()  # pylint: disable=no-member
   job.setCPUTime( 172800 )
@@ -362,10 +362,10 @@ def daVinciLHCbScriptJob_v42r1():
       DaVinci v42r1 uses lb-run only
   """
 
-  job = baseToAllJobs( 'daVinciLHCbScriptJob', jobClass )
+  job = baseToAllJobs( 'daVinciLHCbScriptJob_v42r1', jobClass )
   job.setInputSandbox( ['LFN:/lhcb/user/f/fstagni/GangaInputFile/LHCb-Scripts.tar.gz',
                         'LFN:/lhcb/user/f/fstagni/GangaInputFile/minimal_DaVinciDev_v42r1.tgz'] )
-  job.setExecutable( 'GaudiExec_Job_6_script.py', arguments = '', logFile = 'Ganga_GaudiExec.log',
+  job.setExecutable( 'jobScript/GaudiExec_Job_6_script.py', arguments = '', logFile = 'Ganga_GaudiExec.log',
                      systemConfig = 'x86_64-slc6-gcc48-opt' )
   job.setDIRACPlatform()  # pylint: disable=no-member
   job.setCPUTime( 172800 )
