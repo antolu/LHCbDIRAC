@@ -3097,7 +3097,7 @@ and files.qualityid= dataquality.qualityid'
     condition, tables = retVal['Value']
     
     hint = ''
-    if ( not startDate or not endDate ) and tables.strip() == 'files f,jobs j  ,filetypes ft':
+    if ( not startDate and not endDate ) and tables.strip() == 'files f,jobs j  ,filetypes ft':
       hint = '/*+INDEX(j JOBS_PRODUCTIONID) INDEX(f FILES_JOB_EVENT_FILETYPE) INDEX(ft FILETYPES_ID_NAME)*/'
       
     if nbofEvents:

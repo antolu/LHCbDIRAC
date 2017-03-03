@@ -152,6 +152,29 @@ Use DIRAC v6r17p5
 * pylints
 * Add documentation for deployment on Mesos
 
+[v8r5p11]
+use DIRAC v6r17p12
+
+* do not use the hint when a time is specified
+* define a function for stripping out numerical directories
+* take into account files Assigned and Processed inthe last 12 hours
+* add comment for info/error trick
+* one more line shorten
+* Implement comments from review
+* Change a few parameter names
+* protect against adding empty list of ancestors
+* add docstring and comments
+* Add important feature for prestaging (use staged statistics)
+* improve reporting of FC2BK discrepencies (use visibility)
+* do not determine a new run destination if already existing
+* new plugin for removing ancestors as well as files in the BKQuery
+* define local variable
+* Introduce new plugins for adding ancestors to the tasks (for replication and removal)
+* change the release documentation, becuase we always has to release DIRAC
+* get iterators and remove has_key
+* review getDestinationSEList() and use for Failover
+>>>>>>> upstream/master
+
 [v8r5p10]
 use DIRAC v6r17p11
 

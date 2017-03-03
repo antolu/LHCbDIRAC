@@ -6,6 +6,7 @@
 
 __RCSID__ = "$Id$"
 
+from DIRAC import S_OK
 class fakeClient:
   def __init__( self, trans, transID, lfns, asIfProd ):
     self.trans = trans
@@ -19,6 +20,9 @@ class fakeClient:
     self.asIfProd = asIfProd
 
     ( self.files, self.replicas ) = self.prepareForPlugin( lfns )
+
+  def addFilesToTransformation( self, transID, lfns ):
+    return S_OK( {'Failed':{}, 'Successful': [( lfn, 'Added' ) for lfn in lfns]} )
 
   def getTransformation( self, transID, extraParams = False ):
     if transID == self.transID and self.asIfProd:
@@ -178,9 +182,9 @@ class fakeClient:
     for lfnChunk in breakListIntoChunks( lfns, 200 ):
       # print lfnChunk
       if type.lower() in ( "replication", "removal" ):
-        res = self.dm.getReplicas( lfnChunk )
+        res = self.dm.getReplicas( lfnChunk, getUrl = False )
       else:
-        res = self.dm.getReplicasForJobs( lfnChunk )
+        res = self.dm.getReplicasForJobs( lfnChunk, getUrl = False )
       # print res
       if res['OK']:
         for lfn, ses in res['Value']['Successful'].iteritems():
@@ -380,11 +384,16 @@ if __name__ == "__main__":
     print len( res['Value'] ), "tasks created"
     i = 0
     previousTask = { 'First': 0, 'SEs':None, 'Location':None, 'Tasks': 0 }
+    noReplicaLFNs = [lfn for _targetSE, lfnList in res['Value'] for lfn in lfnList if lfn not in replicas]
+    if noReplicaLFNs:
+      result = DataManager().getReplicas( noReplicaLFNs, getUrl = False )
+      if res['OK']:
+        replicas.update( result['Value']['Successful'] )
     for task in res['Value']:
       i += 1
       location = []
       for lfn in task[1]:
-        l = ','.join( sorted( replicas[lfn] ) )
+        l = ','.join( sorted( replicas.get( lfn, ['Unknown'] ) ) )
         # print "LFN", lfn, l
         if not l in location:
           location.append( l )
