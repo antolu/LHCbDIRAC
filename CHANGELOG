@@ -1,3 +1,12 @@
+[v8r6-pre10]
+Use DIRAC v6r17p12
+
+* split test, removed importlib
+* added ganga test jobs
+* Comment pr.resolveSteps() call as it's not needed and prevents compressionLvl variable from being filled correctly
+* fixes for user jobs
+* self.siteName is unknown before resolveInputVariables
+
 [v8r6-pre9]
 Use DIRAC v6r17p11
 
