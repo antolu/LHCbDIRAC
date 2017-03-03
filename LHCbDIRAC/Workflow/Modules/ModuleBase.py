@@ -137,6 +137,8 @@ class ModuleBase( object ):
     if version:
       self.log.info( '===== Executing ' + version + ' ===== ' )
 
+    self.log.verbose( "Executing directory for job is %s" % os.getcwd() )
+
     if production_id:
       self.production_id = production_id
     else:

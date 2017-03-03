@@ -79,9 +79,6 @@ class GaudiApplication( ModuleBase ):
       self.log.info( "Executing application %s %s for CMT configuration %s" % ( self.applicationName,
                                                                                 self.applicationVersion,
                                                                                 self.systemConfig ) )
-      self.log.verbose( "/LocalSite/Root directory for job is %s" % ( gConfig.getValue( '/LocalSite/Root',
-                                                                                        os.getcwd() ) ) )
-
       if self.jobType.lower() == 'merge' or 'BOINC' in self.siteName:
         self._disableWatchdogCPUCheck()
 

@@ -97,7 +97,6 @@ class UploadLogFile( ModuleBase ):
       else:
         self.log.error( 'Failed to list the log directory', str( res['Value'][2] ) )
 
-      self.log.info( 'Job root is found to be %s' % ( gConfig.getValue( '/LocalSite/Root', os.getcwd() ) ) )
       self.log.info( 'PRODUCTION_ID = %s, JOB_ID = %s ' % ( self.production_id, self.prod_job_id ) )
       self.logdir = os.path.realpath( './job/log/%s/%s' % ( self.production_id, self.prod_job_id ) )
       self.log.info( 'Selected log files will be temporarily stored in %s' % self.logdir )
