@@ -128,25 +128,24 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
     axlf.logAnalyser = logAnalyser
     axlf.XMLSummary_o = self.xf_o_mock
     axlf.nc = self.nc_mock
-    f = open( 'XMLSummaryFile', 'w' )
-    f.write( """<?xml version="1.0" encoding="UTF-8"?>
+    axlf.XMLSummary = 'XMLSummaryFile'
+    with open( axlf.XMLSummary, 'w' ) as f:
+      f.write( """<?xml version="1.0" encoding="UTF-8"?>
 
-<summary version="1.0" xsi:noNamespaceSchemaLocation="$XMLSUMMARYBASEROOT/xml/XMLSummary.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-        <success>True</success>
-        <step>finalize</step>
-        <usage>
-                <stat unit="KB" useOf="MemoryMaximum">866104.0</stat>
-        </usage>
-        <input>
-                <file GUID="CCE96707-4BE9-E011-81CD-003048F35252" name="LFN:00012478_00000532_1.sim" status="full">200</file>
-        </input>
-        <output>
-                <file GUID="229BBEF1-66E9-E011-BBD0-003048F35252" name="PFN:00012478_00000532_2.xdigi" status="full">200</file>
-        </output>
-</summary>
-""" )
-    f.close()
-    self.XMLSummary = 'XMLSummaryFile'
+  <summary version="1.0" xsi:noNamespaceSchemaLocation="$XMLSUMMARYBASEROOT/xml/XMLSummary.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <success>True</success>
+          <step>finalize</step>
+          <usage>
+                  <stat unit="KB" useOf="MemoryMaximum">866104.0</stat>
+          </usage>
+          <input>
+                  <file GUID="CCE96707-4BE9-E011-81CD-003048F35252" name="LFN:00012478_00000532_1.sim" status="full">200</file>
+          </input>
+          <output>
+                  <file GUID="229BBEF1-66E9-E011-BBD0-003048F35252" name="PFN:00012478_00000532_2.xdigi" status="full">200</file>
+          </output>
+  </summary>
+  """ )
 
     # no errors, all ok
     for wf_cs in copy.deepcopy( wf_commons ):
