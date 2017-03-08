@@ -162,7 +162,9 @@ if w1:
   pr.inputDataPolicies = ['', 'download', 'download']
   pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag, mergemulticoreFlag]
-  pr.compressionLvl = [[simulationCompressionLvl],[selectionCompressionLvl],[mergeCompressionLvl]]
+  pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] ) +\
+                      [selectionCompressionLvl] * len( pr.stepsInProds[1] )+ \
+                      [mergeCompressionLvl] * len( pr.stepsInProds[2] )
 
 elif w2:
   pr.prodsTypeList = ['MCSimulation', 'MCReconstruction', 'MCMerge']
@@ -190,7 +192,9 @@ elif w2:
   pr.inputDataPolicies = ['', 'download', 'download']
   pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag, mergemulticoreFlag]
-  pr.compressionLvl = [[simulationCompressionLvl],[selectionCompressionLvl],[mergeCompressionLvl]]
+  pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] ) +\
+                      [selectionCompressionLvl] * len( pr.stepsInProds[1] ) +\
+                      [mergeCompressionLvl] * len( pr.stepsInProds[2] )
 
 elif w3:
   pr.prodsTypeList = ['MCSimulation', 'MCReconstruction']
@@ -220,7 +224,8 @@ elif w3:
   pr.inputDataPolicies = ['', 'download']
   pr.bkQueries = ['', 'fromPreviousProd']
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag]
-  pr.compressionLvl = [[simulationCompressionLvl],[selectionCompressionLvl]]
+  pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] ) +\
+                      [selectionCompressionLvl] * len( pr.stepsInProds[1] )
 
 elif w4:
   pr.prodsTypeList = ['MCSimulation', 'MCMerge']
@@ -237,7 +242,8 @@ elif w4:
   pr.inputDataPolicies = ['', 'download']
   pr.bkQueries = ['', 'fromPreviousProd']
   pr.multicore = [MCmulticoreFlag, mergemulticoreFlag]
-  pr.compressionLvl = [[simulationCompressionLvl],[mergeCompressionLvl]]
+  pr.compressionLvl = [simulationCompressionLvl]  * len( pr.stepsInProds[0] ) +\
+                      [mergeCompressionLvl]  * len( pr.stepsInProds[1] )
 
 elif w5:
   pr.prodsTypeList = ['MCSimulation']
@@ -257,7 +263,7 @@ elif w5:
   pr.inputDataPolicies = ['']
   pr.bkQueries = ['']
   pr.multicore = [MCmulticoreFlag]
-  pr.compressionLvl = [[simulationCompressionLvl]]
+  pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] )
 
 elif w6:
   pr.prodsTypeList = ['MCSimulation', 'MCReconstruction']
@@ -280,7 +286,8 @@ elif w6:
   pr.inputDataPolicies = ['', 'download']
   pr.bkQueries = ['', 'fromPreviousProd']
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag]
-  pr.compressionLvl = [[simulationCompressionLvl],[selectionCompressionLvl]]
+  pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] ) +\
+                      [selectionCompressionLvl] * len( pr.stepsInProds[1] )
 
 elif w7:
   pr.prodsTypeList = ['MCSimulation', 'MCReconstruction', 'MCMerge']
@@ -298,7 +305,9 @@ elif w7:
   pr.inputDataPolicies = ['', 'download', 'download']
   pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag, mergemulticoreFlag]
-  pr.compressionLvl = [[simulationCompressionLvl],[selectionCompressionLvl],[mergeCompressionLvl]]
+  pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] ) +\
+                      [selectionCompressionLvl] * len( pr.stepsInProds[1] ) +\
+                      [mergeCompressionLvl] * len( pr.stepsInProds[2] )
 
 # In case we want just to test, we publish in the certification/test part of the BKK
 if currentSetup == 'LHCb-Certification' or pr.testFlag:

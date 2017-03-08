@@ -107,7 +107,7 @@ class ProductionRequest( object ):
     self.specialOutputSEs = []  # a list of dictionaries - might be empty
     self.outputSEsPerFileType = []  # a list of dictionaries - filled later
     self.ancestorDepths = []
-    self.compressionLvl = [['']] # List of lists to cope with multisteps productions which can have more than one compression level (one per step)
+    self.compressionLvl = [''] # List: one compression level each step
     self.appConfig = '$APPCONFIGOPTS/Persistency/' # Default location of the compression level configuration files
 
   #############################################################################
@@ -117,7 +117,6 @@ class ProductionRequest( object ):
         resolve it into a list of dictionary of steps
     """
     count = 0 # Needed to add correctly the optionFiles to the list of dictonaries of steps
-    self.compressionLvl = [item for sublist in self.compressionLvl for item in sublist] # Flatten list of lists with compression levels
     for stepID in self.stepsList:
       stepDict = self.bkkClient.getAvailableSteps( {'StepId':stepID} )
       if not stepDict['OK']:
@@ -131,31 +130,33 @@ class ProductionRequest( object ):
         if parameter.lower() in ['conddb', 'dddb', 'dqtag'] and value:
           if value.lower() == 'frompreviousstep':
             value = self.stepsListDict[-1][parameter]
-        #
-        # If the prod manager sets a compression level for a particular step, either we append the option file
-        # or we overwrite the existing one inherited with the step
-        #
-        if parameter == 'OptionFiles' and (len(self.compressionLvl) > count and self.compressionLvl[count] != ''):
-          p = re.compile('Compression-[A-Z]{4}-[1-9]')
-          self.compressionLvl[count] = self.appConfig + self.compressionLvl[count] + '.py'
-          if not p.search(value):
-            if value == '':
-              value = self.compressionLvl[count]
+
+        if parameter == 'OptionFiles': #Modifying the OptionFiles (for setting the compression level)
+          #
+          # If the prod manager sets a compression level for a particular step, either we append the option file
+          # or we overwrite the existing one inherited with the step
+          #
+          if len(self.compressionLvl) > count and self.compressionLvl[count] != '':
+            p = re.compile('Compression-[A-Z]{4}-[1-9]')
+            self.compressionLvl[count] = self.appConfig + self.compressionLvl[count] + '.py'
+            if not p.search(value):
+              if value == '':
+                value = self.compressionLvl[count]
+              else:
+                value = ";".join((value, self.compressionLvl[count]))
             else:
-              value = ";".join((value, self.compressionLvl[count]))
-            #value += self.compressionLvl[count]
-          else:
-            value = p.sub(p.search(self.compressionLvl[count]).group(), value)
-        #
-        # If instead the prod manager doesn't declare a compression level, e.g. for intermediate steps,
-        # we check if there is one in the options and in case we delete it. This leaves the default zip level
-        # defined inside Gaudi
-        #
-        elif parameter == 'OptionFiles' and (len(self.compressionLvl) > count and self.compressionLvl[count] == ''):
-          p = re.compile(r'\$\w+/Persistency/Compression-[A-Z]{4}-[1-9].py;?')
-          if p.search(value):
-            value = p.sub('', value)
-        stepsListDictItem[parameter] = value
+              value = p.sub(p.search(self.compressionLvl[count]).group(), value)
+          #
+          # If instead the prod manager doesn't declare a compression level, e.g. for intermediate steps,
+          # we check if there is one in the options and in case we delete it. This leaves the default zip level
+          # defined inside Gaudi
+          #
+          elif len(self.compressionLvl) > count and self.compressionLvl[count] == '':
+            p = re.compile(r'\$\w+/Persistency/Compression-[A-Z]{4}-[1-9].py;?')
+            if p.search(value):
+              value = p.sub('', value)
+
+        stepsListDictItem[parameter] = value # Fixing what decided
 
       s_in = self.bkkClient.getStepInputFiles( stepID )
       if not s_in['OK']:
@@ -179,13 +180,13 @@ class ProductionRequest( object ):
 
       stepsListDictItem['prodStepID'] = str( stepID ) + str( stepsListDictItem['fileTypesIn'] )
 
-      if not stepsListDictItem.has_key( 'isMulticore' ):
+      if 'isMulticore' not in stepsListDictItem:
         stepsListDictItem['isMulticore'] = 'N'
 
-      if not stepsListDictItem.has_key( 'SystemConfig' ):
+      if 'SystemConfig' not in stepsListDictItem:
         stepsListDictItem['SystemConfig'] = ''
 
-      if not stepsListDictItem.has_key( 'mcTCK' ):
+      if 'mcTCK' not in stepsListDictItem:
         stepsListDictItem['mcTCK'] = ''
       self.stepsListDict.append( stepsListDictItem )
       count += 1

@@ -251,6 +251,8 @@ pr.multicore = [p1multicoreFlag, p2multicoreFlag, p3multicoreFlag]
 pr.outputModes = [p1outputMode, p2outputMode, p3outputMode]
 pr.events = [p1eventsRequested, p2eventsRequested, p3eventsRequested]
 pr.ancestorDepths = [p1ancestorDepth, p2ancestorDepth, p3ancestorDepth]
-pr.compressionLvl = [p1compressionLvl, p2compressionLvl, p3compressionLvl]
+pr.compressionLvl = [p1compressionLvl] * len( pr.stepsInProds[0] ) +\
+                    [p2compressionLvl] * len( pr.stepsInProds[1] ) +\
+                    [p3compressionLvl] * len( pr.stepsInProds[2] )
 
 pr.buildAndLaunchRequest()

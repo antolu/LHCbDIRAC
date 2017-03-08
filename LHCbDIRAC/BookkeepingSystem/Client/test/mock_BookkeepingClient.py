@@ -101,39 +101,39 @@ class BookkeepingClientFake(object):
                                         'N', 'x86_64-slc5-gcc43-opt', '', '']]}}
     elif stepID == {'StepId':999}:
       return {'OK': True,
-             'Value' : { 'TotalRecords': 1,
+              'Value' : { 'TotalRecords': 1,
                           'ParameterNames' : ['StepId', 'OptionFiles', 'ExtraOptions', 'SystemConfig', 'mcTCK', 'isMulticore', 'StepName',
-                          'ApplicationName', 'ApplicationVersion', 'Visible', 'Usable', 'ProcessingPass', 'ExtraPackages', 'DDDB', 'CONDDB', 'DQTag'],
+                                              'ApplicationName', 'ApplicationVersion', 'Visible', 'Usable', 'ProcessingPass', 'ExtraPackages', 'DDDB', 'CONDDB', 'DQTag'],
                           'Records': [[ 999, '$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py', '', 'x86_64-slc6-gcc49-opt', '', 'N',
-                          'Stripping28', 'DaVinci', 'v41r3', 'Yes', 'Yes', 'Stripping28', 'AppConfig.v3r306', 'dddb-20150724', 'cond-20161011', '']]}}
+                                        'Stripping28', 'DaVinci', 'v41r3', 'Yes', 'Yes', 'Stripping28', 'AppConfig.v3r306', 'dddb-20150724', 'cond-20161011', '']]}}
     elif stepID == {'StepId':998}:
       return {'OK': True,
-             'Value' : { 'TotalRecords': 1,
+              'Value' : { 'TotalRecords': 1,
                           'ParameterNames' : ['StepId', 'OptionFiles', 'ExtraOptions', 'SystemConfig', 'mcTCK', 'isMulticore', 'StepName',
-                          'ApplicationName', 'ApplicationVersion', 'Visible', 'Usable', 'ProcessingPass', 'ExtraPackages', 'DDDB', 'CONDDB', 'DQTag'],
+                                              'ApplicationName', 'ApplicationVersion', 'Visible', 'Usable', 'ProcessingPass', 'ExtraPackages', 'DDDB', 'CONDDB', 'DQTag'],
                           'Records': [[ 998, '', '', 'x86_64-slc6-gcc49-opt', '', 'N',
-                          'Stripping28', 'DaVinci', 'v41r3', 'Yes', 'Yes', 'Stripping28', 'AppConfig.v3r306', 'dddb-20150724', 'cond-20161011', '']]}}
+                                        'Stripping28', 'DaVinci', 'v41r3', 'Yes', 'Yes', 'Stripping28', 'AppConfig.v3r306', 'dddb-20150724', 'cond-20161011', '']]}}
     elif stepID == {'StepId':997}:
       return {'OK': True,
-             'Value' : { 'TotalRecords': 1,
+              'Value' : { 'TotalRecords': 1,
                           'ParameterNames' : ['StepId', 'OptionFiles', 'ExtraOptions', 'SystemConfig', 'mcTCK', 'isMulticore', 'StepName',
-                          'ApplicationName', 'ApplicationVersion', 'Visible', 'Usable', 'ProcessingPass', 'ExtraPackages', 'DDDB', 'CONDDB', 'DQTag'],
+                                              'ApplicationName', 'ApplicationVersion', 'Visible', 'Usable', 'ProcessingPass', 'ExtraPackages', 'DDDB', 'CONDDB', 'DQTag'],
                           'Records': [[ 997, '$APPCONFIGOPTS/Brunel/DataType-2016.py;$APPCONFIGOPTS/Brunel/PbPb-GECs.py', '', 'x86_64-slc6-gcc49-opt', '', 'N',
-                          'Stripping28', 'DaVinci', 'v41r3', 'Yes', 'Yes', 'Stripping28', 'AppConfig.v3r306', 'dddb-20150724', 'cond-20161011', '']]}}
+                                        'Stripping28', 'DaVinci', 'v41r3', 'Yes', 'Yes', 'Stripping28', 'AppConfig.v3r306', 'dddb-20150724', 'cond-20161011', '']]}}
     elif stepID == {'StepId':996}:
       return {'OK': True,
-             'Value' : { 'TotalRecords': 1,
+              'Value' : { 'TotalRecords': 1,
                           'ParameterNames' : ['StepId', 'OptionFiles', 'ExtraOptions', 'SystemConfig', 'mcTCK', 'isMulticore', 'StepName',
-                          'ApplicationName', 'ApplicationVersion', 'Visible', 'Usable', 'ProcessingPass', 'ExtraPackages', 'DDDB', 'CONDDB', 'DQTag'],
+                                              'ApplicationName', 'ApplicationVersion', 'Visible', 'Usable', 'ProcessingPass', 'ExtraPackages', 'DDDB', 'CONDDB', 'DQTag'],
                           'Records': [[ 996, '$APPCONFIGOPTS/Brunel/DataType-2016.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;$APPCONFIGOPTS/Brunel/PbPb-GECs.py',
-                          '', 'x86_64-slc6-gcc49-opt', '', 'N', 'Stripping28', 'DaVinci', 'v41r3', 'Yes', 'Yes', 'Stripping28', 'AppConfig.v3r306', 'dddb-20150724', 'cond-20161011', '']]}}
+                                        '', 'x86_64-slc6-gcc49-opt', '', 'N', 'Stripping28', 'DaVinci', 'v41r3', 'Yes', 'Yes', 'Stripping28', 'AppConfig.v3r306', 'dddb-20150724', 'cond-20161011', '']]}}
     elif stepID == {'StepId':1098}:
       return {'OK': True,
-             'Value' : { 'TotalRecords': 1,
+              'Value' : { 'TotalRecords': 1,
                           'ParameterNames' : ['StepId', 'OptionFiles', 'ExtraOptions', 'SystemConfig', 'mcTCK', 'isMulticore', 'StepName',
-                          'ApplicationName', 'ApplicationVersion', 'Visible', 'Usable', 'ProcessingPass', 'ExtraPackages', 'DDDB', 'CONDDB', 'DQTag'],
+                                              'ApplicationName', 'ApplicationVersion', 'Visible', 'Usable', 'ProcessingPass', 'ExtraPackages', 'DDDB', 'CONDDB', 'DQTag'],
                           'Records': [[ 1098, '$APPCONFIGOPTS/Brunel/DataType-2016.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py',
-                          '', 'x86_64-slc6-gcc49-opt', '', 'N', 'Stripping28', 'DaVinci', 'v41r3', 'Yes', 'Yes', 'Stripping28', 'AppConfig.v3r306', 'dddb-20150724', 'cond-20161011', '']]}}
+                                        '', 'x86_64-slc6-gcc49-opt', '', 'N', 'Stripping28', 'DaVinci', 'v41r3', 'Yes', 'Yes', 'Stripping28', 'AppConfig.v3r306', 'dddb-20150724', 'cond-20161011', '']]}}
 
 
   def getStepInputFiles( self, stepID ):
@@ -204,6 +204,17 @@ class BookkeepingClientFake(object):
 
 
 # Some steps definitions, for testing purposes
+
+step125080 = {'StepId': 125080, 'StepName':'Sim08a',
+              'ApplicationName':'Gauss', 'ApplicationVersion':'v45r3', 'ExtraOptions': '',
+              'OptionFiles':'$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.py;$DECFILESROOT/options/11102400.py;$LBPYTHIA8ROOT/options/Pythia8.py;$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py',
+              'Usable': 'Yes','Visible':'Y', 'ExtraPackages':'AppConfig.v3r171',
+              'ProcessingPass':'Sim08a', 'OptionsFormat':'',
+              'prodStepID': "125080['']", 'SystemConfig':'x86_64-slc5-gcc43-opt',
+              'DDDB':'Sim08-20130503-1', 'CONDDB':'Sim08-20130503-1-vc-mu100', 'DQTag':'', 'isMulticore': 'N',
+              'mcTCK': '',
+              'fileTypesIn':[''],
+              'fileTypesOut':['SIM']}
 
 stepMC = {'StepId': 123, 'StepName':'Stripping14-Stripping',
           'ApplicationName':'Gauss', 'ApplicationVersion':'v2r2', 'ExtraOptions': '',
