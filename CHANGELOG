@@ -1,3 +1,11 @@
+[v8r6-pre11]
+Use DIRAC v6r17p12
+
+* fixed setting of compression level
+* using LHCbDIRAC version
+* replace __strip... with _strip...
+* logging where it should be
+
 [v8r6-pre10]
 Use DIRAC v6r17p12
 
