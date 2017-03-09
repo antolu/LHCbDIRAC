@@ -134,7 +134,6 @@ class ProdConf( object ):
     string = 'from ProdConf import ProdConf\n\n'
     string = string + 'ProdConf(\n'
     for opt, value in optsThatWillGoIn.iteritems():
-      print opt, value
       if self.optionsDict[opt] == 'list':
         string = string + '  ' + opt + '=' + str( value ) + ',' + '\n'
       elif self.optionsDict[opt] == 'string':
