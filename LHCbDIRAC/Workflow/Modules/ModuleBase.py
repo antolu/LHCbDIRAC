@@ -119,7 +119,7 @@ class ModuleBase( object ):
     self.siteName = None
     self.stepName = None
     self.stepInputData = None
-    self.XMLSummary = None
+    self.XMLSummary = '' # name of the file, not the object
     self.stepProcPass = None
     self.outputFilePrefix = None
 
@@ -136,6 +136,8 @@ class ModuleBase( object ):
 
     if version:
       self.log.info( '===== Executing ' + version + ' ===== ' )
+
+    self.log.verbose( "Executing directory for job is %s" % os.getcwd() )
 
     if production_id:
       self.production_id = production_id

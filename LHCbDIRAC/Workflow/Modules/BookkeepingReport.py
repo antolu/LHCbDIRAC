@@ -9,13 +9,12 @@ import socket
 import shlex
 from xml.dom.minidom import Document, DocumentType
 
-import DIRAC
-
 from DIRAC import gLogger, S_OK, S_ERROR, gConfig
 from DIRAC.Core.Utilities.Subprocess import systemCall
 from DIRAC.Resources.Catalog.PoolXMLFile import getGUID
 from DIRAC.Workflow.Utilities.Utils import getStepCPUTimes
 
+import LHCbDIRAC
 from LHCbDIRAC.Resources.Catalog.PoolXMLFile import getOutputType
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
@@ -324,7 +323,7 @@ class BookkeepingReport( ModuleBase ):
     typedParams.append( ( "ProgramVersion", self.applicationVersion ) )
 
     # DIRAC version
-    tempVar = "v%dr%dp%d" % ( DIRAC.majorVersion, DIRAC.minorVersion, DIRAC.patchLevel )
+    tempVar = "v%dr%dp%d" % ( LHCbDIRAC.majorVersion, LHCbDIRAC.minorVersion, LHCbDIRAC.patchLevel )
     typedParams.append( ( "DiracVersion", tempVar ) )
 
     typedParams.append( ( "FirstEventNumber", 1 ) )
