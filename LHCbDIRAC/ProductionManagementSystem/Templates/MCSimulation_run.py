@@ -83,16 +83,16 @@ selectionGroupSize = '{{selectionGroupSize#PROD-2:Selection: input files total s
 selectionPriority = '{{selectionPriority#PROD-2:Selection: Job Priority e.g. 8 by default#6}}'
 selectionCPU = '{{selectionCPU#PROD-2:Selection: Max CPU time in secs#100000}}'
 removeInputSelection = '{{removeInputSelection#PROD-2:Selection: remove inputs#True}}'
-selmulticoreFlag = '{{selMulticoreFLag#PROD-2: multicore flag#True}}'
-selectionCompressionLvl = '{{selectionCompressionLvl#PROD-2: Compression level#Compression-ZLIB-1}}'
+selmulticoreFlag = '{{selMulticoreFLag#PROD-2:Selection: multicore flag#True}}'
+selectionCompressionLvl = '{{selectionCompressionLvl#PROD-2:Selection: Compression level#Compression-ZLIB-1}}'
 
 mergingPlugin = '{{MergingPlugin#PROD-3:Merging: plugin e.g. Standard, BySize#BySize}}'
 mergingGroupSize = '{{MergingGroupSize#PROD-3:Merging: Group Size e.g. BySize = GB file size#5}}'
 mergingPriority = '{{MergingPriority#PROD-3:Merging: Job Priority e.g. 8 by default#8}}'
 mergingCPU = '{{mergingCPU#PROD-3:Merging: Max CPU time in secs#100000}}'
 removeInputMerge = '{{removeInputMerge#PROD-3:Merging: remove inputs#True}}'
-mergemulticoreFlag = '{{mergeMulticoreFLag#PROD-3: multicore flag#True}}'
-mergeCompressionLvl = '{{mergeCompressionLvl#PROD-3: Compression level#Compression-LZMA-4}}'
+mergemulticoreFlag = '{{mergeMulticoreFLag#PROD-3:Merging: multicore flag#True}}'
+mergeCompressionLvl = '{{mergeCompressionLvl#PROD-3:Merging: Compression level#Compression-LZMA-4}}'
 
 pr.configVersion = '{{mcConfigVersion}}'
 pr.eventType = '{{eventType}}'
@@ -113,12 +113,6 @@ mergingPriority = int( mergingPriority )
 
 removeInputMerge = ast.literal_eval( removeInputMerge )
 removeInputSelection = ast.literal_eval( removeInputSelection )
-
-#
-# resolveSteps doesn't define any variables needed beyond this point, so
-# it's ok to skip it as it prevents others from being filled, namely the compressionLvl
-#
-#pr.resolveSteps()
 
 ###########################################
 # LHCb conventions implied by the above
@@ -155,7 +149,7 @@ if w1:
   pr.removeInputsFlags = [False, removeInputSelection, removeInputMerge]
   pr.priorities = [MCPriority, selectionPriority, mergingPriority]
   pr.cpus = [100000, selectionCPU, mergingCPU]
-  pr.outputFileSteps = [str( len( pr.stepsListDict ) - 2 ), '', '']
+  pr.outputFileSteps = [str( len( pr.stepsList ) - 2 ), '', '']
   pr.targets = [targets, '', '']
   pr.groupSizes = [1, selectionGroupSize, mergingGroupSize]
   pr.plugins = ['', selectionPlugin, mergingPlugin]
@@ -171,14 +165,15 @@ elif w2:
   pr.outputSEs = ['Tier1-BUFFER', 'Tier1-BUFFER', 'Tier1_MC-DST']
 
   brunelStepIndex = 1
+  pr.resolveSteps()
   for sld in pr.stepsListDict:
     if sld['ApplicationName'].lower() == 'brunel':
       break
     brunelStepIndex += 1
 
   pr.stepsInProds = [range( 1, brunelStepIndex ),
-                     xrange( brunelStepIndex, len( pr.stepsListDict ) ),
-                     [len( pr.stepsListDict )]]
+                     xrange( brunelStepIndex, len( pr.stepsList ) ),
+                     [len( pr.stepsList )]]
   pr.outputFileSteps = [str( len( pr.stepsInProds[0] ) ),
                         str( len( pr.stepsInProds[1] ) ),
                         '1']
@@ -195,23 +190,21 @@ elif w2:
   pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] ) +\
                       [selectionCompressionLvl] * len( pr.stepsInProds[1] ) +\
                       [mergeCompressionLvl] * len( pr.stepsInProds[2] )
+  pr.resolveSteps()
 
 elif w3:
   pr.prodsTypeList = ['MCSimulation', 'MCReconstruction']
   pr.outputSEs = ['Tier1-BUFFER', 'Tier1_MC-DST']
 
-  if pr.stepsListDict[-1]['ApplicationName'].lower() == 'lhcb':
-    gLogger.error( "This request contains a merge step, I can't submit it with this workflow" )
-    DIRACexit( 2 )
-
   brunelStepIndex = 1
+  pr.resolveSteps()
   for sld in pr.stepsListDict:
     if sld['ApplicationName'].lower() == 'brunel':
       break
     brunelStepIndex += 1
 
   pr.stepsInProds = [range( 1, brunelStepIndex ),
-                     xrange( brunelStepIndex, len( pr.stepsListDict ) + 1 )]
+                     xrange( brunelStepIndex, len( pr.stepsList ) + 1 )]
   pr.outputFileSteps = [str( len( pr.stepsInProds[0] ) ),
                         str( len( pr.stepsInProds[1] ) )]
 
@@ -226,6 +219,7 @@ elif w3:
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag]
   pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] ) +\
                       [selectionCompressionLvl] * len( pr.stepsInProds[1] )
+  pr.resolveSteps()
 
 elif w4:
   pr.prodsTypeList = ['MCSimulation', 'MCMerge']
@@ -235,7 +229,7 @@ elif w4:
   pr.removeInputsFlags = [False, removeInputMerge]
   pr.priorities = [MCPriority, mergingPriority]
   pr.cpus = [100000, mergingCPU]
-  pr.outputFileSteps = [str( len( pr.stepsListDict ) - 1 ), '']
+  pr.outputFileSteps = [str( len( pr.stepsList ) - 1 ), '']
   pr.targets = [targets, '']
   pr.groupSizes = [1, mergingGroupSize]
   pr.plugins = ['', mergingPlugin]
@@ -248,6 +242,7 @@ elif w4:
 elif w5:
   pr.prodsTypeList = ['MCSimulation']
   pr.outputSEs = ['Tier1_MC-DST']
+  pr.resolveSteps()
   if pr.stepsListDict[-1]['ApplicationName'].lower() == 'lhcb':
     gLogger.error( "This request contains a merge step, I can't submit it with this workflow" )
     DIRACexit( 2 )
@@ -256,7 +251,7 @@ elif w5:
   pr.removeInputsFlags = [False]
   pr.priorities = [MCPriority]
   pr.cpus = [100000]
-  pr.outputFileSteps = [str( len( pr.stepsListDict ) )]
+  pr.outputFileSteps = [str( len( pr.stepsList ) )]
   pr.targets = [targets]
   pr.groupSizes = [1]
   pr.plugins = ['']
@@ -264,16 +259,18 @@ elif w5:
   pr.bkQueries = ['']
   pr.multicore = [MCmulticoreFlag]
   pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] )
+  pr.resolveSteps()
 
 elif w6:
   pr.prodsTypeList = ['MCSimulation', 'MCReconstruction']
   pr.outputSEs = ['Tier1-BUFFER', 'Tier1_MC-DST']
 
+  pr.resolveSteps()
   if pr.stepsListDict[-1]['ApplicationName'].lower() == 'lhcb':
     gLogger.error( "This request contains a merge step, I can't submit it with this workflow" )
     DIRACexit( 2 )
 
-  pr.stepsInProds = [[1,] , xrange( 2, len( pr.stepsListDict ) + 1 )]
+  pr.stepsInProds = [[1,] , xrange( 2, len( pr.stepsList ) + 1 )]
   pr.outputFileSteps = [str( len( pr.stepsInProds[0] ) ),
                         str( len( pr.stepsInProds[1] ) )]
 
@@ -288,12 +285,13 @@ elif w6:
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag]
   pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] ) +\
                       [selectionCompressionLvl] * len( pr.stepsInProds[1] )
+  pr.resolveSteps()
 
 elif w7:
   pr.prodsTypeList = ['MCSimulation', 'MCReconstruction', 'MCMerge']
   pr.outputSEs = ['Tier1-BUFFER', 'Tier1-BUFFER', 'Tier1_MC-DST']
 
-  pr.stepsInProds = [ [1,], xrange( 2, len( pr.stepsListDict ) ), [len( pr.stepsListDict )]]
+  pr.stepsInProds = [ [1,], xrange( 2, len( pr.stepsList ) ), [len( pr.stepsList )]]
   pr.outputFileSteps = [ '1', str( len( pr.stepsInProds[1] ) ), '1']
 
   pr.removeInputsFlags = [False, removeInputSelection, removeInputMerge]
@@ -322,6 +320,7 @@ if pr.testFlag:
 
 # Validation implies few things, like saving all the outputs, and adding a GAUSSHIST
 if validationFlag:
+  pr.resolveSteps()
   pr.outConfigName = 'validation'
   # Adding GAUSSHIST to the list of outputs to be produced (by the first step, which is Gauss)
   if 'GAUSSHIST' not in pr.stepsListDict[0]['fileTypesOut']:
