@@ -19,3 +19,4 @@ jBK = Job(name='GangaJob-DVv41r2-wInputBKK')
 jBK.application = myApp
 jBK.application.options = ['ntuple_options_grid_withBKK.py']
 jBK.backend = Dirac()
+jBK.submit()

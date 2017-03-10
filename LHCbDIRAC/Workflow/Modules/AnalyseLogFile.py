@@ -1,7 +1,8 @@
 """ Analyse log file(s) module
 """
 
-### This module is now not used anywhere
+### This module is now not used anywhere (starting from workflows created after January 2017)
+### It is anyway still here because of possibly old workflows created previously
 
 import os
 import re

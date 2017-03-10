@@ -1,7 +1,8 @@
 """ Utilities to check the application log files (for production jobs)
 """
 
-### This module is now not used anywhere
+### This module is now not used anywhere (starting from workflows created after January 2017)
+### It is anyway still here because of possibly old workflows created previously
 
 import re
 import os
