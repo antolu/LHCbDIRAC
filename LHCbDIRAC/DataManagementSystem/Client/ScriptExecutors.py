@@ -1440,7 +1440,11 @@ def executeGetFile( dmScript ):
   """
   get files to a local storage
   """
-  lfnList, _ses = parseArguments( dmScript )
+  lfnList, ses = parseArguments( dmScript )
+  if ses:
+    sourceSE = ses[0]
+  else:
+    sourceSE = None
 
   # We cannot use the getOptions() method here as that method only returns LFN directories
   #   here we define a local directory
@@ -1450,8 +1454,8 @@ def executeGetFile( dmScript ):
     return 2
 
   nLfns = len( lfnList )
-  gLogger.notice( 'Downloading %s to %s' % ( ( '%d files' % nLfns ) if nLfns > 1 else 'file', dirList[0] ) )
-  result = DataManager().getFile( lfnList, destinationDir = dirList[0] )
+  gLogger.notice( 'Downloading %s to %s%s' % ( ( '%d files' % nLfns ) if nLfns > 1 else 'file', dirList[0], ' from %s' % sourceSE if sourceSE else '' ) )
+  result = DataManager().getFile( lfnList, destinationDir = dirList[0], sourceSE = sourceSE )
 
   # Prepare popularity report
   if result['OK']:
