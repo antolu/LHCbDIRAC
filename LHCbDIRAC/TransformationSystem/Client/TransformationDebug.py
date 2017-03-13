@@ -1361,7 +1361,9 @@ class TransformationDebug( object ):
 
         # Files with run# == 0
         transWithRun = self.transType != 'Removal' and \
-                       self.transPlugin not in ( 'LHCbStandard', 'ReplicateDataset', 'ArchiveDataset', 'LHCbMCDSTBroadcastRandom', 'ReplicateToLocalSE', 'BySize', 'Standard' )
+                       self.transPlugin not in ( 'LHCbStandard', 'ReplicateDataset', 'ArchiveDataset',
+                                                 'LHCbMCDSTBroadcastRandom', 'ReplicateToLocalSE', 'ReplicateWithAncestors',
+                                                 'BySize', 'Standard' )
         if filesWithRunZero and transWithRun:
           self.__fixRunNumber( filesWithRunZero, fixRun )
         if filesWithNoRunTable and transWithRun:
