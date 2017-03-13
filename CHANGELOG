@@ -1,29 +1,17 @@
-[v8r6-pre12]
+[v8r6]
 Use DIRAC v6r17p13
 
 * fixes for correctly using the steps definitions
 * minor fixes and comments
-
-[v8r6-pre11]
-Use DIRAC v6r17p12
-
 * fixed setting of compression level
 * using LHCbDIRAC version
 * replace __strip... with _strip...
 * logging where it should be
-
-[v8r6-pre10]
-Use DIRAC v6r17p12
-
 * split test, removed importlib
 * added ganga test jobs
 * Comment pr.resolveSteps() call as it's not needed and prevents compressionLvl variable from being filled correctly
 * fixes for user jobs
 * self.siteName is unknown before resolveInputVariables
-
-[v8r6-pre9]
-Use DIRAC v6r17p11
-
  * clever naming
  * get iterators and remove has_key
  * review getDestinationSEList() and use for Failover
@@ -35,10 +23,6 @@ Use DIRAC v6r17p11
  * test fix
  * fixed creation
  * re-saving for security variables
-
-[v8r6-pre8]
-Use DIRAC v6r17p11
-
 * added test dv v41r2
 * added tests for LHCbScript jobs
 * reading numberOfEvents from step
@@ -50,10 +34,6 @@ Use DIRAC v6r17p11
 * using env file in test
 * Saving/using environment file
 * Use Externals v6r5p4 for GSI and LCG for pyparsing
-
-[v8r6-pre7]
-Use DIRAC v6r17p10
-
 * log and messages
 * submitting gauss job to Jenkins
 * added gaudiApplicationScript job
@@ -64,18 +44,10 @@ Use DIRAC v6r17p10
 * partial removal of AnalyseLogFile
 * basic fix for loading WMSSecureGW
 * log outputs fix
-
-[v8r6-pre6]
-Use DIRAC v6r17p9
-
 * removing outdated code
 * added fileMask in template
 * LBLOGINDEV in Jenkins
 * lbLoginDev in pilot
-
-[v8r6-pre5]
-Use DIRAC v6r17p8
-
 * Fixed a couple of typoes
 * Forgot to delete a duplicate line
 * Improved the logic of insertion of the compression levels
@@ -99,31 +71,15 @@ Use DIRAC v6r17p8
 * Set default compression level in the template for Merging prodctions
 * Added another test to the test chain
 * Add the possibility to put the compression options at template level
-
-[v8r6-pre4]
-Use DIRAC v6r17p7
-
 * add comments
 * use wget to get the External tar
-
-[v8r6-pre3]
-Use DIRAC v6r17p7
-
 * change wget by curl
-
-[v8r6-pre2]
-Use DIRAC v6r17p7
-
 * change Jenkins url
 *  bug fixes
 *  from shellCall to systemCall
 *  fixed bad merge
 * using list
 * test
-
-[v8r6-pre1]
-Use DIRAC v6r17p6
-
 * devs doc update
 * fixes
 * update info about LHCbGrid
@@ -135,10 +91,6 @@ Use DIRAC v6r17p6
 * Change cmtconfig and URL for building the client
 * uniform tests
 * pylint
-
-[v8r6-pre0]
-Use DIRAC v6r17p5
-
 * comment the line which is not used...
 * using safe function
 * added a test using ANY CMT Config
@@ -196,7 +148,6 @@ use DIRAC v6r17p12
 * change the release documentation, becuase we always has to release DIRAC
 * get iterators and remove has_key
 * review getDestinationSEList() and use for Failover
->>>>>>> upstream/master
 
 [v8r5p10]
 use DIRAC v6r17p11
