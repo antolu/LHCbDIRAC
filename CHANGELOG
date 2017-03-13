@@ -1,3 +1,9 @@
+[v8r6-pre12]
+Use DIRAC v6r17p13
+
+* fixes for correctly using the steps definitions
+* minor fixes and comments
+
 [v8r6-pre11]
 Use DIRAC v6r17p12
 
