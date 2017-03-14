@@ -4423,7 +4423,7 @@ and files.qualityid= dataquality.qualityid'
     processing = {}
     productions = None
     result = None
-    if configName.upper().find( 'MC' ) >= 0:
+    if configName.upper().find( 'MC' ):
       command = self.__prepareStepMetadata( configName,
                                             configVersion,
                                             cond,
@@ -4438,7 +4438,7 @@ and files.qualityid= dataquality.qualityid'
         result = retVal
       else:
         productions = tuple( [ i[0] for i in retVal['Value']] )
-        gLogger.debug( 'Productions' + str( production ) )
+        gLogger.debug( 'Productions' + str( productions ) )
         parametersNames = ['id', 'name']
         for production in productions:
           retVal = self.getSteps( production )
