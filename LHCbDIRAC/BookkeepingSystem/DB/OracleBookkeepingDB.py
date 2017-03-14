@@ -4492,7 +4492,7 @@ and files.qualityid= dataquality.qualityid'
           nb += 1
           processing[step] = records
      
-          result = S_OK( {'Parameters':parametersNames, 'Records':processing, 'TotalRecords':nb} )
+        result = S_OK( {'Parameters':parametersNames, 'Records':processing, 'TotalRecords':nb} )
           
     return result
 
