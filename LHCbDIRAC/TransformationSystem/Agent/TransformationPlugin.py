@@ -1462,13 +1462,16 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       ancestors = ancestors['Value']
       # It is not possible to create a task with files that are not in the transformation!
       # therefore add them...
-      res = self.transClient.addFilesToTransformation( self.transID, ancestors )
-      if not res['OK']:
-        self.util.logError( 'Failed to add files to transformation', res['Message'] )
-        return res
-      # Only put added files in tasks
-      addedLfns = [lfn for ( lfn, status ) in res['Value']['Successful'].iteritems() if status == 'Added' ]
-      addedAncestors += addedLfns
+      if ancestors:
+        res = self.transClient.addFilesToTransformation( self.transID, ancestors )
+        if not res['OK']:
+          self.util.logError( 'Failed to add files to transformation', res['Message'] )
+          return res
+        # Only put added files in tasks
+        addedLfns = [lfn for ( lfn, status ) in res['Value']['Successful'].iteritems() if status == 'Added' ]
+        addedAncestors += addedLfns
+      else:
+        addedLfns = []
       newTasks.append( ( targetSE, lfns + addedLfns ) )
     # This dict is those files already processed by the initial plugin (i.e. no need to process them)
     for targetSE, lfns in self._alreadyProcessedLFNs.iteritems():
@@ -1476,15 +1479,16 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       if not ancestors['OK']:
         return ancestors
       ancestors = ancestors['Value']
-      res = self.transClient.addFilesToTransformation( self.transID, ancestors )
-      if not res['OK']:
-        self.util.logError( 'Failed to add files to transformation', res['Message'] )
-        return res
-      addedLfns = [lfn for ( lfn, status ) in res['Value']['Successful'].iteritems() if status == 'Added' ]
-      self.util.logVerbose( "Found %d ancestors of Processed files: add them to tasks" % len( addedLfns ) )
-      addedAncestors += addedLfns
-      for ancChunk in breakListIntoChunks( addedLfns, 2 * maxFiles ):
-        newTasks.append( ( targetSE, ancChunk ) )
+      if ancestors:
+        res = self.transClient.addFilesToTransformation( self.transID, ancestors )
+        if not res['OK']:
+          self.util.logError( 'Failed to add files to transformation', res['Message'] )
+          return res
+        addedLfns = [lfn for ( lfn, status ) in res['Value']['Successful'].iteritems() if status == 'Added' ]
+        self.util.logVerbose( "Found %d ancestors of Processed files: add them to tasks" % len( addedLfns ) )
+        addedAncestors += addedLfns
+        for ancChunk in breakListIntoChunks( addedLfns, 2 * maxFiles ):
+          newTasks.append( ( targetSE, ancChunk ) )
     if addedAncestors:
       self.util.logInfo( "Added %d ancestors to tasks" % len( addedAncestors ) )
     return S_OK( newTasks )
