@@ -1460,25 +1460,32 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       if not ancestors['OK']:
         return ancestors
       ancestors = ancestors['Value']
-      addedAncestors += ancestors
-      newTasks.append( ( targetSE, lfns + ancestors ) )
+      # It is not possible to create a task with files that are not in the transformation!
+      # therefore add them...
+      res = self.transClient.addFilesToTransformation( self.transID, ancestors )
+      if not res['OK']:
+        self.util.logError( 'Failed to add files to transformation', res['Message'] )
+        return res
+      # Only put added files in tasks
+      addedLfns = [lfn for ( lfn, status ) in res['Value']['Successful'].iteritems() if status == 'Added' ]
+      addedAncestors += addedLfns
+      newTasks.append( ( targetSE, lfns + addedLfns ) )
     # This dict is those files already processed by the initial plugin (i.e. no need to process them)
     for targetSE, lfns in self._alreadyProcessedLFNs.iteritems():
       ancestors = self.__getAncestorLFNs( lfns )
       if not ancestors['OK']:
         return ancestors
       ancestors = ancestors['Value']
-      self.util.logVerbose( "Found %d ancestors of Processed files: add them to tasks" % len( ancestors ) )
-      addedAncestors += ancestors
-      for ancChunk in breakListIntoChunks( ancestors, 2 * maxFiles ):
-        newTasks.append( ( targetSE, ancChunk ) )
-    # It is not possible to create a task with files that are not in the transformation!
-    # therefore add them...
-    if addedAncestors:
-      res = self.transClient.addFilesToTransformation( self.transID, addedAncestors )
+      res = self.transClient.addFilesToTransformation( self.transID, ancestors )
       if not res['OK']:
         self.util.logError( 'Failed to add files to transformation', res['Message'] )
         return res
+      addedLfns = [lfn for ( lfn, status ) in res['Value']['Successful'].iteritems() if status == 'Added' ]
+      self.util.logVerbose( "Found %d ancestors of Processed files: add them to tasks" % len( addedLfns ) )
+      addedAncestors += addedLfns
+      for ancChunk in breakListIntoChunks( addedLfns, 2 * maxFiles ):
+        newTasks.append( ( targetSE, ancChunk ) )
+    if addedAncestors:
       self.util.logInfo( "Added %d ancestors to tasks" % len( addedAncestors ) )
     return S_OK( newTasks )
 
