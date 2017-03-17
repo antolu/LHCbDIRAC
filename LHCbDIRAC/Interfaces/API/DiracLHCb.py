@@ -20,6 +20,7 @@ from DIRAC.ResourceStatusSystem.Client.ResourceStatus    import ResourceStatus
 from LHCbDIRAC.Core.Utilities.File                        import makeGuid
 from LHCbDIRAC.Core.Utilities.ClientTools                 import mergeRootFiles
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.DataManagementSystem.Client.DMScript       import printDMResult
 
 __RCSID__ = "$Id$"
 
@@ -995,3 +996,37 @@ class DiracLHCb( Dirac ):
     if printOutput:
       print self.pPrint.pformat( lfnGroups )
     return S_OK( lfnGroups )
+
+    #############################################################################
+
+  def getAccessURL( self, lfn, storageElement, protocol = None, printOutput = False ):
+    """Allows to retrieve an access URL for an LFN replica given a valid DIRAC SE
+       name.  Contacts the file catalog and contacts the site SRM endpoint behind
+       the scenes.
+
+       Example Usage:
+
+       >>> print dirac.getAccessURL('/lhcb/data/CCRC08/DST/00000151/0000/00000151_00004848_2.dst','CERN-RAW')
+       {'OK': True, 'Value': {'Successful': {'srm://...': {'SRM2': 'rfio://...'}}, 'Failed': {}}}
+
+       :param lfn: Logical File Name (LFN)
+       :type lfn: str or python:list
+       :param storageElement: DIRAC SE name e.g. CERN-RAW
+       :type storageElement: string
+       :param printOutput: Optional flag to print result
+       :type printOutput: boolean
+       :returns: S_OK,S_ERROR
+    """
+    from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import getAccessURL
+    ret = self._checkFileArgument( lfn, 'LFN' )
+    if not ret['OK']:
+      return ret
+    lfn = ret['Value']
+    if isinstance( lfn, basestring ):
+      lfn = [lfn]
+    results = getAccessURL( lfn, storageElement, protocol = protocol )
+    if printOutput:
+      printDMResult( results, empty = "File not at SE", script = "dirac-dms-lfn-accessURL" )
+    return results
+
+  #############################################################################

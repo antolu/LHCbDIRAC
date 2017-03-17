@@ -445,7 +445,8 @@ def executeAccessURL( dmScript ):
     Script.showHelp()
     return 1
   else:
-    return getAccessURL( lfnList, seList, protocol )
+    results = getAccessURL( lfnList, seList, protocol )
+    return printDMResult( results, empty = "File not at SE", script = "dirac-dms-lfn-accessURL" )
 
 def getAccessURL( lfnList, seList, protocol = None ):
   """
@@ -454,6 +455,8 @@ def getAccessURL( lfnList, seList, protocol = None ):
   dm = DataManager()
   res = dm.getReplicas( lfnList, getUrl = False )
   replicas = res.get( 'Value', {} ).get( 'Successful', {} )
+  if isinstance( seList, basestring ):
+    seList = seList.split( ',' )
   if not seList:
     seList = sorted( set( se for lfn in lfnList for se in replicas.get( lfn, {} ) ) )
     if len( seList ) > 1:
@@ -492,8 +495,7 @@ def getAccessURL( lfnList, seList, protocol = None ):
         notFoundLfns.remove( lfn )
   if notFoundLfns:
     results['Value']['Failed'] = dict.fromkeys( sorted( notFoundLfns ), 'File not found in required seList' )
-
-  return printDMResult( results, empty = "File not at SE", script = "dirac-dms-lfn-accessURL" )
+  return results
 
 def executeRemoveFiles( dmScript ):
   """
