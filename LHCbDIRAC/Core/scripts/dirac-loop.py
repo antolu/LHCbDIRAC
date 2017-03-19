@@ -94,7 +94,8 @@ if __name__ == '__main__':
     if arg:
       for command in commands:
         if '@arg@' in command:
-          c = command.replace( '@arg@', arg, 1 )
+          c = command.replace( '@arg@', arg, 1 ) if 'dirac-loop' in command else \
+              command.replace( '@arg@', arg )
         elif command[-1] in ( '"', "'" ):
           c = command + arg + command[-1]
         else:
