@@ -1423,7 +1423,7 @@ class TransformationDebug( object ):
             # print task
             prString = "TaskID: %s (created %s, updated %s) - %d files" % ( taskID, task['CreationTime'], task['LastUpdateTime'], nfiles )
             if byFiles and lfnsInTask:
-              sep = ',' if sys.stdout.isatty() else '\n'
+              sep = ','  # if sys.stdout.isatty() else '\n'
               prString += " (" + sep.join( lfnsInTask ) + ")"
             prString += "- %s: %s - Status: %s" % ( taskType, task['ExternalID'], task['ExternalStatus'] )
             if targetSE:
