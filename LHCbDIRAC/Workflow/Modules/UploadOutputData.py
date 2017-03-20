@@ -340,7 +340,7 @@ class UploadOutputData( ModuleBase ):
 
     for op in self.request:
       add = True
-      if op.Type in ['PutAndRegister', 'ReplicateAndRegister', 'RegisterFile', 'RegisterReplica']:
+      if op.Type in ['PutAndRegister', 'ReplicateAndRegister', 'RegisterFile', 'RegisterReplica', 'RemovaReplica']:
         for files in op:
           if files.LFN in lfnList:
             add = False
