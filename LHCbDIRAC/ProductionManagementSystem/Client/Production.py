@@ -503,8 +503,8 @@ class Production( object ):
     try:
       if parameters['BkQuery']:
         info.append( '\nBK Input Data Query:' )
-        for n, v in parameters['BkQuery'].items():
-          info.append( '%s= %s' % ( n, v ) )
+        for bkn, bkv in parameters['BkQuery'].iteritems():
+          info.append( '%s= %s' % ( bkn, bkv ) )
     except KeyError:
       pass
 
@@ -627,7 +627,7 @@ class Production( object ):
                                                    bkPassInfo = bkSteps,
                                                    reqID = requestID,
                                                    derivedProd = self.ancestorProduction )
-      for parName, parValue in paramsDict.items():
+      for parName, parValue in paramsDict.iteritems():
         result = getattr( self.transformation, 'set' + parName )( parValue )
 
     else:
@@ -766,11 +766,19 @@ class Production( object ):
 
   #############################################################################
 
-  def setBKParameters( self, configName, configVersion, groupDescription, conditions ):
+  def setBKParameters( self, configName, configVersion, groupDescriptionOrStepsList, conditions ):
     """ Sets BK parameters for production.
     """
     self.setParameter( 'configName', 'string', configName, 'ConfigName' )
     self.setParameter( 'configVersion', 'string', configVersion, 'ConfigVersion' )
+    if isinstance(groupDescriptionOrStepsList, list):
+      # in this case we assume it is a list of steps (stepsListDict in ProductionRequest module), so we calculate the BK path
+      groupDescription = ''
+      for step in groupDescriptionOrStepsList:
+        if step['Visible'] == 'Y':
+          groupDescription = os.path.sep.join([groupDescription, step['ProcessingPass']])
+    else:
+      groupDescription = groupDescriptionOrStepsList
     self.setParameter( 'groupDescription', 'string', groupDescription, 'GroupDescription' )
     self.setParameter( 'conditions', 'string', conditions, 'SimOrDataTakingCondsString' )
     self.setParameter( 'simDescription', 'string', conditions, 'SimDescription' )

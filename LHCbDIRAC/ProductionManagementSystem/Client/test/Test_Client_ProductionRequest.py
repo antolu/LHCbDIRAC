@@ -1,7 +1,7 @@
 """ Test of the ProductionRequest and Production modules
 """
 
-#pylint: disable=line-too-long,invalid-name
+#pylint: disable=line-too-long,invalid-name,protected-access,missing-docstring
 
 import unittest
 from mock import Mock, MagicMock
@@ -11,9 +11,6 @@ stepMC, stepMC2, stepStripp, mergeStep, mergeStepBHADRON, step1Dict, step2Dict, 
 step125080, stepHistoMergingDict, mergeStepCALIBRA, mergeStepPIDMDST
 from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import ProductionRequest, _splitIntoProductionSteps
 from LHCbDIRAC.ProductionManagementSystem.Client.Production import Production
-
-#pylint: disable=protected-access
-#pylint: disable=missing-docstring
 
 prodsDict = {1:{'productionType':'DataStripping',
                 'stepsInProd':[123, 456],

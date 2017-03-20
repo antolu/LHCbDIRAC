@@ -75,8 +75,8 @@ class ProductionRequest( object ):
     self.fullListOfOutputFileTypes = []
 
     # parameters that are the same for each productions
-    self.prodGroup = ''
-    self.visibility = ''
+    self.prodGroup = '' # This ends up being 'ProcessingType', workflow parameter, and it is used for accounting
+    self.visibility = '' # For BKQuery
     self.fractionToProcess = 0
     self.minFilesToProcess = 0
     self.modulesList = None # Usually:
@@ -670,7 +670,7 @@ class ProductionRequest( object ):
                                                                              ''.join( [x.split( '.' )[0] for x in fTypeIn] ),
                                                                              self.appendName ) )
     prod.setBKParameters( configName = self.outConfigName, configVersion = self.configVersion,
-                          groupDescription = self.prodGroup, conditions = self.dataTakingConditions )
+                          groupDescriptionOrStepsList = stepsInProd, conditions = self.dataTakingConditions )
     prod.setParameter( 'eventType', 'string', self.eventType, 'Event Type of the production' )
     prod.setParameter( 'numberOfEvents', 'string', str( events ), 'Number of events requested' )
 
