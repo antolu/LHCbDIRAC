@@ -204,7 +204,7 @@ class NagiosTopologyAgent(AgentModule):
     site_tier = site_opts.get('MoUTierLevel', 'None')
     if site_tier != 'None':
       wlcg_params = [s for s in wlcg if site_name in s.get('Site')]
-      # wlcg_params = wlcg_params[0] if wlcg_params else {}
+      wlcg_params = wlcg_params[0] if wlcg_params else {}
       if not wlcg_params:
         return False
       if len(sites) > 1:
