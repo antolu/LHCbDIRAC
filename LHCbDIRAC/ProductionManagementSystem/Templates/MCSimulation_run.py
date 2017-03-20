@@ -77,6 +77,11 @@ targets = '{{Target#PROD-1:MC: Target for MC (e.g. Tier2, ALL, LCG.CERN.cern#Tie
 MCPriority = '{{MCPriority#PROD-1:MC: Production priority#0}}'
 MCmulticoreFlag = '{{MCMulticoreFLag#PROD-1: multicore flag#True}}'
 simulationCompressionLvl = '{{simulationCompressionLvl#PROD-1: Compression level#Compression-ZLIB-1}}'
+simulationOutputVisFlag = '{{simulationOutputVisFlag#PROD-1: #False}}'
+try:
+  simulationOutputVisFlagSpecial = ast.literal_eval( '{{simulationOutputVisFlagSpecial#PROD-1: Special Visibility flag of output files (a dictionary FType:flag)#}}' )
+except SyntaxError:
+  simulationOutputVisFlagSpecial = {}
 
 selectionPlugin = '{{selectionPlugin#PROD-2:Selection: plugin e.g. Standard, BySize#BySize}}'
 selectionGroupSize = '{{selectionGroupSize#PROD-2:Selection: input files total size (we\'ll download)#20}}'
@@ -85,6 +90,11 @@ selectionCPU = '{{selectionCPU#PROD-2:Selection: Max CPU time in secs#100000}}'
 removeInputSelection = '{{removeInputSelection#PROD-2:Selection: remove inputs#True}}'
 selmulticoreFlag = '{{selMulticoreFLag#PROD-2:Selection: multicore flag#True}}'
 selectionCompressionLvl = '{{selectionCompressionLvl#PROD-2:Selection: Compression level#Compression-ZLIB-1}}'
+selectionOutputVisFlag = '{{selectionOutputVisFlag#PROD-2: #False}}'
+try:
+  selectionOutputVisFlagSpecial = ast.literal_eval( '{{selectionOutputVisFlagSpecial#PROD-2: Special Visibility flag of output files (a dictionary FType:flag)#}}' )
+except SyntaxError:
+  selectionOutputVisFlagSpecial = {}
 
 mergingPlugin = '{{MergingPlugin#PROD-3:Merging: plugin e.g. Standard, BySize#BySize}}'
 mergingGroupSize = '{{MergingGroupSize#PROD-3:Merging: Group Size e.g. BySize = GB file size#5}}'
@@ -93,6 +103,11 @@ mergingCPU = '{{mergingCPU#PROD-3:Merging: Max CPU time in secs#100000}}'
 removeInputMerge = '{{removeInputMerge#PROD-3:Merging: remove inputs#True}}'
 mergemulticoreFlag = '{{mergeMulticoreFLag#PROD-3:Merging: multicore flag#True}}'
 mergeCompressionLvl = '{{mergeCompressionLvl#PROD-3:Merging: Compression level#Compression-LZMA-4}}'
+mergeOutputVisFlag = '{{mergeOutputVisFlag#PROD-3: #False}}'
+try:
+  mergeOutputVisFlagSpecial = ast.literal_eval( '{{mergeOutputVisFlagSpecial#PROD-3: Special Visibility flag of output files (a dictionary FType:flag)#}}' )
+except SyntaxError:
+  mergeOutputVisFlagSpecial = {}
 
 pr.configVersion = '{{mcConfigVersion}}'
 pr.eventType = '{{eventType}}'
@@ -159,6 +174,8 @@ if w1:
   pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] ) +\
                       [selectionCompressionLvl] * len( pr.stepsInProds[1] )+ \
                       [mergeCompressionLvl] * len( pr.stepsInProds[2] )
+  pr.outputVisFlag = [simulationOutputVisFlag, selectionOutputVisFlag, mergeOutputVisFlag]
+  pr.specialOutputVisFlag = [simulationOutputVisFlagSpecial, selectionOutputVisFlagSpecial, mergeOutputVisFlagSpecial]
 
 elif w2:
   pr.prodsTypeList = ['MCSimulation', 'MCReconstruction', 'MCMerge']
@@ -190,6 +207,9 @@ elif w2:
   pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] ) +\
                       [selectionCompressionLvl] * len( pr.stepsInProds[1] ) +\
                       [mergeCompressionLvl] * len( pr.stepsInProds[2] )
+  pr.outputVisFlag = [simulationOutputVisFlag, selectionOutputVisFlag, mergeOutputVisFlag]
+  pr.specialOutputVisFlag = [simulationOutputVisFlagSpecial, selectionOutputVisFlagSpecial, mergeOutputVisFlagSpecial]
+
   pr.resolveSteps()
 
 elif w3:
@@ -219,6 +239,9 @@ elif w3:
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag]
   pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] ) +\
                       [selectionCompressionLvl] * len( pr.stepsInProds[1] )
+  pr.outputVisFlag = [simulationOutputVisFlag, selectionOutputVisFlag]
+  pr.specialOutputVisFlag = [simulationOutputVisFlagSpecial, selectionOutputVisFlagSpecial]
+
   pr.resolveSteps()
 
 elif w4:
@@ -238,6 +261,8 @@ elif w4:
   pr.multicore = [MCmulticoreFlag, mergemulticoreFlag]
   pr.compressionLvl = [simulationCompressionLvl]  * len( pr.stepsInProds[0] ) +\
                       [mergeCompressionLvl]  * len( pr.stepsInProds[1] )
+  pr.outputVisFlag = [simulationOutputVisFlag, mergeOutputVisFlag]
+  pr.specialOutputVisFlag = [simulationOutputVisFlagSpecial, mergeOutputVisFlagSpecial]
 
 elif w5:
   pr.prodsTypeList = ['MCSimulation']
@@ -259,6 +284,9 @@ elif w5:
   pr.bkQueries = ['']
   pr.multicore = [MCmulticoreFlag]
   pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] )
+  pr.outputVisFlag = [simulationOutputVisFlag]
+  pr.specialOutputVisFlag = [simulationOutputVisFlagSpecial]
+
   pr.resolveSteps()
 
 elif w6:
@@ -285,6 +313,9 @@ elif w6:
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag]
   pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] ) +\
                       [selectionCompressionLvl] * len( pr.stepsInProds[1] )
+  pr.outputVisFlag = [simulationOutputVisFlag, selectionOutputVisFlag]
+  pr.specialOutputVisFlag = [simulationOutputVisFlagSpecial, selectionOutputVisFlagSpecial]
+
   pr.resolveSteps()
 
 elif w7:
@@ -306,6 +337,8 @@ elif w7:
   pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] ) +\
                       [selectionCompressionLvl] * len( pr.stepsInProds[1] ) +\
                       [mergeCompressionLvl] * len( pr.stepsInProds[2] )
+  pr.outputVisFlag = [simulationOutputVisFlag, selectionOutputVisFlag, mergeOutputVisFlag]
+  pr.specialOutputVisFlag = [simulationOutputVisFlagSpecial, selectionOutputVisFlagSpecial, mergeOutputVisFlagSpecial]
 
 # In case we want just to test, we publish in the certification/test part of the BKK
 if currentSetup == 'LHCb-Certification' or pr.testFlag:

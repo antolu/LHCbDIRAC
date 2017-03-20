@@ -109,6 +109,8 @@ class ProductionRequest( object ):
     self.ancestorDepths = []
     self.compressionLvl = [''] # List: one compression level each step
     self.appConfig = '$APPCONFIGOPTS/Persistency/' # Default location of the compression level configuration files
+    self.outputVisFlag = [] # List with default visibility flag of the output files 
+    self.specialOutputVisFlag = [] # LIst of dictionaries with special visibility flag for given file type    
 
   #############################################################################
 
@@ -399,13 +401,18 @@ class ProductionRequest( object ):
     """ Fill outputSEsPerFileType based on outputSEs, fullListOfOutputFileTypes and specialOutputSEs
     """
     for outputSE, specialOutputSEs in itertools.izip( self.outputSEs,
-                                                      self.specialOutputSEs ):
+                                                      self.specialOutputSEs,
+                                                      self.outputVisFlag ):
       outputSEDict = {}
+      outputVisDict = {}
       if not self.fullListOfOutputFileTypes:
         raise ValueError( "No steps defined" )
       outputSEDict = dict( [( fType, outputSE ) for fType in self.fullListOfOutputFileTypes] )
+      outputVisDict = dict( [(fType, outputVisFlag) for fType in self.fullListOfOutputFileTypes] )
       if specialOutputSEs:
         outputSEDict.update( specialOutputSEs )
+      if specialOutputVisFlag:
+        outputVisDict.update( specialOutputVisFlag )
       self.outputSEsPerFileType.append( outputSEDict )
 
   def _applyOptionalCorrections( self ):
