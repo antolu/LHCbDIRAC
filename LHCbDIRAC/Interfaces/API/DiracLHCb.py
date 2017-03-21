@@ -21,6 +21,7 @@ from LHCbDIRAC.Core.Utilities.File                        import makeGuid
 from LHCbDIRAC.Core.Utilities.ClientTools                 import mergeRootFiles
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.DataManagementSystem.Client.DMScript       import printDMResult
+from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import getAccessURL
 
 __RCSID__ = "$Id$"
 
@@ -1017,7 +1018,6 @@ class DiracLHCb( Dirac ):
        :type printOutput: boolean
        :returns: S_OK,S_ERROR
     """
-    from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import getAccessURL
     ret = self._checkFileArgument( lfn, 'LFN' )
     if not ret['OK']:
       return ret
