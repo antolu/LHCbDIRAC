@@ -100,6 +100,9 @@ class NagiosTopologyAgent(AgentModule):
       if site_parameters:
 
         xml_site = xml_append(xml_doc, xml_root, 'atp_site',
+                              infrast=site_parameters['Infrastructure'],
+                              longitude=site_parameters['Coordinates'].split(":")[0],
+                              latitude=site_parameters['Coordinates'].split(":")[1],
                               name=site_parameters['WlcgName'])
         has_grid_elem = False
 
@@ -119,7 +122,7 @@ class NagiosTopologyAgent(AgentModule):
 
         # SE info
         if site_parameters['SE'] and (site_tier in ['0', '1', '2'] or site_subtier in ['T2-D']):
-          #res = self.__writeSEInfo( xml_doc, xml_site, dirac_name )
+          # res = self.__writeSEInfo( xml_doc, xml_site, dirac_name )
           res = self.__writeSEInfo(
               xml_doc, xml_site, dirac_name, site_tier, site_subtier)
           # Update has_grid_elem
@@ -188,9 +191,9 @@ class NagiosTopologyAgent(AgentModule):
     """
       Function that returns the sites parameters.
       Keys:
-      'WlcgName', 'Coordinates', 'Description', 'Mail', 'DiracName', 'Tier', 'Sub-Tier', 
-      'SE', 'Country':, 'Federation', 'FederationAccountingName', 'Infrastructure', 
-      'Institute Name', 'Grid' 
+      'WlcgName', 'Coordinates', 'Description', 'Mail', 'DiracName', 'Tier', 'Sub-Tier',
+      'SE', 'Country':, 'Federation', 'FederationAccountingName', 'Infrastructure',
+      'Institute Name', 'Grid'
 
       If the site is not listed in WLCG or have no MoU Tier Level the function will return False
     """
@@ -253,33 +256,46 @@ class NagiosTopologyAgent(AgentModule):
     xml_append(xml_doc, xml_root, 'vo', 'lhcb')
 
   @staticmethod
-  def __writeCEInfo(xml_doc, grid, xml_site, site, ces):
-    """ Writes CE information in the XML Document
-    """
+def __writeCEInfo(xml_doc, grid, xml_site, site, ces):
+  """ Writes CE information in the XML Document
+  """
 
-    has_grid_elem = False
+  has_grid_elem = False
 
-    for site_ce_name in ces:
+  for site_ce_name in ces:
 
-      has_grid_elem = True
+    has_grid_elem = True
 
-      site_ce_opts = gConfig.getOptionsDict(
-          'Resources/Sites/%s/%s/CEs/%s' % (grid, site, site_ce_name))
-      if not site_ce_opts['OK']:
-        gLogger.error(site_ce_opts['Message'])
-        continue
-      site_ce_opts = site_ce_opts['Value']
+    site_ce_opts = gConfig.getOptionsDict(
+        'Resources/Sites/%s/%s/CEs/%s' % (grid, site, site_ce_name))
+    if not site_ce_opts['OK']:
+      gLogger.error(site_ce_opts['Message'])
+      continue
+    site_ce_opts = site_ce_opts['Value']
 
-      site_ce_type = site_ce_opts.get('CEType')
-      mappingCEType = {'LCG': 'CE', 'CREAM': 'CREAM-CE',
-                       'ARC': 'ARC-CE', 'HTCondorCE': 'org.opensciencegrid.htcondorce',
-                       'Vac': 'uk.ac.gridpp.vac', 'Cloud': 'CLOUD', 'Boinc': 'BOINC',
-                       'Vcycle': 'uk.ac.gridpp.vcycle'}
+    site_ce_type = site_ce_opts.get('CEType')
+    mappingCEType = {'LCG': 'CE', 'CREAM': 'CREAM-CE',
+                     'ARC': 'ARC-CE', 'HTCondorCE': 'org.opensciencegrid.htcondorce',
+                     'Vac': 'uk.ac.gridpp.vac', 'Cloud': 'CLOUD', 'Boinc': 'BOINC',
+                     'Vcycle': 'uk.ac.gridpp.vcycle'}
 
-      xml_append(xml_doc, xml_site, 'service', hostname=site_ce_name,
-                 flavour=mappingCEType.get(site_ce_type, 'UNDEFINED'))
+    xml_ce = xml_append(xml_doc, xml_site, 'service', hostname=site_ce_name,
+               flavour=mappingCEType.get(site_ce_type, 'UNDEFINED'))
 
-    return has_grid_elem
+    ce_queues = gConfig.getSections(
+        'Resources/Sites/%s/%s/CEs/%s/Queues/' % (grid, site, site_ce_name))
+    ce_queues = ce_queues['Value']
+    for queue in ce_queues:
+      queue_information = gConfig.getOptionsDict(
+          'Resources/Sites/%s/%s/CEs/%s/Queues/%s' % (grid, site, site_ce_name, queue))
+      if queue_information['OK']:
+        queue_information = queue_information['Value']
+        xml_append(xml_doc, xml_ce, 'queues', ce_resource=queue,
+                   queue=queue_information.get('VO'),
+                   maxWaitingJobs=queue_information.get('MaxWaitingJobs'),
+                   maxCPUTime=queue_information.get('maxCPUTime'))
+
+  return has_grid_elem
 
   @staticmethod
   def __writeSEInfo(xml_doc, xml_site, site, site_tier, site_subtier):
