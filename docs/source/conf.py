@@ -81,7 +81,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'LHCbDIRAC'
-copyright = u'2013, LHCbDIRAC Project'
+copyright = u'%s, LHCbDIRAC Project' % datetime.datetime.utcnow().year
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
