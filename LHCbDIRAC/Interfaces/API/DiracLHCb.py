@@ -20,6 +20,7 @@ from DIRAC.ResourceStatusSystem.Client.ResourceStatus    import ResourceStatus
 from LHCbDIRAC.Core.Utilities.File                        import makeGuid
 from LHCbDIRAC.Core.Utilities.ClientTools                 import mergeRootFiles
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.DataManagementSystem.Client.DMScript       import printDMResult
 from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import getAccessURL
 
