@@ -597,9 +597,9 @@ class LHCbJob( Job ):
 
     # now we have to tell DIRAC to install the necessary software
     appRoot = '%s/%s' % ( self.rootSection, rootVersion )
-    # currentApp = gConfig.getValue( appRoot, '' )
-    currentApp = gConfig.getValue( 'Operations/' + appRoot )
-#     currentApp = self.opsHelper.getValue( appRoot, '' )
+    currentApp = self.opsHelper.getValue( appRoot, '' )
+    if not currentApp: #FIXME: this is an old location, the whole /Operations/SoftwareDistribution section should be removed
+      currentApp = gConfig.getValue( 'Operations/' + appRoot )
     if not currentApp:
       return self._reportError( 'Could not get value from DIRAC Configuration Service for option %s' % appRoot,
                                 __name__, **kwargs )
@@ -660,7 +660,7 @@ class LHCbJob( Job ):
     if not isinstance( inputDataType, str ):
       try:
         inputDataType = str( inputDataType )
-      except Exception as _x:
+      except TypeError as _x:
         return self._reportError( 'Expected string for input data type', __name__, **{'inputDataType':inputDataType} )
 
     self.inputDataType = inputDataType
@@ -750,7 +750,8 @@ class LHCbJob( Job ):
       if not isinstance( OutputPath, str ):
         return self._reportError( 'Expected string for OutputPath', **kwargs )
       # Remove leading "/" that might cause problems with os.path.join
-      while OutputPath[0] == '/': OutputPath = OutputPath[1:]
+      while OutputPath[0] == '/':
+        OutputPath = OutputPath[1:]
       self._addParameter( self.workflow, 'UserOutputPath', 'JDL', OutputPath, description )
 
     if replicate:
