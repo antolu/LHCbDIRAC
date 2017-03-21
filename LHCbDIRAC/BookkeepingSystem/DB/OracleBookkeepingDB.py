@@ -4421,8 +4421,9 @@ and files.qualityid= dataquality.qualityid'
     """returns the steps with metadata"""
     command = None
     processing = {}
+    productions = None
     result = None
-    if configName.upper().find( 'MC' ) >= 0:
+    if configName.upper().find( 'MC' ):
       command = self.__prepareStepMetadata( configName,
                                             configVersion,
                                             cond,
@@ -4436,47 +4437,31 @@ and files.qualityid= dataquality.qualityid'
       if not retVal['OK']:
         result = retVal
       else:
-        production = tuple( [ i[0] for i in retVal['Value']] )
-        gLogger.debug( 'Production' + str( production ) )
-        parentprod = ()
-        for i in production:
-          command = "select j.production from jobs j, files f where \
-        j.jobid=f.jobid and\
-        f.fileid in (select i.fileid from jobs j, inputfiles i where \
-        j.jobid=i.jobid and j.production = %d and ROWNUM <2)" % ( int( i ) )
-          retVal = self.dbR_.query( command )
-          if not retVal['OK']:
+        productions = tuple( [ i[0] for i in retVal['Value']] )
+        gLogger.debug( 'Productions' + str( productions ) )
+        parametersNames = ['id', 'name']
+        for production in productions:
+          retVal = self.getSteps( production )
+          if not retVal:
             result = retVal
-            break
           else:
-            prods = [ i[0] for i in retVal['Value']]
-            parentprod = tuple( prods )
-          gLogger.debug( 'Parent production:' + str( parentprod ) )
-          condition = ''
-          tables = 'steps s, productionscontainer prod, stepscontainer cont'
-          if procpass != default:
-            condition += " and prod.processingid in ( \
-                          select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
-                                              FROM processing v   START WITH id in (select distinct id from processing where name='%s') \
-                                              CONNECT BY NOCYCLE PRIOR  id=parentid) v where v.path='%s' \
-                             )" % ( procpass.split( '/' )[1], procpass )
-
-          if cond != default:
-            retVal = self.__getConditionString( cond, 'prod' )
-            if retVal['OK']:
-              condition += retVal['Value']
-            else:
-              return retVal
-
-        parentprod += production
-        command = "select distinct s.stepid,s.stepname,s.applicationname,s.applicationversion,\
-       s.optionfiles,s.dddb, s.conddb,s.extrapackages,s.visible, cont.step  from  %s \
-                     where cont.stepid=s.stepid and \
-                      prod.production=cont.production and\
-                      prod.production in %s %s order by cont.step" % ( tables, str( parentprod ), condition )
-
-
+            nb = 0
+            for stepName, appName, appVersion, optionFiles, dddb, conddb, extrapackages, stepid, visible in retVal['Value']:
+              records = [ ['StepId', stepid],
+                          ['StepName', stepName],
+                          ['ApplicationName', appName],
+                          ['ApplicationVersion', appVersion],
+                          ['OptionFiles', optionFiles],
+                          ['DDDB', dddb],
+                          ['CONDDB', conddb],
+                          ['ExtraPackages', extrapackages],
+                          ['Visible', visible]]
+              step = 'Step-%d' % stepid 
+              processing[step] = records
+              nb += 1
+            result = S_OK( {'Parameters':parametersNames, 'Records':processing, 'TotalRecords':nb} )
     else:
+      # #Now we are getting the metadata for a given run
       command = self.__prepareStepMetadata( configName,
                                             configVersion,
                                             cond,
@@ -4486,33 +4471,29 @@ and files.qualityid= dataquality.qualityid'
                                             filetype,
                                             runnb,
                                             selection = 'distinct s.stepid,s.stepname,s.applicationname,s.applicationversion,\
-       s.optionfiles,s.dddb, s.conddb,s.extrapackages,s.visible, cont.step' )
-
-    if not result:
+                                            s.optionfiles,s.dddb, s.conddb,s.extrapackages,s.visible, cont.step' )
       retVal = self.dbR_.query( command )
-      records = []
-
-      parametersNames = ['id', 'name']
-      if retVal['OK']:
-        nb = 0
-        for i in retVal['Value']:
-          # records = [[i[0],i[1],i[2],i[3],i[4],i[5],i[6], i[7], i[8]]]
-          records = [ ['StepId', i[0]],
-                      ['StepName', i[1]],
-                      ['ApplicationName', i[2]],
-                      ['ApplicationVersion', i[3]],
-                      ['OptionFiles', i[4]],
-                      ['DDDB', i[5]],
-                      ['CONDDB', i[6]],
-                      ['ExtraPackages', i[7]],
-                      ['Visible', i[8]]]
-          step = 'Step-%s' % ( i[0] )
-          processing[step] = records
-          nb += 1
-        result = S_OK( {'Parameters':parametersNames, 'Records':processing, 'TotalRecords':nb} )
-      else:
+      if not retVal['OK']:
         result = retVal
-
+      else:
+        nb = 0
+        parametersNames = ['id', 'name']
+        for stepid, stepName, appName, appVersion, optionFiles, dddb, conddb, extrapackages, visible, _ in retVal['Value']:
+          records = [ ['StepId', stepid],
+                    ['StepName', stepName],
+                    ['ApplicationName', appName],
+                    ['ApplicationVersion', appVersion],
+                    ['OptionFiles', optionFiles],
+                    ['DDDB', dddb],
+                    ['CONDDB', conddb],
+                    ['ExtraPackages', extrapackages],
+                    ['Visible', visible]]
+          step = 'Step-%d' % stepid 
+          nb += 1
+          processing[step] = records
+     
+        result = S_OK( {'Parameters':parametersNames, 'Records':processing, 'TotalRecords':nb} )
+          
     return result
 
   #############################################################################
