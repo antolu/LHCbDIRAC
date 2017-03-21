@@ -37,7 +37,6 @@ class UploadOutputData( ModuleBase ):
     self.version = __RCSID__
     self.commandTimeOut = 10 * 60
     self.jobID = ''
-    self.failoverSEs = gConfig.getValue( '/Resources/StorageElementGroups/Tier1-Failover', [] )
     self.existingCatalogs = []
     result = gConfig.getSections( '/Resources/FileCatalogs' )
     if result['OK']:
@@ -51,6 +50,7 @@ class UploadOutputData( ModuleBase ):
     self.request = None
     self.failoverTransfer = None
     self.prodOutputLFNs = []
+    self.failoverSEs = None
 
   #############################################################################
   def _resolveInputVariables( self ):
@@ -72,7 +72,7 @@ class UploadOutputData( ModuleBase ):
     if self.workflow_commons.has_key( 'ProductionOutputData' ):
       self.prodOutputLFNs = self.workflow_commons['ProductionOutputData']
       if isinstance( self.prodOutputLFNs, basestring ):
-        self.prodOutputLFNs = [i.strip() for i in self.prodOutputLFNs.split( ';' )] #pylint: disable=no-member
+        self.prodOutputLFNs = [i.strip() for i in self.prodOutputLFNs.split( ';' )]  # pylint: disable=no-member
     else:
       self.log.info( "ProductionOutputData parameter not found, creating on the fly" )
       result = constructProductionLFNs( self.workflow_commons, self.bkClient )
@@ -80,6 +80,7 @@ class UploadOutputData( ModuleBase ):
         self.log.error( "Could not create production LFNs", result['Message'] )
         return result
       self.prodOutputLFNs = result['Value']['ProductionOutputData']
+
 
   #############################################################################
 
@@ -102,6 +103,10 @@ class UploadOutputData( ModuleBase ):
       super( UploadOutputData, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
                                                workflowStatus, stepStatus,
                                                wf_commons, step_commons, step_number, step_id )
+
+      # This returns all Tier1-Failover unless a specific one is defined for the site
+      self.failoverSEs = getDestinationSEList( 'Tier1-Failover', self.siteName, outputmode = 'Any' )
+      random.shuffle( self.failoverSEs )
 
       self._resolveInputVariables()
 
@@ -150,16 +155,18 @@ class UploadOutputData( ModuleBase ):
       # ##
 
       if self.inputDataList:
-        if fileDescendants != None:
-          result = fileDescendants
+        if fileDescendants is not None:
+          lfnsWithDescendants = fileDescendants
         else:
-          result = getFileDescendants( self.production_id, self.inputDataList,
-                                       dm = self.dataManager, bkClient = self.bkClient )
-        if not result:
+          lfnsWithDescendants = getFileDescendants( self.production_id, self.inputDataList,
+                                                    dm = self.dataManager, bkClient = self.bkClient )
+        if not lfnsWithDescendants:
           self.log.info( "No descendants found, outputs can be uploaded" )
         else:
           self.log.error( "Found descendants!!! Outputs won't be uploaded" )
-          self.log.info( "Files with descendants: %s" ', '.join( result ) )
+          self.log.info( "Files with descendants: %s" ' % '.join( lfnsWithDescendants ) )
+          self.log.info( "The files above will be set as 'Processed', other lfns in input will be later reset as Unused" )
+          self.fileReport.setFileStatus( int( self.production_id ), lfnsWithDescendants, 'Processed' )
           return S_ERROR( "Input Data Already Processed" )
 
 
@@ -309,10 +316,10 @@ class UploadOutputData( ModuleBase ):
 
       return S_OK( "Output data uploaded" )
 
-    except Exception as e: #pylint:disable=broad-except
+    except Exception as e:  # pylint:disable=broad-except
       self.log.exception( 'Exception in UploadOutputData', lException = e )
-      self.setApplicationStatus( repr(e) )
-      return S_ERROR( str(e) )
+      self.setApplicationStatus( repr( e ) )
+      return S_ERROR( str( e ) )
 
     finally:
       super( UploadOutputData, self ).finalize( self.version )
@@ -333,7 +340,7 @@ class UploadOutputData( ModuleBase ):
 
     for op in self.request:
       add = True
-      if op.Type in ['PutAndRegister', 'ReplicateAndRegister', 'RegisterFile', 'RegisterReplica']:
+      if op.Type in ['PutAndRegister', 'ReplicateAndRegister', 'RegisterFile', 'RegisterReplica', 'RemoveReplica']:
         for files in op:
           if files.LFN in lfnList:
             add = False

@@ -142,7 +142,7 @@ Creating the release tarball, add uploading it to the LHCb web service
 ``````````````````````````````````````````````````````````````````````
 Login on lxplus, run ::
 
-  lb-run LHCbDirac/latest bash -norc
+  lb-run LHCbDirac/prod bash -norc
 
   git archive --remote ssh://git@gitlab.cern.ch:7999/lhcb-dirac/LHCbDIRAC.git devel LHCbDIRAC/releases.cfg  | tar -x -v -f - --transform 's|^LHCbDIRAC/||' LHCbDIRAC/releases.cfg
 
@@ -166,7 +166,7 @@ if the release has been correctly created.
 At this `link <https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/>`_ you'll find some Jenkins Jobs ready to be started.
 Please start the following Jenkins jobs and come back in about an hour to see the results for all of them.
 
-1. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/RELEASE__pylint_unit/
+1. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/!RELEASE!__pylint_unit/ the !RELEASE! is the actual relase for example: https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/v8r5__pylint_unit/
 
 This job will: run pylint (errors only), run all the unit tests found in the system, assess the coverage.
 The job should be considered successful if:
@@ -176,12 +176,12 @@ The job should be considered successful if:
 - the coverage didn't drop from the previous job run
 
 
-2. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/RELEASE__pilot/
+2. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/!RELEASE!__pilot/
 
 This job will simply install the pilot. Please just check if the result does not show in an "unstable" status
 
 
-3. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/RELEASE__/
+3. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/!RELEASE!__/
 
    TODO
 
@@ -211,7 +211,7 @@ a quick test to validate the installation is to run the SHELL script $LHCBRELEAS
 
 go to this `web page <https://jenkins-lhcb-nightlies.web.cern.ch/job/nightly-builds/job/release/build/>`_ for asking to install the client release in AFS and CVMFS:
 
-* in the field "Project list" put : "Dirac vNrMpK LHCbDirac vArBpC"  (NOTE: If DIRAC already released, please use only LHCbDIRAC: LHCbDirac vArBpC)
+* in the field "Project list" put : "Dirac vNrMpK LHCbDirac vArBpC"  (NOTE: If LHCbGRID is already released, please use only DIRAC and LHCbDIRAC: DIRAC vNrMpK LHCbDirac vArBpC)
 * in the field "platforms" put : "x86_64-slc6-gcc48-opt x86_64-slc6-gcc49-opt"
 
 Then click on the "BUILD" button
@@ -224,8 +224,8 @@ If it is the production release, and only in this case, once satisfied by the bu
 take note of the build id (you can use the direct link icon) and make the request via https://sft.its.cern.ch/jira/browse/LHCBDEP.
 
 * NOTE: If some package is already released, please do not indicate in the Jira task. For example: a Jira task when:
-    * DIRAC is not released, then the message in the JIRA task: Summary:Dirac v6r14p37 and LHCbDirac v8r2p50; Description: Please release  Dirac and  LHCbDirac in  this order  based on build 1526
-    * DIRAC is released, then the message in the JIRA task: Summary:LHCbDirac v8r2p50;  Description: Please release  LHCbDirac based on build 1526
+    * DIRAC is not released, then the message in the JIRA task: Summary:Dirac v6r14p37 and LHCbDirac v8r2p50; Description: Please release  Dirac and  LHCbDirac in  this order  based on build 1526; Please you must deploy only x86_64-slc6-gcc49-opt platform
+    * DIRAC is released, then the message in the JIRA task: Summary:LHCbDirac v8r2p50;  Description: Please release  LHCbDirac based on build 1526; Please you must deploy only x86_64-slc6-gcc49-opt platform
 
 
 Server
@@ -251,7 +251,7 @@ The recommended way is the following::
 This command will create 6 files called "vobox_update_MyLetter" then you can run in 6 windows the recipe for one single machine like that::
 
 	    ssh lxplus
-	    cd  DiracInstall ; lb-run LHCbDIRAC/latest bash -norc ; lhcb-proxy-init -g lhcb_admin; dirac-admin-sysadmin-cli
+	    cd  DiracInstall ; lb-run LHCbDIRAC/prod bash -norc ; lhcb-proxy-init -g lhcb_admin; dirac-admin-sysadmin-cli
             and from the prompt ::
                [host] : execfile vobox_update_MyLetter
                [host] : quit
@@ -338,3 +338,32 @@ merging please create a new branch based on master using the web interface of Gi
     git checkout -b newMaster upstream/master
     git merge upstream/devel
     git push upstream newMaster:master
+
+
+5. Mesos cluster
+========================
+
+Mesos is currently only used for the certification.
+In order to push a new version on the Mesos cluster, 3 steps are needed:
+
+- Build the new image
+- Push it the lhcbdirac gitlab repository
+- Update the version of the running containers
+
+All these functionalities have been wrapped up in a script (dirac-docker-mgmt), available on all the lbmesosadm* machines (01, 02)
+
+The next steps are the following::
+
+    # build the new image
+    # this will download the necessary files, and build
+    # the image localy
+    dirac-docker-mgmt.py -v v8r5 --build
+
+    # Push it to the remote lhcbdirac registry
+    # Your credentials for gitlab will be asked
+    dirac-docker-mgmt.py -v v8r5 --release
+
+    # Update the version of the running containers
+    # The services and number of instances running
+    # will be preserved
+    dirac-docker-mgmt.py -v v8r5 --deploy

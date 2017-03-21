@@ -53,33 +53,38 @@ def cacheDirectories( directories ):
     dirShort2Long.setdefault( short, lfn )
 
   # # Cache BK path for directories
-  chunkSize = 100
-  gLogger.always( 'Getting cache metadata for %d directories' % len( dirShort2Long ) )
   # First try cached information in Data Usage DB
+  chunkSize = 1000
+  gLogger.always( 'Getting cache metadata for %d directories' % len( dirShort2Long ) )
+  dirMetadata = {}
+  for lfns in breakListIntoChunks( dirShort2Long.values(), chunkSize ):
+    res = duClient.getDirMetadata( lfns )
+    if not res['OK']:
+      gLogger.fatal( "\nError getting metadata from DataUsage", res['Message'] )
+    else:
+      dirMetadata.update( res['Value'] )
+
   invisible = set()
-  res = duClient.getDirMetadata( dirShort2Long.values() )
-  if not res['OK']:
-    gLogger.fatal( "\nError getting metadata from DataUsage", res['Message'] )
-    lfnsFromBK = set( dirShort2Long.values() )
-  else:
-    lfnsFromBK = set()
-    for lfn in dirSet:
-      longDir = dirShort2Long[dirLong2Short[lfn]]
-      metadata = res['Value'].get( longDir )
-      if metadata:
-        if len( metadata ) < 9 or metadata[8] != "N":
-          bkPathForLfn[lfn] = os.path.join( '/', metadata[1], metadata[2], metadata[3], metadata[4][1:], metadata[5], metadata[6] )
-          processingPass[bkPathForLfn[lfn]] = metadata[4]
-          prodForBKPath.setdefault( bkPathForLfn[lfn], set() ).add( metadata[7] )
-        else:
-          invisible.add( lfn )
+  lfnsFromBK = set()
+  for lfn in dirSet:
+    longDir = dirShort2Long[dirLong2Short[lfn]]
+    metadata = dirMetadata.get( longDir )
+    if metadata:
+      if len( metadata ) < 9 or metadata[8] != "N":
+        bkPathForLfn[lfn] = os.path.join( '/', metadata[1], metadata[2], metadata[3], metadata[4][1:], metadata[5], metadata[6] )
+        processingPass[bkPathForLfn[lfn]] = metadata[4]
+        prodForBKPath.setdefault( bkPathForLfn[lfn], set() ).add( metadata[7] )
       else:
-        lfnsFromBK.add( longDir )
+        invisible.add( lfn )
+    else:
+      lfnsFromBK.add( longDir )
+
   # For those not available ask the BK
+  chunkSize = 100
   if lfnsFromBK:
     gLogger.always( 'Getting BK metadata for %d directories' % len( lfnsFromBK ) )
     success = {}
-    for lfns in breakListIntoChunks( list( lfnsFromBK ), chunkSize ):
+    for lfns in breakListIntoChunks( lfnsFromBK, chunkSize ):
       while True:
         res = bkClient.getDirectoryMetadata( lfns )
         if not res['OK']:
@@ -265,7 +270,11 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb', csvFile = Non
   # set of used directories
   usedDirectories = set()
   storageTypes = ( 'Disk', 'Tape', 'Archived', 'All', 'LFN' )
-  storageSites = ( 'LCG.CERN.ch', 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr', 'LCG.PIC.es', 'LCG.RAL.uk', 'LCG.RRCKI.ru', 'LCG.SARA.nl' )
+  from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
+  try:
+    storageSites = DMSHelpers().getTiers( tier = ( 0, 1 ) )
+  except AttributeError:
+    storageSites = ( 'LCG.CERN.cern', 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr', 'LCG.PIC.es', 'LCG.RAL.uk', 'LCG.RRCKI.ru', 'LCG.SARA.nl' )
   cachedSESites = {}
   datasetStorage = {}
   for infoType in storageTypes:
@@ -288,7 +297,7 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb', csvFile = Non
   if getAllDatasets:
     # Get list of directories
     startTime = time.time()
-    res = FileCatalog().listDirectory( topDirectory if topDirectory[-1] == '/' else topDirectory + '/' )
+    res = FileCatalog().listDirectory( topDirectory )
     if not res['OK']:
       gLogger.fatal( "Cannot get list of directories", res['Message'] )
       DIRAC.exit( 1 )
@@ -490,4 +499,3 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb', csvFile = Non
     f.write( row + '\n' )
   f.close()
   gLogger.always( '\nSuccessfully wrote CSV file %s' % csvFile )
-

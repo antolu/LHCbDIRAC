@@ -1,6 +1,8 @@
 """ Client test
 """
 
+#pylint: disable=protected-access, missing-docstring, invalid-name, line-too-long
+
 import unittest
 
 from mock import MagicMock

@@ -9,7 +9,7 @@
 <Parameter name="Priority" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="UserPriority"><value><![CDATA[5]]></value></Parameter>
 <Parameter name="JobGroup" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="User specified job group"><value><![CDATA[00046403]]></value></Parameter>
 <Parameter name="JobName" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="User specified name"><value><![CDATA[00046403_00000134]]></value></Parameter>
-<Parameter name="Site" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="List of sites selected by user"><value><![CDATA[LCG.CERN.ch]]></value></Parameter>
+<Parameter name="Site" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="List of sites selected by user"><value><![CDATA[LCG.CERN.cern]]></value></Parameter>
 <Parameter name="Origin" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Origin of client"><value><![CDATA[DIRAC]]></value></Parameter>
 <Parameter name="StdOutput" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Standard output file"><value><![CDATA[std.out]]></value></Parameter>
 <Parameter name="StdError" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Standard error file"><value><![CDATA[std.err]]></value></Parameter>

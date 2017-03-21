@@ -22,7 +22,7 @@
 <Parameter name="InputSandbox" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Input sandbox file list"><value><![CDATA[exe-script.py;helloWorld.py;pilot.cfg]]></value></Parameter>
 <Parameter name="TotalSteps" type="String" linked_module="" linked_parameter="" in="True" out="False" description="Total number of steps"><value><![CDATA[1]]></value></Parameter>
 <Parameter name="MaxCPUTime" type="JDLReqt" linked_module="" linked_parameter="" in="True" out="False" description="CPU time in secs"><value><![CDATA[172800]]></value></Parameter>
-<Parameter name="BannedSites" type="JDLReqt" linked_module="" linked_parameter="" in="True" out="False" description="List of sites excluded by user"><value><![CDATA[LCG.CERN.ch;LCG.CNAF.it;LCG.GRIDKA.de;LCG.IN2P3.fr;LCG.NIKHEF.nl;LCG.PIC.es;LCG.RAL.uk;LCG.SARA.nl]]></value></Parameter>
+<Parameter name="BannedSites" type="JDLReqt" linked_module="" linked_parameter="" in="True" out="False" description="List of sites excluded by user"><value><![CDATA[LCG.CERN.cern;LCG.CNAF.it;LCG.GRIDKA.de;LCG.IN2P3.fr;LCG.NIKHEF.nl;LCG.PIC.es;LCG.RAL.uk;LCG.SARA.nl]]></value></Parameter>
 <ModuleDefinition>
 <body><![CDATA[
 from LHCbDIRAC.Workflow.Modules.CreateDataFile import CreateDataFile

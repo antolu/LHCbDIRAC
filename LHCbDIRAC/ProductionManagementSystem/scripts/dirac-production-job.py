@@ -11,7 +11,7 @@
         --status              Job major status e.g. "Active"
         --minorStatus         Job minor status e.g. "Input Data Resolution"
         --applicationStatus   Job application status e.g. "unknown"
-        --site                Site where the job runs e.g. "LCG.CERN.ch"
+        --site                Site where the job runs e.g. "LCG.CNAF.it"
         --owner               DIRAC username that owns the job
         --jobGroup            JobGroup the job belongs to e.g. "Test"
         --date                Date on yyyy-mm-dd format e.g. "2012-12-21"
@@ -29,12 +29,12 @@ __RCSID__ = "$Id$"
 
 
 # Place holders for lazy imports................................................
-dirac          = None
+dirac = None
 jobInfoFromXML = None
-transClient    = None
+transClient = None
 
-subLogger      = None
-switchDict     = {}
+subLogger = None
+switchDict = {}
 
 
 def registerSwitches():
@@ -79,7 +79,7 @@ def parseSwitches():
   return switchDict
 
 
-#...............................................................................
+# ...............................................................................
 
 def getJobs():
   """
@@ -136,7 +136,7 @@ def processJobs( jobs ):
   for job in jobs:
 
     jobinfo = jobInfoFromXML( job )
-    result  = jobinfo.valid()
+    result = jobinfo.valid()
     if not result[ 'OK' ]:
       subLogger.error( '%s %s' % ( job, result[ 'Message' ] ) )
       continue
@@ -193,7 +193,7 @@ def run():
   processJobs( jobs )
 
 
-#...............................................................................
+# ...............................................................................
 
 def lazyImports():
 
@@ -207,10 +207,10 @@ def lazyImports():
 
   global transClient
   from DIRAC.Core.DISET.RPCClient import RPCClient
-  transClient = RPCClient( 'Transformation/TransformationManager')
+  transClient = RPCClient( 'Transformation/TransformationManager' )
 
 
-#...............................................................................
+# ...............................................................................
 
 if __name__ == "__main__":
 
@@ -228,5 +228,5 @@ if __name__ == "__main__":
   # Bye my friend
   DiracExit( 0 )
 
-#...............................................................................
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+# ...............................................................................
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

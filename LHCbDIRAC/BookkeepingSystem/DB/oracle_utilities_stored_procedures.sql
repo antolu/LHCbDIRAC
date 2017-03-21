@@ -14,6 +14,7 @@ procedure updateNbevt(v_production number);
 procedure updateJobNbofevt(v_jobid number);
 procedure updateEventInputStat(v_production number, fixstripping BOOLEAN);
 procedure updateJobEvtinpStat(v_jobid number, fixstripping BOOLEAN);
+PROCEDURE destroyDatasets;
 
 end;
 /
@@ -102,5 +103,46 @@ BEGIN
  END IF;
 END;
 
+PROCEDURE destroyDatasets IS
+runsteps numberarray;
+productionsteps numberarray;
+i number;
+v_production number;
+BEGIN
+	v_production:=2; /*this must be same as in the integration test: LHCbDIRAC/tests/Integration/BookkeepingSystem/Test_Bookkeeping.py*/
+	/*delete run data*/
+	DELETE productionscontainer WHERE production=-1122;
+	i:=1;/*before we delete the steps from the stepcontainer table, the steps must be saved*/
+	FOR step IN (SELECT stepid FROM stepscontainer WHERE production=-1122) LOOP
+		runsteps(i):=step.stepid;
+		i:=i+1;
+		dbms_output.put_line('run Step:' || step.stepid);
+	END LOOP;
+	DELETE stepscontainer WHERE production=-1122;
+	DELETE runstatus WHERE runnumber=1122;
+	DELETE files WHERE jobid in (SELECT jobid FROM jobs WHERE runnumber=1122);
+	DELETE jobs WHERE runnumber=1122;
+	FOR i in 1 .. runsteps.COUNT LOOP
+		dbms_output.put_line('run step delete:' || runsteps(i));
+		DELETE steps WHERE stepid=runsteps(i);
+	END LOOP;	
+	/* delete production data */
+	i:=1;
+	/*before we delete the steps from the stepcontainer table, the steps must be saved*/
+	FOR step IN (SELECT stepid FROM stepscontainer WHERE production=v_production) LOOP
+		productionsteps(i):=step.stepid;
+		i:=i+1;
+		dbms_output.put_line('production step:' || step.stepid);
+	END LOOP;
+	DELETE productionscontainer WHERE production=v_production;
+	DELETE stepscontainer WHERE production=v_production;	
+	DELETE files WHERE jobid in (SELECT jobid FROM jobs WHERE production=v_production);
+	DELETE jobs WHERE production=v_production;
+	FOR i in 1 .. productionsteps.COUNT LOOP
+		dbms_output.put_line('production step delete:' || productionsteps(i));
+		DELETE steps WHERE stepid=productionsteps(i);
+	END LOOP;
+	COMMIT;
+END;
 END;
 /

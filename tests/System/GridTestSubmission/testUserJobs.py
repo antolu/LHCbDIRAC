@@ -9,6 +9,7 @@ from DIRAC.tests.Utilities.utils import find_all
 
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
+from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
 from tests.Workflow.Integration.test_UserJobs import createJob
 
 gLogger.setLevel( 'DEBUG' )
@@ -28,14 +29,19 @@ helloJ.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[
 helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 
 helloJ.setCPUTime( 17800 )
-helloJ.setBannedSites( ['LCG.CERN.ch', 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr',
-                        'LCG.NIKHEF.nl', 'LCG.PIC.es', 'LCG.RAL.uk', 'LCG.SARA.nl'] )
+try:
+  tier1s = DMSHelpers().getTiers( tier = ( 0, 1 ) )
+except AttributeError:
+  tier1s = ['LCG.CERN.cern', 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr',
+            'LCG.NIKHEF.nl', 'LCG.PIC.es', 'LCG.RAL.uk', 'LCG.RRCKI.ru', 'LCG.SARA.nl']
+cernSite = [s for s in tier1s if '.CERN.' in s][0]
+helloJ.setBannedSites( tier1s )
 result = dirac.submit( helloJ )
 gLogger.info( "Hello world job: ", result )
 
 ########################################################################################
 
-gLogger.info( "\n Submitting hello world job targeting LCG.CERN.ch" )
+gLogger.info( "\n Submitting hello world job targeting %s" % cernSite )
 
 helloJ = LHCbJob()
 dirac = DiracLHCb()
@@ -45,7 +51,7 @@ helloJ.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[
 helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 
 helloJ.setCPUTime( 17800 )
-helloJ.setDestination( 'LCG.CERN.ch' )
+helloJ.setDestination( cernSite )
 result = dirac.submit( helloJ )
 gLogger.info( "Hello world job: ", result )
 

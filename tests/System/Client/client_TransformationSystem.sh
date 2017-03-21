@@ -13,8 +13,13 @@ echo " "
 #Values to be used
 userdir=$( echo "$USER" |cut -c 1)/$USER
 stamptime=$(date +%Y%m%d_%H%M%S)
+stime=$(date +"%H%M%S")
+tdate=$(date +"20%y-%m-%d")
+ttime=$(date +"%R")
+# version=${dirac-version}  +++Script is broken
+version=v6r16
 mkdir -p TransformationSystemTest
-directory=/lhcb/test/CertificationTests/$userdir/TransformationSystemTest/$stamptime
+directory=/lhcb/certification/Test/INIT/$version/$tdate/$stime
 #selecting a random USER Storage Element
 #SEs=$(dirac-dms-show-se-status |grep USER |grep -v 'Banned\|Degraded\|-2' | awk '{print $1}')
 
@@ -47,27 +52,34 @@ echo "Creating unique test files and adding entry to the bkk"
 ./client_Bookkeeping.sh --Files=5 --Name="Test_Transformation_System_" \
   --Path=$PWD/TransformationSystemTest/
 
-
 # Add the random files to the transformation
 echo ""
 echo "Adding files to Storage Element $randomSE"
-filesToUpload=$(ls TransformationSystemTest/)
-for file in $filesToUpload
-do
-	random=$[ $RANDOM % $x ]
-	randomSE=${arrSE[$random]}
-	echo "$directory/$file \
-	     ./TransformationSystemTest/$file $randomSE" \
-	     >> TransformationSystemTest/LFNlist.txt
-done
-dirac-dms-add-file TransformationSystemTest/LFNlist.txt
+# filesToUpload=$(ls TransformationSystemTest/)
+# for file in $filesToUpload
+# do
+# 	random=$[ $RANDOM % $x ]
+# 	randomSE=${arrSE[$random]}
+# 	echo "$directory/$file \
+# 	     ./TransformationSystemTest/$file $randomSE" \
+# 	     >> TransformationSystemTest/LFNlist.txt
+# done
 
-LFNlist=$(cat TransformationSystemTest/LFNlist.txt | awk -vORS=, '{print $1}')
+while IFS= read -r line
+do 
+    random=$[ $RANDOM % $x ]
+    randomSE=${arrSE[$random]}
+    echo "$line $randomSE"
+done < LFNlist.txt >> ./LFNlistNew.txt
+
+dirac-dms-add-file LFNlistNew.txt
+
+LFNlist=$(cat LFNlist.txt | awk -vORS=, '{print $1}')
 
 echo ""
 echo "Adding the files to the test production"
-dirac-transformation-add-files $transID \
- --LFNs=$LFNlist
+dirac-transformation-add-files $transID --LFNs=$LFNlist
+
 if [ $? -ne 0 ]
 then
    exit $?

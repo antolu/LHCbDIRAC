@@ -1,19 +1,20 @@
 """ NagiosConnector is a utility to publish checks on job results to the
     IT-based SAM/Nagios framework. The publishing is done by messaging
-    via an ActiveMQ-Broker specified in the configuration 
-    (It expects values for MsgBroker, MsgPort,  MsgQueue and NagiosName). 
+    via an ActiveMQ-Broker specified in the configuration
+    (It expects values for MsgBroker, MsgPort,  MsgQueue and NagiosName).
     For the message to arrive, it is essential to publish to the right queue,
     which is also specified in the configuration.
-    The message is built using a dictionary passed to one of the methods, 
+    The message is built using a dictionary passed to one of the methods,
     which should contain the keys 'SAMResults' 'SAMDetails' 'GridRequiredCEs'.
 """
 
-__RCSID__ = "$Id$"
+import datetime
+import stomp
 
 from DIRAC import gLogger, gConfig
-
-import datetime, stomp
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+
+__RCSID__ = "$Id$"
 
 
 class NagiosConnector( object ):
@@ -43,7 +44,7 @@ class NagiosConnector( object ):
       self.config['MsgPort'] = 6163
 
   def useDebugMessage( self ):
-    """Load a sample message for debugging""" 
+    """Load a sample message for debugging"""
     self.message = """hostName: ce.hpc.iit.bme.hu
 metricStatus: OK
 timestamp: 2013-11-09T17:59:19Z
@@ -67,14 +68,14 @@ EOT"""
                        nagiosName = 'no nagiosName given' ):
     """Brings message information to the generic format required by Nagios.
     """
-    
+
     statuscodes = {0: 'OK', 1: 'CRITICAL', 2: 'WARNING', 3: 'UNKNOWN'}
     if status in ['CRITICAL', 'OK', 'WARNING', 'UNKNOWN']:
       pass
     elif status in xrange(4):
       status = statuscodes[ status ]
 
-      
+
 
       currentTime = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
       message = ""
@@ -95,7 +96,7 @@ EOT"""
       message += "EOT\n"
       self.message = message
 
-  def initializeConnection( self,    
+  def initializeConnection( self,
                             _use_ssl = False,
                             _ssl_key_file = None,
                             _ssl_cert_file = None,
@@ -103,13 +104,13 @@ EOT"""
                             _ssl_cert_validator = None  ):
     """Connect the conn object with the Broker read from configuration.
     Refer to the stomppy documentation for authentication args details. In short:
-    use_ssl:  connect using SSL to the socket. 
-              This wraps the socket in a SSL connection. 
-              The constructor will raise an exception if you ask for SSL, 
+    use_ssl:  connect using SSL to the socket.
+              This wraps the socket in a SSL connection.
+              The constructor will raise an exception if you ask for SSL,
               but it can't find the SSL module.
     ssl_cert_file:  the path to a X509 certificate
     ssl_key_file: the path to a X509 key file
-    ssl_ca_certs:  the path to the a file containing CA certificates to validate the server against. 
+    ssl_ca_certs:  the path to the a file containing CA certificates to validate the server against.
     ssl_cert_validator:  function which performs extra validation on the client certificate
     """
     try:
@@ -126,7 +127,7 @@ EOT"""
       self.conn.connect()
     except stomp.exception.ConnectFailedException, e:
       gLogger.error( 'Error establishing connection: %s' % e )
-    
+
   def sendMessage( self ):
     """Use the conn object to send a message to the broker.
      If the format and the configurations are correct,
@@ -134,12 +135,12 @@ EOT"""
 
     if not self.message:
       gLogger.error(  'The message string is empty!' )
-    self.conn.send( message = self.message, destination = self.config[ 'MsgQueue' ] )
-    gLogger.verbose( 'Message sent to %s on %s' % ( self.config[ 'MsgBroker' ], 
+    self.conn.send( destination = self.config[ 'MsgQueue' ], body = self.message  )
+    gLogger.verbose( 'Message sent to %s on %s' % ( self.config[ 'MsgBroker' ],
                                                     self.config[ 'MsgQueue'] ) )
     gLogger.verbose( 'Message content %s' %  self.message )
 
-    
+
   def endConnection( self ):
     """Call disconnect() on the conn object."""
     self.conn.disconnect()

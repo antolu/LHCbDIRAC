@@ -1,12 +1,12 @@
 {
   "name": "LHCbDirac",
-  "version": "v8r4p4",
+  "version": "v8r6",
   "used_projects": {
     "project": [
-      [ "Dirac", "v6r16p1",
+      [ "Dirac", "v6r17p13",
         [ "bin", "python", "lib" ]
       ],
-      [ "LHCbGrid", "v11r1",
+      [ "LHCbGrid", "v11r3",
         [ "bin", "python", "lib" ]
       ]
     ]
@@ -30,10 +30,16 @@
       [ "mysql", "5.7.11",
         [ "bin", "python", "lib" ]
       ],
+      [ "pyparsing", "2.1.8",
+        [ "bin", "python" ]
+      ],
       [ "pytools", "2.0",
         [ "bin", "python" ]
       ],
       [ "simplegeneric", "0.8.1",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "wcwidth", "0.1.7",
         [ "bin", "python", "lib" ]
       ],
       [ "prompt_toolkit", "1.0.3",

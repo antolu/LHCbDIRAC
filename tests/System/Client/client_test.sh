@@ -1,4 +1,4 @@
-#!/bin/bash			
+#!/bin/bash
 
 
 dir=$( echo "$USER" |cut -c 1)/$USER
@@ -32,8 +32,8 @@ then
    exit $?
 fi
 echo " "
-echo "======   dirac-admin-site-info LCG.CERN.ch"
-dirac-admin-site-info LCG.CERN.ch
+echo "======   dirac-admin-site-info LCG.CERN.cern"
+dirac-admin-site-info LCG.CERN.cern
 if [ $? -ne 0 ]
 then
    exit $?
@@ -145,7 +145,7 @@ ls DMS_Scripts_Test_File.txt
 if [ $? -ne 0 ]
 then
    exit $?
-else 
+else
    echo "File downloaded properly"
 fi
 echo " "
@@ -168,4 +168,3 @@ then
    exit $?
 fi
 echo " "
-

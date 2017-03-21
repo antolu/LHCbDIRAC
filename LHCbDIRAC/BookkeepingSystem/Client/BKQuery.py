@@ -6,6 +6,7 @@ __RCSID__ = "$Id$"
 
 import os
 import sys
+from fnmatch import fnmatch
 from DIRAC import gLogger
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
@@ -18,14 +19,15 @@ def getProcessingPasses( bkQuery, depth = 0 ):
   The search for processing passes may be limited to a certain depth (default: all)
   """
   processingPass = bkQuery.getProcessingPass()
-  if not processingPass.endswith( '...' ):
+  if '...' not in processingPass:
     return [processingPass]
-  basePass = os.path.dirname( processingPass )
-  wildPass = os.path.join( basePass, os.path.basename( processingPass ).replace( '...', '' ) )
+  ind = processingPass.index( '...' )
+  basePass = os.path.dirname( processingPass[:ind] )
+  wildPass = processingPass.replace( '...', '*' )
   bkQuery.setProcessingPass( basePass )
-  return sorted( processingPass for processingPass in bkQuery.getBKProcessingPasses() \
-                 if processingPass.startswith( wildPass ) and processingPass != basePass and \
-                 ( not depth or len( processingPass.replace( basePass, '' ).split( '/' ) ) == ( depth + 1 ) ) )
+  return sorted( pp for pp in bkQuery.getBKProcessingPasses() \
+                 if fnmatch( pp, wildPass ) and pp != basePass and \
+                 ( not depth or len( pp.replace( basePass, '' ).split( '/' ) ) == ( depth + 1 ) ) )
 
 def makeBKPath( bkDict ):
   """

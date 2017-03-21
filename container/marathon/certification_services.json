@@ -1,0 +1,25 @@
+{
+   "DataManagement": {
+      "DataIntegrity": {
+         "port": "9150"
+      },
+      "DataUsage": {
+         "port": "9164"
+      },
+      "StorageUsage": {
+         "port": "9151"
+      },
+      "FileCatalog": {
+         "instances": 2,
+         "port": "9197"
+      }
+   },
+   "RequestManagement": {
+      "ReqManager": {
+         "port": "9140"
+      },
+      "ReqProxy": {
+         "port": "9161"
+      }
+   }
+}

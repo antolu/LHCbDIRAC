@@ -8,9 +8,7 @@ from DIRAC import gLogger
 from DIRAC.Core.Utilities.List import breakListIntoChunks
 
 def __removeFile( lfns ):
-  if isinstance( lfns, dict ):
-    lfns = lfns.keys()
-  elif isinstance( lfns, basestring ):
+  if isinstance( lfns, basestring ):
     lfns = [lfns]
   from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import removeFiles
   removeFiles( lfns )
@@ -68,9 +66,12 @@ def doCheckFC2SE( cc, bkCheck = True, fixIt = False, replace = False ):
       prStr = ' (first %d)' % maxFiles
     else:
       prStr = ''
-    gLogger.error( "%d files are in the FC but have replica = NO in BK%s:\nAffected runs: %s\n%s" %
-                   ( len( cc.existLFNsBKRepNo ), prStr, ','.join( sorted( affectedRuns ) if affectedRuns else 'None' ),
-                     '\n'.join( sorted( cc.existLFNsBKRepNo )[0:maxFiles] ) ) )
+    gLogger.error( "%d files are in the FC but have replica = NO in BK%s:\nAffected runs: %s" %
+                   ( len( cc.existLFNsBKRepNo ), prStr, ','.join( sorted( affectedRuns ) if affectedRuns else 'None' ) ) )
+    if not gLogger.info( '\n'.join( sorted( cc.existLFNsBKRepNo ) ) ):
+      if len( cc.existLFNsBKRepNo ) > maxFiles:
+        gLogger.notice( 'First %d files:' % maxFiles )
+      gLogger.error( '\n'.join( sorted( cc.existLFNsBKRepNo )[0:maxFiles] ) )
     if fixIt:
       gLogger.notice( "Going to fix them, setting the replica flag" )
       res = bk.addFiles( cc.existLFNsBKRepNo.keys() )
@@ -112,8 +113,10 @@ def doCheckFC2SE( cc, bkCheck = True, fixIt = False, replace = False ):
     seOK = False
     gLogger.error( "%d files are in the BK and FC but are missing at some SEs" % len( cc.existLFNsNoSE ) )
     fixStr = "removing them from catalogs" if not replace else "re-replicating them"
-    for lfn in cc.existLFNsNoSE:
-      gLogger.info( lfn )
+    if not gLogger.info( '\n'.join( cc.existLFNsNoSE ) ):
+      if len( cc.existLFNsNoSE ) > maxFiles:
+        gLogger.notice( 'First %d files:' % maxFiles )
+      gLogger.error( '\n'.join( cc.existLFNsNoSE[0:maxFiles] ) )
     if fixIt:
       gLogger.notice( "Going to fix, " + fixStr )
       removeLfns = []
@@ -147,8 +150,10 @@ def doCheckFC2SE( cc, bkCheck = True, fixIt = False, replace = False ):
     if cc.existLFNsNotExisting:
       gLogger.error( "%d files don't exist at any SE" % len( cc.existLFNsNotExisting ) )
     toRemove = sorted( set( cc.existLFNsBadFiles ) | set( cc.existLFNsNotExisting ) )
-    for lfn in toRemove:
-      gLogger.info( lfn )
+    if not gLogger.info( '\n'.join( toRemove ) ):
+      if len( toRemove ) > maxFiles:
+        gLogger.notice( 'First %d files:' % maxFiles )
+      gLogger.error( '\n'.join( toRemove[0:maxFiles] ) )
     if fixIt:
       gLogger.notice( "Going to fix them, removing files from catalogs and storage" )
       __removeFile( toRemove )
@@ -163,7 +168,7 @@ def doCheckFC2SE( cc, bkCheck = True, fixIt = False, replace = False ):
     seOK = False
     gLogger.error( "%d replicas have a bad checksum" % len( cc.existLFNsBadReplicas ) )
     for lfn, se in cc.existLFNsBadReplicas.iteritems():
-      gLogger.info( '%s @ %s' % ( lfn, ','.join( sorted( se ) ) ) )
+      gLogger.error( '%s @ %s' % ( lfn, ','.join( sorted( se ) ) ) )
     fixStr = "remove replicas from SE and catalogs" if not replace else "re-replicating them"
     if fixIt:
       gLogger.notice( "Going to fix, " + fixStr )
@@ -204,25 +209,42 @@ def doCheckFC2BK( cc, fixIt = False, listAffectedRuns = False ):
     gLogger.notice( "====== Now checking %d files from FC to SE ======" % len( cc.existLFNsBKRepNo ) )
     ccAux.lfns = cc.existLFNsBKRepNo.keys()
     doCheckFC2SE( ccAux, False, fixIt )
-    cc.existLFNsBKRepNo = [lfn for lfn in cc.existLFNsBKRepNo if lfn not in ccAux.existLFNsNoSE and lfn not in ccAux.existLFNsBadFiles]
+    cc.existLFNsBKRepNo = sorted( set( cc.existLFNsBKRepNo ) - set( ccAux.existLFNsNoSE ) -
+                                set( ccAux.existLFNsNotExisting ) - set( ccAux.existLFNsBadFiles ) )
     if cc.existLFNsBKRepNo:
-      if len( cc.existLFNsBKRepNo ) > maxFiles:
-        prStr = ' (first %d)' % maxFiles
-      else:
-        prStr = ''
-      gLogger.notice( "====== Completed, %d files still in the FC but have replica = NO in BK%s ======" % ( len( cc.existLFNsBKRepNo ), prStr ) )
-      gLogger.error( '\n'.join( sorted( cc.existLFNsBKRepNo )[0:maxFiles] ) )
+      gLogger.notice( "====== Completed, %d files are in the FC and SE but have replica = NO in BK%s ======"
+                      % ( len( cc.existLFNsBKRepNo ) ) )
+      res = bk.getFileMetadata( cc.existLFNsBKRepNo )
+      if not res['OK']:
+        gLogger.fatal( "Unable to get file metadata", res['Message'] )
+        return
+      if res['Value']['Failed']:
+        gLogger.error( "No metadata found for some files", '%d files' % len( res['Value']['Failed'] ) )
+      success = res['Value']['Successful']
+      filesInvisible = set( lfn for lfn, meta in success.iteritems() if meta['VisibilityFlag'][0].upper() == 'N' )
+      filesVisible = set( success ) - filesInvisible
+      gLogger.notice( '%d files are visible, %d files are invisible' % \
+                      ( len( filesVisible ), len( filesInvisible ) ) )
+      # Try and print the whole as INFO (in case --Verbose was used). If nothing printed, print a limited number of files as ERROR
+      if not gLogger.info( '\n'.join( '%s : Visi %s' % ( lfn, success.get( lfn, {} ).get( 'VisibilityFlag', '?' ) ) \
+                                      for lfn in sorted( cc.existLFNsBKRepNo ) ) ):
+        if len( cc.existLFNsBKRepNo ) > maxFiles:
+          gLogger.notice( 'First %d files:' % maxFiles )
+        gLogger.error( '\n'.join( '%s : Visi %s' % ( lfn, success.get( lfn, {} ).get( 'VisibilityFlag', '?' ) ) \
+                                  for lfn in sorted( cc.existLFNsBKRepNo )[0:maxFiles] ) )
       if listAffectedRuns:
         gLogger.notice( 'Affected runs: %s' % ','.join( affectedRuns ) )
       if fixIt:
-        gLogger.notice( "Going to fix them, setting the replica flag" )
-        res = bk.addFiles( cc.existLFNsBKRepNo )
+        gLogger.notice( "Going to fix them, setting the replica flag for visible files, removing invisible ones" )
+        res = bk.addFiles( list( filesVisible ) )
         if res['OK']:
-          gLogger.notice( "\tSuccessfully added replica flag" )
+          gLogger.notice( "\tSuccessfully added replica flag to %d files" % len( filesVisible ) )
         else:
           gLogger.error( 'Failed to set the replica flag', res['Message'] )
+        if filesInvisible:
+          __removeFile( filesInvisible )
       else:
-        gLogger.notice( "Use --FixIt to fix it (set the replica flag)" )
+        gLogger.notice( "Use --FixIt to fix it (set the replica flag for visible files, remove invisible ones)" )
     else:
       gLogger.notice( "====== Completed, no files in the FC with replica = NO in BK%s ======" )
     gLogger.notice( '<<<<' )
@@ -233,13 +255,11 @@ def doCheckFC2BK( cc, fixIt = False, listAffectedRuns = False ):
   if cc.existLFNsNotInBK:
     gLogger.notice( '>>>>' )
 
-    if len( cc.existLFNsNotInBK ) > maxFiles:
-      prStr = ' (first %d)' % maxFiles
-    else:
-      prStr = ''
-    gLogger.error( "%d files are in the FC but are NOT in BK%s:\n%s" %
-                   ( len( cc.existLFNsNotInBK ), prStr,
-                     '\n'.join( sorted( cc.existLFNsNotInBK[0:maxFiles] ) ) ) )
+    gLogger.error( "%d files are in the FC but are NOT in BK:" % len( cc.existLFNsNotInBK ) )
+    if not gLogger.info( '\n'.join( sorted( cc.existLFNsNotInBK ) ) ):
+      if len( cc.existLFNsNotInBK ) > maxFiles:
+        gLogger.notice( 'First %d files:' % maxFiles )
+      gLogger.error( '\n'.join( sorted( cc.existLFNsNotInBK[0:maxFiles] ) ) )
     if fixIt:
       gLogger.notice( "Going to fix them, by removing from the FC and storage" )
       __removeFile( cc.existLFNsNotInBK )

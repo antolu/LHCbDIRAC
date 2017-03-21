@@ -4,7 +4,7 @@
 # Author :  Ph. Charpentier
 ########################################################################
 """
-  Gets the metadata of a (list of) LHCb LFNs/PFNs given a valid DIRAC SE.
+  Gets the metadata of a (list of) LHCb LFNs/PFNs given a valid DIRAC SE (or for all replicas)
   Only the LFN contained in the PFN is considered, unlike the DIRAC similar script
 """
 __RCSID__ = "$Id$"

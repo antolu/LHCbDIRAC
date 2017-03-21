@@ -1,14 +1,82 @@
 """ LHCb-specific pilot commands
 """
 
+import os
 import subprocess
-import os.path
 import sys
 
 from pilotCommands import GetPilotVersion, InstallDIRAC, ConfigureBasics, ConfigureCPURequirements, ConfigureSite, ConfigureArchitecture #pylint: disable=import-error
 from pilotTools import CommandBase #pylint: disable=import-error
 
 __RCSID__ = "$Id$"
+
+
+############################################################## Utilities functions
+
+def invokeCmd( cmd, environment ):
+  """ Controlled invoke of command via subprocess.Popen
+
+  :param env: environment in a dict
+  :type env: dict
+  """
+  print "Executing %s" % cmd
+  cmdExecution = subprocess.Popen( cmd, shell = True, env = environment,
+                                   stdout = subprocess.PIPE, stderr = subprocess.PIPE, close_fds = False )
+  if cmdExecution.wait() != 0:
+    for line in cmdExecution.stderr:
+      sys.stdout.write( line )
+    raise OSError( "Can't do %s" % cmd )
+
+  for line in cmdExecution.stdout:
+    sys.stdout.write( line )
+
+def parseEnvironmentFile( eFile ):
+  """ getting the produced environment saved in the file
+
+  :param eFile: file where to save env
+  :type eFile: str
+
+  :return: environment
+  :rtype: dict
+  """
+  environment = {}
+  fp = open( eFile, 'r' )
+  for line in fp:
+    try:
+      var = line.split( '=' )[0].strip()
+      value = '='.join( line.split( "=" )[1:] ).strip()
+      if '{' in value: # horrible hack... (there's a function that ends in the next line...)
+        value = value + '\n}'
+      if value:
+        environment[var] = value
+    except IndexError:
+      continue
+  fp.close()
+  return environment
+
+def saveEnvInFile( env, eFile ):
+  """ Save environment in file (delete if already present)
+
+  :param env: environment in a dict
+  :type env: dict
+  :param eFile: file where to save env
+  :type eFile: str
+  """
+  if os.path.isfile( eFile ):
+    os.remove( eFile )
+
+  fd = open( eFile, 'w' )
+  for var, val in env.iteritems():
+    if var == '_' or 'SSH' in var or '{' in val or '}' in val:
+      continue
+    if ' ' in val and val[0] != '"':
+      val = '"%s"' % val
+    bl = "export %s=%s\n" % ( var, val.rstrip(":") )
+    fd.write( bl )
+  fd.close()
+
+
+############################################################## LHCb pilot commands
 
 class LHCbCommandBase( CommandBase ):
   """ Simple extension, just for LHCb parameters
@@ -22,10 +90,13 @@ class LHCbCommandBase( CommandBase ):
     pilotParams.architectureScript = 'dirac-architecture'
 
 class LHCbGetPilotVersion( LHCbCommandBase, GetPilotVersion ):
+  """ Base is enough (pilotParams.pilotCFGFile = 'LHCb-pilot.json')
+  """
   pass
 
 class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
-  """ Try lb-run LHCbDIRAC and fall back to dirac-install when the requested version is not in CVMFS
+  """ Try lb-run LHCbDIRAC and fall back to dirac-install when the requested version is not in CVMFS.
+      When we reach here we expect to know the release version to install
   """
 
   def execute( self ):
@@ -34,85 +105,56 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
     try:
       # also setting the correct environment to be used by dirac-configure, or whatever follows
       # (by default this is not needed, since with dirac-install works in the local directory)
+      try:
+        self.pp.installEnv = self._do_lb_login()
+      except OSError, e:
+        self.log.error( "Invocation of LbLogin NOT successful ===> +++ABORTING+++" )
+        sys.exit( 1 )
+      self.log.info( "LbLogin DONE" )
       self.pp.installEnv = self._do_lb_run()
       self.log.info( "lb-run DONE, for release %s" % self.pp.releaseVersion )
 
-      # saving also in bashrc file for completeness... this is doing some horrible mangling unfortunately!
-      fd = open( 'bashrc', 'w' )
-      for var, val in self.pp.installEnv.iteritems():
-        if var == '_' or 'SSH' in var or '{' in val or '}' in val:
-          continue
-        bl = "%s=%s\n" % ( var, val )
-        fd.write( bl )
-      fd.close()
-
     except OSError, e:
-      print "Exception when trying lbrun:", e
+      self.log.error( "Exception when trying lbrun:", e )
       self.log.warn( "lb-run NOT DONE: starting traditional DIRAC installation" )
       super( LHCbInstallDIRAC, self ).execute()
 
-      # saving as installation environment
-      self.pp.installEnv = os.environ
+    finally:
+      # saving also in environmentLHCbDirac file for completeness... this is doing some horrible mangling unfortunately!
+      # The content of environmentLHCbDirac will be the same as the content of environmentLbRunDirac if lb-run LHCbDIRAC is successful
+      saveEnvInFile(self.pp.installEnv, 'environmentLHCbDirac')
+
+
+  def _do_lb_login( self ):
+    """ do LbLogin. If it doesn't work, the invokeCmd will raise OSError
+    """
+    environment = os.environ.copy()
+    if 'LHCb_release_area' not in environment:
+      environment['LHCb_release_area'] = '/cvmfs/lhcb.cern.ch/lib/lhcb/'
+
+    # check for need of devLbLogin
+    if 'devLbLogin' in self.pp.genericOption:
+      invokeCmd( '. $LHCb_release_area/LBSCRIPTS/dev/InstallArea/scripts/LbLogin.sh && printenv > environmentLbLogin',
+                 environment )
+    else:
+      invokeCmd( '. $LHCb_release_area/LBSCRIPTS/prod/InstallArea/scripts/LbLogin.sh && printenv > environmentLbLogin',
+                 environment )
+
+    return parseEnvironmentFile( 'environmentLbLogin' )
 
   def _do_lb_run( self ):
     """ do lb-run LHCbDIRAC of the requested version. If the version does not exist, raise OSError
     """
-
-    def __parseEnvironmentFile( eFile ):
-      """ getting the produced environment saved in the file
-      """
-      environment = {}
-      fp = open( eFile, 'r' )
-      for line in fp:
-        try:
-          var = line.split( '=' )[0].strip()
-          value = line.split( '=' )[1].strip()
-          # FIXME: horrible hack... (there's a function that ends in the next line...)
-          if '{' in value:
-            value = value + '\n}'
-          environment[var] = value
-        except IndexError:
-          continue
-      return environment
-
-
-    environment = os.environ
-    if 'LHCb_release_area' not in environment:
-      environment['LHCb_release_area'] = '/cvmfs/lhcb.cern.ch/lib/lhcb/'
-    # when we reach here we expect to know the release version to install
-
-    self.__invokeCmd( '. $LHCb_release_area/LBSCRIPTS/prod/InstallArea/scripts/LbLogin.sh && printenv > environmentLbLogin',
-                      environment )
-    environment = __parseEnvironmentFile( 'environmentLbLogin' )
-
-    self.__invokeCmd( 'lb-run LHCbDirac/%s > environmentLHCbDirac' % self.pp.releaseVersion, environment )
-    return __parseEnvironmentFile( 'environmentLHCbDirac' )
-
-
-
-  def __invokeCmd( self, cmd, environment ):
-    """ Controlled invoke of command via subprocess.Popen
-    """
-
-    self.log.debug( "Executing %s" % cmd )
-
-    cmdExecution = subprocess.Popen( cmd, shell = True, env = environment,
-                                     stdout = subprocess.PIPE, stderr = subprocess.PIPE, close_fds = False )
-    if cmdExecution.wait() != 0:
-      self.log.warn( "Problem executing . %s" % cmd )
-      for line in cmdExecution.stderr:
-        sys.stdout.write( line )
-      raise OSError( "Can't do %s" % cmd )
-
-    for line in cmdExecution.stdout:
-      sys.stdout.write( line )
-
+    invokeCmd( 'lb-run LHCbDirac/%s > environmentLbRunDirac' % self.pp.releaseVersion, self.pp.installEnv )
+    return parseEnvironmentFile( 'environmentLbRunDirac' )
 
 class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
   """ Only case here, for now, is if to set or not the CAs and VOMS location, that should be found in CVMFS
   """
 
   def _getBasicsCFG( self ):
+    """ Fill in the sharedArea
+    """
     super( LHCbConfigureBasics, self )._getBasicsCFG()
 
     # Adding SharedArea (which should be in CVMFS)
@@ -130,6 +172,8 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
 
 
   def _getSecurityCFG( self ):
+    """ Locate X509_CERT_DIR
+    """
 
     self.log.debug( "self.pp.installEnv: %s" % str( self.pp.installEnv ) )
 
@@ -200,12 +244,17 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
     self.log.debug( 'X509_VOMS_DIR = %s, %s' % ( self.pp.installEnv['X509_VOMS_DIR'], os.environ['X509_VOMS_DIR'] ) )
     self.log.debug( 'DIRAC_VOMSES = %s, %s' % ( self.pp.installEnv['DIRAC_VOMSES'], os.environ['DIRAC_VOMSES'] ) )
 
+    # re-saving also in environmentLHCbDirac file for completeness since we may have added/changed the security variables above
+    # The content of environmentLHCbDirac will be the same as the content of environmentLbRunDirac if lb-run LHCbDIRAC is successful
+    # plus the security-related variables of above
+    saveEnvInFile( self.pp.installEnv, 'environmentLHCbDirac' )
+
     # In any case do not download VOMS and CAs
     self.cfg.append( '-DMH' )
 
     super( LHCbConfigureBasics, self )._getSecurityCFG()
 
-class LHCbCleanPilotEnv ( LHCbConfigureBasics ):
+class LHCbCleanPilotEnv( LHCbConfigureBasics ):
   """Delete the pilot.cfg and the pilot.json, needed for VMs.
      Force the use of the CS given by command line. The command avoids the use of the CS server address (lhcb-conf2)
      which would not work for some resources, e.g. BOINC.

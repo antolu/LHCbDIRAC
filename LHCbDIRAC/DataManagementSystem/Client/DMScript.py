@@ -344,9 +344,13 @@ class DMScript( object ):
     return DIRAC.S_OK()
 
   def setSites( self, arg ):
-    siteShortNames = { 'CERN':'LCG.CERN.ch', 'CNAF':'LCG.CNAF.it', 'GRIDKA':'LCG.GRIDKA.de',
-                      'NIKHEF':'LCG.NIKHEF.nl', 'SARA':'LCG.SARA.nl', 'PIC':'LCG.PIC.es',
-                      'RAL':'LCG.RAL.uk', 'IN2P3':'LCG.IN2P3.fr', 'RRCKI':'LCG.RRCKI.ru' }
+    from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
+    try:
+      siteShortNames = DMSHelpers().getShortSiteNames( withStorage = False, tier = ( 0, 1 ) )
+    except AttributeError:
+      siteShortNames = { 'CERN':'LCG.CERN.cern', 'CNAF':'LCG.CNAF.it', 'GRIDKA':'LCG.GRIDKA.de',
+                         'NIKHEF':'LCG.NIKHEF.nl', 'SARA':'LCG.SARA.nl', 'PIC':'LCG.PIC.es',
+                         'RAL':'LCG.RAL.uk', 'IN2P3':'LCG.IN2P3.fr', 'RRCKI':'LCG.RRCKI.ru' }
     sites = arg.split( ',' )
     self.options['Sites'] = [siteShortNames.get( site.upper(), site ) for site in sites]
     return DIRAC.S_OK()
@@ -375,15 +379,17 @@ class DMScript( object ):
     else:
       gLogger.error( 'getLFNsFromList: invalid type %s' % type( lfns ) )
       return []
-    if not directories:
-      vo = self.__voName()
-      if vo:
-        vo = '/%s/' % vo
-        lfnList = [l.split( 'LFN:' )[-1].strip().replace( '"', ' ' ).replace( ',', ' ' ).replace( "'", " " ).replace( ':', ' ' ) for l in lfnList]
-        lfnList = [ vo + lfn.split( vo )[-1].split()[0] if vo in lfn else lfn if lfn == vo[:-1] else '' for lfn in lfnList]
-        lfnList = [lfn.split( '?' )[0] for lfn in lfnList]
+    vo = self.__voName()
+    if vo:
+      vo = '/%s/' % vo
+      lfnList = [l.split( 'LFN:' )[-1].strip().replace( '"', ' ' ).replace( ',', ' ' ).replace( "'", " " ).replace( ':', ' ' ).replace( '(', ' ' ).replace( ')', ' ' ) for l in lfnList]
+      lfnList = [ vo + lfn.split( vo )[-1].split()[0] if vo in lfn else lfn if lfn == vo[:-1] else '' for lfn in lfnList]
+      lfnList = [lfn.split( '?' )[0] for lfn in lfnList]
+      if directories:
+        lfnList = [lfn for lfn in lfnList if lfn.endswith( '/' )]
+      else:
         lfnList = [lfn for lfn in lfnList if not lfn.endswith( '/' )]
-    return sorted( lfn for lfn in set( lfnList ) if lfn or directories )
+    return sorted( lfn for lfn in set( lfnList ) if lfn )
 
   @staticmethod
   def getJobIDsFromList( jobids ):
@@ -435,6 +441,8 @@ class DMScript( object ):
       return resolveSEGroup( self.options.get( switch, default ) )
     value = self.options.get( switch, default )
     if switch in ( 'LFNs', 'Directory' ):
+      if value == default and switch == 'Directory':
+        value = self.options.get( 'LFNs', default )
       if not value:
         if not sys.stdin.isatty():
           self.setLFNsFromTerm()

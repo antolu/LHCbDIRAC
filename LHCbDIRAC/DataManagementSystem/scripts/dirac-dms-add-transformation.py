@@ -137,14 +137,14 @@ if __name__ == "__main__":
       DIRAC.exit( 2 )
     transBKQuery = bkQuery.getQueryDict()
     processingPass = transBKQuery.get( 'ProcessingPass', '' )
-    if processingPass.endswith( '...' ):
+    if '...' in processingPass:
       if listProcessingPasses:
         gLogger.notice( "List of processing passes for BK path", pluginScript.getOption( 'BKPath' ) )
       processingPasses = getProcessingPasses( bkQuery, depth = depth )
       if processingPasses:
         if not listProcessingPasses:
-          gLogger.notice( "Transformations will be launched for the following list of processing passes:\n" )
-        gLogger.notice( '\t'.join( [''] + processingPasses ) )
+          gLogger.notice( "Transformations will be launched for the following list of processing passes:" )
+        gLogger.notice( '\n'.join( [''] + processingPasses ) )
       else:
         gLogger.notice( "No processing passes matching the BK path" )
         DIRAC.exit( 0 )
@@ -336,7 +336,7 @@ if __name__ == "__main__":
 
     # If the transformation uses the RemoveDataset plugin, set the files invisible in the BK...
     setInvisiblePlugins = ( "RemoveDataset", )
-    # Try and let them visible such
+    # Try and let them visible such that users can see they are archived
     # setInvisiblePlugins = tuple()
     if invisible or plugin in setInvisiblePlugins:
       res = bk.setFilesInvisible( lfns )

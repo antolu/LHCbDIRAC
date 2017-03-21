@@ -2,19 +2,22 @@
     This means that to run this test you need to have the KARMA!
 """
 
-from DIRAC.Core.Base.Script import parseCommandLine
-parseCommandLine()
+#pylint: disable=wrong-import-position,unused-wildcard-import,wildcard-import
 
 import unittest
 
+from DIRAC.Core.Base.Script import parseCommandLine
+parseCommandLine()
+
 from DIRAC import gLogger
+
 from DIRAC.Core.Security.ProxyInfo import getProxyInfo
 from DIRAC.ResourceStatusSystem.Client.ResourceStatus import ResourceStatus
 from DIRAC.DataManagementSystem.Client.DataManager import DataManager
+from DIRAC.tests.System.unitTestUserJobs import GridSubmissionTestCase as DIRACGridSubmissionTestCase
 
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 
-from DIRAC.tests.System.unitTestUserJobs import GridSubmissionTestCase as DIRACGridSubmissionTestCase
 # from DIRAC.tests.Utilities.utils import find_all
 
 from tests.Utilities.testJobDefinitions import *
@@ -63,19 +66,19 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
 
     for uName, uGroup in [( 'cluzzi', 'lhcb_user' ), ( 'joel', 'lhcb_admin' )]:
 
-      res = helloWorldTestT2s( proxyUserName = uName, proxyUserGroup = uGroup )
+      res = helloWorldTestT2s( proxyUserName = uName, proxyUserGroup = uGroup ) # pylint: disable=unexpected-keyword-arg
       self.assert_( res['OK'] )
       jobsSubmittedList.append( res['Value'] )
 
-      res = helloWorldTestCERN( proxyUserName = uName, proxyUserGroup = uGroup )
+      res = helloWorldTestCERN( proxyUserName = uName, proxyUserGroup = uGroup ) # pylint: disable=unexpected-keyword-arg
       self.assert_( res['OK'] )
       jobsSubmittedList.append( res['Value'] )
 
-      res = helloWorldTestSLC6( proxyUserName = uName, proxyUserGroup = uGroup )
+      res = helloWorldTestSLC6( proxyUserName = uName, proxyUserGroup = uGroup ) # pylint: disable=unexpected-keyword-arg
       self.assert_( res['OK'] )
       jobsSubmittedList.append( res['Value'] )
 
-      res = helloWorldTestSLC5( proxyUserName = uName, proxyUserGroup = uGroup )
+      res = helloWorldTestSLC5( proxyUserName = uName, proxyUserGroup = uGroup ) # pylint: disable=unexpected-keyword-arg
       self.assert_( res['OK'] )
       jobsSubmittedList.append( res['Value'] )
 
@@ -97,23 +100,27 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
 #       self.assert_( res['OK'] )
 #       jobsSubmittedList.append( res['Value'] )
 
-      res = jobWithSingleInputData( proxyUserName = uName, proxyUserGroup = uGroup )
+      res = jobWithSingleInputData( proxyUserName = uName, proxyUserGroup = uGroup ) # pylint: disable=unexpected-keyword-arg
       self.assert_( res['OK'] )
       jobsSubmittedList.append( res['Value'] )
 
-      res = jobWithSingleInputDataSpreaded( proxyUserName = uName, proxyUserGroup = uGroup )
+      res = jobWithSingleInputDataSpreaded( proxyUserName = uName, proxyUserGroup = uGroup ) # pylint: disable=unexpected-keyword-arg
       self.assert_( res['OK'] )
       jobsSubmittedList.append( res['Value'] )
 
-      res = gaussJob( proxyUserName = uName, proxyUserGroup = uGroup )
+      res = gaussJob( proxyUserName = uName, proxyUserGroup = uGroup ) # pylint: disable=unexpected-keyword-arg
       self.assert_( res['OK'] )
       jobsSubmittedList.append( res['Value'] )
 
-      res = booleJob( proxyUserName = uName, proxyUserGroup = uGroup )
+      res = booleJob( proxyUserName = uName, proxyUserGroup = uGroup ) # pylint: disable=unexpected-keyword-arg
       self.assert_( res['OK'] )
       jobsSubmittedList.append( res['Value'] )
 
-      res = wrongJob( proxyUserName = uName, proxyUserGroup = uGroup )
+      res = gaudiApplicationScriptJob( proxyUserName = uName, proxyUserGroup = uGroup ) # pylint: disable=unexpected-keyword-arg
+      self.assert_( res['OK'] )
+      jobsSubmittedList.append( res['Value'] )
+
+      res = wrongJob( proxyUserName = uName, proxyUserGroup = uGroup ) # pylint: disable=unexpected-keyword-arg
       self.assert_( res['OK'] )
       jobsSubmittedList.append( res['Value'] )
 

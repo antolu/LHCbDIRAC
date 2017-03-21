@@ -80,9 +80,6 @@ class NotifyAgent( AgentModule ):
       # This is for the ProductionManagementSystem's Utilities
       # *******************************************************
 
-      link = "https://lhcb-portal-dirac.cern.ch/DIRAC/s:%s/g:" % PathFinder.getDIRACSetup() + \
-             "/?view=tabs&theme=Grey&url_state=1|*LHCbDIRAC.ProductionRequestManager.classes.ProductionRequestManager:"
-
       if not self.csS:
         self.log.error( 'No ProductionRequest section in configuration' )
         return S_OK()
@@ -106,6 +103,9 @@ class NotifyAgent( AgentModule ):
             """
 
       for group in result:
+
+        link = "https://lhcb-portal-dirac.cern.ch/DIRAC/s:" + PathFinder.getDIRACSetup() + "/g:" + group[0] + \
+               "/?view=tabs&theme=Grey&url_state=1|*LHCbDIRAC.ProductionRequestManager.classes.ProductionRequestManager:"
 
         aggregated_body = ""
         html_elements = ""
@@ -159,7 +159,7 @@ class NotifyAgent( AgentModule ):
           """.format(header=header, html_elements=html_elements)
 
           aggregated_body = html_header + html_body
-          
+
           informPeople = None
           if group[3]:
             informPeople = group[3].split( ',' )
@@ -167,7 +167,7 @@ class NotifyAgent( AgentModule ):
             for emailaddress in informPeople:
               res = self.diracAdmin.sendMail( emailaddress, "Notifications for production requests - Group %s; %s; %s" % ( group[0], group[2], group[1] ),
                                               aggregated_body, self.fromAddress, html = True )
-                
+
           for people in _getMemberMails( group[0] ):
 
             res = self.diracAdmin.sendMail( people, "Notifications for production requests - Group %s; %s; %s" % ( group[0], group[2], group[1] ),

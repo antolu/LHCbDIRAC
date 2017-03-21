@@ -9,7 +9,9 @@ from DIRAC.Core.DISET.RPCClient                                       import RPC
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations              import Operations
 from DIRAC.TransformationSystem.Agent.MCExtensionAgent                import MCExtensionAgent as DIRACMCExtensionAgent
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient       import TransformationClient
-from LHCbDIRAC.Workflow.Modules.ModulesUtilities                      import getCPUNormalizationFactorAvg, getEventsToProduce, getProductionParameterValue
+from LHCbDIRAC.Workflow.Modules.ModulesUtilities                      import getCPUNormalizationFactorAvg, \
+                                                                             getEventsToProduce, \
+                                                                             getProductionParameterValue
 
 __RCSID__ = "$Id$"
 
@@ -34,10 +36,15 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
     self.cpuTimeAvg = 200000
     self.cpuNormalizationFactorAvg = 1.0
 
+    # Artificial boost of the number of events requested to be created
+    self.extensionFactorBoost = 20 # Meaning 20% more than what is calculated
+
   #############################################################################
   def initialize( self ):
     """ Logs some parameters and initializes the clients
     """
+    self.extensionFactorBoost = self.am_getOption('extensionFactorBoost', self.extensionFactorBoost)
+
     self.rpcProductionRequest = RPCClient( 'ProductionManagement/ProductionRequest' )
     self.transClient = TransformationClient()
 
@@ -138,10 +145,10 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
           if productionProgress['ProductionID'] == simulationID:
             simulationProgress = productionProgress
             self.log.info( "Progress for the simulation production %d of request %d: %s" % ( simulationID,
-                                                                                            productionRequestID,
-                                                                                            str( simulationProgress ) ) )
+                                                                                             productionRequestID,
+                                                                                             str( simulationProgress ) ) )
 
-    if simulation == None:
+    if simulation is None:
       message = 'Failed to get simulation production for request %d' % productionRequestID
       self.log.error( message )
       return S_ERROR( message )
@@ -157,7 +164,8 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
     if not res['OK']:
       return res
     lastLoggingEntry = res['Value'][-1]
-    if ( 'idle' in lastLoggingEntry['Message'].lower() ) and ( ( datetime.datetime.utcnow() - lastLoggingEntry['MessageDate'] ).seconds < 900 ):
+    if ( 'idle' in lastLoggingEntry['Message'].lower() ) and \
+       ( ( datetime.datetime.utcnow() - lastLoggingEntry['MessageDate'] ).seconds < 900 ):
       self.log.verbose( "Prod %d is in 'Idle' for less than 15 minutes, waiting a bit" % simulationID )
       return S_OK( "Prod %d is in 'Idle' for less than 15 minutes, waiting a bit" % simulationID )
 
@@ -190,11 +198,13 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
       return S_OK()
     cpuE = int( round( float( cpuEProd ) ) )
 
-    self.log.info( "Extending production %d, that is still missing %d events. Extension factor = %d" % ( productionID,
-                                                                                                         eventsNeeded,
-                                                                                                         extensionFactor ) )
+    self.log.info( "Extending production %d, that is still missing %d events. \
+                    Extension factor = %d, boost = %d" % ( productionID,
+                                                           eventsNeeded,
+                                                           extensionFactor,
+                                                           self.extensionFactorBoost ) )
 
-    eventsToProduce = eventsNeeded * extensionFactor
+    eventsToProduce = eventsNeeded * extensionFactor * ( float(100 + self.extensionFactorBoost)/100 )
     max_e = getEventsToProduce( cpuE, self.cpuTimeAvg, self.cpuNormalizationFactorAvg )
     numberOfTasks = int( math.ceil( float( eventsToProduce ) / float( max_e ) ) )
     self.log.info( "Extending production %d by %d tasks" % ( productionID, numberOfTasks ) )

@@ -3,6 +3,7 @@
 
 import itertools
 import copy
+import re
 
 from DIRAC import gLogger, S_OK
 
@@ -45,6 +46,8 @@ class ProductionRequest( object ):
 
     self.logger = gLogger.getSubLogger( 'ProductionRequest' )
 
+    self.opsH = Operations()
+
     # parameters of the request
     self.requestID = 0
     self.parentRequestID = 0
@@ -72,12 +75,12 @@ class ProductionRequest( object ):
     self.fullListOfOutputFileTypes = []
 
     # parameters that are the same for each productions
-    self.prodGroup = ''
-    self.visibility = ''
+    self.prodGroup = '' # This ends up being 'ProcessingType', workflow parameter, and it is used for accounting
+    self.visibility = '' # For BKQuery
     self.fractionToProcess = 0
     self.minFilesToProcess = 0
     self.modulesList = None # Usually:
-                            # ['GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
+                            # ['GaudiApplication', 'AnalyseXMLSummary',
                             # 'ErrorLogging', 'BookkeepingReport', 'StepAccounting' ]
 
     # parameters of each production (the length of each list has to be the same as the number of productions
@@ -104,6 +107,8 @@ class ProductionRequest( object ):
     self.specialOutputSEs = []  # a list of dictionaries - might be empty
     self.outputSEsPerFileType = []  # a list of dictionaries - filled later
     self.ancestorDepths = []
+    self.compressionLvl = [''] # List: one compression level each step
+    self.appConfig = '$APPCONFIGOPTS/Persistency/' # Default location of the compression level configuration files
 
   #############################################################################
 
@@ -111,6 +116,7 @@ class ProductionRequest( object ):
     """ Given a list of steps in strings, some of which might be missing,
         resolve it into a list of dictionary of steps
     """
+    count = 0 # Needed to add correctly the optionFiles to the list of dictonaries of steps
     for stepID in self.stepsList:
       stepDict = self.bkkClient.getAvailableSteps( {'StepId':stepID} )
       if not stepDict['OK']:
@@ -124,7 +130,33 @@ class ProductionRequest( object ):
         if parameter.lower() in ['conddb', 'dddb', 'dqtag'] and value:
           if value.lower() == 'frompreviousstep':
             value = self.stepsListDict[-1][parameter]
-        stepsListDictItem[parameter] = value
+
+        if parameter == 'OptionFiles': #Modifying the OptionFiles (for setting the compression level)
+          #
+          # If the prod manager sets a compression level for a particular step, either we append the option file
+          # or we overwrite the existing one inherited with the step
+          #
+          if len(self.compressionLvl) > count and self.compressionLvl[count] != '':
+            p = re.compile('Compression-[A-Z]{4}-[1-9]')
+            self.compressionLvl[count] = self.appConfig + self.compressionLvl[count] + '.py'
+            if not p.search(value):
+              if value == '':
+                value = self.compressionLvl[count]
+              else:
+                value = ";".join((value, self.compressionLvl[count]))
+            else:
+              value = p.sub(p.search(self.compressionLvl[count]).group(), value)
+          #
+          # If instead the prod manager doesn't declare a compression level, e.g. for intermediate steps,
+          # we check if there is one in the options and in case we delete it. This leaves the default zip level
+          # defined inside Gaudi
+          #
+          elif len(self.compressionLvl) > count and self.compressionLvl[count] == '':
+            p = re.compile(r'\$\w+/Persistency/Compression-[A-Z]{4}-[1-9].py;?')
+            if p.search(value):
+              value = p.sub('', value)
+
+        stepsListDictItem[parameter] = value # Fixing what decided
 
       s_in = self.bkkClient.getStepInputFiles( stepID )
       if not s_in['OK']:
@@ -148,16 +180,16 @@ class ProductionRequest( object ):
 
       stepsListDictItem['prodStepID'] = str( stepID ) + str( stepsListDictItem['fileTypesIn'] )
 
-      if not stepsListDictItem.has_key( 'isMulticore' ):
+      if 'isMulticore' not in stepsListDictItem:
         stepsListDictItem['isMulticore'] = 'N'
 
-      if not stepsListDictItem.has_key( 'SystemConfig' ):
+      if 'SystemConfig' not in stepsListDictItem:
         stepsListDictItem['SystemConfig'] = ''
 
-      if not stepsListDictItem.has_key( 'mcTCK' ):
+      if 'mcTCK' not in stepsListDictItem:
         stepsListDictItem['mcTCK'] = ''
-
       self.stepsListDict.append( stepsListDictItem )
+      count += 1
 
   #############################################################################
 
@@ -296,7 +328,6 @@ class ProductionRequest( object ):
 
     prodID = self._modifyAndLaunchMCXML( prod, prodDict )
 
-
     # load a production from the original xml to save the priority and processing type
     workflowToSave = fromXMLString( prodXML )
     prod.LHCbJob.workflow = workflowToSave
@@ -320,10 +351,9 @@ class ProductionRequest( object ):
     """ needed modifications
     """
     # set the destination and number of events for testing
-    op = Operations()
-    destination = op.getValue( "Productions/MCTesting/MCTestingDestination", 'DIRAC.Test.ch' )
-    numberOfEvents = op.getValue( "Productions/MCTesting/numberOfEvents", '500' )
-    extendBy = op.getValue( "Productions/MCTesting/extendBy", 20 )
+    destination = self.opsH.getValue( "Productions/MCTesting/MCTestingDestination", 'DIRAC.Test.ch' )
+    numberOfEvents = self.opsH.getValue( "Productions/MCTesting/numberOfEvents", '500' )
+    extendBy = self.opsH.getValue( "Productions/MCTesting/extendBy", 20 )
 
     prod.setJobParameters( {'Destination': destination} )
     prod.LHCbJob.workflow.removeParameter( 'BannedSites' )
@@ -349,6 +379,7 @@ class ProductionRequest( object ):
 
     # increase the priority to 10
     prod.priority = 10
+
 
     # launch the test production
     res = self.diracProduction.launchProduction( prod = prod,
@@ -639,7 +670,7 @@ class ProductionRequest( object ):
                                                                              ''.join( [x.split( '.' )[0] for x in fTypeIn] ),
                                                                              self.appendName ) )
     prod.setBKParameters( configName = self.outConfigName, configVersion = self.configVersion,
-                          groupDescription = self.prodGroup, conditions = self.dataTakingConditions )
+                          groupDescriptionOrStepsList = stepsInProd, conditions = self.dataTakingConditions )
     prod.setParameter( 'eventType', 'string', self.eventType, 'Event Type of the production' )
     prod.setParameter( 'numberOfEvents', 'string', str( events ), 'Number of events requested' )
 

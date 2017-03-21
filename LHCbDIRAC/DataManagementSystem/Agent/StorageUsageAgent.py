@@ -486,33 +486,41 @@ class StorageUsageAgent( AgentModule ):
     return S_ERROR( "Could not download proxy for user (%s, %s):\n%s " % ( ownerDN, ownerRole, "\n ".join( downErrors ) ) )
 
   def removeEmptyDir( self, dirPath ):
+    self.log.notice( "Deleting empty directory %s" % dirPath )
+    for useOwnerProxy in ( False, True ):
+      result = self.__removeEmptyDir( dirPath, useOwnerProxy = useOwnerProxy )
+      if result['OK']:
+        self.log.info( "Successfully removed empty directory from File Catalog and StorageUsageDB" )
+        break
+    return result
+
+  def __removeEmptyDir( self, dirPath, useOwnerProxy = True ):
     ''' unlink empty folder :dirPath: '''
     from DIRAC.ConfigurationSystem.Client.ConfigurationData import gConfigurationData
     if len( List.fromChar( dirPath, "/" ) ) < self.__keepDirLevels:
       return S_OK()
 
-    self.log.notice( "Deleting empty directory %s" % dirPath )
+    if useOwnerProxy:
+      result = self.__getOwnerProxy( dirPath )
+      if not result[ 'OK' ]:
+        if 'Proxy not available' not in result['Message']:
+          self.log.error( result[ 'Message' ] )
+        return result
 
-    result = self.__getOwnerProxy( dirPath )
-    if not result[ 'OK' ]:
-      if 'Proxy not available' not in result['Message']:
-        self.log.error( result[ 'Message' ] )
-      return result
-
-    upFile = result[ 'Value' ]
-    prevProxyEnv = os.environ[ 'X509_USER_PROXY' ]
-    os.environ[ 'X509_USER_PROXY' ] = upFile
+      upFile = result[ 'Value' ]
+      prevProxyEnv = os.environ[ 'X509_USER_PROXY' ]
+      os.environ[ 'X509_USER_PROXY' ] = upFile
     try:
       gConfigurationData.setOptionInCFG( '/DIRAC/Security/UseServerCertificate', 'false' )
       # res = self.catalog.removeDirectory( dirPath )
       res = self.catalog.writeCatalogs[0][1].removeDirectory( dirPath )
       if not res['OK']:
         self.log.error( "Error removing empty directory from File Catalog.", res[ 'Message' ] )
+        return res
       elif dirPath in res['Value']['Failed']:
         self.log.error( "Failed to remove empty directory from File Catalog.", res[ 'Value' ][ 'Failed' ][ dirPath ] )
         self.log.debug( str( res ) )
-      else:
-        self.log.info( "Successfully removed empty directory from File Catalog." )
+        return S_ERROR( res[ 'Value' ][ 'Failed' ][ dirPath ] )
       res = self.storageUsage.removeDirectory( dirPath )
       if not res['OK']:
         self.log.error( "Failed to remove empty directory from Storage Usage database.", res[ 'Message' ] )
@@ -520,7 +528,8 @@ class StorageUsageAgent( AgentModule ):
       return S_OK()
     finally:
       gConfigurationData.setOptionInCFG( '/DIRAC/Security/UseServerCertificate', 'true' )
-      os.environ[ 'X509_USER_PROXY' ] = prevProxyEnv
+      if useOwnerProxy:
+        os.environ[ 'X509_USER_PROXY' ] = prevProxyEnv
 
   def __addDirToPublishQueue( self, dirName, dirData ):
     ''' enqueue :dirName: and :dirData: for publishing '''

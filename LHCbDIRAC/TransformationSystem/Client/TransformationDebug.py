@@ -40,7 +40,7 @@ class TransformationDebug( object ):
 
   def __getFilesForRun( self, runID = None, status = None, lfnList = None, seList = None, taskList = None ):
     # print transID, runID, status, lfnList
-    selectDict = {}
+    selectDict = {'TransformationID': self.transID}
     if runID is not None:
       if runID:
         selectDict["RunNumber"] = runID
@@ -53,13 +53,19 @@ class TransformationDebug( object ):
     if seList:
       selectDict['UsedSE'] = seList
     if taskList:
-      selectDict['TaskID'] = taskList
-    selectDict['TransformationID'] = self.transID
+      # First get fileID per task as the task may no longer be in the TransformationFiles table
+      res = self.transClient.getTableDistinctAttributeValues( 'TransformationFileTasks', ['FileID'],
+                                                              {'TransformationID': self.transID, 'TaskID':taskList} )
+      if res['OK']:
+        selectDict['FileID'] = res['Value']['FileID']
+      else:
+        gLogger.error( "Error getting Transformation tasks:", res['Message'] )
+        return []
     res = self.transClient.getTransformationFiles( selectDict )
     if res['OK']:
       return res['Value']
     else:
-      gLogger.error( "Error getting TransformationFiles:", res['Message'] )
+      gLogger.error( "Error getting Transformation files:", res['Message'] )
       return []
 
   def __filesProcessed( self, runID ):
@@ -72,7 +78,7 @@ class TransformationDebug( object ):
     runs = []
     if status and byRuns and not runList:
       files = self.__getFilesForRun( status = status, taskList = taskList )
-      runList = set( fileDict['RunNumber'] for fileDict in files )
+      runList = set( str( fileDict['RunNumber'] ) for fileDict in files )
 
     if runList:
       for runRange in runList:
@@ -286,13 +292,15 @@ class TransformationDebug( object ):
     completed = True
     if not rep:
       SEStat[None] = SEStat.setdefault( None, 0 ) + 1
+    if not listSEs:
+      listSEs = ['Some']
     for se in listSEs:
       if self.transType == "Replication":
-        if se not in rep:
+        if se == 'Some' or se not in rep:
           SEStat[se] = SEStat.setdefault( se, 0 ) + 1
           completed = False
       elif self.transType == "Removal":
-        if se in rep:
+        if se == 'Some' or se in rep:
           SEStat[se] = SEStat.setdefault( se, 0 ) + 1
           completed = False
       else:
@@ -886,10 +894,6 @@ class TransformationDebug( object ):
             elif line == lastLine:
               jobs.append( job )
               continue
-            for xx in ( 'LbLogin.sh', 'SetupProject.sh' ):
-              if xx in lastLine:
-                lastLine = lastLine.split()[0] + ' Executing %s' % xx + lastLine.split( xx )[1].split( '&&' )[0]
-                break
             gLogger.notice( '\t%3d jobs stalled with last line: %s' % ( len( jobs ), lastLine ) )
             lastLine = line
             jobs = [job1]
@@ -1027,10 +1031,11 @@ class TransformationDebug( object ):
           # print len( runRAWFiles ), 'RAW files'
           allAncestors = set()
           for paramValue in paramValues:
+            # This call returns only the base name of LFNs as they are unique
             ancFiles = self.pluginUtil.getRAWAncestorsForRun( runID, param, paramValue, getFiles = True )
-            # print paramValue, len( ancFiles )
             allAncestors.update( ancFiles )
-          missingFiles = runRAWFiles - allAncestors
+          # Remove ancestors from their basename in a list of LFNs
+          missingFiles = set( lfn for lfn in runRAWFiles if os.path.basename( lfn ) not in allAncestors )
           if missingFiles:
             gLogger.notice( "Missing RAW files:\n\t%s" % '\n\t'.join( sorted( missingFiles ) ) )
           else:
@@ -1289,7 +1294,17 @@ class TransformationDebug( object ):
             prString = 'No run'
           if runStatus:
             prString += " (%s)" % runStatus
-          prString += " - %d files (SelectedSite: %s), %d processed, status: %s" % ( files, SEs, processed, runStatus )
+          tasks = set()
+          nFilesNoTask = 0
+          for fileDict in transFilesList:
+            if fileDict['TaskID']:
+              tasks.add( fileDict['TaskID'] )
+            else:
+              nFilesNoTask += 1
+          prString += " - %d files (" % files
+          if nFilesNoTask:
+            prString += "%d files in no task, " % nFilesNoTask
+          prString += "%d tasks, SelectedSite: %s), %d processed, status: %s" % ( len( tasks ), SEs, processed, runStatus )
           gLogger.notice( prString )
 
         if checkFlush or ( ( byRuns and runID ) and status == 'Unused' and 'WithFlush' in self.transPlugin ) :

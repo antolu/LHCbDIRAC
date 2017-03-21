@@ -10,8 +10,8 @@ from DIRAC.Core.Base import Script
 unit = 'TB'
 sites = []
 Script.registerSwitch( "u:", "Unit=", "   Unit to use [%s] (MB,GB,TB,PB)" % unit )
-Script.registerSwitch( "S:", "Sites=", "  Sites to consider [ALL] (space or comma separated list, e.g. LCG.CERN.ch, LCG.CNAF.it" )
-#Script.registerSwitch( "l:", "Site=", "   LCG Site list to check [%s] (e.g. LCG.CERN.ch, LCG.CNAF.it, ... )" %sites )
+Script.registerSwitch( "S:", "Sites=", "  Sites to consider [ALL] (space or comma separated list, e.g. LCG.CNAF.it" )
+# Script.registerSwitch( "l:", "Site=", "   LCG Site list to check [%s] (e.g. LCG.CERN.cern, LCG.CNAF.it, ... )" %sites )
 
 Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      'Usage:',
@@ -35,8 +35,12 @@ for switch in Script.getUnprocessedSwitches():
     sites = switch[1].replace( ',', ' ' ).split()
 
 if not sites:
-  sites = ['LCG.CERN.ch' , 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr',
-           'LCG.PIC.es', 'LCG.RAL.uk', 'LCG.SARA.nl', 'LCG.RRCKI.ru']
+  from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
+  try:
+    sites = sorted( DMSHelpers().getTiers( tier = ( 0, 1 ) ) )
+  except AttributeError:
+    sites = ['LCG.CERN.cern' , 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr',
+             'LCG.PIC.es', 'LCG.RAL.uk', 'LCG.SARA.nl', 'LCG.RRCKI.ru']
 
 scaleDict = { 'MB' : 1000 * 1000.0,
               'GB' : 1000 * 1000 * 1000.0,
@@ -76,7 +80,7 @@ def getSrmUsage( lcgSite ):
   try:
     site = lcgSite.split( '.' )[ 1 ]
   except:
-    print( "Site name is not correct. Should be given in Dirac format: e.g. LCG.CERN.ch" )
+    print( "Site name is not correct. Should be given in Dirac format: e.g. LCG.CNAF.it" )
     return -1
   if site not in spaceTokenInfo.keys():
     print( "ERROR: information not available for site %s. Space token information from CS: %s " % ( site, spaceTokenInfo ) )
@@ -107,7 +111,7 @@ def getSrmUsage( lcgSite ):
     result[st]['SRMTotal'] = srmTotSpace
   return result
 
-#.................................................
+# .................................................
 
 def getSDUsage( lcgSite ):
   """ get storage usage from storage dumps
@@ -115,7 +119,7 @@ def getSDUsage( lcgSite ):
   try:
     site = lcgSite.split( '.' )[ 1 ]
   except:
-    print( "Site name is not correct. Should be given in Dirac format: e.g. LCG.CERN.ch" )
+    print( "Site name is not correct. Should be given in Dirac format: e.g. LCG.CNAF.it" )
     return -1
   res = storageUsage.getSTSummary( site )
   if not res['OK']:
@@ -137,7 +141,7 @@ def getSDUsage( lcgSite ):
         break
   return sdUsage
 
-#......................................................................................
+# ......................................................................................
 
 def getLFCUsage( lcgSite ):
   """ get storage usage from LFC
@@ -159,7 +163,7 @@ def getLFCUsage( lcgSite ):
 
   return usage
 
-#......................................................................................
+# ......................................................................................
 
 
 lfcUsage = {}
@@ -169,7 +173,7 @@ for site in sites:
   # retrieve space usage from LFC
   lfcUsage[ site ] = getLFCUsage( site )
 
-  # retrieve SRM usage 
+  # retrieve SRM usage
   srmResult = getSrmUsage( site )
   if srmResult != -1:
     srmUsage[ site ] = srmResult
@@ -192,4 +196,3 @@ for site in sites:
     else:
       print( "From storage dumps: Information not available" )
 DIRAC.exit( 0 )
-

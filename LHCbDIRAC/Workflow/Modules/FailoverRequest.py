@@ -62,7 +62,10 @@ class FailoverRequest( ModuleBase ):
 
       # report on the status of the input data, by default they are 'Processed', unless the job failed
       # failures happening before (e.g. in previous steps, or while inspecting the XML summary) are not touched.
-      filesInFileReport = self.fileReport.getFiles()  # It's normally empty, unless there are some Problematic files
+
+      # The FileReport object is normally empty, unless there are some Problematic files,
+      # or if there are files found to have descendants
+      filesInFileReport = self.fileReport.getFiles()
 
       if not self._checkWFAndStepStatus( noPrint = True ):
         # To overcome race condition issues, the file status for this case is reported by the failover request

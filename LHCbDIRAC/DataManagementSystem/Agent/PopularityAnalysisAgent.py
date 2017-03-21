@@ -25,6 +25,9 @@ __RCSID__ = "$Id$"
 
 AGENT_NAME = "DataManagement/PopularityAnalysisAgent"
 
+class FakeException(Exception):
+  pass
+  
 class PopularityAnalysisAgent( AgentModule ):
 
 
@@ -32,6 +35,8 @@ class PopularityAnalysisAgent( AgentModule ):
   .. class:: PopularityAnalysisAgent
 
   """
+  
+
 
   def __init__( self, *args, **kwargs ):
     """ c'tor """
@@ -132,23 +137,33 @@ class PopularityAnalysisAgent( AgentModule ):
     params = json.dumps( { 'n_tb' : self.savedSpaceTarget,
                            'min_replicas': self.minReplicas,
                            'max_replicas': self.maxReplicas} )
-
+    errorMail = None
     try:
       postResult = post( self.dataPopularityURL,
                              files = {'file':open( popularityFile )},
                              data = {'params':params}
                            )
+      if postResult.status_code != 200:
+        errorMail = {'status_code' : postResult.status_code , 'reason' : postResult.reason}
+        raise FakeException()
       with open( csvReportFile, 'w' ) as report:
         report.write( postResult.content )
 
 
       htmlReportFile = self._generateHtmlReport( popularityFile, csvReportFile )
 
-      if self.mailEnabled:
-        self._sendReport( [csvReportFile, htmlReportFile] )
-
+    except FakeException as e:
+      pass
     except Exception as e:  # pylint: disable=broad-except
       self.log.exception( "Exception generating the reports", lException = e )
+    finally:
+      if self.mailEnabled:
+        if not errorMail:
+          self._sendReport( [csvReportFile, htmlReportFile] )
+        else:
+          self._sendErrorMail(errorMail)
+
+      
 
     return S_OK()
 
@@ -259,5 +274,17 @@ class PopularityAnalysisAgent( AgentModule ):
     mail._attachments = listOfFiles
     mail._mailAddress = self.mailRecipients
     mail._send()
+    
+  # pylint: disable=protected-access
+  def _sendErrorMail( self, errorMail ):
+    """ Send the reports by email
 
+        args:
+            errorMail : Error to report
+    """
 
+    mail = Mail()
+    mail._subject = "Error popularity report %s" % self.startDate
+    mail._message = "Error Popularity report %s: %s" % (self.startDate, errorMail)
+    mail._mailAddress = self.mailRecipients
+    mail._send()
