@@ -898,9 +898,27 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     mandatorySEs = resolveSEGroup( self.util.getPluginParam( 'MandatorySEs', [] ) )
     secondarySEs = resolveSEGroup( self.util.getPluginParam( 'SecondarySEs', [] ) )
     numberOfCopies = self.util.getPluginParam( 'NumberOfReplicas', 3 )
+    excludedFileTypes = self.util.getPluginParam( 'ExcludedFileTypes', ['GAUSSHIST', 'BRUNELHIST', 'DAVINCIHIST'] )
 
     # We need at least all mandatory copies
     numberOfCopies = max( numberOfCopies, len( mandatorySEs ) )
+
+    # Filter file types
+    if excludedFileTypes:
+      res = self.util.getBookkeepingMetadata( self.transReplicas, 'FileType' )
+      if not res['OK']:
+        return res
+      excludedLfns = []
+      for lfn, fileType in res['Value'].iteritems():
+        if fileType in excludedFileTypes:
+          self.transReplicas.pop( lfn )
+          excludedLfns.append( lfn )
+      if excludedLfns:
+        self.util.logInfo( "Found %d files with excluded file type, set them Excluded" % len( excludedLfns ) )
+        res = self.transClient.setFileStatusForTransformation( self.transID, 'Excluded', excludedLfns )
+        if not res['OK']:
+          self.util.logError( "Error setting files Excluded", res['Message'] )
+          return res
 
     storageElementGroups = {}
     for replicaSE, lfnGroup in getFileGroups( self.transReplicas ).iteritems():
@@ -912,8 +930,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         if stringTargetSEs:
           storageElementGroups.setdefault( stringTargetSEs, [] ).extend( lfns )
         else:
-          self.util.logInfo( "Found %d files that are already completed" % len( lfns ) )
-          self.transClient.setFileStatusForTransformation( self.transID, 'Processed', lfns )
+          self.util.logInfo( "Found %d files that are already completed, set them Processed" % len( lfns ) )
+          res = self.transClient.setFileStatusForTransformation( self.transID, 'Processed', lfns )
+          if not res['OK']:
+            self.util.logError( "Error setting files Processed", res['Message'] )
+            return res
 
     return S_OK( self.util.createTasks( storageElementGroups ) )
 
