@@ -11,11 +11,11 @@ import time
 import xml.dom.minidom
 import urllib
 import json
-from DIRAC import S_OK, rootPath, gLogger, gConfig
-from DIRAC.Core.Base.AgentModule import AgentModule
+from DIRAC                                           import S_OK, rootPath, gLogger, gConfig
+from DIRAC.Core.Base.AgentModule                     import AgentModule
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
-from DIRAC.Resources.Storage.StorageElement import StorageElement
-
+from DIRAC.Resources.Storage.StorageElement          import StorageElement
+from DIRAC.Core.Utilities.Grid                       import ldapCEState
 
 __RCSID__ = "$Id$"
 AGENT_NAME = 'ResourceStatus/NagiosTopologyAgent'
@@ -256,46 +256,60 @@ class NagiosTopologyAgent(AgentModule):
     xml_append(xml_doc, xml_root, 'vo', 'lhcb')
 
   @staticmethod
-def __writeCEInfo(xml_doc, grid, xml_site, site, ces):
-  """ Writes CE information in the XML Document
-  """
+  def __writeCEInfo(xml_doc, grid, xml_site, site, ces):
+    """ Writes CE information in the XML Document
+    """
 
-  has_grid_elem = False
+    has_grid_elem = 'False'
 
-  for site_ce_name in ces:
+    for site_ce_name in ces:
 
-    has_grid_elem = True
+      has_grid_elem = True
+      etf_default = False
+      max_CPU = 0
+      site_ce_opts = gConfig.getOptionsDict(
+          'Resources/Sites/%s/%s/CEs/%s' % (grid, site, site_ce_name))
+      if not site_ce_opts['OK']:
+        gLogger.error(site_ce_opts['Message'])
+        continue
+      site_ce_opts = site_ce_opts['Value']
 
-    site_ce_opts = gConfig.getOptionsDict(
-        'Resources/Sites/%s/%s/CEs/%s' % (grid, site, site_ce_name))
-    if not site_ce_opts['OK']:
-      gLogger.error(site_ce_opts['Message'])
-      continue
-    site_ce_opts = site_ce_opts['Value']
+      site_ce_type = site_ce_opts.get('CEType')
+      mappingCEType = {'LCG': 'CE', 'CREAM': 'CREAM-CE',
+                       'ARC': 'ARC-CE', 'HTCondorCE': 'org.opensciencegrid.htcondorce',
+                       'Vac': 'uk.ac.gridpp.vac', 'Cloud': 'CLOUD', 'Boinc': 'BOINC',
+                       'Vcycle': 'uk.ac.gridpp.vcycle'}
 
-    site_ce_type = site_ce_opts.get('CEType')
-    mappingCEType = {'LCG': 'CE', 'CREAM': 'CREAM-CE',
-                     'ARC': 'ARC-CE', 'HTCondorCE': 'org.opensciencegrid.htcondorce',
-                     'Vac': 'uk.ac.gridpp.vac', 'Cloud': 'CLOUD', 'Boinc': 'BOINC',
-                     'Vcycle': 'uk.ac.gridpp.vcycle'}
+      xml_ce = xml_append(xml_doc, xml_site, 'service', hostname=site_ce_name,
+                 flavour=mappingCEType.get(site_ce_type, 'UNDEFINED'))
 
-    xml_ce = xml_append(xml_doc, xml_site, 'service', hostname=site_ce_name,
-               flavour=mappingCEType.get(site_ce_type, 'UNDEFINED'))
+      ce_queues = gConfig.getSections(
+          'Resources/Sites/%s/%s/CEs/%s/Queues/' % (grid, site, site_ce_name))
+      ce_queues = ce_queues['Value']
+      #   I'll leave this code commented in case it needs to be used in the future, 
+      #   this function consumes a hell lot of time to return a value that is not 
+      #   mandatory at the momment
+      #ce_batch = ldapCEState(site_ce_name, site_ce_opts['VO'])
+      #ce_batch = ce_batch['Value'][0]['GlueCEInfoJobManager'] if (ce_batch['OK'] and ce_batch['Value']) else None
+      for queue in ce_queues:        
+        queue_information = gConfig.getOptionsDict(
+            'Resources/Sites/%s/%s/CEs/%s/Queues/%s' % (grid, site, site_ce_name, queue))
+        if queue_information['OK']:
+          queue_information = queue_information['Value']
+          if queue_information.get('maxCPUTime') > max_CPU:
+            etf_default = 'True'
+            max_CPU = queue_information.get('maxCPUTime')
+          else: 
+            etf_default = 'False' 
 
-    ce_queues = gConfig.getSections(
-        'Resources/Sites/%s/%s/CEs/%s/Queues/' % (grid, site, site_ce_name))
-    ce_queues = ce_queues['Value']
-    for queue in ce_queues:
-      queue_information = gConfig.getOptionsDict(
-          'Resources/Sites/%s/%s/CEs/%s/Queues/%s' % (grid, site, site_ce_name, queue))
-      if queue_information['OK']:
-        queue_information = queue_information['Value']
         xml_append(xml_doc, xml_ce, 'queues', ce_resource=queue,
+                   #batch_system=ce_batch,
                    queue=queue_information.get('VO'),
-                   maxWaitingJobs=queue_information.get('MaxWaitingJobs'),
-                   maxCPUTime=queue_information.get('maxCPUTime'))
-
-  return has_grid_elem
+                   etf_default=etf_default
+                   #maxWaitingJobs=queue_information.get('MaxWaitingJobs'),
+                   #maxCPUTime=queue_information.get('maxCPUTime')
+                   )
+    return has_grid_elem
 
   @staticmethod
   def __writeSEInfo(xml_doc, xml_site, site, site_tier, site_subtier):
