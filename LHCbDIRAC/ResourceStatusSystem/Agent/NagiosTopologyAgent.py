@@ -164,7 +164,7 @@ class NagiosTopologyAgent(AgentModule):
 
         else:
           _msg = "Site %s, (WLCG Name: %s) has no CE, SE or LFC, thus will not be put into the xml"
-          _msg = _msg % (site, site_name)
+          _msg = _msg % (site, site_parameters['WlcgName'])
           self.log.warn(_msg)
           xml_root.removeChild(xml_site)
 
