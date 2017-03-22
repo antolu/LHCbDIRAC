@@ -19,7 +19,7 @@ if __name__ == "__main__":
 
   Script.setUsageMessage( '\n'.join( [ __doc__,
                                        'Usage:',
-                                       '  %s [option|cfgfile] [<LFN>] [<LFN>...]' % Script.scriptName, ] ) )
+                                       '  %s [option|cfgfile] [<LFN>] [<LFN>...] [SourceSE]' % Script.scriptName, ] ) )
 
   Script.parseCommandLine( ignoreErrors = False )
 

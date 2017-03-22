@@ -21,6 +21,9 @@ from DIRAC.ResourceStatusSystem.Utilities.CSHelpers      import getSites, getSto
 from LHCbDIRAC.Core.Utilities.File                        import makeGuid
 from LHCbDIRAC.Core.Utilities.ClientTools                 import mergeRootFiles
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
+from LHCbDIRAC.DataManagementSystem.Client.DMScript       import printDMResult
+from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import getAccessURL
 
 __RCSID__ = "$Id$"
 
@@ -196,11 +199,11 @@ class DiracLHCb( Dirac ):
     """ This function allows to create and perform a BK query given a supplied
         BK path. The following BK path convention is expected:
 
-        /<ConfigurationName>/<Configuration Version>/<Processing Pass>/<Event Type>/<File Type>
+        /<ConfigurationName>/<Configuration Version>/<Condition Description><Processing Pass>/<Event Type>/<File Type>
 
-        so an example for 2010 collisions data would be:
+        so an example for 2016 collisions data would be:
 
-        /LHCb/Collision09/Real Data + RecoToDST-07/90000000/DST
+        /LHCb/Collision09//LHCb/Collision16/Beam6500GeV-VeloClosed-MagDown/Real Data/Reco16/Stripping26/90000000/EW.DST
 
         The startDate and endDate must be specified as yyyy-mm-dd.
 
@@ -212,9 +215,11 @@ class DiracLHCb( Dirac ):
 
        Example Usage:
 
-       >>> dirac.bkQueryRunsByDate('/LHCb/Collision10/Real Data/90000000/RAW','2010-05-18','2010-05-20',dqFlag='EXPRESS_OK',selection='ProcessedRuns')
+       >>> dirac.bkQueryRunsByDate('/LHCb/Collision16//Real Data/90000000/RAW','2016-08-20','2016-08-22',dqFlag='OK',selection='Runs')
        {'OK': True, 'Value': [<LFN1>,<LFN2>]}
-
+      
+      dirac.bkQueryRunsByDate('/LHCb/Collision16/Beam6500GeV-VeloClosed-MagDown/Real Data/Reco16/Stripping26/90000000/EW.DST','2016-08-20','2016-08-22',dqFlag='OK',selection='Runs')
+      
        @param bkPath: BK path as described above
        @type bkPath: string
        @param dqFlag: Optional Data Quality flag
@@ -233,12 +238,12 @@ class DiracLHCb( Dirac ):
 
     if not isinstance( bkPath, str ):
       return S_ERROR( 'Expected string for bkPath' )
-
+          
     # remove any double slashes, spaces must be preserved
     # remove any empty components from leading and trailing slashes
-    bkPath = self.__translateBKPath( bkPath, procPassID = 2 )
-    if not len( bkPath ) == 5:
-      return S_ERROR( 'Expected 5 components to the BK path: /<ConfigurationName>/<Configuration Version>/<Processing Pass>/<Event Type>/<File Type>' )
+    bkQuery = BKQuery().buildBKQuery( bkPath )
+    if not bkQuery:
+      return S_ERROR( 'Please provide a BK path: /<ConfigurationName>/<Configuration Version>/<Condition Description>/<Processing Pass>/<Event Type>/<File Type>' )
 
     if not startDate or not endDate:
       return S_ERROR( 'Expected both start and end dates to be defined in format: yyyy-mm-dd' )
@@ -267,29 +272,28 @@ class DiracLHCb( Dirac ):
     runs = result['Value'][selection]
     self.log.info( 'Found the following %s runs:\n%s' % ( len( runs ), ', '.join( [str( i ) for i in runs] ) ) )
     # temporary until we can query for a discrete list of runs
-
     selectedData = []
     for run in runs:
-      query = self.bkQueryTemplate.copy()
+      query = bkQuery.copy()
       query['StartRun'] = run
       query['EndRun'] = run
-      query['ConfigName'] = bkPath[0]
-      query['ConfigVersion'] = bkPath[1]
-      query['ProcessingPass'] = bkPath[2]
-      query['EventType'] = bkPath[3]
-      query['FileType'] = bkPath[4]
+      query['CheckRunStatus'] = True if selection in ['ProcessedRuns', 'NotProcessed'] else False
       if dqFlag:
         check = self.__checkDQFlags( dqFlag )
         if not check['OK']:
           return check
         dqFlag = check['Value']
         query['DataQuality'] = dqFlag
-      result = self.bkQuery( query )
+      start = time.time()
+      result = self.bk.getVisibleFilesWithMetadata( query )
+      rtime = time.time() - start
+      self.log.info( 'BK query time: %.2f sec' % rtime )
       self.log.verbose( result )
       if not result['OK']:
         return result
       self.log.info( 'Selected %s files for run %s' % ( len( result['Value'] ), run ) )
-      selectedData += result['Value']
+      if result['Value']['LFNs']:
+        selectedData += result['Value']['LFNs'].keys()
 
     self.log.info( 'Total files selected = %s' % ( len( selectedData ) ) )
     return S_OK( selectedData )
@@ -1000,3 +1004,36 @@ class DiracLHCb( Dirac ):
     if printOutput:
       print self.pPrint.pformat( lfnGroups )
     return S_OK( lfnGroups )
+
+    #############################################################################
+
+  def getAccessURL( self, lfn, storageElement, protocol = None, printOutput = False ):
+    """Allows to retrieve an access URL for an LFN replica given a valid DIRAC SE
+       name.  Contacts the file catalog and contacts the site SRM endpoint behind
+       the scenes.
+
+       Example Usage:
+
+       >>> print dirac.getAccessURL('/lhcb/data/CCRC08/DST/00000151/0000/00000151_00004848_2.dst','CERN-RAW')
+       {'OK': True, 'Value': {'Successful': {'srm://...': {'SRM2': 'rfio://...'}}, 'Failed': {}}}
+
+       :param lfn: Logical File Name (LFN)
+       :type lfn: str or python:list
+       :param storageElement: DIRAC SE name e.g. CERN-RAW
+       :type storageElement: string
+       :param printOutput: Optional flag to print result
+       :type printOutput: boolean
+       :returns: S_OK,S_ERROR
+    """
+    ret = self._checkFileArgument( lfn, 'LFN' )
+    if not ret['OK']:
+      return ret
+    lfn = ret['Value']
+    if isinstance( lfn, basestring ):
+      lfn = [lfn]
+    results = getAccessURL( lfn, storageElement, protocol = protocol )
+    if printOutput:
+      printDMResult( results, empty = "File not at SE", script = "dirac-dms-lfn-accessURL" )
+    return results
+
+  #############################################################################

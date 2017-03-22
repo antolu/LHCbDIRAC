@@ -45,7 +45,7 @@ Finally, you need to overwrite the URLS of the RMS to make sure that they use th
 Workflow
 --------
 
-The DataMover is the Online code responsible for the interraction with the BKK (register the run, the files, set the replica flag), to request the phusical transfers, and to remove the file of the Online storage when properly transfered.
+The DataMover is the Online code responsible for the interraction with the BKK (register the run, the files, set the replica flag), to request the physical transfers, and to remove the file of the Online storage when properly transfered.
 
 The doc is visible here: https://lbdokuwiki.cern.ch/online_user:rundb_onlinetoofflinedataflow
 
@@ -57,9 +57,12 @@ The RAWIntegrityAgent looks at all the files in the DB that are in status 'Activ
 
 For each of them, it will check if the file is already on tape, and if so, compare the checksum.
 
-If the checksum is correct, the file is registered in the DFC only, a removal request is sent to the local ReqManager, and the status set to 'Done'.
-This removal Request sends a signal to the DataMover, which will mark the file for removal (garbage collection), and the replica flag to yes in the BKK
+If the checksum is incorrect, the file remains in status 'Active', and will require manual intervention.
+If the checksum is correct, we attempt to register the file in the DFC only.
 
-If the checksum is not correct, the file is removed from CERN-RAW, the status set to 'Failed' and a retransfer request is put to the ReqManager (this last part will change soon because does not make sense).
+If the registration fails, the file goes into 'Copied' status in the DB, c
+If the registration works, we attempt to remove the file from the Online storage.
+This removal Request sends a signal to the DataMover, which will mark the file for removal (garbage collection), and the replica flag to yes in the BKK.
 
-In case of any error in the process (cannot get metadata, cannot send request, etc), no change is done to the RAWIntegrityDB concerning that file, and it will be part of the next cycle.
+If the removal fails, the file status is set to 'Registered' in the DB, and will be reattempted from there at the next loop.
+If the removal works, the file is set to 'Done' in the DB.

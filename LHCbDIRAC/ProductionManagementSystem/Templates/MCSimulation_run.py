@@ -59,13 +59,9 @@ pr.stepsList = stepsList
 pr.appendName = '{{WorkflowAppendName#GENERAL: Workflow string to append to production name#1}}'
 
 w = '{{w#----->WORKFLOW: choose one below#}}'
-w1 = '{{w1#-WORKFLOW1: Simulation+Selection+Merge#False}}'
-w2 = '{{w2#-WORKFLOW2: Simulation(up to Moore)+Selection+Merge#False}}'
-w3 = '{{w3#-WORKFLOW3: Simulation(up to Moore)+Selection(-->avoid merge)#False}}'
-w4 = '{{w4#-WORKFLOW4: Simulation+MCMerge#False}}'
-w5 = '{{w5#-WORKFLOW5: Simulation#False}}'
-w6 = '{{w6#-WORKFLOW6: Simulation(Gauss) + AllOthers#False}}'
-w7 = '{{w7#-WORKFLOW7: Simulation(Gauss) + AllOthers + Merge#False}}'
+w1 = '{{w1#-WORKFLOW1: Simulation#False}}'
+w2 = '{{w2#-WORKFLOW2: Simulation(Gauss) + AllOthers#False}}'
+w3 = '{{w3#-WORKFLOW3: Simulation(Gauss) + AllOthers + Merge#False}}'
 
 localTestFlag = '{{localTestFlag#GENERAL: Set True for local test#False}}'
 validationFlag = '{{validationFlag#GENERAL: Set True for validation prod - will create histograms#False}}'
@@ -76,15 +72,13 @@ extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepID:opti
 targets = '{{Target#PROD-1:MC: Target for MC (e.g. Tier2, ALL, LCG.CERN.cern#Tier2}}'
 MCPriority = '{{MCPriority#PROD-1:MC: Production priority#0}}'
 MCmulticoreFlag = '{{MCMulticoreFLag#PROD-1: multicore flag#True}}'
-simulationCompressionLvl = '{{simulationCompressionLvl#PROD-1: Compression level#Compression-ZLIB-1}}'
 
 selectionPlugin = '{{selectionPlugin#PROD-2:Selection: plugin e.g. Standard, BySize#BySize}}'
-selectionGroupSize = '{{selectionGroupSize#PROD-2:Selection: input files total size (we\'ll download)#20}}'
-selectionPriority = '{{selectionPriority#PROD-2:Selection: Job Priority e.g. 8 by default#6}}'
+selectionGroupSize = '{{selectionGroupSize#PROD-2:Selection: input files total size (we\'ll download)#5}}'
+selectionPriority = '{{selectionPriority#PROD-2:Selection: Job Priority e.g. 8 by default#8}}'
 selectionCPU = '{{selectionCPU#PROD-2:Selection: Max CPU time in secs#100000}}'
 removeInputSelection = '{{removeInputSelection#PROD-2:Selection: remove inputs#True}}'
 selmulticoreFlag = '{{selMulticoreFLag#PROD-2:Selection: multicore flag#True}}'
-selectionCompressionLvl = '{{selectionCompressionLvl#PROD-2:Selection: Compression level#Compression-ZLIB-1}}'
 
 mergingPlugin = '{{MergingPlugin#PROD-3:Merging: plugin e.g. Standard, BySize#BySize}}'
 mergingGroupSize = '{{MergingGroupSize#PROD-3:Merging: Group Size e.g. BySize = GB file size#5}}'
@@ -92,7 +86,9 @@ mergingPriority = '{{MergingPriority#PROD-3:Merging: Job Priority e.g. 8 by defa
 mergingCPU = '{{mergingCPU#PROD-3:Merging: Max CPU time in secs#100000}}'
 removeInputMerge = '{{removeInputMerge#PROD-3:Merging: remove inputs#True}}'
 mergemulticoreFlag = '{{mergeMulticoreFLag#PROD-3:Merging: multicore flag#True}}'
-mergeCompressionLvl = '{{mergeCompressionLvl#PROD-3:Merging: Compression level#Compression-LZMA-4}}'
+
+compressionLvlDefault = 'Compression-ZLIB-1'
+compressionLvlLast = 'Compression-LZMA-4'
 
 pr.configVersion = '{{mcConfigVersion}}'
 pr.eventType = '{{eventType}}'
@@ -131,121 +127,14 @@ pr.outConfigName = pr.configName
 w1 = ast.literal_eval( w1 )
 w2 = ast.literal_eval( w2 )
 w3 = ast.literal_eval( w3 )
-w4 = ast.literal_eval( w4 )
-w5 = ast.literal_eval( w5 )
-w6 = ast.literal_eval( w6 )
-w7 = ast.literal_eval( w7 )
 
-if not w1 and not w2 and not w3 and not w4 and not w5 and not w6 and not w7:
+if not w1 and not w2 and not w3:
   gLogger.error( 'Vladimir, I told you to select at least one workflow!' )
   DIRACexit( 2 )
 
-if w1:
-  pr.prodsTypeList = ['MCSimulation', 'MCStripping', 'MCMerge']
-  pr.outputSEs = ['Tier1-BUFFER', 'Tier1-BUFFER', 'Tier1_MC-DST']
-  pr.stepsInProds = [range( 1, len( pr.stepsList ) - 1 ),
-                     xrange( len( pr.stepsList ) - 1, len( pr.stepsList ) ),
-                     [len( pr.stepsList )]]
-  pr.removeInputsFlags = [False, removeInputSelection, removeInputMerge]
-  pr.priorities = [MCPriority, selectionPriority, mergingPriority]
-  pr.cpus = [100000, selectionCPU, mergingCPU]
-  pr.outputFileSteps = [str( len( pr.stepsList ) - 2 ), '', '']
-  pr.targets = [targets, '', '']
-  pr.groupSizes = [1, selectionGroupSize, mergingGroupSize]
-  pr.plugins = ['', selectionPlugin, mergingPlugin]
-  pr.inputDataPolicies = ['', 'download', 'download']
-  pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
-  pr.multicore = [MCmulticoreFlag, selmulticoreFlag, mergemulticoreFlag]
-  pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] ) +\
-                      [selectionCompressionLvl] * len( pr.stepsInProds[1] )+ \
-                      [mergeCompressionLvl] * len( pr.stepsInProds[2] )
-
-elif w2:
-  pr.prodsTypeList = ['MCSimulation', 'MCReconstruction', 'MCMerge']
-  pr.outputSEs = ['Tier1-BUFFER', 'Tier1-BUFFER', 'Tier1_MC-DST']
-
-  brunelStepIndex = 1
-  pr.resolveSteps()
-  for sld in pr.stepsListDict:
-    if sld['ApplicationName'].lower() == 'brunel':
-      break
-    brunelStepIndex += 1
-
-  pr.stepsInProds = [range( 1, brunelStepIndex ),
-                     xrange( brunelStepIndex, len( pr.stepsList ) ),
-                     [len( pr.stepsList )]]
-  pr.outputFileSteps = [str( len( pr.stepsInProds[0] ) ),
-                        str( len( pr.stepsInProds[1] ) ),
-                        '1']
-
-  pr.removeInputsFlags = [False, removeInputSelection, removeInputMerge]
-  pr.priorities = [MCPriority, selectionPriority, mergingPriority]
-  pr.cpus = [100000, selectionCPU, mergingCPU]
-  pr.targets = [targets, '', '']
-  pr.groupSizes = [1, selectionGroupSize, mergingGroupSize]
-  pr.plugins = ['', selectionPlugin, mergingPlugin]
-  pr.inputDataPolicies = ['', 'download', 'download']
-  pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
-  pr.multicore = [MCmulticoreFlag, selmulticoreFlag, mergemulticoreFlag]
-  pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] ) +\
-                      [selectionCompressionLvl] * len( pr.stepsInProds[1] ) +\
-                      [mergeCompressionLvl] * len( pr.stepsInProds[2] )
-  pr.resolveSteps()
-
-elif w3:
-  pr.prodsTypeList = ['MCSimulation', 'MCReconstruction']
-  pr.outputSEs = ['Tier1-BUFFER', 'Tier1_MC-DST']
-
-  brunelStepIndex = 1
-  pr.resolveSteps()
-  for sld in pr.stepsListDict:
-    if sld['ApplicationName'].lower() == 'brunel':
-      break
-    brunelStepIndex += 1
-
-  pr.stepsInProds = [range( 1, brunelStepIndex ),
-                     xrange( brunelStepIndex, len( pr.stepsList ) + 1 )]
-  pr.outputFileSteps = [str( len( pr.stepsInProds[0] ) ),
-                        str( len( pr.stepsInProds[1] ) )]
-
-  pr.removeInputsFlags = [False, removeInputSelection]
-  pr.priorities = [MCPriority, selectionPriority]
-  pr.cpus = [100000, selectionCPU]
-  pr.targets = [targets, '']
-  pr.groupSizes = [1, selectionGroupSize]
-  pr.plugins = ['', selectionPlugin]
-  pr.inputDataPolicies = ['', 'download']
-  pr.bkQueries = ['', 'fromPreviousProd']
-  pr.multicore = [MCmulticoreFlag, selmulticoreFlag]
-  pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] ) +\
-                      [selectionCompressionLvl] * len( pr.stepsInProds[1] )
-  pr.resolveSteps()
-
-elif w4:
-  pr.prodsTypeList = ['MCSimulation', 'MCMerge']
-  pr.outputSEs = ['Tier1-BUFFER', 'Tier1_MC-DST']
-  pr.stepsInProds = [range( 1, len( pr.stepsList ) ),
-                     [len( pr.stepsList )]]
-  pr.removeInputsFlags = [False, removeInputMerge]
-  pr.priorities = [MCPriority, mergingPriority]
-  pr.cpus = [100000, mergingCPU]
-  pr.outputFileSteps = [str( len( pr.stepsList ) - 1 ), '']
-  pr.targets = [targets, '']
-  pr.groupSizes = [1, mergingGroupSize]
-  pr.plugins = ['', mergingPlugin]
-  pr.inputDataPolicies = ['', 'download']
-  pr.bkQueries = ['', 'fromPreviousProd']
-  pr.multicore = [MCmulticoreFlag, mergemulticoreFlag]
-  pr.compressionLvl = [simulationCompressionLvl]  * len( pr.stepsInProds[0] ) +\
-                      [mergeCompressionLvl]  * len( pr.stepsInProds[1] )
-
-elif w5:
+elif w1:
   pr.prodsTypeList = ['MCSimulation']
   pr.outputSEs = ['Tier1_MC-DST']
-  pr.resolveSteps()
-  if pr.stepsListDict[-1]['ApplicationName'].lower() == 'lhcb':
-    gLogger.error( "This request contains a merge step, I can't submit it with this workflow" )
-    DIRACexit( 2 )
 
   pr.stepsInProds = [range( 1, len( pr.stepsList ) + 1 )]
   pr.removeInputsFlags = [False]
@@ -258,17 +147,10 @@ elif w5:
   pr.inputDataPolicies = ['']
   pr.bkQueries = ['']
   pr.multicore = [MCmulticoreFlag]
-  pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] )
-  pr.resolveSteps()
 
-elif w6:
+elif w2:
   pr.prodsTypeList = ['MCSimulation', 'MCReconstruction']
   pr.outputSEs = ['Tier1-BUFFER', 'Tier1_MC-DST']
-
-  pr.resolveSteps()
-  if pr.stepsListDict[-1]['ApplicationName'].lower() == 'lhcb':
-    gLogger.error( "This request contains a merge step, I can't submit it with this workflow" )
-    DIRACexit( 2 )
 
   pr.stepsInProds = [[1,] , xrange( 2, len( pr.stepsList ) + 1 )]
   pr.outputFileSteps = [str( len( pr.stepsInProds[0] ) ),
@@ -283,11 +165,8 @@ elif w6:
   pr.inputDataPolicies = ['', 'download']
   pr.bkQueries = ['', 'fromPreviousProd']
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag]
-  pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] ) +\
-                      [selectionCompressionLvl] * len( pr.stepsInProds[1] )
-  pr.resolveSteps()
 
-elif w7:
+elif w3:
   pr.prodsTypeList = ['MCSimulation', 'MCReconstruction', 'MCMerge']
   pr.outputSEs = ['Tier1-BUFFER', 'Tier1-BUFFER', 'Tier1_MC-DST']
 
@@ -303,9 +182,9 @@ elif w7:
   pr.inputDataPolicies = ['', 'download', 'download']
   pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag, mergemulticoreFlag]
-  pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] ) +\
-                      [selectionCompressionLvl] * len( pr.stepsInProds[1] ) +\
-                      [mergeCompressionLvl] * len( pr.stepsInProds[2] )
+
+# Temporary solution: should depend from the output file visibility
+pr.compressionLvl = [compressionLvlDefault]*(len( pr.stepsList )-1) + [compressionLvlLast]
 
 # In case we want just to test, we publish in the certification/test part of the BKK
 if currentSetup == 'LHCb-Certification' or pr.testFlag:

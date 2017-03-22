@@ -368,14 +368,10 @@ class DMScript( object ):
     return self.setLFNsFromFile( arg )
 
   def getLFNsFromList( self, lfns, directories = False ):
-    if isinstance( lfns, dict ):
-      lfnList = [lfn.strip() for lfn in lfns]
-    elif isinstance( lfns, basestring ):
+    if isinstance( lfns, basestring ):
       lfnList = lfns.split( ',' )
-    elif isinstance( lfns , list ):
+    elif isinstance( lfns , ( list, set, dict ) ):
       lfnList = [lfn.strip() for lfn1 in lfns for lfn in lfn1.split( ',' )]
-    elif isinstance( lfns, set ):
-      lfnList = sorted( lfns )
     else:
       gLogger.error( 'getLFNsFromList: invalid type %s' % type( lfns ) )
       return []

@@ -1,3 +1,26 @@
+[v8r6p1]
+Use DIRAC v6r17p14
+
+* improve the query execution time by using the configurationid in the productionscontainer table
+* NagiosTopologyAgent final (for now)
+* Improve logging of allTasks
+* Exclude HIST files to be replicated in MCDSTBroadcast
+* Final Fixes at NagiosTopologyAgent.py in order to make it more compatible with the rules of wlcg
+* Add RemoveReplica to the list of Operation to cleanup in the UploadOutputData module
+* Improve searching for LFNs in file and adapt TS-debug
+* Add API method getAccessURL and adapt method in ScriptExecutors for it
+* Protect against empty LFN list
+* Handle case when files are reset Unused: only put in tasks added files
+* correctly setting the BK path (for visualization)
+* wrong indent level
+* retreive the db tags using an existing method
+* reformat RAWIntegrityAgent to perform direct delete Does not use anymore this non existing retransfer call Does not try to remove from Destination anymore Performs bulk removal and registrations Does not create requests anymore, but delete directly Uses intermediate states in case of errors (Copied, Migrated) Correct documentation
+* Use the bulk removal instead of sequential in the xmlrpc call of DataMover Remove useless methods. Don't call again checkArgumentFormat
+* return a list of processed runs for a given period
+* include ReplicateWithAncestors
+* Allow speficying the source in get-file
+* in the time being we only deploy LHCbDIRAC to one platform
+
 [v8r6]
 Use DIRAC v6r17p13
 

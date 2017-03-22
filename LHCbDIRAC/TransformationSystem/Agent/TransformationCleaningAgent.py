@@ -55,6 +55,8 @@ class TransformationCleaningAgent( DiracTCAgent ):
     storageElements = resolveSEGroup( 'Tier1-DST' )
     self.activeStorages = sorted( self.am_getOption( 'ActiveSEs', storageElements ) )
 
+    self.fileTypesToKeep = Operations().getValue( 'Transformations/FileTypesToKeep', self.fileTypesToKeep )
+
     self.bkClient = BookkeepingClient()
     self.transClient = TransformationClient()
     self.storageUsageClient = StorageUsageClient()
@@ -62,7 +64,10 @@ class TransformationCleaningAgent( DiracTCAgent ):
     return S_OK()
 
   def cleanMetadataCatalogFiles( self, transID ):
-    """ clean the metadata using BKK and Data Manager. Replace the one from base class
+    """ clean the metadata using BKK and Data Manager. This method is a replacement of the one from base class
+
+    :param self: self reference
+    :param int transID: transformation ID
     """
     res = self.bkClient.getProductionFiles( transID, 'ALL', 'Yes' )
     if not res['OK']:
@@ -131,9 +136,8 @@ class TransformationCleaningAgent( DiracTCAgent ):
     # but this is pretty difficult to identify at run time, so we better remove the "RemovingFiles" production status
     # and replace it with a flush (this applies only to MC).
     # For the moment we just have a created list
-    fileTypesToKeep = Operations().getValue( 'Transformations/FileTypesToKeep', self.fileTypesToKeep )
     fileTypesToKeepDirs = []
-    for fileTypeToKeep in fileTypesToKeep:
+    for fileTypeToKeep in self.fileTypesToKeep:
       fileTypesToKeepDirs.extend([x for x in directories if fileTypeToKeep in x])
     directories = list( set(directories).difference( set(fileTypesToKeepDirs) ) )
 
