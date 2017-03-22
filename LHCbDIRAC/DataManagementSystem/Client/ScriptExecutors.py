@@ -445,7 +445,8 @@ def executeAccessURL( dmScript ):
     Script.showHelp()
     return 1
   else:
-    return getAccessURL( lfnList, seList, protocol )
+    results = getAccessURL( lfnList, seList, protocol )
+    return printDMResult( results, empty = "File not at SE", script = "dirac-dms-lfn-accessURL" )
 
 def getAccessURL( lfnList, seList, protocol = None ):
   """
@@ -454,6 +455,8 @@ def getAccessURL( lfnList, seList, protocol = None ):
   dm = DataManager()
   res = dm.getReplicas( lfnList, getUrl = False )
   replicas = res.get( 'Value', {} ).get( 'Successful', {} )
+  if isinstance( seList, basestring ):
+    seList = seList.split( ',' )
   if not seList:
     seList = sorted( set( se for lfn in lfnList for se in replicas.get( lfn, {} ) ) )
     if len( seList ) > 1:
@@ -492,8 +495,7 @@ def getAccessURL( lfnList, seList, protocol = None ):
         notFoundLfns.remove( lfn )
   if notFoundLfns:
     results['Value']['Failed'] = dict.fromkeys( sorted( notFoundLfns ), 'File not found in required seList' )
-
-  return printDMResult( results, empty = "File not at SE", script = "dirac-dms-lfn-accessURL" )
+  return results
 
 def executeRemoveFiles( dmScript ):
   """
@@ -1440,7 +1442,11 @@ def executeGetFile( dmScript ):
   """
   get files to a local storage
   """
-  lfnList, _ses = parseArguments( dmScript )
+  lfnList, ses = parseArguments( dmScript )
+  if ses:
+    sourceSE = ses[0]
+  else:
+    sourceSE = None
 
   # We cannot use the getOptions() method here as that method only returns LFN directories
   #   here we define a local directory
@@ -1450,8 +1456,8 @@ def executeGetFile( dmScript ):
     return 2
 
   nLfns = len( lfnList )
-  gLogger.notice( 'Downloading %s to %s' % ( ( '%d files' % nLfns ) if nLfns > 1 else 'file', dirList[0] ) )
-  result = DataManager().getFile( lfnList, destinationDir = dirList[0] )
+  gLogger.notice( 'Downloading %s to %s%s' % ( ( '%d files' % nLfns ) if nLfns > 1 else 'file', dirList[0], ' from %s' % sourceSE if sourceSE else '' ) )
+  result = DataManager().getFile( lfnList, destinationDir = dirList[0], sourceSE = sourceSE )
 
   # Prepare popularity report
   if result['OK']:

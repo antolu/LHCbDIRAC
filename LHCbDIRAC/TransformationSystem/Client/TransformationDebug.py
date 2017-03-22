@@ -1361,7 +1361,9 @@ class TransformationDebug( object ):
 
         # Files with run# == 0
         transWithRun = self.transType != 'Removal' and \
-                       self.transPlugin not in ( 'LHCbStandard', 'ReplicateDataset', 'ArchiveDataset', 'LHCbMCDSTBroadcastRandom', 'ReplicateToLocalSE', 'BySize', 'Standard' )
+                       self.transPlugin not in ( 'LHCbStandard', 'ReplicateDataset', 'ArchiveDataset',
+                                                 'LHCbMCDSTBroadcastRandom', 'ReplicateToLocalSE', 'ReplicateWithAncestors',
+                                                 'BySize', 'Standard' )
         if filesWithRunZero and transWithRun:
           self.__fixRunNumber( filesWithRunZero, fixRun )
         if filesWithNoRunTable and transWithRun:
@@ -1380,7 +1382,23 @@ class TransformationDebug( object ):
         jobsForLfn = {}
         if verbose:
           gLogger.notice( "Tasks:", ','.join( str( taskID ) for taskID in sorted( taskDict ) ) )
-        for taskID in sorted( taskList ) if taskList else sorted( taskDict ):
+        if allTasks:
+          # Sort tasks by LFNs in order to print them together
+          lfnTask = {}
+          for taskID in sorted( taskDict ):
+            for lfn in taskDict[taskID]:
+              lfnTask.setdefault( lfn, [] ).append( taskID )
+          sortedTasks = []
+          for lfn in sorted( lfnTask ):
+            for taskID in lfnTask[lfn]:
+              if taskID not in sortedTasks:
+                sortedTasks.append( taskID )
+        else:
+          sortedTasks = sorted( taskDict )
+        lfnsInTask = []
+        for taskID in sorted( taskList ) if taskList else sortedTasks:
+          if allTasks and taskDict[taskID] != lfnsInTask:
+            gLogger.notice( "" )
           if taskID not in taskDict:
             gLogger.notice( 'Task %s not found in the transformation files table' % taskID )
             lfnsInTask = []
@@ -1421,7 +1439,7 @@ class TransformationDebug( object ):
             # print task
             prString = "TaskID: %s (created %s, updated %s) - %d files" % ( taskID, task['CreationTime'], task['LastUpdateTime'], nfiles )
             if byFiles and lfnsInTask:
-              sep = ',' if sys.stdout.isatty() else '\n'
+              sep = ','  # if sys.stdout.isatty() else '\n'
               prString += " (" + sep.join( lfnsInTask ) + ")"
             prString += "- %s: %s - Status: %s" % ( taskType, task['ExternalID'], task['ExternalStatus'] )
             if targetSE:
@@ -1431,8 +1449,8 @@ class TransformationDebug( object ):
             # More information from Request tasks
             if taskType == "Request":
               toBeKicked += self.__printRequestInfo( task, lfnsInTask, taskCompleted, status, dmFileStatusComment )
-
-            gLogger.notice( "" )
+            if not allTasks:
+              gLogger.notice( "" )
         if byJobs and jobsForLfn:
           self.__checkJobs( jobsForLfn, byFiles, checkLogs )
       if 'Problematic' in status and nbReplicasProblematic:
