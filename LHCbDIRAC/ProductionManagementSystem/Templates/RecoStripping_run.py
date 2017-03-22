@@ -146,12 +146,6 @@ if extraOptions:
   pr.extraOptions = ast.literal_eval( extraOptions )
 mergeRemoveInputsFlag = ast.literal_eval( mergingRemoveInputsFlag )
 
-#
-# resolveSteps doesn't define any variables needed beyond this point, so
-# it's ok to skip it as it prevents others from being filled, namely the compressionLvl
-#
-#pr.resolveSteps()
-
 if not w1 and not w2 and not w3 and not w4:
   gLogger.error( 'I told you to select at least one workflow!' )
   DIRACexit( 2 )
