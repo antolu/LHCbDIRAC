@@ -1,12 +1,23 @@
 .. image:: _static/DIRAC_logo.png
   :width: 300
+  :target: https://gitlab.cern.ch/lhcb-dirac
+
+.. The following raw setting for the Guide enlarged title
+
+.. raw:: html
+
+   <style>  p.first { font-size:150%; }
+   </style>
 
 =========================================
 LHCbDIRAC Documentation
 =========================================
 
-The `DIRAC <http://diracgrid.org/>`_ project is a complete Grid solution for a community of users such as the LHCb Collaboration.
-DIRAC forms a layer between a particular community and various compute resources to allow optimized, transparent and reliable usage:
+The `LHCbDIRAC <https://gitlab.cern.ch/lhcb-dirac>`_ project is the LHCb Grid solution.
+LHCbDIRAC is DIRAC extension.
+
+DIRAC forms a layer between a particular community and various compute resources to allow optimized,
+transparent and reliable usage. LHCbDIRAC specializes DIRAC for LHCb.
 
   - DIRAC documentation: `<http://dirac.readthedocs.io/en/latest/index.html>`_
   - DIRAC hosted repository: `<https://github.com/DIRACGrid>`_
@@ -23,7 +34,6 @@ LHCbDIRAC is the LHCb extension to DIRAC:
    DevsGuide/tree.rst
    AdministratorGuide/tree.rst
    Certification/tree.rst
-   `Code Documentation <http://lhcb-release-area.web.cern.ch/LHCb-release-area/DOC/lhcbdirac/>`_.
 
 
 Indices and tables

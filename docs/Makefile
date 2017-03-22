@@ -1,5 +1,13 @@
 # Makefile for Sphinx documentation
 #
+#LANG := en_GB.UTF-8
+#LC_COLLATE := en_GB.UTF-8
+#LC_CTYPE := en_GB.UTF-8
+#LC_MESSAGES := en_GB.UTF-8
+#LC_MONETARY := en_GB.UTF-8
+#LC_NUMERIC := en_GB.UTF-8
+#LC_TIME := en_GB.UTF-8
+#LC_ALL := en_GB.UTF-8
 
 # You can set these variables from the command line.
 SPHINXOPTS    =

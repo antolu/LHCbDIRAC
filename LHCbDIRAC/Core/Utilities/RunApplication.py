@@ -92,7 +92,10 @@ class RunApplication(object):
     else:
       command = self.command
 
-    finalCommand = ' '.join( [self.runApp, configString, extraPackagesString, runtimeProjectString, externalsString, app, command] )
+    finalCommand = ' '.join( [self.runApp, '--use-grid',
+                              configString, extraPackagesString,
+                              runtimeProjectString, externalsString,
+                              app, command] )
 
     # Run it!
     runResult = self._runApp( finalCommand, self.lhcbEnvironment )
@@ -271,11 +274,7 @@ def _multicoreWN():
   tags = fromChar( gConfig.getValue( '/Resources/Sites/%s/%s/CEs/%s/Queues/%s/Tag' % ( siteName.split( '.' )[0], queue,
                                                                                        siteName, gridCE ), '' ) )
 
-  if tags and 'MultiProcessor' in tags:
-    return True
-  else:
-    return False
-
+  return bool(tags and 'MultiProcessor' in tags)
 
 def getLHCbEnvironment():
   """ Run LbLogin and returns the environment created.
