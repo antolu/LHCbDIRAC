@@ -45,6 +45,7 @@ class NagiosTopologyAgent(AgentModule):
     """
 
     self.xmlPath = rootPath + '/' + self.am_getOption('webRoot')
+    self.urljson = 'https://wlcg-rebus.cern.ch/apps/topology/all/json'
 
     try:
       os.makedirs(self.xmlPath)
@@ -70,8 +71,7 @@ class NagiosTopologyAgent(AgentModule):
 ##########################################################################
 # Newest code to include VAC and VCYCLE
 
-    urljson = 'https://wlcg-rebus.cern.ch/apps/topology/all/json'
-    response = urllib.urlopen(urljson)
+    response = urllib.urlopen(self.urljson)
     wlcg = json.loads(response.read())
 
     ret = gConfig.getSections('Resources/Sites')
@@ -188,11 +188,11 @@ class NagiosTopologyAgent(AgentModule):
   def __site_parameters(sites, wlcg):
     """Function that returns the sites parameters.
 
-      :param list sites 
+      :param list sites: 
         List of sites or single site with same site name (e.g ['LCG.CERN.cern'] or 
         [LCG.Manchester.uk, VAC.Manchester.uk])
 
-      :param dict wlcg
+      :param dict wlcg:
         It's a dictionary with the WLCG parameters from all sites grabbed from 
         https://wlcg-rebus.cern.ch/apps/topology/all/json
 
@@ -271,7 +271,7 @@ class NagiosTopologyAgent(AgentModule):
     for site_ce_name in ces:
 
       has_grid_elem = True
-      etf_default = False
+      etf_default = 'False'
       max_CPU = 0
       site_ce_opts = gConfig.getOptionsDict(
           'Resources/Sites/%s/%s/CEs/%s' % (grid, site, site_ce_name))
@@ -305,8 +305,6 @@ class NagiosTopologyAgent(AgentModule):
           if queue_information.get('maxCPUTime') > max_CPU:
             etf_default = 'True'
             max_CPU = queue_information.get('maxCPUTime')
-          else:
-            etf_default = 'False'
 
         xml_append(xml_doc, xml_ce, 'queues', ce_resource=queue,
                    # batch_system=ce_batch,
@@ -376,7 +374,7 @@ class NagiosTopologyAgent(AgentModule):
       site_se_opts_DST = site_se_opts_DST['Value']
       __write_SE_XML(site_se_opts_DST)
 
-      if site_tier in (0, 1):
+      if int(site_tier) in (0, 1):
         if protocol in se_plugins_RAW['Value']:
           site_se_opts_RAW = se_RAW.getStorageParameters(protocol)
           if not site_se_opts_RAW['OK']:
