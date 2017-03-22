@@ -3118,10 +3118,15 @@ and files.qualityid= dataquality.qualityid'
   def __buildConfiguration( configName, configVersion, condition, tables ):
     """ it make the condition string for a given configName and configVersion"""
     if configName not in [default, None, '']  and configVersion not in [default, None, '']:
-      if tables.upper().find( 'CONFIGURATIONS' ) < 0:
+      #check the existance of the tables
+      if 'PRODUCTIONSCONTAINER' not in tables.upper():
+        tables += ' ,productionscontainer prod'
+        
+      if 'CONFIGURATIONS' not in tables.upper():
         tables += ' ,configurations c'
       condition += "  and c.ConfigName='%s' and c.ConfigVersion='%s' and \
-      j.configurationid=c.configurationid " % ( configName, configVersion )
+      prod.configurationid=c.configurationid and j.production=prod.production" % ( configName, configVersion )
+        
     return S_OK( ( condition, tables ) )
 
   #############################################################################
