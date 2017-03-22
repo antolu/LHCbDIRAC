@@ -11,11 +11,11 @@ import time
 import xml.dom.minidom
 import urllib
 import json
-from DIRAC                                           import S_OK, rootPath, gLogger, gConfig
-from DIRAC.Core.Base.AgentModule                     import AgentModule
+from DIRAC import S_OK, rootPath, gLogger, gConfig
+from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
-from DIRAC.Resources.Storage.StorageElement          import StorageElement
-from DIRAC.Core.Utilities.Grid                       import ldapCEState
+from DIRAC.Resources.Storage.StorageElement import StorageElement
+#from DIRAC.Core.Utilities.Grid                       import ldapCEState
 
 __RCSID__ = "$Id$"
 AGENT_NAME = 'ResourceStatus/NagiosTopologyAgent'
@@ -115,16 +115,14 @@ class NagiosTopologyAgent(AgentModule):
           ces = site_parameters['Grid'][grid]['CEs']
           # CE info
           if ces:
-            res = self.__writeCEInfo(
-                xml_doc, grid, xml_site, site, ces)
+            res = self.__writeCEInfo(xml_doc, grid, xml_site, site, ces)
             # Update has_grid_elem
             has_grid_elem = res or has_grid_elem
 
         # SE info
         if site_parameters['SE'] and (site_tier in ['0', '1', '2'] or site_subtier in ['T2-D']):
           # res = self.__writeSEInfo( xml_doc, xml_site, dirac_name )
-          res = self.__writeSEInfo(
-              xml_doc, xml_site, dirac_name, site_tier, site_subtier)
+          res = self.__writeSEInfo(xml_doc, xml_site, dirac_name, site_tier, site_subtier)
           # Update has_grid_elem
           has_grid_elem = res or has_grid_elem
 
@@ -136,9 +134,9 @@ class NagiosTopologyAgent(AgentModule):
           xml_append(xml_doc, xml_site, 'group',
                      name=dirac_name, type='All Sites')
           xml_append(xml_doc, xml_site, 'group',
-                     name=dirac_name, type='WLCG_%s' % (site_parameters['FederationAccountingName']))  # ==> Federation
+                     name=dirac_name, type='WLCG_%s' % (site_parameters['FederationAccountingName']))
           xml_append(xml_doc, xml_site, 'group',
-                     name=dirac_name, type='WLCG_%s' % (site_parameters['Country']))  # ==> Country
+                     name=dirac_name, type='WLCG_%s' % (site_parameters['Country']))
           try:
             if site_subtier == 'T2-D':
               xml_append(xml_doc, xml_site, 'group',
@@ -188,8 +186,16 @@ class NagiosTopologyAgent(AgentModule):
 
   @staticmethod
   def __site_parameters(sites, wlcg):
-    """
-      Function that returns the sites parameters.
+    """Function that returns the sites parameters.
+
+      :param list sites 
+        List of sites or single site with same site name (e.g ['LCG.CERN.cern'] or 
+        [LCG.Manchester.uk, VAC.Manchester.uk])
+
+      :param dict wlcg
+        It's a dictionary with the WLCG parameters from all sites grabbed from 
+        https://wlcg-rebus.cern.ch/apps/topology/all/json
+
       Keys:
       'WlcgName', 'Coordinates', 'Description', 'Mail', 'DiracName', 'Tier', 'Sub-Tier',
       'SE', 'Country':, 'Federation', 'FederationAccountingName', 'Infrastructure',
@@ -281,17 +287,17 @@ class NagiosTopologyAgent(AgentModule):
                        'Vcycle': 'uk.ac.gridpp.vcycle'}
 
       xml_ce = xml_append(xml_doc, xml_site, 'service', hostname=site_ce_name,
-                 flavour=mappingCEType.get(site_ce_type, 'UNDEFINED'))
+                          flavour=mappingCEType.get(site_ce_type, 'UNDEFINED'))
 
       ce_queues = gConfig.getSections(
           'Resources/Sites/%s/%s/CEs/%s/Queues/' % (grid, site, site_ce_name))
       ce_queues = ce_queues['Value']
-      #   I'll leave this code commented in case it needs to be used in the future, 
-      #   this function consumes a hell lot of time to return a value that is not 
+      #   I'll leave this code commented in case it needs to be used in the future,
+      #   this function consumes a hell lot of time to return a value that is not
       #   mandatory at the momment
       #ce_batch = ldapCEState(site_ce_name, site_ce_opts['VO'])
       #ce_batch = ce_batch['Value'][0]['GlueCEInfoJobManager'] if (ce_batch['OK'] and ce_batch['Value']) else None
-      for queue in ce_queues:        
+      for queue in ce_queues:
         queue_information = gConfig.getOptionsDict(
             'Resources/Sites/%s/%s/CEs/%s/Queues/%s' % (grid, site, site_ce_name, queue))
         if queue_information['OK']:
@@ -299,25 +305,26 @@ class NagiosTopologyAgent(AgentModule):
           if queue_information.get('maxCPUTime') > max_CPU:
             etf_default = 'True'
             max_CPU = queue_information.get('maxCPUTime')
-          else: 
-            etf_default = 'False' 
+          else:
+            etf_default = 'False'
 
         xml_append(xml_doc, xml_ce, 'queues', ce_resource=queue,
-                   #batch_system=ce_batch,
+                   # batch_system=ce_batch,
                    queue=queue_information.get('VO'),
                    etf_default=etf_default
-                   #maxWaitingJobs=queue_information.get('MaxWaitingJobs'),
-                   #maxCPUTime=queue_information.get('maxCPUTime')
+                   # maxWaitingJobs=queue_information.get('MaxWaitingJobs'),
+                   # maxCPUTime=queue_information.get('maxCPUTime')
                    )
     return has_grid_elem
 
   @staticmethod
   def __writeSEInfo(xml_doc, xml_site, site, site_tier, site_subtier):
     """ Writes SE information in the XML Document
+
     """
     def __write_SE_XML(site_se_opts):
-      """
-      Sub-function just to populate the XML with the SE values
+      """Sub-function just to populate the XML with the SE values
+
       """
       site_se_name = site_se_opts.get('Host')
       site_se_flavour = site_se_opts.get('Protocol')
