@@ -649,14 +649,13 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             okSEs = fromSEs & set( task[0].split( ',' ) )
             if okSEs:
               if addAncestors:
-                nbLfns = len( task[1] )
                 res = self.util.checkAncestorsAtSE( task[1], okSEs )
                 if not res['OK']:
                   return res
-                if len( task[1] ) != nbLfns:
+                missing = res['Value']
+                if missing:
                   missingAtSEs = True
-                  missingAncestors += nbLfns - len( task[1] )
-                  self.util.logVerbose( "%d ancestor files found not to be at %s" % ( nbLfns - len( task[1] ), ','.join( okSEs ) ) )
+                  missingAncestors += missing
               if task[1]:
                 # Restrict target SEs to those in fromSEs
                 okTasks.append( ( ','.join( sorted( okSEs ) ), task[1] ) )

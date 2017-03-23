@@ -663,6 +663,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     Check if ancestors of a list of files are present at a set of SEs
     """
     # We request also that ancestors are at the fromSEs
+    nbLfns = len( lfns )
     ancestors = self.getFileAncestors( lfns, depth = 1, replica = True )
     if not ancestors['OK']:
       self.logError( "Error getting ancestors", ancestors['Message'] )
@@ -679,7 +680,10 @@ class PluginUtilities( DIRACPluginUtilities ):
       for anc in ancList:
         if not okSEs & set( success[anc['FileName']] ):
           lfns.remove( lfn )
-    return S_OK( lfns )
+    missingAtSEs = nbLfns - len( lfns )
+    if missingAtSEs:
+      self.util.logVerbose( "%d ancestor files found not to be at %s" % ( missingAtSEs, ','.join( okSEs ) ) )
+    return S_OK( missingAtSEs )
 
   # @timeThis
   def getTransformationRuns( self, runs = None, transID = None ):
