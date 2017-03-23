@@ -682,7 +682,7 @@ class PluginUtilities( DIRACPluginUtilities ):
           lfns.remove( lfn )
     missingAtSEs = nbLfns - len( lfns )
     if missingAtSEs:
-      self.util.logVerbose( "%d ancestor files found not to be at %s" % ( missingAtSEs, ','.join( okSEs ) ) )
+      self.logVerbose( "%d ancestor files found not to be at %s" % ( missingAtSEs, ','.join( okSEs ) ) )
     return S_OK( missingAtSEs )
 
   # @timeThis
