@@ -1,3 +1,15 @@
+[v8r7-pre1]
+Use DIRAC v6r17p15
+
+* move logging to utilities
+* Count missing ancestors and log it at INFO level
+* Add possibility to check the presence of ancestor files at required SEs
+* modify the execution plan
+* fixed dirac logo location
+* Removed diracSAM and scripts
+* removed scripts directory (old confusing stuff)
+* using rss methods for interacting with sites and resources
+
 [v8r6p2]
 Use DIRAC v6r17p14
 
