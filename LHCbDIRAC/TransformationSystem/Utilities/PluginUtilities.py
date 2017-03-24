@@ -658,6 +658,14 @@ class PluginUtilities( DIRACPluginUtilities ):
   def getFileAncestors( self, lfns, depth = 10, replica = True ):
     return self.bkClient.getFileAncestors( lfns, depth = depth, replica = replica )
 
+  def __clearTaskLFNs( self, taskLfns ):
+    nbLfns = 0
+    for lfnList in taskLfns:
+      nbLfns += len( lfnList )
+      for lfn in lfnList:
+        lfnList.remove( lfn )
+    return nbLfns
+
   def checkAncestorsAtSE( self, taskLfns, okSEs ):
     """
     Check if ancestors of a list of files are present at a set of SEs
@@ -668,15 +676,17 @@ class PluginUtilities( DIRACPluginUtilities ):
     ancestors = self.getFileAncestors( lfns, depth = 1, replica = True )
     if not ancestors['OK']:
       self.logError( "Error getting ancestors", ancestors['Message'] )
-      return ancestors
+      return self.__clearTaskLFNs( taskLfns )
     ancestors = ancestors['Value']['Successful']
     ancLfns = [anc['FileName'] for ancList in ancestors.itervalues() for anc in ancList]
     self.logVerbose( 'Checking ancestors presence at %s for %d files' % ( ','.join( sorted( okSEs ) ), len( ancLfns ) ) )
     res = self.dm.getReplicasForJobs( ancLfns, getUrl = False )
     if not res['OK']:
       self.logError( "Error getting replicas of ancestors", res['Message'] )
-      return res
-    success = res['Value']['Successful']
+      # Fake no replicas for all files
+      return self.__clearTaskLFNs( taskLfns )
+    else:
+      success = res['Value']['Successful']
     for lfn, ancList in ancestors.iteritems():
       for anc in ancList:
         if not okSEs & set( success[anc['FileName']] ):
@@ -687,7 +697,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     missingAtSEs = nbLfns - len( [lfn for lfnList in taskLfns for lfn in lfnList] )
     if missingAtSEs:
       self.logVerbose( "%d ancestor files found not to be at %s" % ( missingAtSEs, ','.join( sorted( okSEs ) ) ) )
-    return S_OK( missingAtSEs )
+    return missingAtSEs
 
   # @timeThis
   def getTransformationRuns( self, runs = None, transID = None ):
