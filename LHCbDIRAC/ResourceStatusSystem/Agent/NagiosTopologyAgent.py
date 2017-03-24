@@ -288,6 +288,7 @@ class NagiosTopologyAgent(AgentModule):
                        'Vac': 'VAC', 'Cloud': 'CLOUD', 'Boinc': 'BOINC',
                        'Vcycle': 'VCYCLE'}
 
+                      # After Marian fixes his side, this should be reverted
                       # {'LCG': 'CE', 'CREAM': 'CREAM-CE',
                       #  'ARC': 'ARC-CE', 'HTCondorCE': 'org.opensciencegrid.htcondorce',
                       #  'Vac': 'uk.ac.gridpp.vac', 'Cloud': 'CLOUD', 'Boinc': 'BOINC',
@@ -314,11 +315,13 @@ class NagiosTopologyAgent(AgentModule):
           #   max_CPU = queue_information.get('maxCPUTime')
 
         xml_append(xml_doc, xml_ce, 'queues', ce_resource=queue,
+                   # - the following items are already predicter for latter changes if necessary
                    # batch_system=ce_batch,
-                   #queue=queue_information.get('VO'),
-                   #etf_default=etf_default # => this needs to be fixed, when necessary
+                   # queue=queue_information.get('VO'),
+                   # etf_default=etf_default # => this needs to be fixed, when necessary
                    # maxWaitingJobs=queue_information.get('MaxWaitingJobs'),
                    # maxCPUTime=queue_information.get('maxCPUTime')
+
                    )
     return has_grid_elem
 
