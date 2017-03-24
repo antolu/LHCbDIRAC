@@ -121,4 +121,7 @@ alter table jobs ADD CONSTRAINT FK_Prodcont_prod FOREIGN KEY(production) REFEREN
 
 ALTER TABLE jobs ADD HLT2TCK varchar2(20);
 
+alter table stepscontainer  add eventtypeid number;
+alter table stepscontainer add constraint fk_stepscontainer_eventtypeid FOREIGN KEY (eventtypeid) references eventtypes(eventtypeid);
+
 
