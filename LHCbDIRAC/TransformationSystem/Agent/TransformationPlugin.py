@@ -671,7 +671,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             missingAtSEs = True
             self.util.logInfo( "%d tasks could not be created for run %d as files are not at required SEs" %
                                ( nbTasks - len( tasks ), runID ) )
-        self.util.logVerbose( "Created %d tasks for run %d%s" %
+        self.util.logInfo( "Created %d tasks for run %d%s" %
                               ( len( tasks ), runID, paramStr ) )
         allTasks.extend( tasks )
         # Cache the left-over LFNs
