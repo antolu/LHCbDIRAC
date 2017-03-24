@@ -1397,7 +1397,7 @@ class TransformationDebug( object ):
           sortedTasks = sorted( taskDict )
         lfnsInTask = []
         for taskID in sorted( taskList ) if taskList else sortedTasks:
-          if allTasks and taskDict[taskID] != lfnsInTask:
+          if allTasks and not byJobs and taskDict[taskID] != lfnsInTask:
             gLogger.notice( "" )
           if taskID not in taskDict:
             gLogger.notice( 'Task %s not found in the transformation files table' % taskID )

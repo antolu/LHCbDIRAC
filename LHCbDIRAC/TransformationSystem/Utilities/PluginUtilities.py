@@ -658,6 +658,33 @@ class PluginUtilities( DIRACPluginUtilities ):
   def getFileAncestors( self, lfns, depth = 10, replica = True ):
     return self.bkClient.getFileAncestors( lfns, depth = depth, replica = replica )
 
+  def checkAncestorsAtSE( self, lfns, okSEs ):
+    """
+    Check if ancestors of a list of files are present at a set of SEs
+    """
+    # We request also that ancestors are at the fromSEs
+    nbLfns = len( lfns )
+    ancestors = self.getFileAncestors( lfns, depth = 1, replica = True )
+    if not ancestors['OK']:
+      self.logError( "Error getting ancestors", ancestors['Message'] )
+      return ancestors
+    ancestors = ancestors['Value']['Successful']
+    ancLfns = [anc['FileName'] for ancList in ancestors.itervalues() for anc in ancList]
+    self.logVerbose( 'Checking ancestors presence at %s for %d files' % ( ','.join( okSEs ), len( ancLfns ) ) )
+    res = self.dm.getReplicasForJobs( ancLfns, getUrl = False )
+    if not res['OK']:
+      self.logError( "Error getting replicas of ancestors", res['Message'] )
+      return res
+    success = res['Value']['Successful']
+    for lfn, ancList in ancestors.iteritems():
+      for anc in ancList:
+        if not okSEs & set( success[anc['FileName']] ):
+          lfns.remove( lfn )
+    missingAtSEs = nbLfns - len( lfns )
+    if missingAtSEs:
+      self.logVerbose( "%d ancestor files found not to be at %s" % ( missingAtSEs, ','.join( okSEs ) ) )
+    return S_OK( missingAtSEs )
+
   # @timeThis
   def getTransformationRuns( self, runs = None, transID = None ):
     """ get the run table for a list of runs, if missing, add them """
@@ -1055,7 +1082,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     if not storageUsage['OK']:
       return storageUsage
     storageUsage = storageUsage['Value']
-    self.printShares( "Current storage usage per SE:", storageUsage, counters = [], log = self.logVerbose )
+    self.printShares( "Current storage usage per SE:", storageUsage, counters = [], log = self.logInfo )
 
     # Get the shares (including processing fraction) at each site (from RAW SEs)
     shares = self.getPluginShares( section = 'CPUforRAW', backupSE = 'CERN-RAW' )
@@ -1096,7 +1123,7 @@ class PluginUtilities( DIRACPluginUtilities ):
         share *= targetFilesAtDestination / 100.
         selectedSE = selectedSEs[0]
         maxFilesAtSE[selectedSE] = max( 0, int( share - storageUsage.get( selectedSE, 0 ) - recentFiles.get( selectedSE, 0 ) ) )
-    self.printShares( "Maximum number of files per SE:", maxFilesAtSE, counters = [], log = self.logVerbose )
+    self.printShares( "Maximum number of files per SE:", maxFilesAtSE, counters = [], log = self.logInfo )
     return S_OK( maxFilesAtSE )
 
 
