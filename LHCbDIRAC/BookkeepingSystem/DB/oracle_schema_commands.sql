@@ -124,4 +124,12 @@ ALTER TABLE jobs ADD HLT2TCK varchar2(20);
 alter table stepscontainer  add eventtypeid number;
 alter table stepscontainer add constraint fk_stepscontainer_eventtypeid FOREIGN KEY (eventtypeid) references eventtypes(eventtypeid);
 
+create table productionoutputfiles( 
+Production NUMBER, 
+filetypeid Number,
+visible char(1) default 'Y',
+  CONSTRAINT PK_productionoutputfiles_p PRIMARY KEY (Production, filetypeid),
+  CONSTRAINT FK_productionoutputfiles_ft FOREIGN KEY (filetypeid) REFERENCES filetypes(filetypeid), 
+  CONSTRAINT FK_productionoutputfiles_prod FOREIGN KEY (production) REFERENCES productionscontainer(production) ON DELETE CASCADE ENABLE); 
+
 

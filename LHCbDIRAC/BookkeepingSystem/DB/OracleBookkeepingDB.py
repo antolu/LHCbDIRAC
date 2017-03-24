@@ -4066,12 +4066,24 @@ and files.qualityid= dataquality.qualityid'
           sim = retVal['Value']
         else:
           return S_ERROR( 'Data taking condition is missing!!' )
-      return self.insertproductionscontainer( production, processingid, sim, did, configName, configVersion )
+      retVal = self.insertproductionscontainer( production, processingid, sim, did, configName, configVersion )
+      if retVal['OK']:#now we can register the production output file types
+        return self.insertProductionOutputFiletypes( production, steps )
+      else:
+        return retVal
     else:
       return retVal
     return S_OK( 'The production processing pass is entered to the bkk' )
 
-
+  #############################################################################
+  def insertProductionOutputFiletypes(self, production, steps):
+    """
+    This method is used to register the output filetypes for a given production
+    :param int production: it is the production number
+    :param dict steps it contains all the steps and output file types
+    :return S_OK/S_ERROR
+    """
+    return
   #############################################################################
   def getEventTypes( self, configName = default, configVersion = default, prod = default ):
     """returns the events types for a given dataset"""
