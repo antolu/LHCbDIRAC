@@ -1,6 +1,6 @@
 {
   "name": "LHCbDirac",
-  "version": "v8r7-pre1",
+  "version": "v8r7-pre2",
   "used_projects": {
     "project": [
       [ "Dirac", "v6r17p15",
@@ -13,7 +13,7 @@
   },
   "heptools": {
     "binary_tag": "$CMTCONFIG",
-    "version": "86",
+    "version": "87",
     "packages": [
       [ "Python", "2.7.10",
         [ "bin" ]
