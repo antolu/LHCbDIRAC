@@ -472,6 +472,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     groupSize = self.util.getPluginParam( 'GroupSize' )
     typesWithNoCheck = self.util.getPluginParam( 'NoCheckTypes', ['Merge', 'MCMerge', 'Replication', 'Removal'] )
     fromSEs = set( resolveSEGroup( self.util.getPluginParam( 'FromSEs', [] ) ) )
+    # This flag defaults to True for DataStripping transformations
+    addAncestors = self.util.getPluginParam( 'UseAncestors', bool( self.params['Type'] == 'DataStripping' ) )
     maxTime = self.util.getPluginParam( 'MaxTimeAllowed', 0 )
     self.util.readCacheFile( self.workDirectory )
     if not self.transReplicas:
@@ -641,12 +643,24 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         tasks = res['Value']
         if fromSEs:
           okTasks = []
+          missingAncestors = 0
           for task in tasks:
             # If fromSEs is defined, check if in the list
             okSEs = fromSEs & set( task[0].split( ',' ) )
             if okSEs:
-              # Restrict target SEs to those in fromSEs
-              okTasks.append( ( ','.join( sorted( okSEs ) ), task[1] ) )
+              if addAncestors:
+                res = self.util.checkAncestorsAtSE( task[1], okSEs )
+                if not res['OK']:
+                  return res
+                missing = res['Value']
+                if missing:
+                  missingAtSEs = True
+                  missingAncestors += missing
+              if task[1]:
+                # Restrict target SEs to those in fromSEs
+                okTasks.append( ( ','.join( sorted( okSEs ) ), task[1] ) )
+          if missingAncestors:
+            self.util.logInfo( "%d files have been removed from tasks as ancestors were not present at required SEs" % missingAncestors )
           if len( tasks ) != len( okTasks ):
             missingAtSEs = True
             self.util.logInfo( "%d tasks could not be created for run %d as files are not at required SEs" %
