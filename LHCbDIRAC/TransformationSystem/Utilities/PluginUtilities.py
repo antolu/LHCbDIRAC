@@ -658,11 +658,12 @@ class PluginUtilities( DIRACPluginUtilities ):
   def getFileAncestors( self, lfns, depth = 10, replica = True ):
     return self.bkClient.getFileAncestors( lfns, depth = depth, replica = replica )
 
-  def checkAncestorsAtSE( self, lfns, okSEs ):
+  def checkAncestorsAtSE( self, taskLfns, okSEs ):
     """
     Check if ancestors of a list of files are present at a set of SEs
     """
     # We request also that ancestors are at the fromSEs
+    lfns = [lfn for lfnList in taskLfns for lfn in lfnList]
     nbLfns = len( lfns )
     ancestors = self.getFileAncestors( lfns, depth = 1, replica = True )
     if not ancestors['OK']:
@@ -670,7 +671,7 @@ class PluginUtilities( DIRACPluginUtilities ):
       return ancestors
     ancestors = ancestors['Value']['Successful']
     ancLfns = [anc['FileName'] for ancList in ancestors.itervalues() for anc in ancList]
-    self.logVerbose( 'Checking ancestors presence at %s for %d files' % ( ','.join( okSEs ), len( ancLfns ) ) )
+    self.logVerbose( 'Checking ancestors presence at %s for %d files' % ( ','.join( sorted( okSEs ) ), len( ancLfns ) ) )
     res = self.dm.getReplicasForJobs( ancLfns, getUrl = False )
     if not res['OK']:
       self.logError( "Error getting replicas of ancestors", res['Message'] )
@@ -679,15 +680,20 @@ class PluginUtilities( DIRACPluginUtilities ):
     for lfn, ancList in ancestors.iteritems():
       for anc in ancList:
         if not okSEs & set( success[anc['FileName']] ):
-          lfns.remove( lfn )
-    missingAtSEs = nbLfns - len( lfns )
+          # Remove the LFN from the list of lists
+          for lfnList in taskLfns:
+            if lfn in lfnList:
+              lfnList.remove( lfn )
+    missingAtSEs = nbLfns - len( [lfn for lfnList in taskLfns for lfn in lfnList] )
     if missingAtSEs:
-      self.logVerbose( "%d ancestor files found not to be at %s" % ( missingAtSEs, ','.join( okSEs ) ) )
+      self.logVerbose( "%d ancestor files found not to be at %s" % ( missingAtSEs, ','.join( sorted( okSEs ) ) ) )
     return S_OK( missingAtSEs )
 
   # @timeThis
   def getTransformationRuns( self, runs = None, transID = None ):
-    """ get the run table for a list of runs, if missing, add them """
+    """
+    get the run table for a list of runs, if missing, add them
+    """
     if transID is None:
       transID = self.transID
     condDict = {'TransformationID':transID}
