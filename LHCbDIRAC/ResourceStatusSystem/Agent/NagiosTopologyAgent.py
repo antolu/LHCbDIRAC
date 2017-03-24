@@ -175,7 +175,9 @@ class NagiosTopologyAgent(AgentModule):
 
     else:
       # produce the xml
-      with open(self.xmlPath + "lhcb_topology.xml", 'w') as xmlf:
+      # XML file Name must be modified uppon next update back to :
+      #with open(self.xmlPath + "lhcb_topology.xml", 'w') as xmlf:
+      with open(self.xmlPath + "lhcb_topology_Generated.xml", 'w') as xmlf: 
         xmlf.write(xml_doc.toxml())
 
       self.log.info("XML file created Successfully")
@@ -282,9 +284,14 @@ class NagiosTopologyAgent(AgentModule):
 
       site_ce_type = site_ce_opts.get('CEType')
       mappingCEType = {'LCG': 'CE', 'CREAM': 'CREAM-CE',
-                       'ARC': 'ARC-CE', 'HTCondorCE': 'org.opensciencegrid.htcondorce',
-                       'Vac': 'uk.ac.gridpp.vac', 'Cloud': 'CLOUD', 'Boinc': 'BOINC',
-                       'Vcycle': 'uk.ac.gridpp.vcycle'}
+                       'ARC': 'ARC-CE', 'HTCondorCE': 'HTCONDOR-CE',
+                       'Vac': 'VAC', 'Cloud': 'CLOUD', 'Boinc': 'BOINC',
+                       'Vcycle': 'VCYCLE'}
+
+                      # {'LCG': 'CE', 'CREAM': 'CREAM-CE',
+                      #  'ARC': 'ARC-CE', 'HTCondorCE': 'org.opensciencegrid.htcondorce',
+                      #  'Vac': 'uk.ac.gridpp.vac', 'Cloud': 'CLOUD', 'Boinc': 'BOINC',
+                      #  'Vcycle': 'uk.ac.gridpp.vcycle'}
 
       xml_ce = xml_append(xml_doc, xml_site, 'service', hostname=site_ce_name,
                           flavour=mappingCEType.get(site_ce_type, 'UNDEFINED'))
@@ -302,14 +309,14 @@ class NagiosTopologyAgent(AgentModule):
             'Resources/Sites/%s/%s/CEs/%s/Queues/%s' % (grid, site, site_ce_name, queue))
         if queue_information['OK']:
           queue_information = queue_information['Value']
-          if queue_information.get('maxCPUTime') > max_CPU:
-            etf_default = 'True'
-            max_CPU = queue_information.get('maxCPUTime')
+          # if queue_information.get('maxCPUTime') > max_CPU:
+          #   etf_default = 'True'
+          #   max_CPU = queue_information.get('maxCPUTime')
 
         xml_append(xml_doc, xml_ce, 'queues', ce_resource=queue,
                    # batch_system=ce_batch,
-                   queue=queue_information.get('VO'),
-                   etf_default=etf_default
+                   #queue=queue_information.get('VO'),
+                   #etf_default=etf_default # => this needs to be fixed, when necessary
                    # maxWaitingJobs=queue_information.get('MaxWaitingJobs'),
                    # maxCPUTime=queue_information.get('maxCPUTime')
                    )
