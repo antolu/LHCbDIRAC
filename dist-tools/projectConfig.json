@@ -18,6 +18,9 @@
       [ "Python", "2.7.10",
         [ "bin" ]
       ],
+      [ "libtool", "2.4.2",
+        [ "bin", "python", "lib" ]
+      ],
       [ "pygsi", "0.6.3",
         [ "bin", "python", "lib" ]
       ],
