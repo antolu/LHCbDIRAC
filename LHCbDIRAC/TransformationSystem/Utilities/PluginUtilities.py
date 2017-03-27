@@ -711,6 +711,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     """
     get the run table for a list of runs, if missing, add them
 <<<<<<< Upstream, based on upstream/master
+<<<<<<< Upstream, based on upstream/master
 
     :param (list,tuple,dict,set,int,long): iterable with run numbers or single run number
     :param int transID: transformation ID. If not speficied, use the current ID
@@ -718,6 +719,13 @@ class PluginUtilities( DIRACPluginUtilities ):
     :return S_OK / S_ERROR: value is the list of run dictionaries
 =======
 >>>>>>> 21422ff optimise ancestor presence checking
+=======
+
+    :param (list,tuple,dict,set,int,long): iterable with run numbers or single run number
+    :param int transID: transformation ID. If not speficied, use the current ID
+
+    :return S_OK / S_ERROR: value is the list of run dictionaries
+>>>>>>> 47d4022 add docstrings
     """
     if transID is None:
       transID = self.transID
