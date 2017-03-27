@@ -4083,7 +4083,15 @@ and files.qualityid= dataquality.qualityid'
     :param dict steps it contains all the steps and output file types
     :return S_OK/S_ERROR
     """
-    return
+    for step in steps['Steps'].iteritems():
+      for ftype, visible in step['OutputFileTypes']:
+        retVal = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.insertProductionOutputFiletypes',
+                                                   [production, ftype, visible], False )
+        if not retVal['OK']:
+          return retVal
+    
+    return S_OK()
+  
   #############################################################################
   def getEventTypes( self, configName = default, configVersion = default, prod = default ):
     """returns the events types for a given dataset"""

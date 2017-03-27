@@ -224,7 +224,7 @@ procedure getFileDesJobId(v_Filename varchar2, a_Cursor out udt_RefCursor);
 procedure getAllMetadata(v_jobid NUMBER, v_prod number, a_Cursor  out udt_RefCursor);
 function getProducedEvents(v_prodid number) return number;
 procedure bulkgetIdsFromFiles(lfns varchararray,  a_Cursor out udt_RefCursor);
-
+PROCEDURE insertProductionOutputFiletypes(production number, filetype carchar2, visible char);
 end;
 /
 
@@ -2296,4 +2296,11 @@ FOR i in lfns.FIRST .. lfns.LAST LOOP
 open a_Cursor for select FILENAME, jobid, fileid, filetypeid from table(lfnmeta);
 END;
 END;
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+PROCEDURE insertProductionOutputFiletypes(production number, filetype carchar2, visible char)IS
+BEGIN
+	
+END;
+
+END 
 /

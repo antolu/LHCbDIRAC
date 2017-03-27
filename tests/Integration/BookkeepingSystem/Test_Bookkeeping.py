@@ -1634,10 +1634,11 @@ class MCProductionRegistration ( MCInsertTestCase ):
     """
     Test the production registration
     """ 
-    prodSteps = {"SimulationConditions":"Beam4000GeV-2012-MagUp-Nu2.5-Pythia8", 
-                 "ConfigName":"MC", 
-                 "ConfigVersion":"2012", 
-                 "Production":3, 
+    prodSteps = {"SimulationConditions":"Beam4000GeV-2012-MagUp-Nu2.5-Pythia8",
+                 "ConfigName":"MC",
+                 "ConfigVersion":"2012",
+                 "Production":3,
+                 "EventType": 11104131,
                  "Steps":[]}
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Sim09b - 2012 - MU - Pythia8'} )['Value']
     self.assert_( retVal['OK'] )
