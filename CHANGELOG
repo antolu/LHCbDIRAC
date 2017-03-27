@@ -1,3 +1,11 @@
+[v8r7-pre3]
+Use DIRAC v6r17p15
+
+* add libtool 2.4.2
+* add pygsi 0.6.3
+* Minor fixes
+* [Patch] Little changes documented on the file
+
 [v8r7-pre2]
 Use DIRAC v6r17p15
 * change LCG version
