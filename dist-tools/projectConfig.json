@@ -18,6 +18,9 @@
       [ "Python", "2.7.10",
         [ "bin" ]
       ],
+      [ "pygsi", "0.6.3",
+        [ "bin", "python", "lib" ]
+      ],
       [ "pygraphics", "2.0",
         [ "bin", "python", "lib" ]
       ],
