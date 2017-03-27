@@ -111,6 +111,8 @@ v_production number;
 BEGIN
 	v_production:=2; /*this must be same as in the integration test: LHCbDIRAC/tests/Integration/BookkeepingSystem/Test_Bookkeeping.py*/
 	/*delete run data*/
+	delete productionscontainer where production=3;
+	delete stepscontainer where production=3;
 	DELETE productionscontainer WHERE production=-1122;
 	i:=1;/*before we delete the steps from the stepcontainer table, the steps must be saved*/
 	FOR step IN (SELECT stepid FROM stepscontainer WHERE production=-1122) LOOP

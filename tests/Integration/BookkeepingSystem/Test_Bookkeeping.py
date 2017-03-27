@@ -1640,34 +1640,34 @@ class MCProductionRegistration ( MCInsertTestCase ):
                  "Production":3,
                  "EventType": 11104131,
                  "Steps":[]}
-    retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Sim09b - 2012 - MU - Pythia8'} )['Value']
+    retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Sim09b - 2012 - MU - Pythia8'} )
     self.assert_( retVal['OK'] )
     self.assert_( len( retVal['Value']['Records'] ) > 0 )
     step = {}
-    step['StepId'] = retVal['Records'][0][0]
+    step['StepId'] = retVal['Value']['Records'][0][0]
     step['OutputFileTypes'] = [{'Visible': 'N', 'FileType': 'SIM'}]
     step['Visible'] = 'Y'
     prodSteps['Steps'].append( step )
     
-    retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Digi14a for 2012 (to use w Sim09)'} )['Value']
+    retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Digi14a for 2012 (to use w Sim09)'} )
     self.assert_( retVal['OK'] )
     self.assert_( len( retVal['Value']['Records'] ) > 0 )
     step = {}
-    step['StepId'] = retVal['Records'][0][0]
+    step['StepId'] = retVal['Value']['Records'][0][0]
     step['OutputFileTypes'] = [{'Visible': 'N', 'FileType': 'DIGI'}]
     step['Visible'] = 'N'
     prodSteps['Steps'].append( step )
     
-    retVal = self.bk.getAvailableSteps( {'StepName':'Cert-TCK-0x40990042 Flagged MC - 2012 - to be used in multipleTCKs'} )['Value']
+    retVal = self.bk.getAvailableSteps( {'StepName':'Cert-TCK-0x40990042 Flagged MC - 2012 - to be used in multipleTCKs'} )
     self.assert_( retVal['OK'] )
     self.assert_( len( retVal['Value']['Records'] ) > 0 )
     step = {}
-    step['StepId'] = retVal['Records'][0][0]
+    step['StepId'] = retVal['Value']['Records'][0][0]
     step['OutputFileTypes'] = [{'Visible': 'Y', 'FileType': 'DIGI'}, {'Visible': 'Y', 'FileType': 'XDIGI'}]
     step['Visible'] = 'Y'
     prodSteps['Steps'].append( step )
     
-    retVal = self.bk.addProduction( self.productionSteps )
+    retVal = self.bk.addProduction( prodSteps )
     self.assert_( retVal['OK'] )
     
 class MCXMLReportInsert( MCInsertTestCase ):
@@ -1917,16 +1917,14 @@ class MCProductionTest ( MCXMLReportInsert ):
     
 if __name__ == '__main__':
   
-  #mcTestSuite = unittest.defaultTestLoader.loadTestsFromTestCase( MCProductionTest )
-  #suite = unittest.defaultTestLoader.loadTestsFromTestCase( TestMethods )
   
   mcTestSuite = unittest.defaultTestLoader.loadTestsFromTestCase( MCProductionRegistration )
   mcTestSuite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCXMLReportInsert ) )
   mcTestSuite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCProductionTest ) )
   unittest.TextTestRunner( verbosity = 2, failfast = True ).run( mcTestSuite )
-  #suite = unittest.defaultTestLoader.loadTestsFromTestCase( RAWDataInsert )
-  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestMethods ) )
-  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestRemoveFiles ) )
-  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestDestoryDataset ) )
-  #unittest.TextTestRunner( verbosity = 2, failfast = True ).run( suite )
+  suite = unittest.defaultTestLoader.loadTestsFromTestCase( RAWDataInsert )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestMethods ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestRemoveFiles ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestDestoryDataset ) )
+  unittest.TextTestRunner( verbosity = 2, failfast = True ).run( suite )
   

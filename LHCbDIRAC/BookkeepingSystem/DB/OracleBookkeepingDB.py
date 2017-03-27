@@ -4080,13 +4080,15 @@ and files.qualityid= dataquality.qualityid'
     """
     This method is used to register the output filetypes for a given production
     :param int production: it is the production number
-    :param dict steps it contains all the steps and output file types
+    :param list steps it contains all the steps and output file types
     :return S_OK/S_ERROR
     """
-    for step in steps['Steps'].iteritems():
-      for ftype, visible in step['OutputFileTypes']:
-        retVal = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.insertProductionOutputFiletypes',
-                                                   [production, ftype, visible], False )
+    for step in steps:
+      for ftype in step.get( 'OutputFileTypes', {} ):
+        retVal = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.insertProdnOutputFtypes',
+                                                   [production, step['StepId'],
+                                                    ftype.get( 'FileType', None ),
+                                                    ftype.get( 'Visible', 'Y' )], False )
         if not retVal['OK']:
           return retVal
     

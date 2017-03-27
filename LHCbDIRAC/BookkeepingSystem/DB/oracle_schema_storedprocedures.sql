@@ -224,7 +224,7 @@ procedure getFileDesJobId(v_Filename varchar2, a_Cursor out udt_RefCursor);
 procedure getAllMetadata(v_jobid NUMBER, v_prod number, a_Cursor  out udt_RefCursor);
 function getProducedEvents(v_prodid number) return number;
 procedure bulkgetIdsFromFiles(lfns varchararray,  a_Cursor out udt_RefCursor);
-PROCEDURE insertProductionOutputFiletypes(production number, filetype carchar2, visible char);
+PROCEDURE insertProdnOutputFtypes(v_production number, v_stepid number, v_filetype varchar2, v_visible char);
 end;
 /
 
@@ -2295,12 +2295,15 @@ FOR i in lfns.FIRST .. lfns.LAST LOOP
  END LOOP;
 open a_Cursor for select FILENAME, jobid, fileid, filetypeid from table(lfnmeta);
 END;
-END;
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-PROCEDURE insertProductionOutputFiletypes(production number, filetype carchar2, visible char)IS
+PROCEDURE insertProdnOutputFtypes(v_production number, v_stepid number, v_filetype varchar2, v_visible char)IS
 BEGIN
-	
+	INSERT INTO productionoutputfiles(production, stepid, filetype, visible)VALUES(v_production,v_stepid, v_filetype, v_visible);
+	COMMIT;
+EXCEPTION
+  WHEN DUP_VAL_ON_INDEX THEN
+	UPDATE productionoutputfiles SET stepid=v_stepid, filetype=v_filetype, visible = v_visible WHERE production=v_production;
 END;
 
-END 
+END; 
 /
