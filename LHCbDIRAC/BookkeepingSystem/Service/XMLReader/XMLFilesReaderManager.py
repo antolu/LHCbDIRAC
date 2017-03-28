@@ -396,7 +396,8 @@ class XMLFilesReaderManager( object ):
 
     outputFiles = job.getJobOutputFiles()
     prod = job.getParam( 'Production' ).getValue()
-    retVal = self.bkClient_.getProductionOutputFileTypes( prod )
+    stepid = job.getParam( 'StepID' ).getValue()
+    retVal = self.bkClient_.getProductionOutputFileTypes( prod, stepid )
     if not retVal['OK']:
       return retVal
     outputFileTypes = retVal['Value']

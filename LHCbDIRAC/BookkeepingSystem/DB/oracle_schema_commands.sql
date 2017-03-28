@@ -133,5 +133,8 @@ create table productionoutputfiles(
   CONSTRAINT FK_productionoutputfiles_steps FOREIGN KEY (stepid) REFERENCES steps(stepid),
   CONSTRAINT FK_productionoutputfiles_prod FOREIGN KEY (production) REFERENCES productionscontainer(production) ON DELETE CASCADE ENABLE); 
 
+grant select on productionoutputfiles to LHCB_DIRACBOOKKEEPING_USERS;
+grant select,insert,update on productionoutputfiles to LHCB_DIRACBOOKKEEPING_SERVER;
+CREATE SYNONYM productionoutputfiles FOR LHCB_DIRACBOOKKEEPING_INT.productionoutputfiles;
 
 

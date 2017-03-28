@@ -469,19 +469,34 @@ class OracleBookkeepingDB( object ):
     return self.dbR_.query( command )
 
   #############################################################################
-  def getProductionOutputFileTypes( self, prod ):
-    """returns the production output file types"""
-    command = "select o.name,o.visible from steps s, table(s.outputfiletypes) o, stepscontainer st \
-            where st.stepid=s.stepid and st.production=%d order by step" % ( int( prod ) )
+  def getProductionOutputFileTypes( self, prod, stepid ):
+    """returns the production output file types
+    :paran int prod it is the production number
+    :rertun S_OK/S_ERROR return a dictionary with file types and visibility flag.
+    """
+    condition = ''
+    if stepid != default:
+      condition = " and s.stepid=%s" % stepid
+    
+    command = "select s.filetype, s.visible from productionoutputfiles s where s.production=%s %s" % ( prod, condition )
     retVal = self.dbR_.query( command )
-    values = {}
+    if not retVal['OK']:
+      return retVal
+    if not retVal['Value']:
+      #this is for backward compatibility. 
+      #FIXME: make sure the productionoutputfiles is correctly propagated and after the method can be simpified
+      command = "select o.name,o.visible from steps s, table(s.outputfiletypes) o, stepscontainer st \
+            where st.stepid=s.stepid and st.production=%d %s order by step" % ( int( prod ), condition )
+      retVal = self.dbR_.query( command )
+    
+    outputFiles = {}
     if retVal['OK']:
-      for i in retVal['Value']:
-        values[i[0]] = i[1]
-      result = S_OK( values )
+      for filetype, visible in retVal['Value']:
+        outputFiles[filetype] = visible
     else:
-      result = retVal
-    return result
+      return retVal
+    
+    return S_OK( outputFiles )
 
   #############################################################################
   def getAvailableFileTypes( self ):
