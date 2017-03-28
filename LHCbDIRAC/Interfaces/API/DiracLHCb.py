@@ -216,9 +216,9 @@ class DiracLHCb( Dirac ):
 
        >>> dirac.bkQueryRunsByDate('/LHCb/Collision16//Real Data/90000000/RAW','2016-08-20','2016-08-22',dqFlag='OK',selection='Runs')
        {'OK': True, 'Value': [<LFN1>,<LFN2>]}
-      
+
       dirac.bkQueryRunsByDate('/LHCb/Collision16/Beam6500GeV-VeloClosed-MagDown/Real Data/Reco16/Stripping26/90000000/EW.DST','2016-08-20','2016-08-22',dqFlag='OK',selection='Runs')
-      
+
        @param bkPath: BK path as described above
        @type bkPath: string
        @param dqFlag: Optional Data Quality flag
@@ -237,7 +237,7 @@ class DiracLHCb( Dirac ):
 
     if not isinstance( bkPath, str ):
       return S_ERROR( 'Expected string for bkPath' )
-          
+
     # remove any double slashes, spaces must be preserved
     # remove any empty components from leading and trailing slashes
     bkQuery = BKQuery().buildBKQuery( bkPath )
@@ -1032,3 +1032,20 @@ class DiracLHCb( Dirac ):
     return results
 
   #############################################################################
+
+  def _getLocalInputData(self, parameters):
+    """ LHCb extension of DIRAC API's _getLocalInputData. Only used for handling ancestors.
+    """
+    inputData = parameters.get( 'InputData' )
+    if inputData:
+      ancestorsDepth = parameters.get('AncestorDepth', 0)
+      if ancestorsDepth:
+        res = self.bk.getFileAncestors( inputData, ancestorsDepth )
+        if not res['OK']:
+          return S_ERROR( "Can't get ancestors: %s" % res['Message'] )
+        ancestorsLFNs = []
+        for ancestorsLFN in res['Value']['Successful'].itervalues():
+          ancestorsLFNs += [ i['FileName'] for i in ancestorsLFN]
+        inputData += ancestorsLFN
+
+    return inputData
