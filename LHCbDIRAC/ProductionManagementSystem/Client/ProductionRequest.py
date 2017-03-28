@@ -109,8 +109,8 @@ class ProductionRequest( object ):
     self.ancestorDepths = []
     self.compressionLvl = [''] # List: one compression level each step
     self.appConfig = '$APPCONFIGOPTS/Persistency/' # Default location of the compression level configuration files
-    self.outputVisFlag = [] # List with default visibility flag of the output files 
-    self.specialOutputVisFlag = [] # LIst of dictionaries with special visibility flag for given file type    
+    self.outputVisFlag = [] # List of dictionary with default visibility flag of the output files per single step
+    self.specialOutputVisFlag = [] # List of dictionaries with special visibility flag for given file type    
 
   #############################################################################
 
@@ -118,6 +118,8 @@ class ProductionRequest( object ):
     """ Given a list of steps in strings, some of which might be missing,
         resolve it into a list of dictionary of steps
     """
+    outputVisFlag = dict( [k,v] for el in self.outputVisFlag for k,v in el.items() ) # Transform the list of dictionaries in a dictionary
+    specialOutputVisFlag = dict( [k,v] for el in self.specialOutputVisFlag for k,v in el.items() )
     count = 0 # Needed to add correctly the optionFiles to the list of dictonaries of steps
     for stepID in self.stepsList:
       stepDict = self.bkkClient.getAvailableSteps( {'StepId':stepID} )
@@ -190,6 +192,15 @@ class ProductionRequest( object ):
 
       if 'mcTCK' not in stepsListDictItem:
         stepsListDictItem['mcTCK'] = ''
+
+      # Add visibility info during step resolution
+      if 'visibilityFlag' not in stepsListDictItem:
+        outputVisDict = dict( [(fType, outputVisFlag[count]) for fType in stepsListDictItem['fileTypesOut']] )
+        if specialOutputVisFlag:
+          outputVisDict.update( specialOutputVisFlag[count] )
+        
+        stepsListDictItem['visibilityFlag'] = outputVisDict
+
       self.stepsListDict.append( stepsListDictItem )
       count += 1
 
@@ -401,18 +412,13 @@ class ProductionRequest( object ):
     """ Fill outputSEsPerFileType based on outputSEs, fullListOfOutputFileTypes and specialOutputSEs
     """
     for outputSE, specialOutputSEs in itertools.izip( self.outputSEs,
-                                                      self.specialOutputSEs,
-                                                      self.outputVisFlag ):
+                                                      self.specialOutputSEs ):
       outputSEDict = {}
-      outputVisDict = {}
       if not self.fullListOfOutputFileTypes:
         raise ValueError( "No steps defined" )
       outputSEDict = dict( [( fType, outputSE ) for fType in self.fullListOfOutputFileTypes] )
-      outputVisDict = dict( [(fType, outputVisFlag) for fType in self.fullListOfOutputFileTypes] )
       if specialOutputSEs:
         outputSEDict.update( specialOutputSEs )
-      if specialOutputVisFlag:
-        outputVisDict.update( specialOutputVisFlag )
       self.outputSEsPerFileType.append( outputSEDict )
 
   def _applyOptionalCorrections( self ):
