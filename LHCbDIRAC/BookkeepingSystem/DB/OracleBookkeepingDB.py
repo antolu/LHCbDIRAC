@@ -536,10 +536,10 @@ class OracleBookkeepingDB( object ):
       values = ',filetypesARRAY('
       selection += ',InputFileTypes'
       for i in inFileTypes:
-        values += "ftype('%s', '%s')," % ( ( i.get( 'FileType', None ).strip() if i.get( 'FileType', None )
-                                             else i.get( 'FileType', None ) ),
-                                           ( i.get( 'Visible', None ).strip() if i.get( 'Visible', None )
-                                             else i.get( 'Visible', None ) ) )
+        values += "ftype('%s', '%s')," % ( ( i.get( 'FileType', '' ).strip() if i.get( 'FileType', '' )
+                                             else i.get( 'FileType', '' ) ),
+                                           ( i.get( 'Visible', '' ).strip() if i.get( 'Visible', '' )
+                                             else i.get( 'Visible', '' ) ) )
       values = values[:-1]
       values += ')'
 
@@ -549,10 +549,10 @@ class OracleBookkeepingDB( object ):
       values += ' , filetypesARRAY('
       selection += ',OutputFileTypes'
       for i in outFileTypes:
-        values += "ftype('%s', '%s')," % ( ( i.get( 'FileType', None ).strip() if i.get( 'FileType', None )
-                                             else i.get( 'FileType', None ) ),
-                                           ( i.get( 'Visible', None ).strip() if i.get( 'Visible', None )
-                                             else i.get( 'Visible', None ) ) )
+        values += "ftype('%s', '%s')," % ( ( i.get( 'FileType', '' ).strip() if i.get( 'FileType', '' )
+                                             else i.get( 'FileType', '' ) ),
+                                           ( i.get( 'Visible', '' ).strip() if i.get( 'Visible', '' )
+                                             else i.get( 'Visible', '' ) ) )
       values = values[:-1]
       values += ')'
 
