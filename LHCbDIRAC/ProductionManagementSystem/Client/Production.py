@@ -185,6 +185,7 @@ class Production( object ):
     dqOpt = stepDict['DQTag']
     multicore = stepDict['isMulticore']
     sysConfig = stepDict['SystemConfig']
+    outputVisibility = stepDict['visibilityFlag']
     if sysConfig == 'None' or sysConfig == 'NULL' or not sysConfig or sysConfig is None:
       sysConfig = 'ANY'
     mcTCK = stepDict['mcTCK']
@@ -325,7 +326,8 @@ class Production( object ):
                   'ExtraPackages':extraPackages,
                   'BKStepID':stepID,
                   'StepName':stepName,
-                  'StepVisible':stepVisible}
+                  'StepVisible':stepVisible,
+                  'OutputFileTypes': outputVisibility}
 
     self.bkSteps[stepIDInternal] = stepBKInfo
     self.__addBKPassStep()

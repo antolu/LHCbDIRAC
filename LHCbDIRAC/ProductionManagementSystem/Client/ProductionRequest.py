@@ -198,7 +198,6 @@ class ProductionRequest( object ):
         outputVisDict = dict( [(fType, outputVisFlag[count]) for fType in stepsListDictItem['fileTypesOut']] )
         if specialOutputVisFlag:
           outputVisDict.update( specialOutputVisFlag[count] )
-        
         stepsListDictItem['visibilityFlag'] = outputVisDict
 
       self.stepsListDict.append( stepsListDictItem )
