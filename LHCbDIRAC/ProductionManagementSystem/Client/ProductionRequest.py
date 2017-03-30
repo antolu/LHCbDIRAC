@@ -195,10 +195,15 @@ class ProductionRequest( object ):
 
       # Add visibility info during step resolution
       if 'visibilityFlag' not in stepsListDictItem:
-        outputVisDict = dict( [(fType, outputVisFlag[count]) for fType in stepsListDictItem['fileTypesOut']] )
+        outputVisList = list( {'Visibility': self.outputVisFlag[count], 'FileType': ftype} for ftype in stepsListDictItem['fileTypesOut'] )
+        #dict( [(fType, outputVisFlag[count]) for fType in stepsListDictItem['fileTypesOut']] )
         if specialOutputVisFlag:
-          outputVisDict.update( specialOutputVisFlag[count] )
-        stepsListDictItem['visibilityFlag'] = outputVisDict
+          for l in outputVisList:
+            for k in self.specialOutputVisFlag[count].keys():
+              if (k==l['FileType']): l['Visibility']= self.specialOutputVisFlag[count][k]
+
+          #outputVisDict.update( specialOutputVisFlag[count] )
+        stepsListDictItem['visibilityFlag'] = outputVisList
 
       self.stepsListDict.append( stepsListDictItem )
       count += 1

@@ -420,6 +420,8 @@ class ProductionRequestSuccess( ClientTestCase ):
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.compressionLvl = ['','Compression-LZMA-4','Compression-ZLIB-1']
+    pr.outputVisFlag = [{'1098': False, '996': False, '997': False}]
+    pr.specialOutputVisFlag = {'3': {'BHADRON.DST': True}}
     pr.stepsList = ['1098','996','997']
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [{'StepId': 1098, 'StepName':'Stripping28',
@@ -442,7 +444,8 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
                                           'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"997['SDST']",
                                           'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
-                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}
+                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST'],
+                                          'visibilityFlag':[ {'Visibility': False, 'FileType': 'CALIBRATION.DST'}, {'Visibility': True, 'FileType': 'BHADRON.DST'} ]}
                                         ] )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
