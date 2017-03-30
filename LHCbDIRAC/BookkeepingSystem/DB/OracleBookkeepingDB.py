@@ -135,7 +135,12 @@ class OracleBookkeepingDB( object ):
 
       stepId = in_dict.get( 'StepId', default )
       if stepId != default:
-        condition += ' and s.stepid= %s' % ( str( stepId ) )
+        if isinstance( stepId, ( basestring, int, long ) ):
+          condition += ' and s.stepid= %s' % ( str( stepId ) )
+        elif isinstance( stepId, ( list, tuple ) ):
+          condition += 'and s.stepid in (%s)' % ",".join( [str( sid ) for sid in stepId] ) 
+        else:
+          return S_ERROR( "Wrong StepId" )               
 
       stepName = in_dict.get( 'StepName', default )
       if stepName != default:
