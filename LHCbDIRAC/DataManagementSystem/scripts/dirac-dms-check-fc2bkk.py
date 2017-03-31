@@ -20,6 +20,7 @@ if __name__ == '__main__':
   # Script initialization
   from DIRAC.Core.Base import Script
   from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
+  import DIRAC
 
   Script.setUsageMessage( '\n'.join( [ __doc__,
                                        'Usage:',
@@ -28,20 +29,27 @@ if __name__ == '__main__':
   dmScript.registerNamespaceSwitches()  # Directory
   dmScript.registerFileSwitches()  # File, LFNs
   dmScript.registerBKSwitches()
-  Script.registerSwitch( '', 'FixIt', '   Take action to fix the catalogs' )
+  Script.registerSwitch( '', 'FixBK', '   Take action to fix the BK' )
+  Script.registerSwitch( '', 'FixFC', '   Take action to fix the FC' )
   Script.registerSwitch( '', 'AffectedRuns', '   List the runs affected by the encountered problem' )
   Script.parseCommandLine( ignoreErrors = True )
 
-  fixIt = False
+  from DIRAC import gLogger
+  fixBK = False
+  fixFC = False
   listAffectedRuns = False
   for switch in Script.getUnprocessedSwitches():
-    if switch[0] == 'FixIt':
-      fixIt = True
+    if switch[0] == 'FixFC':
+      fixFC = True
+    if switch[0] == 'FixBK':
+      fixBK = True
     elif switch[0] == 'AffectedRuns':
       listAffectedRuns = True
 
+  if fixFC and fixBK:
+    gLogger.notice( "Can't fix both FC and BK, please choose" )
+    DIRAC.exit( 0 )
   # imports
-  from DIRAC import gLogger
   from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
   cc = ConsistencyChecks()
   cc.directories = dmScript.getOption( 'Directory', [] )
@@ -64,4 +72,4 @@ if __name__ == '__main__':
     if bkQuery:
       bkQuery.setOption( 'ReplicaFlag', 'All' )
       cc.bkQuery = bkQuery
-    doCheckFC2BK( cc, fixIt, listAffectedRuns )
+    doCheckFC2BK( cc, fixFC, fixBK, listAffectedRuns )
