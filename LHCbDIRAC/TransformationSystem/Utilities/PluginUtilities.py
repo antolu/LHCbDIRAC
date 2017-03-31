@@ -665,8 +665,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     nbLfns = 0
     for lfnList in taskLfns:
       nbLfns += len( lfnList )
-      for lfn in list( lfnList ):
-        lfnList.remove( lfn )
+      del lfnList[:]
     return nbLfns
 
   def checkAncestorsAtSE( self, taskLfns, seList ):
