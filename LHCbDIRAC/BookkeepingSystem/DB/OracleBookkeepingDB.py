@@ -476,7 +476,8 @@ class OracleBookkeepingDB( object ):
   #############################################################################
   def getProductionOutputFileTypes( self, prod, stepid ):
     """returns the production output file types
-    :paran int prod it is the production number
+    :param int prod:  production number
+    :param int stepid: step id 
     :rertun S_OK/S_ERROR return a dictionary with file types and visibility flag.
     """
     condition = ''
