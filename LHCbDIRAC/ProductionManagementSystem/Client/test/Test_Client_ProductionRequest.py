@@ -232,6 +232,7 @@ class ProductionRequestSuccess( ClientTestCase ):
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['123']
+    pr.outputVisFlag = [{'1':'N'}]
     pr.compressionLvl = ['Compression-ZLIB-1']
     pr.resolveSteps()
     expected = dict(step1Dict)
@@ -240,6 +241,7 @@ class ProductionRequestSuccess( ClientTestCase ):
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['125080'] #this one already has a compression level
+    pr.outputVisFlag = [{'1':'N'}]
     pr.resolveSteps()
     expected = dict(step125080)
     expected['OptionFiles'] = '$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.py;$DECFILESROOT/options/11102400.py;$LBPYTHIA8ROOT/options/Pythia8.py;$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;'
@@ -248,6 +250,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['125080'] #this one already has a compression level
     pr.compressionLvl = ['Compression-ZLIB-1']
+    pr.outputVisFlag = [{'1':'N'}]
     pr.resolveSteps()
     expected = dict(step125080)
     self.assertEqual( pr.stepsListDict, [expected] )
@@ -255,6 +258,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['125080'] #this one already has a compression level
     pr.compressionLvl = ['Compression-LZMA-4'] # this will replace it
+    pr.outputVisFlag = [{'1':'N'}]
     pr.resolveSteps()
     expected = dict(step125080)
     expected['OptionFiles'] = '$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.py;$DECFILESROOT/options/11102400.py;$LBPYTHIA8ROOT/options/Pythia8.py;$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py'
@@ -263,6 +267,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['123', '456']
     pr.compressionLvl = ['Compression-ZLIB-1', 'Compression-LZMA-4']
+    pr.outputVisFlag = [{'1':'N'}, {'2':'N'}]
     expected1 = dict(step1Dict)
     expected1['OptionFiles'] = 'optsFiles;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py'
     expected2 = dict(step2Dict)
@@ -273,6 +278,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['123', '456', '789']
     pr.compressionLvl = ['Compression-ZLIB-1', 'Compression-LZMA-4', 'Compression-LZMA-4']
+    pr.outputVisFlag = [{'1':'N'}, {'2':'N'}, {'3':'Y'}]
     expected1 = dict(step1Dict)
     expected1['OptionFiles'] = 'optsFiles;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py'
     expected2 = dict(step2Dict)
@@ -284,6 +290,7 @@ class ProductionRequestSuccess( ClientTestCase ):
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['123', '456', '', '']
+    pr.outputVisFlag = [{'1':'N'}, {'2':'N'}]
     pr.compressionLvl = ['Compression-ZLIB-1', 'Compression-ZLIB-1', 'Compression-LZMA-4', 'Compression-LZMA-4']
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [{'StepId': 123, 'StepName':'Stripping14-Stripping',
@@ -293,6 +300,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'ProcessingPass':'procPass', 'OptionsFormat':'', 'SystemConfig':'',
                                           'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N',
                                           'prodStepID': "123['SDST']", 'mcTCK': '',
+	                                  'visibilityFlag': [{'Visible':'N', 'FileType': 'BHADRON.DST'}, {'Visible':'N', 'FileType': 'CALIBRATION.DST'}],
                                           'fileTypesIn':['SDST'],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']},
                                          {'StepId': 456, 'StepName':'Merge',
@@ -302,12 +310,14 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'ProcessingPass':'procPass', 'OptionsFormat':'', 'SystemConfig':'x86',
                                           'prodStepID': "456['BHADRON.DST', 'CALIBRATION.DST']",
                                           'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N', 'mcTCK': '',
+	                                  'visibilityFlag': [{'Visible':'N', 'FileType': 'BHADRON.DST'}, {'Visible':'N', 'FileType': 'CALIBRATION.DST'}],
                                           'fileTypesIn':['BHADRON.DST', 'CALIBRATION.DST'],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}
                                         ] )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['123']
+    pr.outputVisFlag = [{'1':'N'}]
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [{'StepId': 123, 'StepName':'Stripping14-Stripping',
                                           'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2', 'ExtraOptions': '',
@@ -315,11 +325,13 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'ProcessingPass':'procPass', 'OptionsFormat':'', 'SystemConfig':'',
                                           'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N',
                                           'prodStepID': "123['SDST']", 'mcTCK': '',
+	                                  'visibilityFlag': [{'Visible':'N', 'FileType': 'BHADRON.DST'}, {'Visible':'N', 'FileType': 'CALIBRATION.DST'}],
                                           'fileTypesIn':['SDST'],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.compressionLvl = ['Compression-LZMA-4']
     pr.stepsList = ['123']
+    pr.outputVisFlag = [{'1':'N'}]
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [{'StepId': 123, 'StepName':'Stripping14-Stripping',
                                           'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2', 'ExtraOptions': '',
@@ -327,12 +339,15 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'OptionFiles':'optsFiles;$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py',
                                           'Visible':'Yes', 'ExtraPackages':'eps',
                                           'prodStepID': "123['SDST']", 'mcTCK': '',
+	                                  'visibilityFlag': [{'Visible':'N', 'FileType': 'BHADRON.DST'}, {'Visible':'N', 'FileType': 'CALIBRATION.DST'}],
                                           'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N',
                                           'fileTypesIn':['SDST'],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.compressionLvl = ['Compression-LZMA-4']
+    pr.outputVisFlag = [{'1':'Y'}]
+    #pr.outputVisFlag = [{'Visibility':'N','FileType':'BHADRON.DST'},{'Visibility':'N','FileType':'CALIBRATION.DST'}]
     pr.stepsList = ['999']
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [{'StepId': 999, 'StepName':'Stripping28',
@@ -342,10 +357,12 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
                                           'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"999['SDST']",
                                           'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
+					  'visibilityFlag': [{'Visible':'Y','FileType':'BHADRON.DST'},{'Visible':'Y','FileType':'CALIBRATION.DST'}],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.compressionLvl = ['Compression-LZMA-4']
+    pr.outputVisFlag = [{'1':'Y'}]
     pr.stepsList = ['998']
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [{'StepId': 998, 'StepName':'Stripping28',
@@ -355,10 +372,12 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
                                           'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"998['SDST']",
                                           'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
+					  'visibilityFlag':[{'Visible':'Y','FileType':'BHADRON.DST'},{'Visible':'Y','FileType':'CALIBRATION.DST'}],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['999']
+    pr.outputVisFlag = [{'1':'Y'}]
     pr.compressionLvl = [''] * 4
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [{'StepId': 999, 'StepName':'Stripping28',
@@ -368,10 +387,12 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
                                           'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"999['SDST']",
                                           'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
+					  'visibilityFlag':[{'Visible':'Y','FileType':'BHADRON.DST'},{'Visible':'Y','FileType':'CALIBRATION.DST'}],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.compressionLvl = ['Compression-LZMA-4']
+    pr.outputVisFlag = [{'1':'Y'}]
     pr.stepsList = ['997']
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [{'StepId': 997, 'StepName':'Stripping28',
@@ -380,10 +401,12 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
                                           'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"997['SDST']",
                                           'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
+					  'visibilityFlag':[{'Visible':'Y','FileType':'BHADRON.DST'},{'Visible':'Y','FileType':'CALIBRATION.DST'}],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.compressionLvl = ['Compression-LZMA-4']
+    pr.outputVisFlag = [{'1':'Y'}]
     pr.stepsList = ['996']
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [{'StepId': 996, 'StepName':'Stripping28',
@@ -392,10 +415,12 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
                                           'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"996['SDST']",
                                           'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
+					  'visibilityFlag':[{'Visible':'Y','FileType':'BHADRON.DST'},{'Visible':'Y','FileType':'CALIBRATION.DST'}],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.compressionLvl = ['']*4
+    pr.outputVisFlag = [{'1':'Y'}]
     pr.stepsList = ['1098']
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [{'StepId': 1098, 'StepName':'Stripping28',
@@ -404,10 +429,12 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
                                           'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"1098['SDST']",
                                           'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
+					  'visibilityFlag':[{'Visible':'Y','FileType':'BHADRON.DST'},{'Visible':'Y','FileType':'CALIBRATION.DST'}],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.compressionLvl = ['Compression-LZMA-4']
+    pr.outputVisFlag = [{'1':'Y'}]
     pr.stepsList = ['1098']
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [{'StepId': 1098, 'StepName':'Stripping28',
@@ -416,12 +443,13 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
                                           'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"1098['SDST']",
                                           'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
+					  'visibilityFlag':[{'Visible':'Y','FileType':'BHADRON.DST'},{'Visible':'Y','FileType':'CALIBRATION.DST'}],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.compressionLvl = ['','Compression-LZMA-4','Compression-ZLIB-1']
-    pr.outputVisFlag = [{'1098': False, '996': False, '997': False}]
-    pr.specialOutputVisFlag = {'3': {'BHADRON.DST': True}}
+    pr.outputVisFlag = [{'1': 'N', '2': 'N', '3': 'N'}]
+    pr.specialOutputVisFlag = [{'3': {'BHADRON.DST': 'Y'}}]
     pr.stepsList = ['1098','996','997']
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [{'StepId': 1098, 'StepName':'Stripping28',
@@ -430,6 +458,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
                                           'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"1098['SDST']",
                                           'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
+					  'visibilityFlag':[{'Visible': 'N', 'FileType': 'BHADRON.DST'},{'Visible': 'N', 'FileType': 'CALIBRATION.DST'}],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']},
                                          {'StepId': 996, 'StepName':'Stripping28',
                                           'ApplicationName':'DaVinci', 'ApplicationVersion':'v41r3', 'ExtraOptions': '',
@@ -437,6 +466,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
                                           'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"996['SDST']",
                                           'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
+					  'visibilityFlag':[{'Visible': 'N', 'FileType': 'BHADRON.DST'},{'Visible': 'N', 'FileType': 'CALIBRATION.DST'}],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']},
                                          {'StepId': 997, 'StepName':'Stripping28',
                                           'ApplicationName':'DaVinci', 'ApplicationVersion':'v41r3', 'ExtraOptions': '',
@@ -445,11 +475,13 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"997['SDST']",
                                           'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST'],
-                                          'visibilityFlag':[ {'Visibility': False, 'FileType': 'CALIBRATION.DST'}, {'Visibility': True, 'FileType': 'BHADRON.DST'} ]}
+                                          'visibilityFlag':[ {'Visible': 'N', 'FileType': 'CALIBRATION.DST'}, {'Visible': 'Y', 'FileType': 'BHADRON.DST'} ]}
                                         ] )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.compressionLvl = ['','Compression-LZMA-4']
+    pr.outputVisFlag = [{'1': 'N', '2': 'N', '3': 'N'}]
+    pr.specialOutputVisFlag = [{'2': {'BHADRON.DST': 'Y'}}]
     pr.stepsList = ['1098','996','997']
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [{'StepId': 1098, 'StepName':'Stripping28',
@@ -458,6 +490,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
                                           'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"1098['SDST']",
                                           'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
+                                          'visibilityFlag':[ {'Visible': 'N', 'FileType': 'CALIBRATION.DST'}, {'Visible': 'N', 'FileType': 'BHADRON.DST'} ],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']},
                                          {'StepId': 996, 'StepName':'Stripping28',
                                           'ApplicationName':'DaVinci', 'ApplicationVersion':'v41r3', 'ExtraOptions': '',
@@ -465,6 +498,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
                                           'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"996['SDST']",
                                           'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
+                                          'visibilityFlag':[ {'Visible': 'N', 'FileType': 'CALIBRATION.DST'}, {'Visible': 'Y', 'FileType': 'BHADRON.DST'} ],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']},
                                          {'StepId': 997, 'StepName':'Stripping28',
                                           'ApplicationName':'DaVinci', 'ApplicationVersion':'v41r3', 'ExtraOptions': '',
@@ -472,6 +506,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
                                           'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"997['SDST']",
                                           'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
+                                          'visibilityFlag':[ {'Visible': 'N', 'FileType': 'CALIBRATION.DST'}, {'Visible': 'N', 'FileType': 'BHADRON.DST'} ],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}
                                         ] )
 
@@ -480,6 +515,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['123', '456']
     pr.compressionLvl = ['Compression-ZLIB-1', 'Compression-LZMA-4']
+    pr.outputVisFlag = [{'1':'N'},{'2':'N'}]
     pr.resolveSteps()
     pr.outputSEs = ['SE1', 'SE2']
     pr.specialOutputSEs = [{}, {}]
@@ -488,6 +524,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                                 {'CALIBRATION.DST': 'SE2', 'BHADRON.DST': 'SE2'}] )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.outputVisFlag = [{'1':'N'},{'2':'N'}]
     pr.stepsList = ['123', '456']
     pr.compressionLvl = ['Compression-ZLIB-1', 'Compression-LZMA-4']
     pr.resolveSteps()
@@ -503,6 +540,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.prodsTypeList = ['DataStripping', 'Merge']
     pr.plugins = ['ByRun', 'BySize']
     pr.stepsListDict = [stepStripp, mergeStep]
+    pr.outputVisFlag = [{'1':'N'},{'2':'N'}]
     pr.stepsList = [123, 456]
     pr.stepsInProds = [[1], [2]]
     pr.outputSEs = [ 'Tier1-DST', 'Tier1-M-DST']
@@ -1222,7 +1260,8 @@ class ProductionRequestSuccess( ClientTestCase ):
                     'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
                     'ProcessingPass':'procPass', 'OptionsFormat':'', 'SystemConfig':'',
                     'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N',
-                    'prodStepID': "123['SDST']", 'mcTCK': '',
+                    'prodStepID': "123['SDST']", 'mcTCK': '', 
+		    'visibilityFlag': [{'Visibility':'N','FileType': 'BHADRON.DST'},{'Visibility':'N','FileType':'CALIBRATION.DST'}],
                     'fileTypesIn':['SDST'],
                     'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']},
                    {'StepId': 456, 'StepName':'Merge',
@@ -1231,6 +1270,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                     'ProcessingPass':'procPass', 'OptionsFormat':'', 'SystemConfig':'x86',
                     'prodStepID': "456['BHADRON.DST', 'CALIBRATION.DST']",
                     'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N', 'mcTCK': '',
+		    'visibilityFlag': [{'Visibility':'Y','FileType': 'BHADRON.DST'},{'Visibility':'Y','FileType':'CALIBRATION.DST'}],
                     'fileTypesIn':['BHADRON.DST', 'CALIBRATION.DST'],
                     'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}
                   ]
@@ -1256,6 +1296,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                       {frozenset([('DDDB', ''),
                                   ('ExtraPackages', 'eps'),
                                   ('OptionsFormat', ''),
+				  ('visibilityFlag', frozenset(['']),)
                                   ('fileTypesOut', frozenset(['CALIBRATION.DST', 'BHADRON.DST'])),
                                   ('DQTag', ''),
                                   ('CONDDB', '123456'),
@@ -1276,6 +1317,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                                                           ('fileTypesOut', frozenset(['BHADRON.DST'])),
                                                                           ('CONDDB', 'head-20110407'),
                                                                           ('mcTCK', ''),
+	                                                                  ('visibilityFlag', frozenset([''])), 
                                                                           ('ApplicationName', 'DaVinci'),
                                                                           ('ApplicationVersion', 'v28r3p1'),
                                                                           ('ProcessingPass', 'Merging'),
@@ -1292,6 +1334,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                   ('fileTypesOut', frozenset(['BHADRON.DST'])),
                                   ('CONDDB', 'head-20110407'),
                                   ('mcTCK', ''),
+	                          ('visibilityFlag', frozenset([''])), 
                                   ('ApplicationName', 'DaVinci'),
                                   ('ApplicationVersion', 'v28r3p1'),
                                   ('ProcessingPass', 'Merging'),
@@ -1441,6 +1484,7 @@ class ProductionRequestSuccess( ClientTestCase ):
               'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging', 'SystemConfig': '',
               'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302', 'mcTCK': '',
               'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
+	      'visibilityFlag':[], 
               'fileTypesIn': ['SDST'],
               'fileTypesOut': ['BHADRON.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST']}]
 
@@ -1453,6 +1497,7 @@ class ProductionRequestSuccess( ClientTestCase ):
               'prodStepID': "456['BHADRON.DST']", 'mcTCK': '',
               'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302',
               'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
+	      'visibilityFlag': [],
               'fileTypesIn': ['BHADRON.DST'],
               'fileTypesOut': ['BHADRON.DST']},
              {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 456, 'ApplicationVersion': 'v28r3p1',
@@ -1460,6 +1505,7 @@ class ProductionRequestSuccess( ClientTestCase ):
               'prodStepID': "456['CALIBRATION.DST']", 'mcTCK': '',
               'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302',
               'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
+	      'visibilityFlag': [],
               'fileTypesIn': ['CALIBRATION.DST'],
               'fileTypesOut': ['CALIBRATION.DST']},
              {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 456, 'ApplicationVersion': 'v28r3p1',
@@ -1467,6 +1513,7 @@ class ProductionRequestSuccess( ClientTestCase ):
               'prodStepID': "456['PID.MDST']", 'mcTCK': '',
               'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302',
               'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
+	      'visibilityFlag': [],
               'fileTypesIn': ['PID.MDST'],
               'fileTypesOut': ['PID.MDST']}
             ]
@@ -1501,6 +1548,7 @@ class ProductionRequestFullChain( ClientTestCase ):
     stepsList.append( '' )
     pr.stepsList = stepsList
     pr.compressionLvl = ['Compression-ZLIB-1'] * 4
+    pr.outputVisFlag = [{'1':'N'}, {'2':'N'}]
     pr.resolveSteps()
 
     pr.appendName = '1'
