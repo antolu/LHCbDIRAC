@@ -102,9 +102,9 @@ try:
   p1compressionLvl = ast.literal_eval( '{{P1CompressionLevel#PROD-P1: Compression Level per step, e.g. ["Compression-ZLIB-1","Compression-LZMA-4"]#}}' )
 except SyntaxError:
   p1compressionLvl = []
-p1OutputVisFlag = '{{P1OutputVisFlag#PROD-1: Visibility flag of output files#False}}'
+p1OutputVisFlag = '{{P1OutputVisFlag#PROD-1: Visibility flag of output files (a dict {"n step":flag})#{"1":False}}}'
 try:
-  p1OutputVisFlagSpecial = ast.literal_eval( '{{P1OutputVisFlagSpecial#PROD-1: Special Visibility flag of output files (a dictionary FType:flag)#}}' )
+  p1OutputVisFlagSpecial = ast.literal_eval( '{{P1OutputVisFlagSpecial#PROD-1: Special Visibility flag of output files (a dict {"n step":{"FType":flag}})#}}' )
 except SyntaxError:
   p1OutputVisFlagSpecial = {}
 
@@ -130,9 +130,9 @@ try:
   p2compressionLvl = ast.literal_eval( '{{P1CompressionLevel#PROD-P2: Compression Level per step, e.g. ["Compression-ZLIB-1","Compression-LZMA-4"]#}}' )
 except SyntaxError:
   p2compressionLvl = []
-p2OutputVisFlag = '{{P2OutputVisFlag#PROD-2: Visibility flag of output files#False}}'
+p2OutputVisFlag = '{{P2OutputVisFlag#PROD-2: Visibility flag of output files (a dict {"n step":flag})#{"1":False}}}'
 try:
-  p2OutputVisFlagSpecial = ast.literal_eval( '{{P2OutputVisFlagSpecial#PROD-2: Special Visibility flag of output files (a dictionary FType:flag)#}}' )
+  p2OutputVisFlagSpecial = ast.literal_eval( '{{P2OutputVisFlagSpecial#PROD-2: Special Visibility flag of output files (a dict {"n step":{"FType":flag}})#}}' )
 except SyntaxError:
   p2OutputVisFlagSpecial = {}
 
@@ -158,9 +158,9 @@ try:
   p3compressionLvl = ast.literal_eval( '{{P1CompressionLevel#PROD-P3: Compression Level per step, e.g. ["Compression-ZLIB-1","Compression-LZMA-4"]#}}' )
 except SyntaxError:
   p3compressionLvl = []
-p3OutputVisFlag = '{{P3OutputVisFlag#PROD-3: Visibility flag of output files#False}}'
+p3OutputVisFlag = '{{P3OutputVisFlag#PROD-3: Visibility flag of output files (a dict {"n step":flag})#{"1":False}}}'
 try:
-  p3OutputVisFlagSpecial = ast.literal_eval( '{{P3OutputVisFlagSpecial#PROD-3: Special Visibility flag of output files (a dictionary FType:flag)#}}' )
+  p3OutputVisFlagSpecial = ast.literal_eval( '{{P3OutputVisFlagSpecial#PROD-3: Special Visibility flag of output files (a dict {"n step":{"FType":flag}})#}}' )
 except SyntaxError:
   p3OutputVisFlagSpecial = {}
 

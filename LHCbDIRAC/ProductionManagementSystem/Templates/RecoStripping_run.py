@@ -81,11 +81,11 @@ recoIDPolicy = '{{recoIDPolicy#PROD-1:RECO(Stripp): policy for input data access
 recoMulticoreFlag = '{{recoMulticoreFLag#PROD-1: multicore flag#True}}'
 recoAncestorDepth = int( '{{recoAncestorDepth#PROD-1: Ancestor Depth#0}}' )
 recoCompressionLvl = '{{recoCompressionLvl#PROD-1: compression level#Compression-ZLIB-1}}'
-recoOutputVisFlag = '{{recoOutputVisFlag#PROD-1: Visibility flag of output files#True}}'
+recoOutputVisFlag = '{{recoOutputVisFlag#PROD-1: visibility flag of output files#True}}'
 try:
-  recoOutputVisFlagSpecial = ast.literal_eval( '{{recoOutputVisFlagSpecial#PROD-1: Special Visibility flag of output files (a dictionary FType:flag)#}}' )
+  recoOutputVisFlagSpecial = ast.literal_eval( '{{recoOutputVisFlagSpecial#PROD-1: Special Visibility flag of output files (dict FType:True|False )#}}' )
 except SyntaxError:
-  recoOutputVisFlagSpecial = {}
+  simulationOutputVisFlagSpecial = {}
 
 # stripp params
 strippPriority = int( '{{priority#PROD-2:Stripping: priority#5}}' )
@@ -101,9 +101,9 @@ strippIDPolicy = '{{strippIDPolicy#PROD-2:Stripping: policy for input data acces
 strippMulticoreFlag = '{{strippMulticoreFLag#PROD-2: multicore flag#True}}'
 strippAncestorDepth = int( '{{strippAncestorDepth#PROD-2: Ancestor Depth#0}}' )
 strippCompressionLvl = '{{strippCompressionLvl#PROD-2: compression level#Compression-ZLIB-1}}'
-strippOutputVisFlag = '{{strippOutputVisFlag#PROD-2: Visibility flag of output files#True}}'
+strippOutputVisFlag = '{{strippOutputVisFlag#PROD-2: Visibility flag of output files#False}}'
 try:
-  strippOutputVisFlagSpecial = ast.literal_eval( '{{strippOutputVisFlagSpecial#PROD-2: Special Visibility flag of output files (a dictionary FType:flag)#}}' )
+  strippOutputVisFlagSpecial = ast.literal_eval( '{{strippOutputVisFlagSpecial#PROD-2: Special Visibility flag of output files (dict FType:True|False)#}}' )
 except SyntaxError:
   strippOutputVisFlagSpecial = {}
 
@@ -123,7 +123,7 @@ mergeMulticoreFlag = '{{mergeMulticoreFLag#PROD-3: multicore flag#True}}'
 mergeCompressionLvl = '{{mergeCompressionLvl#PROD-3: compression level#Compression-LZMA-4}}'
 mergeOutputVisFlag = '{{mergeOutputVisFlag#PROD-3: Visibility flag of output files#True}}'
 try:
-  mergeOutputVisFlagSpecial = ast.literal_eval( '{{mergeOutputVisFlagSpecial#PROD-3: Special Visibility flag of output files (a dictionary FType:flag)#}}' )
+  mergeOutputVisFlagSpecial = ast.literal_eval( '{{mergeOutputVisFlagSpecial#PROD-3: Special Visibility flag of output files (dict FType:True|False)#}}' )
 except SyntaxError:
   mergeOutputVisFlagSpecial = {}
 
@@ -239,8 +239,8 @@ if w1:
   pr.outputModes = ['Run']
   pr.ancestorDepths = [recoAncestorDepth]
   pr.compressionLvl = [recoCompressionLvl] * len( pr.stepsInProds[0] )
-  pr.outputVisFlag = [recoOutputVisFlag]
-  pr.specialOutputVisFlag = [recoOutputVisFlagSpecial]
+  pr.outputVisFlag = [{"1":recoOutputVisFlag}]
+  pr.specialOutputVisFlag = [{"1":recoOutputVisFlagSpecial}]
 
 elif w2:
   pr.prodsTypeList = ['DataStripping', 'Merge']
@@ -262,8 +262,8 @@ elif w2:
   pr.ancestorDepths = [strippAncestorDepth, 0]
   pr.compressionLvl = [strippCompressionLvl] * len( pr.stepsInProds[0] ) +\
                       [mergeCompressionLvl] * len( pr.stepsInProds[1] )
-  pr.outputVisFlag = [strippOutputVisFlag, mergeOutputVisFlag]
-  pr.specialOutputVisFlag = [strippOutputVisFlagSpecial, mergeOutputVisFlagSpecial]
+  pr.outputVisFlag = ["1":strippOutputVisFlag, "2":mergeOutputVisFlag]
+  pr.specialOutputVisFlag = ["1":strippOutputVisFlagSpecial, "2":mergeOutputVisFlagSpecial]
 
 elif w3:
   pr.prodsTypeList = [recoType, 'Merge']
@@ -285,8 +285,8 @@ elif w3:
   pr.ancestorDepths = [recoAncestorDepth, 0]
   pr.compressionLvl = [recoCompressionLvl] * len( pr.stepsInProds[0] ) +\
                       [mergeCompressionLvl] * len( pr.stepsInProds[1] )
-  pr.outputVisFlag = [recoOutputVisFlag, mergeOutputVisFlag]
-  pr.specialOutputVisFlag = [recoOutputVisFlagSpecial, mergeOutputVisFlagSpecial]
+  pr.outputVisFlag = ["1":recoOutputVisFlag, "2":mergeOutputVisFlag]
+  pr.specialOutputVisFlag = ["1":recoOutputVisFlagSpecial, "2":mergeOutputVisFlagSpecial]
 
 elif w4:
   pr.prodsTypeList = [recoType, 'DataStripping', 'Merge']
@@ -310,8 +310,8 @@ elif w4:
   pr.compressionLvl = [recoCompressionLvl] * len( pr.stepsInProds[0] ) +\
                       [strippCompressionLvl] * len( pr.stepsInProds[1] ) +\
                       [mergeCompressionLvl] * len( pr.stepsInProds[2] )
-  pr.outputVisFlag = [recoOutputVisFlag, strippOutputVisFlag, mergeOutputVisFlag]
-  pr.specialOutputVisFlag = [recoOutputVisFlagSpecial, strippOutputVisFlagSpecial, mergeOutputVisFlagSpecial]
+  pr.outputVisFlag = ["1": recoOutputVisFlag, "2": strippOutputVisFlag, "3": mergeOutputVisFlag]
+  pr.specialOutputVisFlag = ["1": recoOutputVisFlagSpecial, "2": strippOutputVisFlagSpecial, "3": mergeOutputVisFlagSpecial]
 
 elif w5:
   pr.prodsTypeList = ['DataStripping', 'Merge', 'WGProduction']
@@ -335,8 +335,8 @@ elif w5:
   pr.compressionLvl = [strippCompressionLvl] * len( pr.stepsInProds[0] ) +\
                       [mergeCompressionLvl] * len( pr.stepsInProds[1] ) +\
                       [''] * len( pr.stepsInProds[2] )
-  pr.outputVisFlag = [strippOutputVisFlag, mergeOutputVisFlag]
-  pr.specialOutputVisFlag = [strippOutputVisFlagSpecial, mergeOutputVisFlagSpecial]
+  pr.outputVisFlag = ["1": strippOutputVisFlag, "2": mergeOutputVisFlag]
+  pr.specialOutputVisFlag = ["1": strippOutputVisFlagSpecial, "2": mergeOutputVisFlagSpecial]
 
 
 pr.buildAndLaunchRequest()
