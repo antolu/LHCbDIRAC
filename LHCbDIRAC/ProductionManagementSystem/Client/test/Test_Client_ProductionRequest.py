@@ -435,6 +435,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.compressionLvl = ['Compression-LZMA-4']
     pr.outputVisFlag = [{'1':'Y'}]
+    pr.specialOutputVisFlag = [{'1': {'BHADRON.DST': 'Y'}}]    
     pr.stepsList = ['1098']
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [{'StepId': 1098, 'StepName':'Stripping28',
@@ -458,7 +459,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
                                           'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"1098['SDST']",
                                           'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
-					  'visibilityFlag':[{'Visible': 'N', 'FileType': 'BHADRON.DST'},{'Visible': 'N', 'FileType': 'CALIBRATION.DST'}],
+					  'visibilityFlag':[{'Visible': 'N', 'FileType': 'BHADRON.DST'}, {'Visible': 'N', 'FileType': 'CALIBRATION.DST'}],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']},
                                          {'StepId': 996, 'StepName':'Stripping28',
                                           'ApplicationName':'DaVinci', 'ApplicationVersion':'v41r3', 'ExtraOptions': '',
@@ -466,7 +467,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
                                           'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"996['SDST']",
                                           'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
-					  'visibilityFlag':[{'Visible': 'N', 'FileType': 'BHADRON.DST'},{'Visible': 'N', 'FileType': 'CALIBRATION.DST'}],
+					  'visibilityFlag':[{'Visible': 'N', 'FileType': 'BHADRON.DST'}, {'Visible': 'N', 'FileType': 'CALIBRATION.DST'}],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']},
                                          {'StepId': 997, 'StepName':'Stripping28',
                                           'ApplicationName':'DaVinci', 'ApplicationVersion':'v41r3', 'ExtraOptions': '',
@@ -474,8 +475,8 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
                                           'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"997['SDST']",
                                           'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
-                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST'],
-                                          'visibilityFlag':[ {'Visible': 'N', 'FileType': 'CALIBRATION.DST'}, {'Visible': 'Y', 'FileType': 'BHADRON.DST'} ]}
+                                          'visibilityFlag':[{'Visible': 'Y', 'FileType': 'BHADRON.DST'}, {'Visible': 'N', 'FileType': 'CALIBRATION.DST'}],
+                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}
                                         ] )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
@@ -490,7 +491,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
                                           'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"1098['SDST']",
                                           'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
-                                          'visibilityFlag':[ {'Visible': 'N', 'FileType': 'CALIBRATION.DST'}, {'Visible': 'N', 'FileType': 'BHADRON.DST'} ],
+                                          'visibilityFlag':[ {'Visible': 'N', 'FileType': 'BHADRON.DST'}, {'Visible': 'N', 'FileType': 'CALIBRATION.DST'}],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']},
                                          {'StepId': 996, 'StepName':'Stripping28',
                                           'ApplicationName':'DaVinci', 'ApplicationVersion':'v41r3', 'ExtraOptions': '',
@@ -498,7 +499,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
                                           'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"996['SDST']",
                                           'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
-                                          'visibilityFlag':[ {'Visible': 'N', 'FileType': 'CALIBRATION.DST'}, {'Visible': 'Y', 'FileType': 'BHADRON.DST'} ],
+                                          'visibilityFlag':[ {'Visible': 'Y', 'FileType': 'BHADRON.DST'}, {'Visible': 'N', 'FileType': 'CALIBRATION.DST'}],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']},
                                          {'StepId': 997, 'StepName':'Stripping28',
                                           'ApplicationName':'DaVinci', 'ApplicationVersion':'v41r3', 'ExtraOptions': '',
@@ -506,7 +507,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
                                           'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"997['SDST']",
                                           'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
-                                          'visibilityFlag':[ {'Visible': 'N', 'FileType': 'CALIBRATION.DST'}, {'Visible': 'N', 'FileType': 'BHADRON.DST'} ],
+                                          'visibilityFlag':[ {'Visible': 'N', 'FileType': 'BHADRON.DST'}, {'Visible': 'N', 'FileType': 'CALIBRATION.DST'}],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}
                                         ] )
 

@@ -198,10 +198,10 @@ class ProductionRequest( object ):
         try:
           outputVisList = list( {'Visible': outputVisFlag[str(count+1)], 'FileType': ftype} for ftype in stepsListDictItem['fileTypesOut'] )
           #dict( [(fType, outputVisFlag[count]) for fType in stepsListDictItem['fileTypesOut']] )
-          if specialOutputVisFlag:
-            for l in outputVisList:
-              for k in specialOutputVisFlag.keys():
-                if (k == count+1 and l['FileType'] == ): l['Visible']= specialOutputVisFlag[count][k]
+          if str(count + 1) in specialOutputVisFlag:
+            for it in outputVisList:
+              if it['FileType'] in specialOutputVisFlag[str(count + 1)]:
+                it['Visible'] = specialOutputVisFlag[str(count + 1)][it['FileType']]
 
             #outputVisDict.update( specialOutputVisFlag[count] )
           stepsListDictItem['visibilityFlag'] = outputVisList
