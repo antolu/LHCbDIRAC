@@ -1,3 +1,19 @@
+[v8r7-pre4]
+Use DIRAC v6r17p16
+
+* Fix advice for files in FC and replica=No in BK Set two options (fix FC and fix BK)
+* allow to provide  more than one step
+* change the default value of the file types of the steps
+* remove the visibility flag from the steps output
+* added option for lbRunOnly
+* do not return errors when checking ancestors, just ignore
+* added option for exiting at lb-run failure
+* print number of tasks per run
+* split in methods + getting CSServers list
+* optimise ancestor presence checking
+* add eventtype to the stepscontainer
+* fix status string tes
+
 [v8r7-pre3]
 Use DIRAC v6r17p15
 
