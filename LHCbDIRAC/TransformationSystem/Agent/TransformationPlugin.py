@@ -642,31 +642,33 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           return res
         tasks = res['Value']
         if fromSEs:
-          okTasks = []
           missingAncestors = 0
+          okDict = {}
+          # Group the LFNs by (set of) SEs in order to speed up the check for ancestors
+          nbTasks = len( tasks )
           for task in tasks:
-            # If fromSEs is defined, check if in the list
+            # Restrict target SEs to those in fromSEs
             okSEs = fromSEs & set( task[0].split( ',' ) )
             if okSEs:
-              if addAncestors:
-                res = self.util.checkAncestorsAtSE( task[1], okSEs )
-                if not res['OK']:
-                  return res
-                missing = res['Value']
-                if missing:
-                  missingAtSEs = True
-                  missingAncestors += missing
-              if task[1]:
-                # Restrict target SEs to those in fromSEs
-                okTasks.append( ( ','.join( sorted( okSEs ) ), task[1] ) )
+              okDict.setdefault( tuple( okSEs ), [] ).append( task[1] )
+          # Create the real tasks now
+          tasks = []
+          for okSEs, taskLfns in okDict.iteritems():
+            if addAncestors:
+              # taskLfns is modified by this method: lfns are eventually removed
+              missing = self.util.checkAncestorsAtSE( taskLfns, set( okSEs ) )
+              if missing:
+                missingAtSEs = True
+                missingAncestors += missing
+            # Not make the tasks
+            tasks += [( ','.join( sorted( okSEs ) ), lfnList ) for lfnList in taskLfns if lfnList]
           if missingAncestors:
             self.util.logInfo( "%d files have been removed from tasks as ancestors were not present at required SEs" % missingAncestors )
-          if len( tasks ) != len( okTasks ):
+          if nbTasks != len( tasks ):
             missingAtSEs = True
             self.util.logInfo( "%d tasks could not be created for run %d as files are not at required SEs" %
-                               ( len( tasks ) - len( okTasks ), runID ) )
-          tasks = okTasks
-        self.util.logVerbose( "Created %d tasks for run %d%s" %
+                               ( nbTasks - len( tasks ), runID ) )
+        self.util.logInfo( "Created %d tasks for run %d%s" %
                               ( len( tasks ), runID, paramStr ) )
         allTasks.extend( tasks )
         # Cache the left-over LFNs
