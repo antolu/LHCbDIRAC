@@ -872,7 +872,7 @@ class TransformationDebug( object ):
           prStr += ' in status:'
         gLogger.notice( prStr, prevStatus )
         majorStatus, minorStatus, applicationStatus = prevStatus.split( '; ' )
-        if majorStatus == 'Failed' and ( 'Exited With Status' in applicationStatus or 'Problem Executing Application' in applicationStatus ):
+        if majorStatus == 'Failed' and ( 'exited with status' in applicationStatus.lower() or 'problem executing application' in applicationStatus.lower() ):
           exitedJobs += jobs
         if majorStatus == 'Failed' and minorStatus == 'Job stalled: pilot not running':
           lastLine = ''
