@@ -1,8 +1,8 @@
 """ pilotSynchronizer
 
   Module that keeps the pilot parameters file synchronized with the information
-  in the Operations/Pilot section of the CS. If there are additions in the CS, these are incorporated
-  to the file.
+  in the Operations/Pilot section of the CS. If there are additions in the CS,
+  these are incorporated to the file.
   The module uploads to a web server the latest version of the pilot scripts.
 
 """
@@ -64,17 +64,33 @@ class pilotSynchronizer( object ):
   def _syncFile( self ):
     ''' Creates the pilot dictionary from the CS, ready for encoding as JSON
     '''
+    pilotDict = self._getCSDict()
+
+    result = self._upload( pilotDict = pilotDict )
+    if not result['OK']:
+      gLogger.error( "Error uploading the pilot file: %s" %result['Message'] )
+      return result
+    return S_OK()
+
+  def _getCSDict(self):
+    """ Gets minimal info for running a pilot, from the CS
+
+    :returns: pilotDict (containing pilots run info)
+    :rtype: dict
+    """
+
+    pilotDict = { 'Setups' : {}, 'CEs' : {} }
 
     gLogger.info( '-- Getting the content of the CS --' )
-    pilotDict = { 'Setups' : {}, 'CEs' : {} }
+
+    gLogger.verbose( 'From Operations/[Setup]/Pilot' )
     setups = gConfig.getSections( '/Operations/' )
     if not setups['OK']:
       gLogger.error( setups['Message'] )
       return setups
-
     try:
-      setups['Value'].remove( 'SoftwareDistribution' )
-    except:
+      setups['Value'].remove( 'SoftwareDistribution' ) #TODO: remove this section
+    except AttributeError:
       pass
 
     for setup in setups['Value']:
@@ -99,6 +115,7 @@ class pilotSynchronizer( object ):
         pilotDict['Setups'][setup]['CommandExtensions'] = pilotDict['Setups'][setup]['CommandExtensions'].split(', ')
         # pilotDict['Setups'][setup]['CommandExtensions'] = pilotDict['Setups'][setup]['CommandExtensions']
 
+    gLogger.verbose( 'From Resources/Sites' )
     sitesSection = gConfig.getSections( '/Resources/Sites/' )
     if not sitesSection['OK']:
       gLogger.error( sitesSection['Message'] )
@@ -130,12 +147,13 @@ class pilotSynchronizer( object ):
     if defaultSetup:
       pilotDict['DefaultSetup'] = defaultSetup
 
+    gLogger.verbose( 'From DIRAC/Configuration' )
+    pilotDict['ConfigurationServers'] = gConfig.getServersList()
+
     gLogger.verbose( "Got %s"  %str(pilotDict) )
-    result = self._upload( pilotDict = pilotDict )
-    if not result['OK']:
-      gLogger.error( "Error uploading the pilot file: %s" %result['Message'] )
-      return result
-    return S_OK()
+
+    return pilotDict
+
 
   def _syncScripts(self):
     """Clone the pilot scripts from the repository and upload them to the web server
@@ -177,9 +195,15 @@ class pilotSynchronizer( object ):
     try:
       scriptDir = os.path.join( self.pilotLocalRepo, self.pilotScriptsPath, "*.py" )
       for filename in glob.glob( scriptDir ):
-        result = self._upload( filename = os.path.basename( filename ), pilotScript = filename )
-      if not os.path.isfile( os.path.join( self.pilotLocalRepo, self.pilotScriptsPath, "dirac-install.py" ) ):
-        result = self._upload( filename = 'dirac-install.py', pilotScript = os.path.join( self.pilotLocalRepo, "Core/scripts/dirac-install.py" ) )
+        result = self._upload(
+            filename = os.path.basename(filename),
+            pilotScript = filename)
+      if not os.path.isfile(os.path.join(self.pilotLocalRepo,
+                                         self.pilotScriptsPath,
+                                         "dirac-install.py")):
+        result = self._upload(
+            filename = 'dirac-install.py',
+            pilotScript = os.path.join( self.pilotLocalRepo, "Core/scripts/dirac-install.py"))
     except ValueError:
       gLogger.error( "Error uploading the pilot scripts: %s" % result['Message'] )
       return result

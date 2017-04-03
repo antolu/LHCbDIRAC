@@ -116,8 +116,11 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
 
     except OSError, e:
       self.log.error( "Exception when trying lbrun:", e )
-      self.log.warn( "lb-run NOT DONE: starting traditional DIRAC installation" )
-      super( LHCbInstallDIRAC, self ).execute()
+      if 'LbRunOnly' in self.pp.genericOption:
+        self.exitWithError(1)
+      else:
+        self.log.warn( "lb-run NOT DONE: starting traditional DIRAC installation" )
+        super( LHCbInstallDIRAC, self ).execute()
 
     finally:
       # saving also in environmentLHCbDirac file for completeness... this is doing some horrible mangling unfortunately!
