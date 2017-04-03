@@ -1714,8 +1714,10 @@ class BookkeepingManagerHandler( RequestHandler ):
     """more info in the BookkeepingClient.py"""
 
     production = in_dict.get( 'Production', default )
+    stepid = in_dict.get( 'StepId', default )
+    
     if production != default:
-      return dataMGMT_.getProductionOutputFileTypes( production )
+      return dataMGMT_.getProductionOutputFileTypes( production, stepid )
     else:
       return S_ERROR( 'The Production dictionary key is missing!!!' )
 

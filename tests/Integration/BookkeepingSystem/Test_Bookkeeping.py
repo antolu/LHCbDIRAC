@@ -1630,7 +1630,6 @@ class MCProductionRegistration ( MCInsertTestCase ):
     retVal = self.bk.addProduction( self.productionSteps )
     self.assert_( retVal['OK'] )
     
-    
 class MCXMLReportInsert( MCInsertTestCase ):
   
   jobStart = jobEnd = datetime.datetime.now()
@@ -1762,6 +1761,46 @@ class MCProductionTest ( MCXMLReportInsert ):
   Test the existence of the inserted data. 
   """
   
+  def test_addProduction( self ):
+    """
+    Test the production registration
+    """ 
+    prodSteps = {"SimulationConditions":"Beam4000GeV-2012-MagUp-Nu2.5-Pythia8",
+                 "ConfigName":"MC",
+                 "ConfigVersion":"2012",
+                 "Production":3,
+                 "EventType": 11104131,
+                 "Steps":[]}
+    retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Sim09b - 2012 - MU - Pythia8'} )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    step = {}
+    step['StepId'] = retVal['Value']['Records'][0][0]
+    step['OutputFileTypes'] = [{'Visible': 'N', 'FileType': 'SIM'}]
+    step['Visible'] = 'Y'
+    prodSteps['Steps'].append( step )
+    
+    retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Digi14a for 2012 (to use w Sim09)'} )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    step = {}
+    step['StepId'] = retVal['Value']['Records'][0][0]
+    step['OutputFileTypes'] = [{'Visible': 'N', 'FileType': 'DIGI'}]
+    step['Visible'] = 'N'
+    prodSteps['Steps'].append( step )
+    
+    retVal = self.bk.getAvailableSteps( {'StepName':'Cert-TCK-0x40990042 Flagged MC - 2012 - to be used in multipleTCKs'} )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    step = {}
+    step['StepId'] = retVal['Value']['Records'][0][0]
+    step['OutputFileTypes'] = [{'Visible': 'Y', 'FileType': 'DIGI'}, {'Visible': 'Y', 'FileType': 'XDIGI'}]
+    step['Visible'] = 'Y'
+    prodSteps['Steps'].append( step )
+    
+    retVal = self.bk.addProduction( prodSteps )
+    self.assert_( retVal['OK'] )
+    
   def test_getSimConditions( self ):
     """
     check the existence of the sim cond
@@ -1849,7 +1888,6 @@ class MCProductionTest ( MCXMLReportInsert ):
         self.assert_( False, "The XML report has not registered correctly" )
    
     retVal = self.bk.getJobInformation( {'Production':2} )
-    print 'SSSS',retVal
     self.assert_( retVal['OK'] )
     self.assert_( len( retVal['Value'] ) == 8 )
     
@@ -1876,19 +1914,117 @@ class MCProductionTest ( MCXMLReportInsert ):
     
     self.assert_( retVal['Value']['/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_7.digi'] )
     self.assertEqual( retVal['Value']['/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_7.digi'], 'ROOT' )
+  
+  def test_getProductionOutputFileTypes1( self ):
+    """test the visibility of the file types for a given production
+    """
+    retVal = self.bk.getProductionOutputFileTypes( {"Production" : self.production} )
+    self.assert_( retVal['OK'] )
+    self.assertDictEqual( retVal['Value'], {'DIGI': 'N', 'SIM': 'N'} )
+    
+    retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Sim09b - 2012 - MU - Pythia8'} )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    stepid = retVal['Value']['Records'][0][0] 
+    retVal = self.bk.getProductionOutputFileTypes( {"Production" : self.production, "StepId":stepid} )
+    self.assert_( retVal['OK'] )
+    self.assertDictEqual( retVal['Value'], {'SIM': 'N'} )
+    
+    retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Digi14a for 2012 (to use w Sim09)'} )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    stepid = retVal['Value']['Records'][0][0]
+    retVal = self.bk.getProductionOutputFileTypes( {"Production" : self.production, "StepId":stepid} )
+    self.assert_( retVal['OK'] )
+    self.assertDictEqual( retVal['Value'], {'DIGI': 'N'} )
+    
+    
+    retVal = self.bk.getAvailableSteps( {'StepName':'Cert-L0 emulation - TCK 003d'} )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    stepid = retVal['Value']['Records'][0][0]
+    retVal = self.bk.getProductionOutputFileTypes( {"Production" : self.production, "StepId":stepid} )
+    self.assert_( retVal['OK'] )
+    self.assertDictEqual( retVal['Value'], {'DIGI': 'N'} )
+    
+    retVal = self.bk.getAvailableSteps( {'StepName':'Cert-TCK-0x4097003d Flagged MC - 2012 - to be used in multipleTCKs'} )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    stepid = retVal['Value']['Records'][0][0]
+    retVal = self.bk.getProductionOutputFileTypes( {"Production" : self.production, "StepId":stepid} )
+    self.assert_( retVal['OK'] )
+    self.assertDictEqual( retVal['Value'], {'DIGI': 'N'} )
+    
+    retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Move TCK-0x4097003d from default location'} )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    stepid = retVal['Value']['Records'][0][0]
+    retVal = self.bk.getProductionOutputFileTypes( {"Production" : self.production, "StepId":stepid} )
+    self.assert_( retVal['OK'] )
+    self.assertDictEqual( retVal['Value'], {'DIGI': 'N'} )
+    
+    retVal = self.bk.getAvailableSteps( {'StepName':'Cert-L0 emulation - TCK 0042'} )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    stepid = retVal['Value']['Records'][0][0]
+    retVal = self.bk.getProductionOutputFileTypes( {"Production" : self.production, "StepId":stepid} )
+    self.assert_( retVal['OK'] )
+    self.assertDictEqual( retVal['Value'], {'DIGI': 'N'} )
+    
+    retVal = self.bk.getAvailableSteps( {'StepName':'Cert-TCK-0x40990042 Flagged MC - 2012 - to be used in multipleTCKs'} )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    stepid = retVal['Value']['Records'][0][0]
+    retVal = self.bk.getProductionOutputFileTypes( {"Production" : self.production, "StepId":stepid} )
+    self.assert_( retVal['OK'] )
+    self.assertDictEqual( retVal['Value'], {'DIGI': 'N'} )
+    
+    retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Move TCK-0x40990042 from default location'} )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    stepid = retVal['Value']['Records'][0][0]
+    retVal = self.bk.getProductionOutputFileTypes( {"Production" : self.production, "StepId":stepid} )
+    self.assert_( retVal['OK'] )
+    self.assertDictEqual( retVal['Value'], {'DIGI': 'N'} )
+    
+  def test_getProductionOutputFileTypes2( self ):
+    """test the visibility of the file types for a given production
+    """
+    
+    retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Sim09b - 2012 - MU - Pythia8'} )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    retVal = self.bk.getProductionOutputFileTypes( {"Production" : 3, 'StepId':retVal['Value']['Records'][0][0]} )
+    self.assert_( retVal['OK'] )
+    self.assertDictEqual( retVal['Value'], {'SIM':'N'} )
+    
+    
+    
+    retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Digi14a for 2012 (to use w Sim09)'} )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    retVal = self.bk.getProductionOutputFileTypes( {"Production" : 3, 'StepId':retVal['Value']['Records'][0][0]} )
+    self.assert_( retVal['OK'] )
+    self.assertDictEqual( retVal['Value'], {'DIGI':'N'} )
+    
+    retVal = self.bk.getAvailableSteps( {'StepName':'Cert-TCK-0x40990042 Flagged MC - 2012 - to be used in multipleTCKs'} )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    retVal = self.bk.getProductionOutputFileTypes( {"Production" : 3, 'StepId':retVal['Value']['Records'][0][0]} )
+    self.assert_( retVal['OK'] )
+    self.assertDictEqual( retVal['Value'], {'DIGI':'Y', 'XDIGI':'Y'} )
+  
+        
     
 if __name__ == '__main__':
-  
-  mcTestSuite = unittest.defaultTestLoader.loadTestsFromTestCase( MCProductionTest )
-  suite = unittest.defaultTestLoader.loadTestsFromTestCase( TestMethods )
-  
-  #mcTestSuite = unittest.defaultTestLoader.loadTestsFromTestCase( MCProductionRegistration )
-  #mcTestSuite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCXMLReportInsert ) )
-  #mcTestSuite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCProductionTest ) )
+    
+  mcTestSuite = unittest.defaultTestLoader.loadTestsFromTestCase( MCProductionRegistration )
+  mcTestSuite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCXMLReportInsert ) )
+  mcTestSuite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCProductionTest ) )
   unittest.TextTestRunner( verbosity = 2, failfast = True ).run( mcTestSuite )
-  #suite = unittest.defaultTestLoader.loadTestsFromTestCase( RAWDataInsert )
-  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestMethods ) )
-  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestRemoveFiles ) )
-  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestDestoryDataset ) )
+  suite = unittest.defaultTestLoader.loadTestsFromTestCase( RAWDataInsert )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestMethods ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestRemoveFiles ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestDestoryDataset ) )
   unittest.TextTestRunner( verbosity = 2, failfast = True ).run( suite )
   

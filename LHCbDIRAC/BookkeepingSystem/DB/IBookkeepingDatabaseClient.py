@@ -532,9 +532,9 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getDataTakingCondDesc(condition)
 
   #############################################################################
-  def getProductionOutputFileTypes(self, prod):
+  def getProductionOutputFileTypes(self, prod, stepid):
     "more info in the BookkeepingClient.py"
-    return self.getManager().getProductionOutputFileTypes(prod)
+    return self.getManager().getProductionOutputFileTypes(prod, stepid)
 
   #############################################################################
   def existsTag(self, name, value):

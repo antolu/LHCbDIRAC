@@ -135,7 +135,12 @@ class OracleBookkeepingDB( object ):
 
       stepId = in_dict.get( 'StepId', default )
       if stepId != default:
-        condition += ' and s.stepid= %s' % ( str( stepId ) )
+        if isinstance( stepId, ( basestring, int, long ) ):
+          condition += ' and s.stepid= %s' % ( str( stepId ) )
+        elif isinstance( stepId, ( list, tuple ) ):
+          condition += 'and s.stepid in (%s)' % ",".join( [str( sid ) for sid in stepId] ) 
+        else:
+          return S_ERROR( "Wrong StepId" )               
 
       stepName = in_dict.get( 'StepName', default )
       if stepName != default:
@@ -469,19 +474,35 @@ class OracleBookkeepingDB( object ):
     return self.dbR_.query( command )
 
   #############################################################################
-  def getProductionOutputFileTypes( self, prod ):
-    """returns the production output file types"""
-    command = "select o.name,o.visible from steps s, table(s.outputfiletypes) o, stepscontainer st \
-            where st.stepid=s.stepid and st.production=%d order by step" % ( int( prod ) )
+  def getProductionOutputFileTypes( self, prod, stepid ):
+    """returns the production output file types
+    :param int prod:  production number
+    :param int stepid: step id 
+    :rertun S_OK/S_ERROR return a dictionary with file types and visibility flag.
+    """
+    condition = ''
+    if stepid != default:
+      condition = " and s.stepid=%s" % stepid
+    
+    command = "select s.filetype, s.visible from productionoutputfiles s where s.production=%s %s" % ( prod, condition )
     retVal = self.dbR_.query( command )
-    values = {}
+    if not retVal['OK']:
+      return retVal
+    if not retVal['Value']:
+      #this is for backward compatibility. 
+      #FIXME: make sure the productionoutputfiles is correctly propagated and after the method can be simpified
+      command = "select o.name,o.visible from steps s, table(s.outputfiletypes) o, stepscontainer st \
+            where st.stepid=s.stepid and st.production=%d %s order by step" % ( int( prod ), condition )
+      retVal = self.dbR_.query( command )
+    
+    outputFiles = {}
     if retVal['OK']:
-      for i in retVal['Value']:
-        values[i[0]] = i[1]
-      result = S_OK( values )
+      for filetype, visible in retVal['Value']:
+        outputFiles[filetype] = visible
     else:
-      result = retVal
-    return result
+      return retVal
+    
+    return S_OK( outputFiles )
 
   #############################################################################
   def getAvailableFileTypes( self ):
@@ -521,10 +542,10 @@ class OracleBookkeepingDB( object ):
       values = ',filetypesARRAY('
       selection += ',InputFileTypes'
       for i in inFileTypes:
-        values += "ftype('%s', '%s')," % ( ( i.get( 'FileType', None ).strip() if i.get( 'FileType', None )
-                                             else i.get( 'FileType', None ) ),
-                                           ( i.get( 'Visible', None ).strip() if i.get( 'Visible', None )
-                                             else i.get( 'Visible', None ) ) )
+        values += "ftype('%s', '%s')," % ( ( i.get( 'FileType', '' ).strip() if i.get( 'FileType', '' )
+                                             else i.get( 'FileType', '' ) ),
+                                           ( i.get( 'Visible', '' ).strip() if i.get( 'Visible', '' )
+                                             else i.get( 'Visible', '' ) ) )
       values = values[:-1]
       values += ')'
 
@@ -534,10 +555,10 @@ class OracleBookkeepingDB( object ):
       values += ' , filetypesARRAY('
       selection += ',OutputFileTypes'
       for i in outFileTypes:
-        values += "ftype('%s', '%s')," % ( ( i.get( 'FileType', None ).strip() if i.get( 'FileType', None )
-                                             else i.get( 'FileType', None ) ),
-                                           ( i.get( 'Visible', None ).strip() if i.get( 'Visible', None )
-                                             else i.get( 'Visible', None ) ) )
+        values += "ftype('%s', '%s')," % ( ( i.get( 'FileType', '' ).strip() if i.get( 'FileType', '' )
+                                             else i.get( 'FileType', '' ) ),
+                                           ( i.get( 'Visible', '' ).strip() if i.get( 'Visible', '' )
+                                             else i.get( 'Visible', '' ) ) )
       values = values[:-1]
       values += ')'
 
@@ -4066,12 +4087,34 @@ and files.qualityid= dataquality.qualityid'
           sim = retVal['Value']
         else:
           return S_ERROR( 'Data taking condition is missing!!' )
-      return self.insertproductionscontainer( production, processingid, sim, did, configName, configVersion )
+      retVal = self.insertproductionscontainer( production, processingid, sim, did, configName, configVersion )
+      if retVal['OK']:#now we can register the production output file types
+        return self.insertProductionOutputFiletypes( production, steps )
+      else:
+        return retVal
     else:
       return retVal
     return S_OK( 'The production processing pass is entered to the bkk' )
 
-
+  #############################################################################
+  def insertProductionOutputFiletypes(self, production, steps):
+    """
+    This method is used to register the output filetypes for a given production
+    :param int production: it is the production number
+    :param list steps it contains all the steps and output file types
+    :return S_OK/S_ERROR
+    """
+    for step in steps:
+      for ftype in step.get( 'OutputFileTypes', {} ):
+        retVal = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.insertProdnOutputFtypes',
+                                                   [production, step['StepId'],
+                                                    ftype.get( 'FileType', None ),
+                                                    ftype.get( 'Visible', 'Y' )], False )
+        if not retVal['OK']:
+          return retVal
+    
+    return S_OK()
+  
   #############################################################################
   def getEventTypes( self, configName = default, configVersion = default, prod = default ):
     """returns the events types for a given dataset"""
