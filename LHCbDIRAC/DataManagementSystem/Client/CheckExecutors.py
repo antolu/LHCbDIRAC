@@ -234,14 +234,14 @@ def doCheckFC2BK( cc, fixFC = False, fixBK = False, listAffectedRuns = False ):
                                   for lfn in sorted( cc.existLFNsBKRepNo )[0:maxFiles] ) )
       if listAffectedRuns:
         gLogger.notice( 'Affected runs: %s' % ','.join( affectedRuns ) )
-      if fixFC:
+      if fixBK:
         gLogger.notice( "Going to fix them, setting the replica flag" )
         res = bk.addFiles( list( success ) )
         if res['OK']:
           gLogger.notice( "\tSuccessfully added replica flag to %d files" % len( success ) )
         else:
           gLogger.error( 'Failed to set the replica flag', res['Message'] )
-      if fixBK:
+      if fixFC:
         gLogger.notice( "Going to fix them, by removing from the FC and storage" )
         __removeFile( success )
       else:
