@@ -1,9 +1,9 @@
 {
   "name": "LHCbDirac",
-  "version": "v8r6p2",
+  "version": "v8r6p3",
   "used_projects": {
     "project": [
-      [ "Dirac", "v6r17p14",
+      [ "Dirac", "v6r17p17",
         [ "bin", "python", "lib" ]
       ],
       [ "LHCbGrid", "v11r3",

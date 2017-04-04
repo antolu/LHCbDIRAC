@@ -1,3 +1,18 @@
+[v8r6p3]
+Use DIRAC v6r17p17
+
+* optimise ancestor presence checking
+* Fix advice for files in FC and replica=No in BK Set two options (fix FC and fix BK)
+* do not return errors when checking ancestors, just ignore
+* print number of tasks per run
+* optimise ancestor presence checking
+* [Patch] Little changes documented on the file
+* fix status string test
+* move logging to utilities
+* Count missing ancestors and log it at INFO level
+* Add possibility to check the presence of ancestor files at required SEs
+* modify the execution plan
+
 [v8r6p2]
 Use DIRAC v6r17p14
 
