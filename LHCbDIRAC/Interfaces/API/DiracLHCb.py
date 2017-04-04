@@ -67,7 +67,6 @@ class DiracLHCb( Dirac ):
                              'DataQuality'              : 'All',
                              'Visible'                  : 'Yes'}
     self.bk = BookkeepingClient()  # to expose all BK client methods indirectly
-    self.resourceStatus = ResourceStatus()
 
   #############################################################################
   def addRootFile( self, lfn, fullPath, diracSE, printOutput = False ):
@@ -217,9 +216,9 @@ class DiracLHCb( Dirac ):
 
        >>> dirac.bkQueryRunsByDate('/LHCb/Collision16//Real Data/90000000/RAW','2016-08-20','2016-08-22',dqFlag='OK',selection='Runs')
        {'OK': True, 'Value': [<LFN1>,<LFN2>]}
-      
+
       dirac.bkQueryRunsByDate('/LHCb/Collision16/Beam6500GeV-VeloClosed-MagDown/Real Data/Reco16/Stripping26/90000000/EW.DST','2016-08-20','2016-08-22',dqFlag='OK',selection='Runs')
-      
+
        @param bkPath: BK path as described above
        @type bkPath: string
        @param dqFlag: Optional Data Quality flag
@@ -238,7 +237,7 @@ class DiracLHCb( Dirac ):
 
     if not isinstance( bkPath, str ):
       return S_ERROR( 'Expected string for bkPath' )
-          
+
     # remove any double slashes, spaces must be preserved
     # remove any empty components from leading and trailing slashes
     bkQuery = BKQuery().buildBKQuery( bkPath )
@@ -756,19 +755,19 @@ class DiracLHCb( Dirac ):
 
   #############################################################################
 
-  def lhcbProxyInit( self, *args ):
+  def lhcbProxyInit( self, *args ): #pylint: disable=no-self-use
     """ just calling the dirac-proxy-init script
     """
     os.system( "dirac-proxy-init -o LogLevel=NOTICE -t --rfc %s" % "' '".join( args ) )
 
   #############################################################################
 
-  def lhcbProxyInfo( self, *args ):
+  def lhcbProxyInfo( self, *args ): #pylint: disable=no-self-use
     """ just calling the dirac-proxy-info script
     """
     os.system( "dirac-proxy-info -o LogLevel=NOTICE %s" % "' '".join( args ) )
-
   #############################################################################
+
   def gridWeather( self, printOutput = False ):
     """This method gives a snapshot of the current Grid weather from the perspective
        of the DIRAC site and SE masks.  Tier-1 sites are returned with more detailed
@@ -847,7 +846,7 @@ class DiracLHCb( Dirac ):
     return S_OK( summary )
 
   #############################################################################
-  def checkSites( self, printOutput = False ):
+  def checkSites( self, printOutput = False ): #pylint: disable=no-self-use
     """Return the list of sites in the DIRAC site mask and those which are banned.
 
        Example usage:
@@ -885,7 +884,7 @@ class DiracLHCb( Dirac ):
     return S_OK( {'AllowedSites':sites, 'BannedSites':bannedSites} )
 
   #############################################################################
-  def checkSEs( self, printOutput = False ):
+  def checkSEs( self, printOutput = False ): #pylint: disable=no-self-use
     """Check the status of read and write operations in the DIRAC SE mask.
 
        Example usage:
@@ -907,7 +906,7 @@ class DiracLHCb( Dirac ):
 
     seList = sorted( res['Value'] )
     for se in seList:
-      res = self.resourceStatus.getElementStatus( se, "StorageElement" )
+      res = ResourceStatus().getStorageElementStatus( se )
       if not res[ 'OK' ]:
         gLogger.error("Failed to get StorageElement status for %s" % se)
 
