@@ -193,7 +193,7 @@ if __name__ == '__main__':
       gLogger.always( "%d descendants were found in BK but not in FC" % len( lfns ) )
       if not fp:
         fp = open( fileName, 'w' )
-      fp.write( '\InBKNotInFC '.join( [''] + lfns ) )
+      fp.write( '\nInBKNotInFC '.join( [''] + lfns ) )
       gLogger.always( 'First %d files:' % nMax if not verbose and len( lfns ) > nMax else 'All files:',
                      '\n'.join( [''] + lfns[0:nMax] ) )
       # gLogger.always( "Use --FixIt for removing replica flag in BK (or safer grep InBKNotInFC %s | dirac-dms-check-bkk2fc)" % fileName )
