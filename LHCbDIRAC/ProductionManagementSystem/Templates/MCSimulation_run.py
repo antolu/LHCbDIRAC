@@ -77,7 +77,7 @@ targets = '{{Target#PROD-1:MC: Target for MC (e.g. Tier2, ALL, LCG.CERN.cern#Tie
 MCPriority = '{{MCPriority#PROD-1:MC: Production priority#0}}'
 MCmulticoreFlag = '{{MCMulticoreFLag#PROD-1: multicore flag#True}}'
 simulationCompressionLvl = '{{simulationCompressionLvl#PROD-1: Compression level#Compression-ZLIB-1}}'
-simulationOutputVisFlag = '{{simulationOutputVisFlag#PROD-1: Dictionary {"step n": True|False}#{"1":False}}}'
+simulationOutputVisFlag = '{{simulationOutputVisFlag#PROD-1: List (one flag per step) #["N"]}}'
 try:
   simulationOutputVisFlagSpecial = ast.literal_eval( '{{simulationOutputVisFlagSpecial#PROD-1: Special Visibility flag of output files (a dictionary {"step n":{("FType":flag)}} )#}}' )
 except SyntaxError:
@@ -174,6 +174,10 @@ if w1:
   pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] ) +\
                       [selectionCompressionLvl] * len( pr.stepsInProds[1] )+ \
                       [mergeCompressionLvl] * len( pr.stepsInProds[2] )
+  # Assuming that, if there's only one element in the list of output visibility flags, every step will catch that flag
+  if len( simulationOutputVisFlag ) == 1:
+    simulationOutputVisFlag *= len( pr.stepsInProds[0] )
+  
   pr.outputVisFlag = [simulationOutputVisFlag, selectionOutputVisFlag, mergeOutputVisFlag]
   pr.specialOutputVisFlag = [simulationOutputVisFlagSpecial, selectionOutputVisFlagSpecial, mergeOutputVisFlagSpecial]
 
