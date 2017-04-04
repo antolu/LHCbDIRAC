@@ -1,10 +1,9 @@
 """ Collection of user jobs for testing purposes
 """
 
-# pylint: disable=missing-docstring
+# pylint: disable=protected-access, wrong-import-position, invalid-name, missing-docstring, unused-wildcard-import
 
 # imports
-
 import time
 import os
 import errno

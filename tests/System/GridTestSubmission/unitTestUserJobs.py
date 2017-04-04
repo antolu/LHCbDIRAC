@@ -165,6 +165,10 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
     self.assert_( res['OK'] )
     jobsSubmittedList.append( res['Value'] )
 
+    res = booleJobWithConf()
+    self.assert_( res['OK'] )
+    jobsSubmittedList.append( res['Value'] )
+
 
 
 ########################################################################################
