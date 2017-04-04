@@ -448,6 +448,21 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.compressionLvl = ['']
+    pr.outputVisFlag = [{'1':'Y'}]
+    pr.specialOutputVisFlag = [{'1': {'BHADRON.DST': 'Y'}}]    
+    pr.stepsList = ['1099']
+    pr.resolveSteps()
+    self.assertEqual( pr.stepsListDict, [{'StepId': 1099, 'StepName':'Stripping28',
+                                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v41r3', 'ExtraOptions': '',
+                                          'OptionFiles':'$APPCONFIGOPTS/Brunel/DataType-2016.py;',
+                                          'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
+                                          'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"1099['SDST']",
+                                          'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
+					  'visibilityFlag':[{'Visible':'Y','FileType':'BHADRON.DST'},{'Visible':'Y','FileType':'CALIBRATION.DST'}],
+                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
+
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.compressionLvl = ['','Compression-LZMA-4','Compression-ZLIB-1']
     pr.outputVisFlag = [{'1': 'N', '2': 'N', '3': 'N'}]
     pr.specialOutputVisFlag = [{'3': {'BHADRON.DST': 'Y'}}]

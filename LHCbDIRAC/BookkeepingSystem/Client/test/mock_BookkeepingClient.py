@@ -134,6 +134,14 @@ class BookkeepingClientFake(object):
                                               'ApplicationName', 'ApplicationVersion', 'Visible', 'Usable', 'ProcessingPass', 'ExtraPackages', 'DDDB', 'CONDDB', 'DQTag'],
                           'Records': [[ 1098, '$APPCONFIGOPTS/Brunel/DataType-2016.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py',
                                         '', 'x86_64-slc6-gcc49-opt', '', 'N', 'Stripping28', 'DaVinci', 'v41r3', 'Yes', 'Yes', 'Stripping28', 'AppConfig.v3r306', 'dddb-20150724', 'cond-20161011', '']]}}
+    elif stepID == {'StepId':1099}:
+      return {'OK': True,
+              'Value' : { 'TotalRecords': 1,
+                          'ParameterNames' : ['StepId', 'OptionFiles', 'ExtraOptions', 'SystemConfig', 'mcTCK', 'isMulticore', 'StepName',
+                                              'ApplicationName', 'ApplicationVersion', 'Visible', 'Usable', 'ProcessingPass', 'ExtraPackages', 'DDDB', 'CONDDB', 'DQTag'],
+                          'Records': [[ 1099, '$APPCONFIGOPTS/Brunel/DataType-2016.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py',
+                                        '', 'x86_64-slc6-gcc49-opt', '', 'N', 'Stripping28', 'DaVinci', 'v41r3', 'Yes', 'Yes', 'Stripping28', 'AppConfig.v3r306', 'dddb-20150724', 'cond-20161011', '']]}}
+
 
 
   def getStepInputFiles( self, stepID ):
@@ -163,7 +171,7 @@ class BookkeepingClientFake(object):
               'Value': {'TotalRecords': 7,
                         'ParameterNames': ['FileType', 'Visible'],
                         'Records': [['SIM', 'N']]}}
-    if stepID == 999 or stepID == 998 or stepID == 997 or stepID == 996 or stepID == 1098:
+    if stepID == 999 or stepID == 998 or stepID == 997 or stepID == 996 or stepID == 1098 or stepID == 1099:
       return {'OK': True,
               'Value': {'TotalRecords': 7,
                         'ParameterNames': ['FileType', 'Visible'],
@@ -196,7 +204,7 @@ class BookkeepingClientFake(object):
               'Value': {'TotalRecords': 7,
                         'ParameterNames': ['FileType', 'Visible'],
                         'Records': [['DIGI', 'N']]}}
-    if stepID == 999 or stepID == 998 or stepID == 997 or stepID == 996 or stepID == 1098:
+    if stepID == 999 or stepID == 998 or stepID == 997 or stepID == 996 or stepID == 1098 or stepID == 1099:
       return {'OK': True,
               'Value': {'TotalRecords': 7,
                         'ParameterNames': ['FileType', 'Visible'],

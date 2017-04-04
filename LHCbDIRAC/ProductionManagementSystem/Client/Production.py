@@ -678,6 +678,7 @@ class Production( object ):
 
     # This is the last component necessary for the BK publishing (post reorganisation)
     bkDictStep['Steps'] = stepList
+    bkDictStep['EventType'] = paramsDict['eventType']
 
     bkDictStep['ConfigName'] = self.LHCbJob.workflow.findParameter( 'configName' ).getValue()
     bkDictStep['ConfigVersion'] = self.LHCbJob.workflow.findParameter( 'configVersion' ).getValue()
