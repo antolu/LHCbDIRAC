@@ -473,7 +473,13 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     typesWithNoCheck = self.util.getPluginParam( 'NoCheckTypes', ['Merge', 'MCMerge', 'Replication', 'Removal'] )
     fromSEs = set( resolveSEGroup( self.util.getPluginParam( 'FromSEs', [] ) ) )
     # This flag defaults to True for DataStripping transformations
-    addAncestors = self.util.getPluginParam( 'UseAncestors', bool( self.params['Type'] == 'DataStripping' ) )
+    lfn = self.transReplicas.keys()[0]
+    res = self.util.getBookkeepingMetadata( lfn, 'FileType' )
+    if not res['OK']:
+      self.util.logError( "Error getting file metadata", res['Message'] )
+      return res
+    fileType = res['Value'][lfn]
+    addAncestors = self.util.getPluginParam( 'UseAncestors', bool( self.params['Type'] == 'DataStripping' ) and fileType != 'FULL.DST' )
     maxTime = self.util.getPluginParam( 'MaxTimeAllowed', 0 )
     self.util.readCacheFile( self.workDirectory )
     if not self.transReplicas:
