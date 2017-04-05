@@ -78,38 +78,36 @@ for prodID in sorted(prodIDs):
     continue
   parameters = result['Value']
 
-  if not (dddb and conddb):
+  if not dddb:
+    dddb = parameters.get('DDDBTag')
+  if not conddb:
+    conddb = parameters.get('CondDBTag')
+
+  if not (dddb and conddb): #probably the production above was not a MCSimulation
+    reqID = int(parameters.get('RequestID'))
+    res = RPCClient( 'ProductionManagement/ProductionRequest' ).getProductionList ( reqID )
+    if not res['OK']:
+      gLogger.error( 'Could not retrieve productions list for request %d:' % reqID, result['Message'] )
+      continue
+    simProdID = res['Value'][0] #this should be the MCSimulation
+    res = TransformationClient().getTransformation( simProdID, True )
+    if not res['OK']:
+      gLogger.error( 'Could not retrieve parameters for production %d:' % simProdID, result['Message'] )
+      continue
     if not dddb:
-      dddb = parameters.get('DDDBTag')
+      dddb = res['Value'].get('DDDBTag', 0)
     if not conddb:
-      conddb = parameters.get('CondDBTag')
+      conddb = res['Value'].get('CondDBTag', 0)
 
-  if not (dddb and conddb):
-    bkInputQuery = parameters.get('BKInputQuery')
-    simProdID = ast.literal_eval(bkInputQuery).get('ProductionID',0)
-    if not simProdID:
-      reqID = parameters.get('RequestID')
-      res = RPCClient( 'ProductionManagement/ProductionRequest' ).getProductionList ( int( reqID ) )
-      if res ['OK']:
-        simProdID = res['Value'][0]
+  if not (dddb and conddb): #this is for more recent productions (in fact, most of them)
+    dddb = ast.literal_eval(res['Value']['BKProcessingPass'])['Step0']['DDDb']
+    conddb = ast.literal_eval(res['Value']['BKProcessingPass'])['Step0']['CondDb']
 
-    if simProdID and not dddb:
-      dddb = parameters.get('DDDBTag')
-    if simProdID and not conddb :
-      conddb = parameters.get('CondDBTag')
 
-    if simProdID and not ( dddb and conddb ):
-      bkProcessingPass = parameters.get('BKProcessingPass')
-      step0 = ast.literal_eval(bkProcessingPass)['Step0']
-      if not dddb:
-        dddb = step0['DDDb']
-      if not conddb:
-        conddb = step0['CondDb']
-
-  evts   = 0
-  ftype  = None
+  evts = 0
+  ftype = None
   for i in events :
-    if i[0]  in ['GAUSSHIST' , 'LOG' , 'SIM' , 'DIGI']:
+    if i[0]  in ['GAUSSHIST', 'LOG', 'SIM', 'DIGI']:
       continue
     evts += i[1]
     if not ftype:
@@ -117,7 +115,7 @@ for prodID in sorted(prodIDs):
 
   nfiles = 0
   for f in files :
-    if f[1]  in ['GAUSSHIST' , 'LOG' , 'SIM' , 'DIGI']:
+    if f[1]  in ['GAUSSHIST', 'LOG', 'SIM', 'DIGI']:
       continue
     if f[1] != ftype:
       continue
