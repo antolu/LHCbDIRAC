@@ -1,0 +1,135 @@
+#!/usr/bin/env python
+""" Get Bookkeeping paths given a decay
+
+    @author Vanya BELYAEV Ivan.Belyaev@itep.ru
+            Federico Stagni fstagni@cern.ch
+"""
+
+__RCSID__ = "$Id$"
+
+import ast
+import DIRAC
+from DIRAC  import gLogger
+from DIRAC.Core.Base import Script
+from DIRAC.Core.DISET.RPCClient import RPCClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+
+
+Script.setUsageMessage('\n'.join([ __doc__.split( '\n' )[1],
+                                   'Usage:',
+                                   '  %s eventType  ' % Script.scriptName ]))
+
+Script.registerSwitch( 'p', 'production' , "Obtain the paths in ``Production format'' for Ganga" )
+Script.parseCommandLine( ignoreErrors = True )
+
+productionFormat = False
+for p,_v in Script.getUnprocessedSwitches() :
+  if p.lower() in ('p', 'production'):
+    productionFormat = True
+  break
+
+args = Script.getPositionalArgs()
+if len(args) != 1:
+  Script.showHelp()
+  DIRAC.exit(1)
+
+eventType = args[0]
+
+bkClient = BookkeepingClient()
+
+## get productions for given event type
+res = bkClient.getProductionSummaryFromView({'EventType':eventType,'Visible':True})
+if not res['OK'] :
+  gLogger.error( 'Could not retrieve production summary for event %s' % eventType, res['Message'] )
+  DIRAC.exit(1)
+prods = res['Value']
+
+## get production-IDs
+prodIDs = [ p['Production'] for p in prods]
+
+## loop over all productions
+for prodID in sorted(prodIDs):
+
+  res = bkClient.getProductionInformations(prodID)
+  if not res['OK']:
+    gLogger.error( 'Could not retrieve production infos for production %s' % prodID, res['Message'] )
+    continue
+  prodInfo = res['Value']
+  steps = prodInfo['Steps']
+  if isinstance ( steps , str ):
+    continue
+  files = prodInfo["Number of files"]
+  events = prodInfo["Number of events"]
+  path = prodInfo["Path"]
+
+  dddb = None
+  conddb = None
+
+  for step in reversed(steps):
+    if step[4] and step[4].lower() != 'frompreviousstep':
+      dddb = step[4]
+    if step[5] and step[5].lower() != 'frompreviousstep':
+      conddb = step[5]
+
+  result = TransformationClient().getTransformation( prodID, True )
+  if not result['OK']:
+    gLogger.error( 'Could not retrieve parameters for production %d:' % prodID, result['Message'] )
+    continue
+  parameters = result['Value']
+
+  if not (dddb and conddb):
+    if not dddb:
+      dddb = parameters.get('DDDBTag')
+    if not conddb:
+      conddb = parameters.get('CondDBTag')
+
+  if not (dddb and conddb):
+    bkInputQuery = parameters.get('BKInputQuery')
+    simProdID = ast.literal_eval(bkInputQuery).get('ProductionID',0)
+    if not simProdID:
+      reqID = parameters.get('RequestID')
+      res = RPCClient( 'ProductionManagement/ProductionRequest' ).getProductionList ( int( reqID ) )
+      if res ['OK']:
+        simProdID = res['Value'][0]
+
+    if simProdID and not dddb:
+      dddb = parameters.get('DDDBTag')
+    if simProdID and not conddb :
+      conddb = parameters.get('CondDBTag')
+
+    if simProdID and not ( dddb and conddb ):
+      bkProcessingPass = parameters.get('BKProcessingPass')
+      step0 = ast.literal_eval(bkProcessingPass)['Step0']
+      if not dddb:
+        dddb = step0['DDDb']
+      if not conddb:
+        conddb = step0['CondDb']
+
+  evts   = 0
+  ftype  = None
+  for i in events :
+    if i[0]  in ['GAUSSHIST' , 'LOG' , 'SIM' , 'DIGI']:
+      continue
+    evts += i[1]
+    if not ftype:
+      ftype = i[0]
+
+  nfiles = 0
+  for f in files :
+    if f[1]  in ['GAUSSHIST' , 'LOG' , 'SIM' , 'DIGI']:
+      continue
+    if f[1] != ftype:
+      continue
+    nfiles += f[0]
+
+
+  p0,n,p1 = path.partition('\n')
+  if n:
+    path = p1
+
+  if productionFormat :
+    p,s,e = path.rpartition('/')
+    if s and e:
+      path = '/%d/%d/%s' % ( prodID , int(eventType) , e )
+  print (path, dddb, conddb, nfiles, evts, prodID)
