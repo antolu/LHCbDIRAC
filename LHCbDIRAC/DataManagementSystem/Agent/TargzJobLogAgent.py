@@ -44,7 +44,8 @@ class TargzJobLogAgent( AgentModule ):
     '''
     AgentModule.__init__( self, *args, **kwargs )
 
-    self.storageElement = StorageElement( "CERN-tape" )
+    #self.storageElement = StorageElement( "CERN-tape" )
+    self.storageElement = StorageElement( "CERN-LOGBACKUP" )
 
   def initialize( self ):
     """ agent initialisation """
