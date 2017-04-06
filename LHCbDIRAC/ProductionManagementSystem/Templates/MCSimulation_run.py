@@ -25,6 +25,18 @@ from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import Produc
 
 __RCSID__ = "$Id$"
 
+def fillVisList(vlist, slist):
+
+  # Assuming that, if there's only one element in the list of output visibility flags, every step will catch that flag
+  if len( vlist ) == 1:
+    vlist *= len( slist )
+  # Another assumption: if the number of steps is bigger than that of vis flags, then extend the list with the last flag available
+  # to fill the "holes"
+  if len(vlist) < len(slist):
+    vlist.extend( vlist[-1] * (len(slist) - len(vlist)) )
+
+  return vlist
+
 gLogger = gLogger.getSubLogger( 'MCSimulation_run.py' )
 currentSetup = gConfig.getValue( 'DIRAC/Setup' )
 
@@ -77,7 +89,7 @@ targets = '{{Target#PROD-1:MC: Target for MC (e.g. Tier2, ALL, LCG.CERN.cern#Tie
 MCPriority = '{{MCPriority#PROD-1:MC: Production priority#0}}'
 MCmulticoreFlag = '{{MCMulticoreFLag#PROD-1: multicore flag#True}}'
 simulationCompressionLvl = '{{simulationCompressionLvl#PROD-1: Compression level#Compression-ZLIB-1}}'
-simulationOutputVisFlag = '{{simulationOutputVisFlag#PROD-1: List (one flag per step) #["N"]}}'
+simulationOutputVisFlag = '{{simulationOutputVisFlag#PROD-1: Dictionary (one flag per step) #{"1":"N"}}}'
 try:
   simulationOutputVisFlagSpecial = ast.literal_eval( '{{simulationOutputVisFlagSpecial#PROD-1: Special Visibility flag of output files (a dictionary {"step n":{("FType":flag)}} )#}}' )
 except SyntaxError:
@@ -174,10 +186,11 @@ if w1:
   pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] ) +\
                       [selectionCompressionLvl] * len( pr.stepsInProds[1] )+ \
                       [mergeCompressionLvl] * len( pr.stepsInProds[2] )
-  # Assuming that, if there's only one element in the list of output visibility flags, every step will catch that flag
-  if len( simulationOutputVisFlag ) == 1:
-    simulationOutputVisFlag *= len( pr.stepsInProds[0] )
-  
+    
+  #simulationOutputVisFlag = fillVisList(simulationOutputVisFlag, pr.stepsInProds[0])
+  #selectionOutputVisFlag  = fillVisList(selectionOuputVisFlag, pr.stepsInProds[1])
+  #mergeOutputVisFlag = fillVisList(mergeOutputVisFlag, pr.stepsInProds[2])
+
   pr.outputVisFlag = [simulationOutputVisFlag, selectionOutputVisFlag, mergeOutputVisFlag]
   pr.specialOutputVisFlag = [simulationOutputVisFlagSpecial, selectionOutputVisFlagSpecial, mergeOutputVisFlagSpecial]
 
