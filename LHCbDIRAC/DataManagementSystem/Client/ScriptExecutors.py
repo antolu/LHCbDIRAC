@@ -748,6 +748,12 @@ def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = 
     # take all seList in replicas and add a fake '' to printout the SE name
     seList = [''] + sorted( set( se for lfn in replicas for se in replicas[lfn] ) )
   if replicas:
+    if check:
+      res = fc.getFileMetadata( lfnList )
+      if res['OK']:
+        lfnMetadataDict = res['Value']['Successful']
+      else:
+        lfnMetadataDict = {}
     for se in seList:
       fileList = [url for url in lfnList if se in replicas.get( url, [] )]
       if not fileList:
@@ -767,9 +773,8 @@ def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = 
             if exists and not pfnMetadata.get( 'Size' ):
               metadata['Successful'][url][se].update( {'Exists':'Zero size'} )
             if check:
-              res1 = fc.getFileMetadata( url )
-              if res1['OK']:
-                lfnMetadata = res1['Value']['Successful'][url]
+              lfnMetadata = lfnMetadataDict.get( url )
+              if lfnMetadata:
                 ok = True
                 diff = 'False -'
                 for field in ( 'Checksum', 'Size' ):
@@ -782,6 +787,8 @@ def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = 
                   metadata['Successful'][url][se]['MatchLFN'] = ok if ok else diff
                 else:
                   metadata['Successful'][url]['MatchLFN'] = ok if ok else diff
+              else:
+                metadata['Successful'][url]['MatchLFN'] = 'No LFN metadata'
           for url in seMetadata['Failed']:
             metadata['Failed'].setdefault( url, {} )[se] = seMetadata['Failed'][url] if not exists else {'Exists': False}
         else:
