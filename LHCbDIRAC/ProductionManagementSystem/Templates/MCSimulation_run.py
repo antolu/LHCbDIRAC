@@ -25,6 +25,19 @@ from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import Produc
 
 __RCSID__ = "$Id$"
 
+def modifyCompression(dict1, dict2, lis1):
+
+  for k,v in dict1.items():
+    if v=='Y':
+      lis1[int(k)-1] = 'Compression-LZMA-4'
+
+    else:
+      if k in dict2.keys():
+        for k2,v2 in dict2[k].items():
+          if v2=='Y':
+            lis1[int(k)-1] = 'Compression-LZMA-4'
+  return lis1
+
 def fillVisList(vdict, num):
 
   # Assuming that, if there's only one element in the list of output visibility flags, every step will catch that flag
@@ -193,6 +206,10 @@ if w1:
   selectionOutputVisFlag  = fillVisList(selectionOuputVisFlag, pr.stepsInProds[1])
   mergeOutputVisFlag = fillVisList(mergeOutputVisFlag, pr.stepsInProds[2])
 
+  pr.compressionLvl[0] = modifyCompression(simulationOutputVisFlag, simulationOutputVisFlagSpecial, pr.compressionLvl[0])
+  pr.compressionLvl[1] = modifyCompression(selectionOutputVisFlag, selectionOutputVisFlagSpecial, pr.compressionLvl[1])
+  pr.compressionLvl[2] = modifyCompression(mergeOutputVisFlag, mergeOutputVisFlagSpecial, pr.compressionLvl[2])
+
   pr.outputVisFlag = [simulationOutputVisFlag, selectionOutputVisFlag, mergeOutputVisFlag]
   pr.specialOutputVisFlag = [simulationOutputVisFlagSpecial, selectionOutputVisFlagSpecial, mergeOutputVisFlagSpecial]
 
@@ -231,6 +248,10 @@ elif w2:
   selectionOutputVisFlag  = fillVisList(selectionOuputVisFlag, pr.stepsInProds[1])
   mergeOutputVisFlag = fillVisList(mergeOutputVisFlag, pr.stepsInProds[2])
 
+  pr.compressionLvl[0] = modifyCompression(simulationOutputVisFlag, simulationOutputVisFlagSpecial, pr.compressionLvl[0])
+  pr.compressionLvl[1] = modifyCompression(selectionOutputVisFlag, selectionOutputVisFlagSpecial, pr.compressionLvl[1])
+  pr.compressionLvl[2] = modifyCompression(mergeOutputVisFlag, mergeOutputVisFlagSpecial, pr.compressionLvl[2])
+
   pr.outputVisFlag = [simulationOutputVisFlag, selectionOutputVisFlag, mergeOutputVisFlag]
   pr.specialOutputVisFlag = [simulationOutputVisFlagSpecial, selectionOutputVisFlagSpecial, mergeOutputVisFlagSpecial]
 
@@ -266,6 +287,9 @@ elif w3:
   
   simulationOutputVisFlag = fillVisList(simulationOutputVisFlag, pr.stepsInProds[0])
   selectionOutputVisFlag  = fillVisList(selectionOuputVisFlag, pr.stepsInProds[1])
+
+  pr.compressionLvl[0] = modifyCompression(simulationOutputVisFlag, simulationOutputVisFlagSpecial, pr.compressionLvl[0])
+  pr.compressionLvl[1] = modifyCompression(selectionOutputVisFlag, selectionOutputVisFlagSpecial, pr.compressionLvl[1])
   
   pr.outputVisFlag = [simulationOutputVisFlag, selectionOutputVisFlag]
   pr.specialOutputVisFlag = [simulationOutputVisFlagSpecial, selectionOutputVisFlagSpecial]
@@ -293,6 +317,9 @@ elif w4:
   simulationOutputVisFlag = fillVisList(simulationOutputVisFlag, pr.stepsInProds[0])
   mergeOutputVisFlag = fillVisList(mergeOutputVisFlag, pr.stepsInProds[2])
 
+  pr.compressionLvl[0] = modifyCompression(simulationOutputVisFlag, simulationOutputVisFlagSpecial, pr.compressionLvl[0])
+  pr.compressionLvl[2] = modifyCompression(mergeOutputVisFlag, mergeOutputVisFlagSpecial, pr.compressionLvl[2])
+
   pr.outputVisFlag = [simulationOutputVisFlag, mergeOutputVisFlag]
   pr.specialOutputVisFlag = [simulationOutputVisFlagSpecial, mergeOutputVisFlagSpecial]
 
@@ -318,6 +345,8 @@ elif w5:
   pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] )
 
   simulationOutputVisFlag = fillVisList(simulationOutputVisFlag, pr.stepsInProds[0])
+
+  pr.compressionLvl[0] = modifyCompression(simulationOutputVisFlag, simulationOutputVisFlagSpecial, pr.compressionLvl[0])
 
   pr.outputVisFlag = [simulationOutputVisFlag]
   pr.specialOutputVisFlag = [simulationOutputVisFlagSpecial]
@@ -352,6 +381,9 @@ elif w6:
   simulationOutputVisFlag = fillVisList(simulationOutputVisFlag, pr.stepsInProds[0])
   selectionOutputVisFlag = fillVisList(selectionOutputVisFlag, pr.stepsInProds[2])
 
+  pr.compressionLvl[0] = modifyCompression(simulationOutputVisFlag, simulationOutputVisFlagSpecial, pr.compressionLvl[0])
+  pr.compressionLvl[1] = modifyCompression(selectionOutputVisFlag, selectionOutputVisFlagSpecial, pr.compressionLvl[1])
+
   pr.outputVisFlag = [simulationOutputVisFlag, selectionOutputVisFlag]
   pr.specialOutputVisFlag = [simulationOutputVisFlagSpecial, selectionOutputVisFlagSpecial]
 
@@ -380,6 +412,10 @@ elif w7:
   simulationOutputVisFlag = fillVisList(simulationOutputVisFlag, pr.stepsInProds[0])
   selectionOutputVisFlag  = fillVisList(selectionOuputVisFlag, pr.stepsInProds[1])
   mergeOutputVisFlag = fillVisList(mergeOutputVisFlag, pr.stepsInProds[2])
+
+  pr.compressionLvl[0] = modifyCompression(simulationOutputVisFlag, simulationOutputVisFlagSpecial, pr.compressionLvl[0])
+  pr.compressionLvl[1] = modifyCompression(selectionOutputVisFlag, selectionOutputVisFlagSpecial, pr.compressionLvl[1])
+  pr.compressionLvl[2] = modifyCompression(mergeOutputVisFlag, mergeOutputVisFlagSpecial, pr.compressionLvl[2])
 
   pr.outputVisFlag = [simulationOutputVisFlag, selectionOutputVisFlag, mergeOutputVisFlag]
   pr.specialOutputVisFlag = [simulationOutputVisFlagSpecial, selectionOutputVisFlagSpecial, mergeOutputVisFlagSpecial]
