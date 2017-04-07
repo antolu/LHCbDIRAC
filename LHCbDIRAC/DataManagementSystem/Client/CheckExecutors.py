@@ -210,10 +210,9 @@ def doCheckFC2BK( cc, fixFC = False, fixBK = False, listAffectedRuns = False ):
     ccAux.lfns = cc.existLFNsBKRepNo.keys()
     doCheckFC2SE( ccAux, False, fixFC )
     cc.existLFNsBKRepNo = sorted( set( cc.existLFNsBKRepNo ) - set( ccAux.existLFNsNoSE ) -
-                                set( ccAux.existLFNsNotExisting ) - set( ccAux.existLFNsBadFiles ) )
+                                  set( ccAux.existLFNsNotExisting ) - set( ccAux.existLFNsBadFiles ) )
     if cc.existLFNsBKRepNo:
-      gLogger.notice( "====== Completed, %d files are in the FC and SE but have replica = NO in BK ======"
-                      % ( len( cc.existLFNsBKRepNo ) ) )
+      gLogger.notice( "====== Completed, %d files are in the FC and SE but have replica = NO in BK ======" % len( cc.existLFNsBKRepNo ) )
       res = bk.getFileMetadata( cc.existLFNsBKRepNo )
       if not res['OK']:
         gLogger.fatal( "Unable to get file metadata", res['Message'] )
@@ -247,7 +246,7 @@ def doCheckFC2BK( cc, fixFC = False, fixBK = False, listAffectedRuns = False ):
       else:
         gLogger.notice( "Use --FixBK to fix it (set the replica flag) or --FixFC (for removing from FC and storage)" )
     else:
-      gLogger.notice( "====== Completed, no files in the FC with replica = NO in BK%s ======" )
+      gLogger.notice( "====== Completed, no files in the FC with replica = NO in BK ======" )
     gLogger.notice( '<<<<' )
 
   else:
@@ -354,4 +353,3 @@ def doCheckSE( cc, seList, fixIt = False ):
     gLogger.notice( '\n'.join( sorted( cc.existLFNsNoSE ) ) )
   else:
     gLogger.notice( 'No LFNs missing at %s' % ', '.join( sorted( seList ) ) )
-

@@ -9,9 +9,6 @@ import copy
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
-from DIRAC.Core.Base.Script import parseCommandLine
-parseCommandLine()
-
 from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
 
 from DIRAC.tests.Utilities.utils import find_all
