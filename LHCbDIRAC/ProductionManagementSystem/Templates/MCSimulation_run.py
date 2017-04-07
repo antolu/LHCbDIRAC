@@ -25,17 +25,19 @@ from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import Produc
 
 __RCSID__ = "$Id$"
 
-def fillVisList(vlist, slist):
+def fillVisList(vdict, num):
 
   # Assuming that, if there's only one element in the list of output visibility flags, every step will catch that flag
-  if len( vlist ) == 1:
-    vlist *= len( slist )
+  if len( vdict ) == 1:
+    # '1' key is given by default by the template
+    val = vdict['1']
+    vdict = dict( [(str(i), val) for i in range(num)] )
   # Another assumption: if the number of steps is bigger than that of vis flags, then extend the list with the last flag available
   # to fill the "holes"
-  if len(vlist) < len(slist):
-    vlist.extend( vlist[-1] * (len(slist) - len(vlist)) )
+  #if len(vlist) < len(slist):
+  #  vlist.extend( vlist[-1] * (len(slist) - len(vlist)) )
 
-  return vlist
+  return vdict
 
 gLogger = gLogger.getSubLogger( 'MCSimulation_run.py' )
 currentSetup = gConfig.getValue( 'DIRAC/Setup' )
@@ -102,7 +104,7 @@ selectionCPU = '{{selectionCPU#PROD-2:Selection: Max CPU time in secs#100000}}'
 removeInputSelection = '{{removeInputSelection#PROD-2:Selection: remove inputs#True}}'
 selmulticoreFlag = '{{selMulticoreFLag#PROD-2:Selection: multicore flag#True}}'
 selectionCompressionLvl = '{{selectionCompressionLvl#PROD-2:Selection: Compression level#Compression-ZLIB-1}}'
-selectionOutputVisFlag = '{{selectionOutputVisFlag#PROD-2: Dictionary {"step n": True|False})#}}'
+selectionOutputVisFlag = '{{selectionOutputVisFlag#PROD-2: Dictionary {"step n": Y|N})#}}'
 try:
   selectionOutputVisFlagSpecial = ast.literal_eval( '{{selectionOutputVisFlagSpecial#PROD-2: Special Visibility flag of output files (a dictionary {"step n":{"FType":flag}} )#}}' )
 except SyntaxError:
@@ -115,7 +117,7 @@ mergingCPU = '{{mergingCPU#PROD-3:Merging: Max CPU time in secs#100000}}'
 removeInputMerge = '{{removeInputMerge#PROD-3:Merging: remove inputs#True}}'
 mergemulticoreFlag = '{{mergeMulticoreFLag#PROD-3:Merging: multicore flag#True}}'
 mergeCompressionLvl = '{{mergeCompressionLvl#PROD-3:Merging: Compression level#Compression-LZMA-4}}'
-mergeOutputVisFlag = '{{mergeOutputVisFlag#PROD-3: Dictionary {"step n": True|False}#}}'
+mergeOutputVisFlag = '{{mergeOutputVisFlag#PROD-3: Dictionary {"step n": Y|N}#}}'
 try:
   mergeOutputVisFlagSpecial = ast.literal_eval( '{{mergeOutputVisFlagSpecial#PROD-3: Special Visibility flag of output files (a dictionary {"step n":{"FType":flag}} )#}}' )
 except SyntaxError:
@@ -187,9 +189,9 @@ if w1:
                       [selectionCompressionLvl] * len( pr.stepsInProds[1] )+ \
                       [mergeCompressionLvl] * len( pr.stepsInProds[2] )
     
-  #simulationOutputVisFlag = fillVisList(simulationOutputVisFlag, pr.stepsInProds[0])
-  #selectionOutputVisFlag  = fillVisList(selectionOuputVisFlag, pr.stepsInProds[1])
-  #mergeOutputVisFlag = fillVisList(mergeOutputVisFlag, pr.stepsInProds[2])
+  simulationOutputVisFlag = fillVisList(simulationOutputVisFlag, pr.stepsInProds[0])
+  selectionOutputVisFlag  = fillVisList(selectionOuputVisFlag, pr.stepsInProds[1])
+  mergeOutputVisFlag = fillVisList(mergeOutputVisFlag, pr.stepsInProds[2])
 
   pr.outputVisFlag = [simulationOutputVisFlag, selectionOutputVisFlag, mergeOutputVisFlag]
   pr.specialOutputVisFlag = [simulationOutputVisFlagSpecial, selectionOutputVisFlagSpecial, mergeOutputVisFlagSpecial]
@@ -224,6 +226,11 @@ elif w2:
   pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] ) +\
                       [selectionCompressionLvl] * len( pr.stepsInProds[1] ) +\
                       [mergeCompressionLvl] * len( pr.stepsInProds[2] )
+  
+  simulationOutputVisFlag = fillVisList(simulationOutputVisFlag, pr.stepsInProds[0])
+  selectionOutputVisFlag  = fillVisList(selectionOuputVisFlag, pr.stepsInProds[1])
+  mergeOutputVisFlag = fillVisList(mergeOutputVisFlag, pr.stepsInProds[2])
+
   pr.outputVisFlag = [simulationOutputVisFlag, selectionOutputVisFlag, mergeOutputVisFlag]
   pr.specialOutputVisFlag = [simulationOutputVisFlagSpecial, selectionOutputVisFlagSpecial, mergeOutputVisFlagSpecial]
 
@@ -256,6 +263,10 @@ elif w3:
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag]
   pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] ) +\
                       [selectionCompressionLvl] * len( pr.stepsInProds[1] )
+  
+  simulationOutputVisFlag = fillVisList(simulationOutputVisFlag, pr.stepsInProds[0])
+  selectionOutputVisFlag  = fillVisList(selectionOuputVisFlag, pr.stepsInProds[1])
+  
   pr.outputVisFlag = [simulationOutputVisFlag, selectionOutputVisFlag]
   pr.specialOutputVisFlag = [simulationOutputVisFlagSpecial, selectionOutputVisFlagSpecial]
 
@@ -278,6 +289,10 @@ elif w4:
   pr.multicore = [MCmulticoreFlag, mergemulticoreFlag]
   pr.compressionLvl = [simulationCompressionLvl]  * len( pr.stepsInProds[0] ) +\
                       [mergeCompressionLvl]  * len( pr.stepsInProds[1] )
+  
+  simulationOutputVisFlag = fillVisList(simulationOutputVisFlag, pr.stepsInProds[0])
+  mergeOutputVisFlag = fillVisList(mergeOutputVisFlag, pr.stepsInProds[2])
+
   pr.outputVisFlag = [simulationOutputVisFlag, mergeOutputVisFlag]
   pr.specialOutputVisFlag = [simulationOutputVisFlagSpecial, mergeOutputVisFlagSpecial]
 
@@ -301,6 +316,9 @@ elif w5:
   pr.bkQueries = ['']
   pr.multicore = [MCmulticoreFlag]
   pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] )
+
+  simulationOutputVisFlag = fillVisList(simulationOutputVisFlag, pr.stepsInProds[0])
+
   pr.outputVisFlag = [simulationOutputVisFlag]
   pr.specialOutputVisFlag = [simulationOutputVisFlagSpecial]
 
@@ -330,6 +348,10 @@ elif w6:
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag]
   pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] ) +\
                       [selectionCompressionLvl] * len( pr.stepsInProds[1] )
+
+  simulationOutputVisFlag = fillVisList(simulationOutputVisFlag, pr.stepsInProds[0])
+  selectionOutputVisFlag = fillVisList(selectionOutputVisFlag, pr.stepsInProds[2])
+
   pr.outputVisFlag = [simulationOutputVisFlag, selectionOutputVisFlag]
   pr.specialOutputVisFlag = [simulationOutputVisFlagSpecial, selectionOutputVisFlagSpecial]
 
@@ -354,6 +376,11 @@ elif w7:
   pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] ) +\
                       [selectionCompressionLvl] * len( pr.stepsInProds[1] ) +\
                       [mergeCompressionLvl] * len( pr.stepsInProds[2] )
+
+  simulationOutputVisFlag = fillVisList(simulationOutputVisFlag, pr.stepsInProds[0])
+  selectionOutputVisFlag  = fillVisList(selectionOuputVisFlag, pr.stepsInProds[1])
+  mergeOutputVisFlag = fillVisList(mergeOutputVisFlag, pr.stepsInProds[2])
+
   pr.outputVisFlag = [simulationOutputVisFlag, selectionOutputVisFlag, mergeOutputVisFlag]
   pr.specialOutputVisFlag = [simulationOutputVisFlagSpecial, selectionOutputVisFlagSpecial, mergeOutputVisFlagSpecial]
 

@@ -81,9 +81,9 @@ recoIDPolicy = '{{recoIDPolicy#PROD-1:RECO(Stripp): policy for input data access
 recoMulticoreFlag = '{{recoMulticoreFLag#PROD-1: multicore flag#True}}'
 recoAncestorDepth = int( '{{recoAncestorDepth#PROD-1: Ancestor Depth#0}}' )
 recoCompressionLvl = '{{recoCompressionLvl#PROD-1: compression level#Compression-ZLIB-1}}'
-recoOutputVisFlag = '{{recoOutputVisFlag#PROD-1: visibility flag of output files#True}}'
+recoOutputVisFlag = '{{recoOutputVisFlag#PROD-1: Visibility flag of output files #Y}}}'
 try:
-  recoOutputVisFlagSpecial = ast.literal_eval( '{{recoOutputVisFlagSpecial#PROD-1: Special Visibility flag of output files (dict FType:True|False )#}}' )
+  recoOutputVisFlagSpecial = ast.literal_eval( '{{recoOutputVisFlagSpecial#PROD-1: Special Visibility flag of output files (dict FType:Y|N )#}}' )
 except SyntaxError:
   simulationOutputVisFlagSpecial = {}
 
@@ -101,9 +101,9 @@ strippIDPolicy = '{{strippIDPolicy#PROD-2:Stripping: policy for input data acces
 strippMulticoreFlag = '{{strippMulticoreFLag#PROD-2: multicore flag#True}}'
 strippAncestorDepth = int( '{{strippAncestorDepth#PROD-2: Ancestor Depth#0}}' )
 strippCompressionLvl = '{{strippCompressionLvl#PROD-2: compression level#Compression-ZLIB-1}}'
-strippOutputVisFlag = '{{strippOutputVisFlag#PROD-2: Visibility flag of output files#False}}'
+strippOutputVisFlag = '{{strippOutputVisFlag#PROD-2: Visibility flag of output files#N}}'
 try:
-  strippOutputVisFlagSpecial = ast.literal_eval( '{{strippOutputVisFlagSpecial#PROD-2: Special Visibility flag of output files (dict FType:True|False)#}}' )
+  strippOutputVisFlagSpecial = ast.literal_eval( '{{strippOutputVisFlagSpecial#PROD-2: Special Visibility flag of output files (dict FType:Y|N)#}}' )
 except SyntaxError:
   strippOutputVisFlagSpecial = {}
 
@@ -121,9 +121,9 @@ mergingIDPolicy = '{{MergeIDPolicy#PROD-3:Merging: policy for input data access 
 mergingRemoveInputsFlag = '{{MergeRemoveFlag#PROD-3:Merging: remove input data flag True/False#True}}'
 mergeMulticoreFlag = '{{mergeMulticoreFLag#PROD-3: multicore flag#True}}'
 mergeCompressionLvl = '{{mergeCompressionLvl#PROD-3: compression level#Compression-LZMA-4}}'
-mergeOutputVisFlag = '{{mergeOutputVisFlag#PROD-3: Visibility flag of output files#True}}'
+mergeOutputVisFlag = '{{mergeOutputVisFlag#PROD-3: Visibility flag of output files#Y}}'
 try:
-  mergeOutputVisFlagSpecial = ast.literal_eval( '{{mergeOutputVisFlagSpecial#PROD-3: Special Visibility flag of output files (dict FType:True|False)#}}' )
+  mergeOutputVisFlagSpecial = ast.literal_eval( '{{mergeOutputVisFlagSpecial#PROD-3: Special Visibility flag of output files (dict FType:Y|N)#}}' )
 except SyntaxError:
   mergeOutputVisFlagSpecial = {}
 

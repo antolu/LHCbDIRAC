@@ -1312,7 +1312,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                       {frozenset([('DDDB', ''),
                                   ('ExtraPackages', 'eps'),
                                   ('OptionsFormat', ''),
-				  ('visibilityFlag', frozenset(['']),)
+				  ('visibilityFlag', frozenset([{'Visible':'N', 'FileType': 'BHADRON.DST'},{'Visible':'N', 'FileType': 'CALIBRATION.DST'}])),
                                   ('fileTypesOut', frozenset(['CALIBRATION.DST', 'BHADRON.DST'])),
                                   ('DQTag', ''),
                                   ('CONDDB', '123456'),
@@ -1333,7 +1333,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                                                           ('fileTypesOut', frozenset(['BHADRON.DST'])),
                                                                           ('CONDDB', 'head-20110407'),
                                                                           ('mcTCK', ''),
-	                                                                  ('visibilityFlag', frozenset([''])), 
+                                                                          ('visibilityFlag', frozenset([''])),
                                                                           ('ApplicationName', 'DaVinci'),
                                                                           ('ApplicationVersion', 'v28r3p1'),
                                                                           ('ProcessingPass', 'Merging'),
