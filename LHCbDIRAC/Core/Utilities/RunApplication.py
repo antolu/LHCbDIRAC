@@ -69,6 +69,7 @@ class RunApplication(object):
                                                                                 self.applicationVersion,
                                                                                 self.systemConfig ) )
 
+    lbRunOptions = self.opsH.getValue('GaudiExecution/lbRunOptions', '--use-grid')
 
     extraPackagesString, runtimeProjectString, externalsString = self._lbRunCommandOptions()
 
@@ -92,7 +93,7 @@ class RunApplication(object):
     else:
       command = self.command
 
-    finalCommand = ' '.join( [self.runApp, '--use-grid',
+    finalCommand = ' '.join( [self.runApp, lbRunOptions,
                               configString, extraPackagesString,
                               runtimeProjectString, externalsString,
                               app, command] )
