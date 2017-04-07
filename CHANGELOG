@@ -1,3 +1,22 @@
+[v8r7-pre5]
+Use DIRAC v6r17p17
+
+* lbRunOptions in CS
+* optimize pfn-metadata
+* minor bug fixed
+* testing root access
+* several fixes
+* allow to provide the name through the agent configuration
+* added new script
+* fix wrong file
+* Consider case when stripping is from FULL.DST
+* use different SE for storing the logs
+* fixed typo (\ instead of \n)
+* options were exchanged :(
+* add docstrings
+* optimise ancestor presence checking
+* v8r7 still on DIRAC v6r17
+
 [v8r7-pre4]
 Use DIRAC v6r17p16
 
