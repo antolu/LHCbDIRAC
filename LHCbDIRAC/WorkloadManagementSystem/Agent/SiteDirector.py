@@ -130,9 +130,9 @@ EOF
     if self.devLbLogin or self.lbRunOnly:
       opt = ''
       if self.devLbLogin:
-        opt = 'devLvLogin'
+        opt = 'devLbLogin'
       if self.lbRunOnly:
         opt = '.'.join([opt, 'lbRunOnly'])
-      pilotOptions.append( '-o devLbLogin' )
+      pilotOptions.append( '-o %s' % opt )
 
     return [pilotOptions, newPilotsToSubmit]
