@@ -11,6 +11,20 @@ from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import Produc
 
 __RCSID__ = "$Id$"
 
+def fillVisList(vdict, num):
+
+  # Assuming that, if there's only one element in the list of output visibility flags, every step will catch that flag
+  if len( vdict ) == 1:
+    # '1' key is given by default by the template
+    val = vdict['1']
+    vdict = dict( [(str(i), val) for i in range(num)] )
+  # Another assumption: if the number of steps is bigger than that of vis flags, then extend the list with the last flag available
+  # to fill the "holes"
+  #if len(vlist) < len(slist):
+  #  vlist.extend( vlist[-1] * (len(slist) - len(vlist)) )
+
+  return vdict
+
 gLogger = gLogger.getSubLogger( 'LaunchingRequest_run.py' )
 currentSetup = gConfig.getValue( 'DIRAC/Setup' )
 
@@ -102,6 +116,12 @@ try:
   p1compressionLvl = ast.literal_eval( '{{P1CompressionLevel#PROD-P1: Compression Level per step, e.g. ["Compression-ZLIB-1","Compression-LZMA-4"]#}}' )
 except SyntaxError:
   p1compressionLvl = []
+p1OutputVisFlag = '{{P1OutputVisFlag#PROD-1: Visibility flag of output files (a dict {"n step":flag})#{"1":"N"}}}'
+p1OutputVisFlag = fillVisList(p1OutputVisFlag, pr.stepsInProds[0])
+try:
+  p1OutputVisFlagSpecial = ast.literal_eval( '{{P1OutputVisFlagSpecial#PROD-1: Special Visibility flag of output files (a dict {"n step":{"FType":flag}})#}}' )
+except SyntaxError:
+  p1OutputVisFlagSpecial = {}
 
 # p2 params
 p2Plugin = '{{p2PluginType#PROD-P2: production plugin name#LHCbStandard}}'
@@ -125,6 +145,12 @@ try:
   p2compressionLvl = ast.literal_eval( '{{P1CompressionLevel#PROD-P2: Compression Level per step, e.g. ["Compression-ZLIB-1","Compression-LZMA-4"]#}}' )
 except SyntaxError:
   p2compressionLvl = []
+p2OutputVisFlag = '{{P2OutputVisFlag#PROD-2: Visibility flag of output files (a dict {"n step":flag})#{"1":False}}}'
+p2OutputVisFlag = fillVisList(p2OutputVisFlag, pr.stepsInProds[1])
+try:
+  p2OutputVisFlagSpecial = ast.literal_eval( '{{P2OutputVisFlagSpecial#PROD-2: Special Visibility flag of output files (a dict {"n step":{"FType":flag}})#}}' )
+except SyntaxError:
+  p2OutputVisFlagSpecial = {}
 
 # p3 params
 p3Plugin = '{{p3PluginType#PROD-P3: production plugin name#LHCbStandard}}'
@@ -148,6 +174,12 @@ try:
   p3compressionLvl = ast.literal_eval( '{{P1CompressionLevel#PROD-P3: Compression Level per step, e.g. ["Compression-ZLIB-1","Compression-LZMA-4"]#}}' )
 except SyntaxError:
   p3compressionLvl = []
+p3OutputVisFlag = '{{P3OutputVisFlag#PROD-3: Visibility flag of output files (a dict {"n step":flag})#{"1":False}}}'
+p3OutputVisFlag = fillVisList(p3OutputVisFlag, pr.stepsInProds[2])
+try:
+  p3OutputVisFlagSpecial = ast.literal_eval( '{{P3OutputVisFlagSpecial#PROD-3: Special Visibility flag of output files (a dict {"n step":{"FType":flag}})#}}' )
+except SyntaxError:
+  p3OutputVisFlagSpecial = {}
 
 parentReq = '{{_parent}}'
 if not parentReq:
@@ -248,5 +280,7 @@ pr.ancestorDepths = [p1ancestorDepth, p2ancestorDepth, p3ancestorDepth]
 pr.compressionLvl = [p1compressionLvl] * len( pr.stepsInProds[0] ) +\
                     [p2compressionLvl] * len( pr.stepsInProds[1] ) +\
                     [p3compressionLvl] * len( pr.stepsInProds[2] )
+pr.outputVisFlag = [p1OutputVisFlag, p2OutputVisFlag, p3OutputVisFlag]
+pr.specialOutputVisFlag = [p1OutputVisFlagSpecial, p2OutputVisFlagSpecial, p3OutputVisFlagSpecial]
 
 pr.buildAndLaunchRequest()

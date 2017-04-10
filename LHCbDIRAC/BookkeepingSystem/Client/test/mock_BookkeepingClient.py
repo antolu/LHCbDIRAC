@@ -134,6 +134,14 @@ class BookkeepingClientFake(object):
                                               'ApplicationName', 'ApplicationVersion', 'Visible', 'Usable', 'ProcessingPass', 'ExtraPackages', 'DDDB', 'CONDDB', 'DQTag'],
                           'Records': [[ 1098, '$APPCONFIGOPTS/Brunel/DataType-2016.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py',
                                         '', 'x86_64-slc6-gcc49-opt', '', 'N', 'Stripping28', 'DaVinci', 'v41r3', 'Yes', 'Yes', 'Stripping28', 'AppConfig.v3r306', 'dddb-20150724', 'cond-20161011', '']]}}
+    elif stepID == {'StepId':1099}:
+      return {'OK': True,
+              'Value' : { 'TotalRecords': 1,
+                          'ParameterNames' : ['StepId', 'OptionFiles', 'ExtraOptions', 'SystemConfig', 'mcTCK', 'isMulticore', 'StepName',
+                                              'ApplicationName', 'ApplicationVersion', 'Visible', 'Usable', 'ProcessingPass', 'ExtraPackages', 'DDDB', 'CONDDB', 'DQTag'],
+                          'Records': [[ 1099, '$APPCONFIGOPTS/Brunel/DataType-2016.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py',
+                                        '', 'x86_64-slc6-gcc49-opt', '', 'N', 'Stripping28', 'DaVinci', 'v41r3', 'Yes', 'Yes', 'Stripping28', 'AppConfig.v3r306', 'dddb-20150724', 'cond-20161011', '']]}}
+
 
 
   def getStepInputFiles( self, stepID ):
@@ -163,7 +171,7 @@ class BookkeepingClientFake(object):
               'Value': {'TotalRecords': 7,
                         'ParameterNames': ['FileType', 'Visible'],
                         'Records': [['SIM', 'N']]}}
-    if stepID == 999 or stepID == 998 or stepID == 997 or stepID == 996 or stepID == 1098:
+    if stepID == 999 or stepID == 998 or stepID == 997 or stepID == 996 or stepID == 1098 or stepID == 1099:
       return {'OK': True,
               'Value': {'TotalRecords': 7,
                         'ParameterNames': ['FileType', 'Visible'],
@@ -196,7 +204,7 @@ class BookkeepingClientFake(object):
               'Value': {'TotalRecords': 7,
                         'ParameterNames': ['FileType', 'Visible'],
                         'Records': [['DIGI', 'N']]}}
-    if stepID == 999 or stepID == 998 or stepID == 997 or stepID == 996 or stepID == 1098:
+    if stepID == 999 or stepID == 998 or stepID == 997 or stepID == 996 or stepID == 1098 or stepID == 1099:
       return {'OK': True,
               'Value': {'TotalRecords': 7,
                         'ParameterNames': ['FileType', 'Visible'],
@@ -213,6 +221,7 @@ step125080 = {'StepId': 125080, 'StepName':'Sim08a',
               'prodStepID': "125080['']", 'SystemConfig':'x86_64-slc5-gcc43-opt',
               'DDDB':'Sim08-20130503-1', 'CONDDB':'Sim08-20130503-1-vc-mu100', 'DQTag':'', 'isMulticore': 'N',
               'mcTCK': '',
+	      'visibilityFlag': [{'Visible':'N', 'FileType': 'SIM'}],
               'fileTypesIn':[''],
               'fileTypesOut':['SIM']}
 
@@ -223,6 +232,7 @@ stepMC = {'StepId': 123, 'StepName':'Stripping14-Stripping',
           'prodStepID': "123['SDST']", 'SystemConfig':'',
           'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N',
           'mcTCK': '',
+	  'visibilityFlag': [{'Visible':'N', 'FileType': 'SIM'}],
           'fileTypesIn':[],
           'fileTypesOut':['SIM']}
 
@@ -233,6 +243,7 @@ stepMC2 = {'StepId': 123, 'StepName':'Stripping14-Stripping',
            'prodStepID': "123['SDST']", 'SystemConfig':'',
            'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N',
            'mcTCK': '',
+	   'visibilityFlag': [{'Visible':'Y', 'FileType': 'DST'}],
            'fileTypesIn':['SIM'],
            'fileTypesOut':['DST']}
 
@@ -243,6 +254,7 @@ step1Dict = {'StepId': 123, 'StepName':'Stripping14-Stripping',
              'prodStepID': "123['SDST']", 'SystemConfig':'',
              'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N',
              'mcTCK': '',
+	     'visibilityFlag': [{'Visible':'N', 'FileType': 'BHADRON.DST'},{'Visible':'N', 'FileType': 'CALIBRATION.DST'}],
              'fileTypesIn':['SDST'],
              'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}
 
@@ -253,6 +265,7 @@ step2Dict = {'StepId': 456, 'StepName':'Merge',
              'prodStepID': "456['BHADRON.DST', 'CALIBRATION.DST']",
              'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N',
              'mcTCK': '',
+	     'visibilityFlag': [{'Visible':'N', 'FileType': 'BHADRON.DST'},{'Visible':'N', 'FileType': 'CALIBRATION.DST'}],
              'fileTypesIn':['BHADRON.DST', 'CALIBRATION.DST'],
              'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}
 
@@ -260,12 +273,14 @@ stepStripp = { 'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 123, 'Ap
                'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging', 'SystemConfig': '',
                'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302', 'mcTCK': '',
                'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
+	       'visibilityFlag':[], 
                'fileTypesIn': ['SDST'],
                'fileTypesOut': ['BHADRON.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST']}
 mergeStep = { 'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 456, 'ApplicationVersion': 'v28r3p1',
               'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging', 'SystemConfig': '',
               'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302', 'mcTCK': '',
               'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
+	       'visibilityFlag':[], 
               'fileTypesIn': ['BHADRON.DST', 'CALIBRATION.DST', 'PID.MDST'],
               'fileTypesOut': ['BHADRON.DST', 'CALIBRATION.DST', 'PID.MDST']}
 mergeStepBHADRON = { 'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 456, 'ApplicationVersion': 'v28r3p1',
@@ -273,6 +288,7 @@ mergeStepBHADRON = { 'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 45
                      'prodStepID': "456['BHADRON.DST']",
                      'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302', 'mcTCK': '',
                      'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
+	             'visibilityFlag':[], 
                      'fileTypesIn': ['BHADRON.DST'],
                      'fileTypesOut': ['BHADRON.DST']}
 mergeStepCALIBRA = { 'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 456, 'ApplicationVersion': 'v28r3p1',
@@ -280,6 +296,7 @@ mergeStepCALIBRA = { 'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 45
                      'prodStepID': "456['CALIBRATION.DST']",
                      'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302', 'mcTCK': '',
                      'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
+	             'visibilityFlag':[], 
                      'fileTypesIn': ['CALIBRATION.DST'],
                      'fileTypesOut': ['CALIBRATION.DST']}
 mergeStepPIDMDST = { 'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 456, 'ApplicationVersion': 'v28r3p1',
@@ -287,6 +304,7 @@ mergeStepPIDMDST = { 'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 45
                      'prodStepID': "456['PID.MDST']",
                      'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302', 'mcTCK': '',
                      'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
+	             'visibilityFlag':[], 
                      'fileTypesIn': ['PID.MDST'],
                      'fileTypesOut': ['PID.MDST']}
 
@@ -297,5 +315,6 @@ stepHistoMergingDict = {'StepId': 789, 'StepName':'MergeHisto',
                         'prodStepID': "789['DAVINCIHIST', 'BRUNELHIST']",
                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N',
                         'mcTCK': '',
+	                'visibilityFlag': [{'Visible':'Y', 'FileType': 'ROOT'}],
                         'fileTypesIn':['DAVINCIHIST', 'BRUNELHIST'],
                         'fileTypesOut':['ROOT']}
