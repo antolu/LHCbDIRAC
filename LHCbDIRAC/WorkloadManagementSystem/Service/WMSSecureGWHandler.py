@@ -353,7 +353,7 @@ class WMSSecureGWHandler( RequestHandler ):
       BASE_PATH = gConfig.getValue( "Systems/DataManagement/boincInstance/Services/StorageElementProxy/BasePath" )
       proxyBase = "%s/proxies" % BASE_PATH
       mkDir(proxyBase)
-      proxyLocation = "%s/proxies/%s-%s" % ( base, clientUserName, clientGroup )
+      proxyLocation = "%s/proxies/%s-%s" % ( BASE_PATH, clientUserName, clientGroup )
       gLogger.debug("Obtained proxy chain, dumping to %s." % proxyLocation)
       res = gProxyManager.dumpProxyToFile( chain, proxyLocation )
       if not res['OK']:
