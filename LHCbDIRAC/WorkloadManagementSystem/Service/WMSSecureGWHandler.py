@@ -22,7 +22,7 @@ from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Resources.Storage.StorageElement import StorageElement
 from DIRAC.Core.Utilities.ReturnValues import returnSingleResult
 
-
+BASE_PATH = ""
 
 __RCSID__ = "$Id: $"
 
@@ -330,8 +330,7 @@ class WMSSecureGWHandler( RequestHandler ):
     if not res['OK']:
       return res
     # Clear the local ache
-    base = gConfig.getValue( "Systems/DataManagement/boincInstance/Services/StorageElementProxy/BasePath" )
-    getFileDir = "%s/getFile" % base
+    getFileDir = "%s/getFile" % BASE_PATH
     mkDir(getFileDir)
     # Get the file to the cache
     storageElement = StorageElement( se )
@@ -351,9 +350,8 @@ class WMSSecureGWHandler( RequestHandler ):
       if not res['OK']:
         return res
       chain = res['Value']
-      base = ""
-      base = gConfig.getValue( "Systems/DataManagement/boincInstance/Services/StorageElementProxy/BasePath" )
-      proxyBase = "%s/proxies" % base
+      BASE_PATH = gConfig.getValue( "Systems/DataManagement/boincInstance/Services/StorageElementProxy/BasePath" )
+      proxyBase = "%s/proxies" % BASE_PATH
       mkDir(proxyBase)
       proxyLocation = "%s/proxies/%s-%s" % ( base, clientUserName, clientGroup )
       gLogger.debug("Obtained proxy chain, dumping to %s." % proxyLocation)
