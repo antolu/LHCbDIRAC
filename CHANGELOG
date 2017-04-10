@@ -1,6 +1,9 @@
-[v8r7-pre5]
-Use DIRAC v6r17p17
+[v8r7]
+Use DIRAC v6r17p18
 
+* fix
+* Fix WMSSecureGW prepareFile method in order to allow the removal of local files after downloading them.
+* typos
 * lbRunOptions in CS
 * optimize pfn-metadata
 * minor bug fixed
@@ -16,10 +19,6 @@ Use DIRAC v6r17p17
 * add docstrings
 * optimise ancestor presence checking
 * v8r7 still on DIRAC v6r17
-
-[v8r7-pre4]
-Use DIRAC v6r17p16
-
 * Fix advice for files in FC and replica=No in BK Set two options (fix FC and fix BK)
 * allow to provide  more than one step
 * change the default value of the file types of the steps
@@ -32,25 +31,10 @@ Use DIRAC v6r17p16
 * optimise ancestor presence checking
 * add eventtype to the stepscontainer
 * fix status string tes
-
-[v8r7-pre3]
-Use DIRAC v6r17p15
-
 * add libtool 2.4.2
 * add pygsi 0.6.3
 * Minor fixes
 * [Patch] Little changes documented on the file
-
-[v8r7-pre2]
-Use DIRAC v6r17p15
-* change LCG version
-
-[v8r7-pre1]
-Use DIRAC v6r17p15
-
-[v8r6p3]
-Use DIRAC v6r17p17
-
 * optimise ancestor presence checking
 * Fix advice for files in FC and replica=No in BK Set two options (fix FC and fix BK)
 * do not return errors when checking ancestors, just ignore
