@@ -27,7 +27,9 @@ if __name__ == "__main__":
   depth = 0
   userGroup = None
   listProcessingPasses = False
+  nameOption = None
 
+  Script.registerSwitch( "", "Name=", "   Give a name to the transformation, only if files are given" )
   Script.registerSwitch( "", "SetInvisible", "Before creating the transformation, set the files in the BKQuery as invisible (default for DeleteDataset)" )
   Script.registerSwitch( "S", "Start", "   If set, the transformation is set Active and Automatic [False]" )
   Script.registerSwitch( "", "Force", "   Force transformation to be submitted even if no files found" )
@@ -76,6 +78,8 @@ if __name__ == "__main__":
         DIRAC.exit( 2 )
     elif opt == 'ListProcessingPasses':
       listProcessingPasses = True
+    elif opt == 'Name':
+      nameOption = val
 
   if userGroup:
     from DIRAC.Core.Security.ProxyInfo import getProxyInfo
@@ -128,33 +132,32 @@ if __name__ == "__main__":
     # visible = 'All'
     fcCheck = False
 
-  processingPass = [None]
+  transBKQuery = {}
+  processingPasses = [None]
   if not requestedLFNs:
     bkQuery = pluginScript.getBKQuery()
-    if not bkQuery:
+    if not bkQuery and not force:
       gLogger.fatal( "No LFNs and no BK query were given..." )
       Script.showHelp()
       DIRAC.exit( 2 )
-    transBKQuery = bkQuery.getQueryDict()
-    processingPass = transBKQuery.get( 'ProcessingPass', '' )
-    if '...' in processingPass:
-      if listProcessingPasses:
-        gLogger.notice( "List of processing passes for BK path", pluginScript.getOption( 'BKPath' ) )
-      processingPasses = getProcessingPasses( bkQuery, depth = depth )
-      if processingPasses:
-        if not listProcessingPasses:
-          gLogger.notice( "Transformations will be launched for the following list of processing passes:" )
-        gLogger.notice( '\n'.join( [''] + processingPasses ) )
+    if bkQuery:
+      transBKQuery = bkQuery.getQueryDict()
+      processingPass = transBKQuery.get( 'ProcessingPass', '' )
+      if '...' in processingPass:
+        if listProcessingPasses:
+          gLogger.notice( "List of processing passes for BK path", pluginScript.getOption( 'BKPath' ) )
+        processingPasses = getProcessingPasses( bkQuery, depth = depth )
+        if processingPasses:
+          if not listProcessingPasses:
+            gLogger.notice( "Transformations will be launched for the following list of processing passes:" )
+          gLogger.notice( '\n'.join( [''] + processingPasses ) )
+        else:
+          gLogger.notice( "No processing passes matching the BK path" )
+          DIRAC.exit( 0 )
+        if listProcessingPasses:
+          DIRAC.exit( 0 )
       else:
-        gLogger.notice( "No processing passes matching the BK path" )
-        DIRAC.exit( 0 )
-      if listProcessingPasses:
-        DIRAC.exit( 0 )
-    else:
-      processingPasses = [processingPass]
-  else:
-    transBKQuery = {}
-    processingPasses = [None]
+        processingPasses = [processingPass]
 
   reqID = pluginScript.getRequestID()
   if not requestID and reqID:
@@ -188,35 +191,42 @@ if __name__ == "__main__":
       if len( prods ) > 5:
         prodsStr = '%d-productions' % len( prods )
       transName += '-' + fileStr + '-' + prodsStr
-    elif 'BKPath' not in pluginScript.getOptions():
+    elif transBKQuery and 'BKPath' not in pluginScript.getOptions():
       if isinstance( transBKQuery['FileType'], list ):
         strQuery = ','.join( transBKQuery['FileType'] )
       else:
         strQuery = str( transBKQuery['FileType'] )
       longName = transGroup + " for fileType " + strQuery
       transName += '-' + str( transBKQuery['FileType'] )
-    else:
+    elif bkQuery:
       queryPath = bkQuery.getPath()
       if '...' in queryPath:
         queryPath = bkQuery.makePath()
       longName = transGroup + " for BKQuery " + queryPath
       transName += '-' + queryPath
+    else:
+      transName = ''
 
     if requestID:
       transName += '-Request%s' % ( requestID )
+    # If a name is given in the options, use it if LFNs are given or forced
+    if nameOption and ( requestedLFNs or force ):
+      transName = nameOption
+      longName = transGroup + ' - ' + transName
+    if not transName:
+      gLogger.fatal( "Didn't manage to find a name for this transformation, check options" )
+      DIRAC.exit( 1 )
     # Check if transformation exists
     if unique:
       res = tr.getTransformation( transName )
+      if not res['OK']:
+        res = tr.getTransformation( transName + '/' )
+        if not res['OK']:
+          res = tr.getTransformation( transName.replace( '-/', '-' ) )
       if res['OK']:
-        gLogger.notice( "Transformation %s already exists with ID %d" % ( transName, res['Value']['TransformationID'] ) )
-        continue
-      res = tr.getTransformation( transName + '/' )
-      if res['OK']:
-        gLogger.notice( "Transformation %s already exists with ID %d" % ( transName, res['Value']['TransformationID'] ) )
-        continue
-      res = tr.getTransformation( transName.replace( '-/', '-' ) )
-      if res['OK']:
-        gLogger.notice( "Transformation %s already exists with ID %d" % ( transName, res['Value']['TransformationID'] ) )
+        gLogger.notice( "Transformation %s already exists with ID %d, status %s" % ( transName,
+                                                                                     res['Value']['TransformationID'],
+                                                                                     res['Value']['Status'] ) )
         continue
     transformation.setTransformationName( transName )
     transformation.setTransformationGroup( transGroup )
