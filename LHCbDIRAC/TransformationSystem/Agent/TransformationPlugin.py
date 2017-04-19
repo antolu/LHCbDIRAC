@@ -662,7 +662,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           for okSEs, taskLfns in okDict.iteritems():
             if addAncestors:
               # taskLfns is modified by this method: lfns are eventually removed
-              missing = self.util.checkAncestorsAtSE( taskLfns, set( okSEs ) )
+              missing = self.util.checkAncestorsAtSE( taskLfns, fromSEs )
               if missing:
                 missingAtSEs = True
                 missingAncestors += missing
