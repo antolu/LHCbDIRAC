@@ -207,6 +207,12 @@ if __name__ == "__main__":
     else:
       transName = ''
 
+    dqFlag = transBKQuery.get( 'DataQuality', [] )
+    if 'BAD' in dqFlag:
+      dqFlag = ' (DQ: %s)' % ','.join( dqFlag )
+      transName += dqFlag
+      longName += dqFlag
+
     if requestID:
       transName += '-Request%s' % ( requestID )
     # If a name is given in the options, use it if LFNs are given or forced
