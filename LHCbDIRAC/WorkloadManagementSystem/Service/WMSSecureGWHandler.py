@@ -35,9 +35,6 @@ class WMSSecureGWHandler( RequestHandler ):
       raise Exception( "FileCatalog exists types has been changed." )
     if FileCatalogHandler.types_addFile != cls.types_addFile:
       raise Exception( "FileCatalog addFile types has been changed." )
-    from DIRAC.DataManagementSystem.Service.StorageElementProxyHandler import StorageElementProxyHandler
-    if StorageElementProxyHandler.types_prepareFile != cls.types_prepareFile:
-      raise Exception( "StorageElementProxyHandler prepareFile types has been changed." )
     from DIRAC.WorkloadManagementSystem.Service.MatcherHandler import MatcherHandler
     if MatcherHandler.types_requestJob != cls.types_requestJob:
       raise Exception( "Matcher requestJob types has been changed." )
