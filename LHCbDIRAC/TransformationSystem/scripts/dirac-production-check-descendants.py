@@ -185,8 +185,8 @@ if __name__ == '__main__':
         fp.write( '\nInFailover '.join( [''] + lfns ) )
         gLogger.always( 'First %d files:' % nMax if not verbose and len( lfns ) > nMax else 'All files:',
                        '\n'.join( [''] + lfns[0:nMax] ) )
-        gLogger.always( "Use --FixIt for brutally setting replica flag in BK or, better something like..." )
-        gLogger.always( "     grep InFailover %s | dirac-dms-replicate[-lfn|-to-run-destination] --SE <SE-list>)" % fileName )
+        gLogger.always( "Use --FixIt for brutally setting replica flag in BK (not recommended)... To list them:" )
+        gLogger.always( "     grep InFailover %s" % fileName )
 
     if cc.inBKNotInFC:
       lfns = cc.inBKNotInFC
@@ -200,7 +200,12 @@ if __name__ == '__main__':
 
     if cc.removedFiles:
       from DIRAC.Core.Utilities.List import breakListIntoChunks
-      gLogger.always( "%d input files are processed, have no descendants but are not in the FC" % len( cc.removedFiles ) )
+      gLogger.always( "%d input files are processed, have no descendants but are not in the FC, set them Removed" % len( cc.removedFiles ) )
+      if not fp:
+        fp = open( fileName, 'w' )
+      fp.write( '\nProcNotinFC '.join( [''] + cc.removedFiles ) )
+      gLogger.always( 'First %d files:' % nMax if not verbose and len( cc.removedFiles ) > nMax else 'All files:',
+                     '\n'.join( [''] + cc.removedFiles[0:nMax] ) )
       for lfnChunk in breakListIntoChunks( cc.removedFiles, 1000 ):
         while True:
           res = cc.transClient.setFileStatusForTransformation( cc.prod, 'Removed', lfnChunk, force = True )
@@ -208,7 +213,7 @@ if __name__ == '__main__':
             gLogger.always( 'Error setting files Removed, retry...', res['Message'] )
           else:
             break
-      gLogger.always( "\tFiles set to status Removed" )
+      gLogger.always( "\tFiles successfully set to status Removed" )
 
 
     gLogger.always( "%d unique daughters found with real descendants" % ( len( set( cc.descForPrcdLFNs ).union( cc.descForNonPrcdLFNs ) ) ) )
