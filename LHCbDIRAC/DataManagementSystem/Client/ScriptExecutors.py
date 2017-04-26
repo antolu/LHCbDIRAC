@@ -790,7 +790,7 @@ def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = 
               else:
                 metadata['Successful'][url]['MatchLFN'] = 'No LFN metadata'
           for url in seMetadata['Failed']:
-            metadata['Failed'].setdefault( url, {} )[se] = seMetadata['Failed'][url] if not exists else {'Exists': False}
+            metadata['Failed'].setdefault( url, {} )[se] = seMetadata['Failed'][url]
         else:
           for url in fileChunk:
             metadata['Failed'][url] = res['Message'] + ' at %s' % se
