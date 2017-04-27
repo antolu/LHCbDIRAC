@@ -264,6 +264,57 @@ class BrunelSuccess( RunApplicationTestCase ):
     self.assertTrue(res['OK'])
     self.assertEqual(res['Value'], (0, '', ''))
 
+  def test_Brunel_new_gcc62( self ):
+    """ Using ProdConf (production style)
+
+        This is taken from step 130998 (Reco17-commissioning)
+    """
+    gLogger.always("**** Brunel v52r2")
+
+    ra = RunApplication()
+    ra.applicationName = 'Brunel'
+    ra.applicationVersion = 'v52r2'
+    ra.systemConfig = 'x86_64-slc6-gcc62-opt'
+    ra.commandOptions = ['$APPCONFIGOPTS/Brunel/DataType-2016.py',
+                         '$APPCONFIGOPTS/Brunel/rdst.py']
+    ra.extraPackages = [('AppConfig', 'v3r284'),
+                        ('SQLDDDB', 'v7r10'),
+                        ('ProdConf', '')
+                       ]
+    ra.step_Number = 1
+    ra.prodConfFileName = find_all('test_prodConf_brunel_v52r2.py', '..')[0]
+    ra.applicationLog = '0brunel_000v52r2_62_log.txt'
+    ra.stdError = '0brunel_000v52r2_62_err.txt'
+
+    res = ra.run()
+    self.assertFalse(res['OK']) #This will fail as there's no input file
+
+
+  def test_Brunel_new_bestCMT( self ):
+    """ Using ProdConf (production style)
+
+        This is taken from step 130998 (Reco17-commissioning)
+    """
+    gLogger.always("**** Brunel v52r2")
+
+    ra = RunApplication()
+    ra.applicationName = 'Brunel'
+    ra.applicationVersion = 'v52r2'
+    ra.commandOptions = ['$APPCONFIGOPTS/Brunel/DataType-2016.py',
+                         '$APPCONFIGOPTS/Brunel/rdst.py']
+    ra.extraPackages = [('AppConfig', 'v3r284'),
+                        ('SQLDDDB', 'v7r10'),
+                        ('ProdConf', '')
+                       ]
+    ra.step_Number = 1
+    ra.prodConfFileName = find_all('test_prodConf_brunel_v52r2.py', '..')[0]
+    ra.applicationLog = '0brunel_000v52r2_62_log.txt'
+    ra.stdError = '0brunel_000v52r2_62_err.txt'
+
+    res = ra.run()
+    self.assertFalse(res['OK']) #This will fail as there's no input file
+
+
 
 class DaVinciSuccess( RunApplicationTestCase ):
   """ DaVinci cases
@@ -331,27 +382,26 @@ class DaVinciSuccess( RunApplicationTestCase ):
   def test_DaVinci_new_gcc49( self ):
     """ Using ProdConf (production style)
 
-        This is taken from step 130339
+        This is taken from step 130847
     """
-    gLogger.always("**** DAVINCI v42r1")
+    gLogger.always("**** DAVINCI v42r2")
 
     ra = RunApplication()
     ra.applicationName = 'DaVinci'
-    ra.applicationVersion = 'v42r1'
+    ra.applicationVersion = 'v42r2'
     ra.systemConfig = 'x86_64-slc6-gcc49-opt'
     ra.commandOptions = ['$APPCONFIGOPTS/DaVinci/DV-Stripping27-Stripping.py',
                          '$APPCONFIGOPTS/DaVinci/DataType-2016.py',
                          '$APPCONFIGOPTS/DaVinci/InputType-RDST.py',
-                         '$APPCONFIGOPTS/DaVinci/DV-RawEventJuggler-0_3-to-4_2.py',
-                         '$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py']
+                         '$APPCONFIGOPTS/DaVinci/DV-RawEventJuggler-0_3-to-4_2.py']
     ra.extraPackages = [('AppConfig', 'v3r308'),
                         ('SQLDDDB', 'v7r10'),
                         ('ProdConf', '')
                        ]
     ra.step_Number = 1
-    ra.prodConfFileName = find_all('test_prodConf_davinci_v42r1.py', '..')[0]
-    ra.applicationLog = '0daVinci_000v42r1_49_log.txt'
-    ra.stdError = '0daVinci_000v42r1_49_err.txt'
+    ra.prodConfFileName = find_all('test_prodConf_davinci_v42r2.py', '..')[0]
+    ra.applicationLog = '0daVinci_000v42r2_49_log.txt'
+    ra.stdError = '0daVinci_000v42r2_49_err.txt'
 
     res = ra.run()
     self.assertFalse(res['OK']) #This will fail as there's no input file
@@ -360,27 +410,26 @@ class DaVinciSuccess( RunApplicationTestCase ):
   def test_DaVinci_new_gcc62( self ):
     """ Using ProdConf (production style)
 
-        This is taken from step 130339
+        This is taken from step 130847
     """
-    gLogger.always("**** DAVINCI v42r1")
+    gLogger.always("**** DAVINCI v42r2")
 
     ra = RunApplication()
     ra.applicationName = 'DaVinci'
-    ra.applicationVersion = 'v42r1'
+    ra.applicationVersion = 'v42r2'
     ra.systemConfig = 'x86_64-slc6-gcc62-opt'
     ra.commandOptions = ['$APPCONFIGOPTS/DaVinci/DV-Stripping27-Stripping.py',
                          '$APPCONFIGOPTS/DaVinci/DataType-2016.py',
                          '$APPCONFIGOPTS/DaVinci/InputType-RDST.py',
-                         '$APPCONFIGOPTS/DaVinci/DV-RawEventJuggler-0_3-to-4_2.py',
-                         '$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py']
+                         '$APPCONFIGOPTS/DaVinci/DV-RawEventJuggler-0_3-to-4_2.py']
     ra.extraPackages = [('AppConfig', 'v3r308'),
                         ('SQLDDDB', 'v7r10'),
                         ('ProdConf', '')
                        ]
     ra.step_Number = 1
-    ra.prodConfFileName = find_all('test_prodConf_davinci_v42r1.py', '..')[0]
-    ra.applicationLog = '0daVinci_000v42r1_62_log.txt'
-    ra.stdError = '0daVinci_000v42r1_62_err.txt'
+    ra.prodConfFileName = find_all('test_prodConf_davinci_v42r2.py', '..')[0]
+    ra.applicationLog = '0daVinci_000v42r2_62_log.txt'
+    ra.stdError = '0daVinci_000v42r2_62_err.txt'
 
     res = ra.run()
     self.assertFalse(res['OK']) #This will fail as there's no input file
