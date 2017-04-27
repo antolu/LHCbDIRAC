@@ -66,7 +66,7 @@ def fillVisList(vdict, num):
 gLogger = gLogger.getSubLogger( 'MCSimulation_run.py' )
 currentSetup = gConfig.getValue( 'DIRAC/Setup' )
 
-pr = ProductionRequest()s
+pr = ProductionRequest()
 
 stepsList = ['{{p1Step}}']
 stepsList.append( '{{p2Step}}' )
