@@ -438,7 +438,8 @@ class Production( object ):
     parameters = {}
     info = []
 
-    for parameterName in ( 'Priority', 'CondDBTag', 'DDDBTag', 'DQTag', 'eventType', 'FractionToProcess',
+    for parameterName in ( 'Priority', 'CondDBTag', 'DDDBTag', 'DQTag', 'eventType',
+                           'processingPass', 'FractionToProcess',
                            'MinFilesToProcess', 'configName', 'configVersion',
                            'outputDataFileMask', 'JobType', 'MaxNumberOfTasks' ):
       try:
@@ -510,11 +511,12 @@ class Production( object ):
 
     # BK output directories (very useful)
     bkPaths = []
-    bkOutputPath = '%s/%s/%s/%s/%s' % ( parameters['configName'],
-                                        parameters['configVersion'],
-                                        parameters['BKCondition'],
-                                        parameters['groupDescription'],
-                                        parameters['eventType'] )
+    bkOutputPath = '%s/%s/%s/%s/%s/%s' % ( parameters['configName'],
+                                           parameters['configVersion'],
+                                           parameters['BKCondition'],
+                                           parameters.get('processingPass', ''),
+                                           parameters['groupDescription'],
+                                           parameters['eventType'] )
     fileTypes = parameters['outputDataFileMask']
     fileTypes = [a.upper() for a in fileTypes.split( ';' )]
 
@@ -523,8 +525,8 @@ class Production( object ):
       fileTypes.remove( 'ROOT' )
       fileTypes.append( 'HIST' )
 
-    for f in fileTypes:
-      bkPaths.append( '%s/%s' % ( bkOutputPath, f ) )
+    for ft in fileTypes:
+      bkPaths.append( '%s/%s' % ( bkOutputPath, ft ) )
     parameters['BKPaths'] = bkPaths
     info.append( '\nBK Browsing Paths:\n%s' % ( '\n'.join( bkPaths ) ) )
     infoString = '\n'.join( info )
