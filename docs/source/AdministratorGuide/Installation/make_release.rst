@@ -84,6 +84,8 @@ Then, from the LHCbDIRAC local fork you need to update some files::
   vim LHCbDIRAC/__init__.py
   # Update the version in the releases.cfg file:
   vim LHCbDIRAC/releases.cfg
+  # Update the version in the Dockerfile file:
+  vim container/lhcbdirac/Dockerfile
   # For updating the CHANGELOG, get what's changed since the last tag
   t=$(git describe --abbrev=0 --tags); git --no-pager log ${t}..HEAD --no-merges --pretty=format:'* %s';
   # copy the output, add it to the CHANGELOG (please also add the DIRAC version)
@@ -140,6 +142,15 @@ Conflicts or not, you'll need to push back to upstream::
 
 Creating the release tarball, add uploading it to the LHCb web service
 ``````````````````````````````````````````````````````````````````````
+Automatic procedure
+^^^^^^^^^^^^^^^^^^^
+When a new git tag is pushed to the repository, a gitlab-ci job takes care of (soon testing), creating the tarball, uploading it to the web service, and to build the docker image. You can check it in the pipeline page of the repository (https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/pipelines)
+
+
+Manual procedure
+^^^^^^^^^^^^^^^^
+**This should a priori not be used anymore. If the pipeline fails, you should rather investigate why.**
+
 Login on lxplus, run ::
 
   lb-run LHCbDirac/prod bash -norc
@@ -349,6 +360,19 @@ In order to push a new version on the Mesos cluster, 3 steps are needed:
 - Build the new image
 - Push it the lhcbdirac gitlab repository
 - Update the version of the running containers
+
+Automatic procedure
+^^^^^^^^^^^^^^^^^^^
+
+The first two steps should be automatically done by the gitlab-ci of the LHCbDIRAC repository.
+The last step will be taken care of by the gitlab-ci of the MesosClusterConf repository (https://gitlab.cern.ch/lhcb-dirac/MesosClusterConf)
+For a simple version upgrade, edit directly on the gitlab web page the file clusterConfiguration.json and replace the "version" attribute with what you want. Of course add a meaningful commit message.
+
+Manual procedure
+^^^^^^^^^^^^^^^^
+
+This should in principle not happen. Remember that any manual change of the mesos cluster will be erased next time the gitlab-ci of the MesosClusterConf repository will run.
+However, you can do all the above step manually.
 
 All these functionalities have been wrapped up in a script (dirac-docker-mgmt), available on all the lbmesosadm* machines (01, 02)
 
