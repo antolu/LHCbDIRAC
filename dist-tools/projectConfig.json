@@ -6,7 +6,7 @@
       [ "Dirac", "v6r17p18",
         [ "bin", "python", "lib" ]
       ],
-      [ "LHCbGrid", "v11r5",
+      [ "LHCbGrid", "v11r6",
         [ "bin", "python", "lib" ]
       ]
     ]
