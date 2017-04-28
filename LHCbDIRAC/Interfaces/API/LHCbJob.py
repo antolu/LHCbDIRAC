@@ -726,7 +726,7 @@ class LHCbJob( Job ):
     # If we remove this method (which is totally similar to the Job() one, the output data will be
     # treated by the JobWrapper. So, can and maybe should be done, but have to pay attention
     kwargs = {'lfns':lfns, 'OutputSE':OutputSE, 'OutputPath':OutputPath}
-    if isinstance( lfns, list ) and len( lfns ):
+    if isinstance( lfns, list ) and lfns:
       outputDataStr = ';'.join( lfns )
       description = 'List of output data files'
       self._addParameter( self.workflow, 'UserOutputData', 'JDL', outputDataStr, description )
@@ -863,15 +863,16 @@ class LHCbJob( Job ):
 
     listOfCMTConfigs = uniqueElements( listOfCMTConfigs )
     listOfCMTConfigs.sort( key = LooseVersion )
+
     if listOfCMTConfigs[0] == 'zzz':
       return super( LHCbJob, self ).setPlatform( 'ANY' )
-    else:
-      try:
-        platform = getPlatformFromConfig( listOfCMTConfigs[0] )[0]
-      except ValueError as error:
-        self.log.warn( error )
-        platform = 'ANY'
-      return super( LHCbJob, self ).setPlatform( platform )
+
+    try:
+      platform = getPlatformFromConfig( listOfCMTConfigs[0] )[0]
+    except ValueError as error:
+      self.log.warn( error )
+      platform = 'ANY'
+    return super( LHCbJob, self ).setPlatform( platform )
 
   #############################################################################
 
