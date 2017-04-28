@@ -57,11 +57,15 @@ if p2:
   p2 = p2.split( ',' )
   p2 = [int( x ) for x in p2]
   pr.stepsInProds.append( p2 )
+else:
+  pr.stepsInProds.append( [] )
 p3 = '{{p3#-Production 3 steps (e.g. 6)#}}'
 if p3:
   p3 = p3.split( ',' )
   p3 = [int( x ) for x in p3]
   pr.stepsInProds.append( p3 )
+else:
+  pr.stepsInProds.append( [] )
 
 localTestFlag = ast.literal_eval( '{{localTestFlag#GENERAL: Set True for local test#False}}' )
 validationFlag = ast.literal_eval( '{{validationFlag#GENERAL: Set True for validation prod#False}}' )
@@ -248,5 +252,5 @@ pr.ancestorDepths = [p1ancestorDepth, p2ancestorDepth, p3ancestorDepth]
 pr.compressionLvl = [p1compressionLvl] * len( pr.stepsInProds[0] ) +\
                     [p2compressionLvl] * len( pr.stepsInProds[1] ) +\
                     [p3compressionLvl] * len( pr.stepsInProds[2] )
-
+pr.compressionLvl = [""]* ( len( pr.stepsInProds[0]) + len( pr.stepsInProds[1]) + len( pr.stepsInProds[2]) )
 pr.buildAndLaunchRequest()
