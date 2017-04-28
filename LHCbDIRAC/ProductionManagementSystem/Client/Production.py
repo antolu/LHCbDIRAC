@@ -162,6 +162,7 @@ class Production( object ):
         'DDDB': 'head-20110302', 'CONDDB': 'head-20110407', 'DQTag': '',
         'isMulticore': 'N', 'SystemConfig': '', 'mcTCK': '',
         'fileTypesIn': ['SDST'],
+	'visibilityFlag': [{'Visible': 'Y', 'FileType': 'BHADRON.DST'}],
         'fileTypesOut': ['BHADRON.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST']}
 
         Note: this step treated here does not necessarily corresponds to a step of the BKK:
@@ -185,6 +186,7 @@ class Production( object ):
     dqOpt = stepDict['DQTag']
     multicore = stepDict['isMulticore']
     sysConfig = stepDict['SystemConfig']
+    outputVisibility = stepDict['visibilityFlag']
     if sysConfig == 'None' or sysConfig == 'NULL' or not sysConfig or sysConfig is None:
       sysConfig = 'ANY'
     mcTCK = stepDict['mcTCK']
@@ -325,7 +327,8 @@ class Production( object ):
                   'ExtraPackages':extraPackages,
                   'BKStepID':stepID,
                   'StepName':stepName,
-                  'StepVisible':stepVisible}
+                  'StepVisible':stepVisible,
+                  'OutputFileTypes': outputVisibility}
 
     self.bkSteps[stepIDInternal] = stepBKInfo
     self.__addBKPassStep()
@@ -676,6 +679,7 @@ class Production( object ):
 
     # This is the last component necessary for the BK publishing (post reorganisation)
     bkDictStep['Steps'] = stepList
+    bkDictStep['EventType'] = paramsDict['eventType']
 
     bkDictStep['ConfigName'] = self.LHCbJob.workflow.findParameter( 'configName' ).getValue()
     bkDictStep['ConfigVersion'] = self.LHCbJob.workflow.findParameter( 'configVersion' ).getValue()
