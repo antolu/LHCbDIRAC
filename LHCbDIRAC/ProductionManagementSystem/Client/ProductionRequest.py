@@ -109,6 +109,10 @@ class ProductionRequest( object ):
     self.ancestorDepths = []
     self.compressionLvl = [''] # List: one compression level each step
     self.appConfig = '$APPCONFIGOPTS/Persistency/' # Default location of the compression level configuration files
+    #
+    # These lists define the visibility of the output files produced by each step. For MC productions, the visibility
+    # is tied to compression level. VIsible files are compressed at the highest level
+    #
     self.outputVisFlag = [] # List of dictionary with default visibility flag of the output files per single step
     self.specialOutputVisFlag = [] # List of dictionaries with special visibility flag for given file type    
 
@@ -118,8 +122,8 @@ class ProductionRequest( object ):
     """ Given a list of steps in strings, some of which might be missing,
         resolve it into a list of dictionary of steps
     """
-    outputVisFlag = dict( [k,v] for el in self.outputVisFlag for k,v in el.items() ) # Transform the list of dictionaries in a dictionary
-    specialOutputVisFlag = dict( [k,v] for el in self.specialOutputVisFlag for k,v in el.items() )
+    outputVisFlag = dict( [k,v] for el in self.outputVisFlag for k,v in el.iteritems() ) # Transform the list of dictionaries in a dictionary
+    specialOutputVisFlag = dict( [k,v] for el in self.specialOutputVisFlag for k,v in el.iteritems() )
     count = 0 # Needed to add correctly the optionFiles to the list of dictonaries of steps
     for stepID in self.stepsList:
 

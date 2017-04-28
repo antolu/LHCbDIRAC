@@ -117,7 +117,7 @@ p1outputMode = '{{P1OutputMode#PROD-P1: output mode#Local}}'
 p1eventsRequested = '{{P1EventsRequested#PROD-P1: events requested (-1 = ALL)#-1}}'
 p1ancestorDepth = int( '{{P1AncestorDepth#PROD-P1: ancestor depth#0}}' )
 try:
-  p1compressionLvl = ast.literal_eval( '{{P1CompressionLevel#PROD-P1: Compression Level per step, e.g. ["Compression-ZLIB-1","Compression-LZMA-4"]#}}' )
+  p1compressionLvl = ast.literal_eval( '{{P1CompressionLevel#PROD-P1: Compression Level per step, e.g. ["Compression-ZLIB-1","Compression-LZMA-4"]#Compression-ZLIB-1}}' )
 except SyntaxError:
   p1compressionLvl = []
 p1OutputVisFlag = '{{P1OutputVisFlag#PROD-P1: Visibility flag of output files (a dict {"n step":flag})#{"1":"N"}}}'
@@ -146,7 +146,7 @@ p2outputMode = '{{P2OutputMode#PROD-P2: output mode#Local}}'
 p2eventsRequested = '{{P2EventsRequested#PROD-P2: events requested (-1 = ALL)#-1}}'
 p2ancestorDepth = int( '{{P2AncestorDepth#PROD-P2: ancestor depth#0}}' )
 try:
-  p2compressionLvl = ast.literal_eval( '{{P2CompressionLevel#PROD-P2: Compression Level per step, e.g. ["Compression-ZLIB-1","Compression-LZMA-4"]#}}' )
+  p2compressionLvl = ast.literal_eval( '{{P2CompressionLevel#PROD-P2: Compression Level per step, e.g. ["Compression-ZLIB-1","Compression-LZMA-4"]#Compression-ZLIB-1}}' )
 except SyntaxError:
   p2compressionLvl = []
 p2OutputVisFlag = '{{P2OutputVisFlag#PROD-P2: Visibility flag of output files (a dict {"n step":flag})#{"1":False}}}'
@@ -175,7 +175,7 @@ p3outputMode = '{{P3OutputMode#PROD-P3: output mode#Any}}'
 p3eventsRequested = '{{P3EventsRequested#PROD-P3: events requested (-1 = ALL)#-1}}'
 p3ancestorDepth = int( '{{P3AncestorDepth#PROD-P3: ancestor depth#0}}' )
 try:
-  p3compressionLvl = ast.literal_eval( '{{P3CompressionLevel#PROD-P3: Compression Level per step, e.g. ["Compression-ZLIB-1","Compression-LZMA-4"]#}}' )
+  p3compressionLvl = ast.literal_eval( '{{P3CompressionLevel#PROD-P3: Compression Level per step, e.g. ["Compression-ZLIB-1","Compression-LZMA-4"]#Compression-LZMA-4}}' )
 except SyntaxError:
   p3compressionLvl = []
 p3OutputVisFlag = '{{P3OutputVisFlag#PROD-P3: Visibility flag of output files (a dict {"n step":flag})#{"1":False}}}'
