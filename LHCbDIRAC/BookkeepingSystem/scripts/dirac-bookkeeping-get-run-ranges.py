@@ -4,7 +4,7 @@
 # Author :  Zoltan Mathe
 ########################################################################
 """
-  Returns list of TCKs for a run range, by default only if there is a FULL stream
+  Returns run ranges, split by conditions and by run gaps or time interval between them
 """
 __RCSID__ = "$Id$"
 

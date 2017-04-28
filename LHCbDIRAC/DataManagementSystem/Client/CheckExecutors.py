@@ -240,7 +240,7 @@ def doCheckFC2BK( cc, fixFC = False, fixBK = False, listAffectedRuns = False ):
           gLogger.notice( "\tSuccessfully added replica flag to %d files" % len( success ) )
         else:
           gLogger.error( 'Failed to set the replica flag', res['Message'] )
-      if fixFC:
+      elif fixFC:
         gLogger.notice( "Going to fix them, by removing from the FC and storage" )
         __removeFile( success )
       else:
