@@ -4468,7 +4468,7 @@ and files.qualityid= dataquality.qualityid'
     processing = {}
     productions = None
     result = None
-    if configName.upper().find( 'MC' ):
+    if 'MC' in configName.upper():
       command = self.__prepareStepMetadata( configName,
                                             configVersion,
                                             cond,
