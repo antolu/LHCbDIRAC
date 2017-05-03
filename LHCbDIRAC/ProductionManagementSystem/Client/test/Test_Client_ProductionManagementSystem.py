@@ -132,14 +132,17 @@ class ProductionRequestSuccess( ClientTestCase ):
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['123']
+    pr.outputVisFlag = [{'1':'N'}]
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [step1Dict] )
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['123', '456']
+    pr.outputVisFlag = [{'1':'N'}, {'2':'N'}]
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [step1Dict, step2Dict] )
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['123', '456', '', '']
+    pr.outputVisFlag = [{'1':'N'}, {'2':'N'}]
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [{'StepId': 123, 'StepName':'Stripping14-Stripping',
                                           'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2', 'ExtraOptions': '',
@@ -148,7 +151,9 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N',
                                           'prodStepID': "123['SDST']", 'mcTCK': '',
                                           'fileTypesIn':['SDST'],
-                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']},
+                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST'],
+                                          'visibilityFlag': [{'FileType': 'BHADRON.DST', 'Visible': 'N'},
+                                                             {'FileType': 'CALIBRATION.DST', 'Visible': 'N'}]},
                                          {'StepId': 456, 'StepName':'Merge',
                                           'ApplicationName':'LHCb', 'ApplicationVersion':'v1r2', 'ExtraOptions': '',
                                           'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
@@ -156,10 +161,13 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'prodStepID': "456['BHADRON.DST', 'CALIBRATION.DST']",
                                           'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N', 'mcTCK': '',
                                           'fileTypesIn':['BHADRON.DST', 'CALIBRATION.DST'],
-                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}
+                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST'],
+                                          'visibilityFlag': [{'FileType': 'BHADRON.DST', 'Visible': 'N'},
+                                                             {'FileType': 'CALIBRATION.DST', 'Visible': 'N'}]},
                                         ] )
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['123']
+    pr.outputVisFlag = [{'1':'N'}]
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [{'StepId': 123, 'StepName':'Stripping14-Stripping',
                                           'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2', 'ExtraOptions': '',
@@ -168,9 +176,12 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N',
                                           'prodStepID': "123['SDST']", 'mcTCK': '',
                                           'fileTypesIn':['SDST'],
-                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
+                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST'],
+                                          'visibilityFlag': [{'FileType': 'BHADRON.DST', 'Visible': 'N'},
+                                                             {'FileType': 'CALIBRATION.DST', 'Visible': 'N'}]}] )
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['123']
+    pr.outputVisFlag = [{'1':'N'}]
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [{'StepId': 123, 'StepName':'Stripping14-Stripping',
                                           'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2', 'ExtraOptions': '',
@@ -179,11 +190,14 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'prodStepID': "123['SDST']", 'mcTCK': '',
                                           'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N',
                                           'fileTypesIn':['SDST'],
-                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
+                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST'],
+                                          'visibilityFlag': [{'FileType': 'BHADRON.DST', 'Visible': 'N'},
+                                                             {'FileType': 'CALIBRATION.DST', 'Visible': 'N'}]}] )
 
   def test__determineOutputSEs( self ):
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['123', '456']
+    pr.outputVisFlag = [{'1':'N'}, {'2':'N'}]
     pr.resolveSteps()
     pr.outputSEs = ['SE1', 'SE2']
     pr.specialOutputSEs = [{}, {}]
@@ -193,6 +207,7 @@ class ProductionRequestSuccess( ClientTestCase ):
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['123', '456']
+    pr.outputVisFlag = [{'1':'N'}, {'2':'N'}]
     pr.resolveSteps()
     pr.outputSEs = ['SE1', 'SE2']
     pr.specialOutputSEs = [{'CALIBRATION.DST': 'SE3'}, {}]
@@ -1125,6 +1140,7 @@ class ProductionRequestFullChain( ClientTestCase ):
     stepsList.append( '' )
     stepsList.append( '' )
     pr.stepsList = stepsList
+    pr.outputVisFlag = [{'1':'N'}, {'2':'N'}]
     pr.resolveSteps()
 
     pr.appendName = '1'
