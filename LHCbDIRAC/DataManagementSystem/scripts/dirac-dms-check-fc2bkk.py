@@ -65,7 +65,7 @@ if __name__ == '__main__':
     for prod in productions:
       cc.prod = prod
       gLogger.always( "Processing production %d" % cc.prod )
-      doCheckFC2BK( cc, fixIt, listAffectedRuns )
+      doCheckFC2BK( cc, fixFC, fixBK, listAffectedRuns )
       gLogger.always( "Processed production %d" % cc.prod )
   else:
     bkQuery = dmScript.getBKQuery( visible = 'All' )

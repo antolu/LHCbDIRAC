@@ -29,7 +29,7 @@ if __name__ == "__main__":
   Script.registerSwitch( '', 'WorkerNode=', '  Select WN' )
   Script.registerSwitch( '', 'BatchID=', '  Select batch jobID' )
   Script.registerSwitch( '', 'Since=', '   Date since when to select jobs, or number of days (default: today)' )
-  Script.registerSwitch( '', 'Date', '   Speficy the date' )
+  Script.registerSwitch( '', 'Date=', '   Specify the date (check for a full day)' )
   Script.registerSwitch( '', 'Full', '   Printout full list of job (default: False except if --WorkerNode)' )
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     elif switch[0] == 'Full':
       full = True
     elif switch[0] == 'Date':
-      since = switch[1]
+      since = switch[1].split()[0]
       until = str( datetime.datetime.strptime( since, '%Y-%m-%d' ) + datetime.timedelta( days = 1 ) ).split()[0]
     elif switch[0] == 'Since':
       date = switch[1].lower()
