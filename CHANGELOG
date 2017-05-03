@@ -1,3 +1,19 @@
+[v8r7p1]
+Use DIRAC v6r17p19
+* use better comparision
+* bad arg when checking a production
+* Vladimir's fix to avoid empty arrays to crash the template
+* remove some automatic/semi-automatic fixes as not always good
+* fix option --Date
+* set proper error message if getFileMetadata failed
+* fix for case of real data
+* Remove method definition check
+* prepareFile not needed anymore.
+* add DQFlag in transformation name if special
+* Allow giving a name to a transformation, then we can create an empty transformation (no BK query, no LFN)
+* Allow ancestor to be at a different SE than daughter (for stripping jobs)
+* Fix docstring
+
 [v8r7]
 Use DIRAC v6r17p18
 
