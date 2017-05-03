@@ -1,3 +1,28 @@
+[v8r8-pre0]
+use DIRAC v6r17p19
+* Use LHCbGrid v11r6
+* Fixes according to comments by Federico (see MR https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/merge_requests/306)
+* typo fix
+* added new test files
+* minor pylints
+* Fix empty array issues (Vladimir's patch)
+* Fix typo in MC template
+* using -c best option of lbRun
+* Enable Gitlab-ci to build the LHCbDIRAC tarball, deploy it on AFS and build the docker image for each tag in the repository
+* Bind compression level to output file visibility in MC template
+* Fix some typos
+* Rolled back to dictionaries for the vis flag (ProdRequest)
+* Rolled back to dictionaries for the vis flag, as it's less error prone
+* Force compression level for MC when output file visibility is Y
+* Add EventType information to bkk
+* Add modifications to templates to manage visibility flags of putput files
+* Fixed logic in resolveStep
+* Added tests, found a bug in the logic of assigning vis to special ftype
+* Create the list of dictionaries needed by the BKK schema for the visibility of output files
+* spotted the point in which to insert the visibility information of output files
+* Implemented using dictionaries for step-wide visibility and dict of dict for special filetype visibility
+* Move the visibility flag of output files from steps to templates
+
 [v8r7p1]
 Use DIRAC v6r17p19
 * use better comparision
