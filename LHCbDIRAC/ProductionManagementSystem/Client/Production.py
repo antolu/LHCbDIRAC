@@ -162,7 +162,7 @@ class Production( object ):
         'DDDB': 'head-20110302', 'CONDDB': 'head-20110407', 'DQTag': '',
         'isMulticore': 'N', 'SystemConfig': '', 'mcTCK': '',
         'fileTypesIn': ['SDST'],
-	'visibilityFlag': [{'Visible': 'Y', 'FileType': 'BHADRON.DST'}],
+        'visibilityFlag': [{'Visible': 'Y', 'FileType': 'BHADRON.DST'}],
         'fileTypesOut': ['BHADRON.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST']}
 
         Note: this step treated here does not necessarily corresponds to a step of the BKK:
