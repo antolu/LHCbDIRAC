@@ -534,18 +534,17 @@ class XMLFilesReaderManager( object ):
       stepid = retVal['Value'][0]
       
       #now we have to get the list of eventtypes
-      evenettypes = []
-      
-      for outputFileParam in job.getJobOutputFiles():
-        paramName = outputFileParam.getParamName()
-        if paramName == "EventType":
-          evenettypes.append( long( outputFileParam.getParamValue() ) )    
+      eventtypes = []
+      for outputFiles in job.getJobOutputFiles():
+        for outPutfileParam in outputFiles.getFileParams(): 
+          outputFileParamName = outPutfileParam.getParamName()
+          if outputFileParamName == "EventType":
+            eventtypes.append( long( outPutfileParam.getParamValue() ) )    
       
       steps = {'Steps':
                [{'StepId':stepid,
                  'StepName':retVal['Value'][1],
                  'ProcessingPass':retVal['Value'][1],
-                 'EventType': evenettypes,
                  'Visible':'Y'}]}
 
       gLogger.debug( 'Pass_indexid', steps )
@@ -566,7 +565,8 @@ class XMLFilesReaderManager( object ):
                                           steps = steps['Steps'],
                                           inputproc = '',
                                           configName = config.getConfigName(),
-                                          configVersion = config.getConfigVersion() )
+                                          configVersion = config.getConfigVersion(),
+                                          eventType = eventtypes )
 
       if res['OK']:
         gLogger.info( "New processing pass has been created!" )

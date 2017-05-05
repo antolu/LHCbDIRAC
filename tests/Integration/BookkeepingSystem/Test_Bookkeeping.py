@@ -1626,7 +1626,7 @@ class MCProductionRegistration ( MCInsertTestCase ):
     self.assert_( retVal['OK'] )
     self.assert_( retVal['Value'] > 0 )
     self.productionSteps['Steps'].append( {'StepId':retVal['Value'], 'Visible':'N'} )
-    
+    self.productionSteps['EventType'] = 11104131
     retVal = self.bk.addProduction( self.productionSteps )
     self.assert_( retVal['OK'] )
     
@@ -1797,7 +1797,7 @@ class MCProductionTest ( MCXMLReportInsert ):
     step['OutputFileTypes'] = [{'Visible': 'Y', 'FileType': 'DIGI'}, {'Visible': 'Y', 'FileType': 'XDIGI'}]
     step['Visible'] = 'Y'
     prodSteps['Steps'].append( step )
-    
+        
     retVal = self.bk.addProduction( prodSteps )
     self.assert_( retVal['OK'] )
     
