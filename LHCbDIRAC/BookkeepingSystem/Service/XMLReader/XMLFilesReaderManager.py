@@ -530,11 +530,22 @@ class XMLFilesReaderManager( object ):
 
       if not retVal['OK']:
         return S_ERROR( retVal['Message'] )
+      
       stepid = retVal['Value'][0]
+      
+      #now we have to get the list of eventtypes
+      evenettypes = []
+      
+      for outputFileParam in job.getJobOutputFiles():
+        paramName = outputFileParam.getParamName()
+        if paramName == "EventType":
+          evenettypes.append( long( outputFileParam.getParamValue() ) )    
+      
       steps = {'Steps':
                [{'StepId':stepid,
                  'StepName':retVal['Value'][1],
                  'ProcessingPass':retVal['Value'][1],
+                 'EventType': evenettypes,
                  'Visible':'Y'}]}
 
       gLogger.debug( 'Pass_indexid', steps )

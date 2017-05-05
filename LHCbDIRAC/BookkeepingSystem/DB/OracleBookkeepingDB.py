@@ -4104,12 +4104,21 @@ and files.qualityid= dataquality.qualityid'
     :param list steps it contains all the steps and output file types
     :return S_OK/S_ERROR
     """
+    
+      
     for step in steps:
-      for ftype in step.get( 'OutputFileTypes', {} ):
-        retVal = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.insertProdnOutputFtypes',
+      #the runs have more than one event type
+      eventtypes = []
+      eventtype = step.get( 'EventType', [] ) 
+      if isinstance( eventtype, basestring ):
+        eventtypes.append( eventtype )
+      for eventtype in eventtypes: 
+        for ftype in step.get( 'OutputFileTypes', {} ):
+          retVal = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.insertProdnOutputFtypes',
                                                    [production, step['StepId'],
                                                     ftype.get( 'FileType', None ),
-                                                    ftype.get( 'Visible', 'Y' )], False )
+                                                    ftype.get( 'Visible', 'Y' ),
+                                                    eventtype], False )
         if not retVal['OK']:
           return retVal
     
