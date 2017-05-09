@@ -26,8 +26,8 @@ from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import Produc
 __RCSID__ = "$Id$"
 
 #
-# Link compression level to the output file visibility. If any file types is visible, the corresponding 
-# step takes the maximum compression level 
+# Link compression level to the output file visibility. If any file types is visible, the corresponding
+# step takes the maximum compression level
 # Input : dicts including the visibility of output files per step
 # Output: modified list of compression levels
 #
@@ -39,7 +39,7 @@ def modifyCompression(dict1, dict2, lis1):
 
     else:
       if k in dict2.keys():
-        for k2,v2 in dict2[k].items():
+        for _,v2 in dict2[k].items():
           if v2=='Y':
             lis1[int(k)-1] = 'Compression-LZMA-4'
   return lis1
@@ -263,7 +263,7 @@ elif w3:
   #pr.compressionLvl = [compressionLvlDefault]*(len( pr.stepsList )-1) + [compressionLvlLast]
 
   simulationOutputVisFlag = fillVisList(simulationOutputVisFlag, pr.stepsInProds[0])
-  selectionOutputVisFlag  = fillVisList(selectionOuputVisFlag, pr.stepsInProds[1])
+  selectionOutputVisFlag  = fillVisList(selectionOutputVisFlag, pr.stepsInProds[1])
   mergeOutputVisFlag = fillVisList(mergeOutputVisFlag, pr.stepsInProds[2])
 
   pr.compressionLvl[0] = modifyCompression(simulationOutputVisFlag, simulationOutputVisFlagSpecial, pr.compressionLvl[0])

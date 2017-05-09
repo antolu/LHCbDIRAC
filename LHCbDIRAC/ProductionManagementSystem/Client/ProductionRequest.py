@@ -114,7 +114,7 @@ class ProductionRequest( object ):
     # is tied to compression level. VIsible files are compressed at the highest level
     #
     self.outputVisFlag = [] # List of dictionary with default visibility flag of the output files per single step
-    self.specialOutputVisFlag = [] # List of dictionaries with special visibility flag for given file type    
+    self.specialOutputVisFlag = [] # List of dictionaries with special visibility flag for given file type
 
   #############################################################################
 
