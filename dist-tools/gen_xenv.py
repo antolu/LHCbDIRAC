@@ -3,6 +3,8 @@
 import os
 import logging
 import sys
+import json
+
 
 from optparse import OptionParser
 
@@ -31,16 +33,28 @@ log = logging.getLogger()
 # Building the paths for the input and output files
 jsonMetadataDir = _lbconf_dir
 
+glob_data = {}
+
 # Now import the code to generate the XML files
 from LbUtils.LbRunConfigTools import prettify, loadConfig
 from LbUtils.LbRunConfigTools import ManifestGenerator, XEnvGenerator
-log.info( "Loading projectConfig.json from %s" % jsonMetadataDir )
-config = loadConfig( jsonMetadataDir )
-# Special case for gcc series 4
-if os.environ['CMTCONFIG'] == 'x86_64-slc6-gcc48-opt':
-  if os.path.exists( os.path.join( jsonMetadataDir, 'projectConfig_gcc48.json' ) ) :
-     config = loadConfig( jsonMetadataDir, 'projectConfig_gcc48.json' )
+log.info( "Loading LHCbDirac_version.json from %s" % jsonMetadataDir )
+glob_data.update( loadConfig( jsonMetadataDir, 'LHCbDirac_version.json' ) )
 
+log.info( "Loading projectConfig.json from %s" % jsonMetadataDir )
+if os.environ.has_key( 'CMTCONFIG' ):
+  if os.path.exists( os.path.join( jsonMetadataDir, 'heptools_' + os.environ['CMTCONFIG'] + '.json' ) ):
+    glob_data.update( loadConfig( jsonMetadataDir, 'heptools_' + os.environ['CMTCONFIG'] + '.json' ) )
+  else:
+    glob_data.update( loadConfig( jsonMetadataDir ) )
+
+configfile = os.path.join( jsonMetadataDir, 'projectConfigJoel.json' )
+with open( configfile, 'w' ) as f:
+    json.dump( glob_data, f, indent = 2 )
+
+f.close()
+
+config = loadConfig( jsonMetadataDir, 'projectConfigJoel.json' )
 for opt in ( 'cmtconfig', 'python_version', 'dir_base' ):
   if opt not in config:
     if getattr( options, opt ):
