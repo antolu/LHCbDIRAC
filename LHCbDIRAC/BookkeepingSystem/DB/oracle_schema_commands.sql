@@ -121,9 +121,6 @@ alter table jobs ADD CONSTRAINT FK_Prodcont_prod FOREIGN KEY(production) REFEREN
 
 ALTER TABLE jobs ADD HLT2TCK varchar2(20);
 
-alter table stepscontainer  add eventtypeid number;
-alter table stepscontainer add constraint fk_stepscontainer_eventtypeid FOREIGN KEY (eventtypeid) references eventtypes(eventtypeid);
-
 create table productionoutputfiles( 
 	Production NUMBER, 
   	stepid number,
@@ -137,4 +134,8 @@ grant select on productionoutputfiles to LHCB_DIRACBOOKKEEPING_USERS;
 grant select,insert,update on productionoutputfiles to LHCB_DIRACBOOKKEEPING_SERVER;
 CREATE SYNONYM productionoutputfiles FOR LHCB_DIRACBOOKKEEPING.productionoutputfiles;
 
+alter table productionoutputfiles  add eventtypeid number;
+alter table productionoutputfiles add constraint fk_prodoutput_eventtypeid FOREIGN KEY (eventtypeid) references eventtypes(eventtypeid);
 
+ALTER TABLE stepscontainer DROP CONSTRAINT FK_STEPSCONTAINER_EVENTTYPEID;
+ALTER TABLE stepscontainer DROP column eventtypeid;
