@@ -4102,6 +4102,7 @@ and files.qualityid= dataquality.qualityid'
     This method is used to register the output filetypes for a given production
     :param int production: it is the production number
     :param list steps it contains all the steps and output file types
+    :param number/list eventtype given event type which will be produced by the jobs 
     :return S_OK/S_ERROR
     """
     
@@ -4109,9 +4110,11 @@ and files.qualityid= dataquality.qualityid'
     if eventType:
       if isinstance( eventType, ( basestring, int, long ) ):
         eventtypes.append( long( eventType ) )
-      else:
+      elif isinstance( eventType, list ):
         eventtypes = eventType
-    gLogger.debug("The following eventtypes will be inserted", eventtypes)
+      else:
+        return S_ERROR( "%s event type is not valid!" % eventType )
+    gLogger.verbose("The following event types will be inserted", eventtypes)
       
     for step in steps:
       #the runs have more than one event type 
