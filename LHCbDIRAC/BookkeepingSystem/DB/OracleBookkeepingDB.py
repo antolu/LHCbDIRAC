@@ -4040,7 +4040,7 @@ and files.qualityid= dataquality.qualityid'
     return res
 
   #############################################################################
-  def addProduction( self, production, simcond = None, daq = None, steps = default, inputproc = '', configName = None, configVersion = None ):
+  def addProduction( self, production, simcond = None, daq = None, steps = default, inputproc = '', configName = None, configVersion = None, eventType = None ):
     """adds a production"""
     path = []
     if inputproc != '':
@@ -4089,7 +4089,7 @@ and files.qualityid= dataquality.qualityid'
           return S_ERROR( 'Data taking condition is missing!!' )
       retVal = self.insertproductionscontainer( production, processingid, sim, did, configName, configVersion )
       if retVal['OK']:#now we can register the production output file types
-        return self.insertProductionOutputFiletypes( production, steps )
+        return self.insertProductionOutputFiletypes( production, steps, eventType )
       else:
         return retVal
     else:
@@ -4097,21 +4097,36 @@ and files.qualityid= dataquality.qualityid'
     return S_OK( 'The production processing pass is entered to the bkk' )
 
   #############################################################################
-  def insertProductionOutputFiletypes(self, production, steps):
+  def insertProductionOutputFiletypes(self, production, steps, eventType):
     """
     This method is used to register the output filetypes for a given production
     :param int production: it is the production number
     :param list steps it contains all the steps and output file types
+    :param number/list eventtype given event type which will be produced by the jobs 
     :return S_OK/S_ERROR
     """
+    
+    eventtypes = [] 
+    if eventType:
+      if isinstance( eventType, ( basestring, int, long ) ):
+        eventtypes.append( long( eventType ) )
+      elif isinstance( eventType, list ):
+        eventtypes = eventType
+      else:
+        return S_ERROR( "%s event type is not valid!" % eventType )
+    gLogger.verbose("The following event types will be inserted", eventtypes)
+      
     for step in steps:
-      for ftype in step.get( 'OutputFileTypes', {} ):
-        retVal = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.insertProdnOutputFtypes',
+      #the runs have more than one event type 
+      for eventtype in eventtypes: 
+        for ftype in step.get( 'OutputFileTypes', {} ):
+          retVal = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.insertProdnOutputFtypes',
                                                    [production, step['StepId'],
                                                     ftype.get( 'FileType', None ),
-                                                    ftype.get( 'Visible', 'Y' )], False )
-        if not retVal['OK']:
-          return retVal
+                                                    ftype.get( 'Visible', 'Y' ),
+                                                    eventtype], False )
+          if not retVal['OK']:
+            return retVal
     
     return S_OK()
   

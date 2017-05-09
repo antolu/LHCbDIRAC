@@ -1649,21 +1649,26 @@ class BookkeepingManagerHandler( RequestHandler ):
       result = S_ERROR( "Missing Steps!" )
     if 'Production' not in infos:
       result = S_ERROR( 'Production is missing!' )
-
+    
+    if 'EventType' not in infos:
+      result = S_ERROR( "EventType is missing!" )
+    
     if not result:
       steps = infos['Steps']
       inputProdTotalProcessingPass = ''
       production = infos['Production']
       inputProdTotalProcessingPass = infos.get( 'InputProductionTotalProcessingPass', '' )
-      configName = infos.get("ConfigName")
-      configVersion = infos.get("ConfigVersion")
+      configName = infos.get( "ConfigName" )
+      configVersion = infos.get( "ConfigVersion" )
+      eventType = infos.get( "EventType" )
       result = dataMGMT_.addProduction( production = production,
                                         simcond = simcond,
                                         daq = daqdesc,
                                         steps = steps,
                                         inputproc = inputProdTotalProcessingPass,
                                         configName = configName,
-                                        configVersion = configVersion )
+                                        configVersion = configVersion,
+                                        eventType = eventType )
     return result
 
   #############################################################################
