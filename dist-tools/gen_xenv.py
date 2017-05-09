@@ -48,7 +48,7 @@ if os.environ.has_key( 'CMTCONFIG' ):
   else:
     glob_data.update( loadConfig( jsonMetadataDir ) )
 
-configfile = os.path.join( jsonMetadataDir, 'projectConfigJoel.json' )
+configfile = os.path.join( jsonMetadataDir, 'projectConfigConcat.json' )
 with open( configfile, 'w' ) as f:
     json.dump( glob_data, f, indent = 2 )
 
