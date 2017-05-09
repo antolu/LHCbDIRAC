@@ -30,6 +30,9 @@
       [ "qt", "4.8.7",
         [ "bin", "python", "lib" ]
       ],
+      [ "qt5", "5.6.0",
+        [ "bin", "python", "lib" ]
+      ],
       [ "gcc", "4.9.3",
         [ "bin", "python", "lib" ]
       ],
