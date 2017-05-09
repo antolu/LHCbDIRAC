@@ -36,6 +36,10 @@ from LbUtils.LbRunConfigTools import prettify, loadConfig
 from LbUtils.LbRunConfigTools import ManifestGenerator, XEnvGenerator
 log.info( "Loading projectConfig.json from %s" % jsonMetadataDir )
 config = loadConfig( jsonMetadataDir )
+# Special case for gcc series 4
+if os.environ['CMTCONFIG'] == 'x86_64-slc6-gcc48-opt':
+  if os.path.exists( os.path.join( jsonMetadataDir, 'projectConfig_gcc48.json' ) ) :
+     config = loadConfig( jsonMetadataDir, 'projectConfig_gcc48.json' )
 
 for opt in ( 'cmtconfig', 'python_version', 'dir_base' ):
   if opt not in config:
