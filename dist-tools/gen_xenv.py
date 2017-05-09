@@ -54,7 +54,7 @@ with open( configfile, 'w' ) as f:
 
 f.close()
 
-config = loadConfig( jsonMetadataDir, 'projectConfigJoel.json' )
+config = loadConfig( jsonMetadataDir, 'projectConfigConcat.json' )
 for opt in ( 'cmtconfig', 'python_version', 'dir_base' ):
   if opt not in config:
     if getattr( options, opt ):
