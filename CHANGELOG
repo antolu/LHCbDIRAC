@@ -1,3 +1,21 @@
+[v8r8-pre1]
+use DIRAC v6r17p19
+* remove fake name
+* Change CMTCONFIG value
+* default json file
+* rename projectConfig.json
+* change filename
+* change logic for the config tools
+* add qt5 toprepare the migration of the Bookkeeping GUI
+* add case for gcc48
+* add event type to the productionoutputfiles and correctly fill the tables
+* use the productionoutputfiles table for storing the event types
+* use the environment variable
+* setup Bookkeeping jenkins tests
+* adapting integration tests to new outputVisibilityFlag of steps
+* simple fixes for log and output
+* fixed tests for using outVisibilityFlag
+
 [v8r8-pre0]
 use DIRAC v6r17p19
 * Use LHCbGrid v11r6
