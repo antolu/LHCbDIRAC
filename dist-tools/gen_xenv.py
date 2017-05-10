@@ -41,20 +41,26 @@ from LbUtils.LbRunConfigTools import ManifestGenerator, XEnvGenerator
 log.info( "Loading LHCbDirac_version.json from %s" % jsonMetadataDir )
 glob_data.update( loadConfig( jsonMetadataDir, 'LHCbDirac_version.json' ) )
 
-log.info( "Loading projectConfig.json from %s" % jsonMetadataDir )
-if os.environ.has_key( 'CMTCONFIG' ):
-  if os.path.exists( os.path.join( jsonMetadataDir, 'heptools_' + os.environ['CMTCONFIG'] + '.json' ) ):
-    glob_data.update( loadConfig( jsonMetadataDir, 'heptools_' + os.environ['CMTCONFIG'] + '.json' ) )
-  else:
-    glob_data.update( loadConfig( jsonMetadataDir ) )
+try:
+  localconfig = getattr( options, 'cmtconfig' )
+except:
+  print "cmtconfig not defined"
+  sys.exit( 0 )
 
-configfile = os.path.join( jsonMetadataDir, 'projectConfigConcat.json' )
+log.info( "Loading projectConfig.json from %s" % jsonMetadataDir )
+if os.path.exists( os.path.join( jsonMetadataDir, 'heptools_' + localconfig + '.json' ) ):
+  glob_data.update( loadConfig( jsonMetadataDir, 'heptools_' + localconfig + '.json' ) )
+else:
+  glob_data.update( loadConfig( jsonMetadataDir ) )
+
+configfile = os.path.join( jsonMetadataDir, 'projectConfigJoel.json' )
 with open( configfile, 'w' ) as f:
     json.dump( glob_data, f, indent = 2 )
 
 f.close()
 
-config = loadConfig( jsonMetadataDir, 'projectConfigConcat.json' )
+config = loadConfig( jsonMetadataDir, 'projectConfigJoel.json' )
+
 for opt in ( 'cmtconfig', 'python_version', 'dir_base' ):
   if opt not in config:
     if getattr( options, opt ):
@@ -77,4 +83,3 @@ if options.xenv_file:
   xe = xg.getDocument()
   with open( options.xenv_file, "w" ) as f:
       f.write( prettify( xe ) )
-
