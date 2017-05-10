@@ -53,13 +53,13 @@ if os.path.exists( os.path.join( jsonMetadataDir, 'heptools_' + localconfig + '.
 else:
   glob_data.update( loadConfig( jsonMetadataDir ) )
 
-configfile = os.path.join( jsonMetadataDir, 'projectConfigJoel.json' )
+configfile = os.path.join( jsonMetadataDir, 'projectConfigConcat.json' )
 with open( configfile, 'w' ) as f:
     json.dump( glob_data, f, indent = 2 )
 
 f.close()
 
-config = loadConfig( jsonMetadataDir, 'projectConfigJoel.json' )
+config = loadConfig( jsonMetadataDir, 'projectConfigConcat.json' )
 
 for opt in ( 'cmtconfig', 'python_version', 'dir_base' ):
   if opt not in config:
