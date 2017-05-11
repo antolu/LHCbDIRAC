@@ -126,19 +126,17 @@ create table productionoutputfiles(
 	Production NUMBER, 
   	stepid number,
   	eventtypeid number,
-  	filetype varchar2(256),
+  	filetypeid number,
   	visible char(1) default 'Y',
-  CONSTRAINT PK_productionoutputfiles_p PRIMARY KEY (Production, stepid, eventtypeid),
+  CONSTRAINT PK_productionoutputfiles_p PRIMARY KEY (Production, filetypeid, eventtypeid, visible),
   CONSTRAINT FK_productionoutputfiles_steps FOREIGN KEY (stepid) REFERENCES steps(stepid),
-  CONSTRAINT FK_productionoutputfiles_steps FOREIGN KEY (eventtypeid) REFERENCES eventtypes(eventtypeid),
+  CONSTRAINT FK_productionoutputfiles_evt FOREIGN KEY (eventtypeid) REFERENCES eventtypes(eventtypeid),
+  CONSTRAINT FK_productionoutputfiles_ft FOREIGN KEY (filetypeid) REFERENCES filetypes(filetypeid),
   CONSTRAINT FK_productionoutputfiles_prod FOREIGN KEY (production) REFERENCES productionscontainer(production) ON DELETE CASCADE ENABLE); 
 
 grant select on productionoutputfiles to LHCB_DIRACBOOKKEEPING_USERS;
 grant select,insert,update on productionoutputfiles to LHCB_DIRACBOOKKEEPING_SERVER;
 CREATE SYNONYM productionoutputfiles FOR LHCB_DIRACBOOKKEEPING.productionoutputfiles;
-
-alter table productionoutputfiles  add eventtypeid number;
-alter table productionoutputfiles add constraint fk_prodoutput_eventtypeid FOREIGN KEY (eventtypeid) references eventtypes(eventtypeid);
 
 ALTER TABLE stepscontainer DROP CONSTRAINT FK_STEPSCONTAINER_EVENTTYPEID;
 ALTER TABLE stepscontainer DROP column eventtypeid;
