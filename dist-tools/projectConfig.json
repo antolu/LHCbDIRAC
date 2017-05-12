@@ -1,10 +1,10 @@
 {
   "heptools": {
     "binary_tag": "$CMTCONFIG",
-    "version": "87",
+    "version": "88",
     "packages": [
       [ "Python", "2.7.10",
-        [ "bin" ]
+        [ "bin", "lib" ]
       ],
       [ "libtool", "2.4.2",
         [ "bin", "python", "lib" ]
