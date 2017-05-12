@@ -2303,7 +2303,8 @@ BEGIN
 EXCEPTION
   WHEN DUP_VAL_ON_INDEX THEN
     DBMS_OUTPUT.put_line ('EXISTS:'||v_production||'->'||v_stepid||'->'||v_filetypeid||'->'||v_visible||'->'||v_eventtype);
-	UPDATE productionoutputfiles SET stepid=v_stepid, filetypeid=v_filetypeid, visible = v_visible,eventtypeid=v_eventtype WHERE production=v_production;
+    --NOT: If the production is already in the table, we only change the step!!!
+    UPDATE productionoutputfiles SET stepid=v_stepid WHERE production=v_production and filetypeid=v_filetypeid and visible =v_visible and eventtypeid=v_eventtype;
 END;
 
 END; 
