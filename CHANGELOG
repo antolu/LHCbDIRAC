@@ -1,3 +1,8 @@
+[v8r8-pre2]
+use DIRAC v6r17p19
+* use m2crypto
+* use LCG 88
+
 [v8r8-pre1]
 use DIRAC v6r17p19
 * remove fake name
