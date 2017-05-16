@@ -203,7 +203,7 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
   notExisting = {}
   savedLevel = gLogger.getLevel()
   seList = set( seList )
-  chunkSize = max( 50, min( 500, len( lfnList ) / 10 ) )
+  chunkSize = max( 10, min( 500, len( lfnList ) / 10 ) )
   progressBar = ProgressBar( len( lfnList ), title = 'Removing replicas' + ( ' and setting them invisible in BK' if allDisk else '' ), chunk = chunkSize )
   # Set files invisible in BK if removing all disk replicas
   for lfnChunk in breakListIntoChunks( sorted( lfnList ), chunkSize ):
@@ -720,8 +720,6 @@ def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = 
   from DIRAC.Core.Utilities.Adler import compareAdler
   if len( seList ) > 1:
     gLogger.notice( "Using the following list of SEs: %s" % str( seList ) )
-  if len( lfnList ) > 100:
-    gLogger.notice( "Getting metadata for %d files, be patient" % len( lfnList ) )
 
   fc = FileCatalog()
 
@@ -729,7 +727,10 @@ def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = 
   metadata = {'Successful':{}, 'Failed':{}}
   replicas = {}
   # restrict seList to those where the replicas are
-  for lfnChunk in breakListIntoChunks( lfnList, 100 ):
+  chunkSize = 20
+  progressBar = ProgressBar( len( lfnList ), title = "Getting replicas for %d files" % len( lfnList ), chunk = chunkSize )
+  for lfnChunk in breakListIntoChunks( lfnList, chunkSize ):
+    progressBar.loop()
     res = fc.getReplicas( lfnChunk, allStatus = True )
     if not res['OK']:
       gLogger.fatal( 'Error getting replicas for %d files' % len( lfnChunk ), res['Message'] )
@@ -738,6 +739,7 @@ def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = 
       replicas.update( res['Value']['Successful'] )
     for lfn in res['Value']['Failed']:
       metadata['Failed'][lfn] = 'FC: ' + res['Value']['Failed'][lfn]
+  progressBar.endLoop()
   for lfn in sorted( replicas ):
     if seList and not [se for se in replicas[lfn] if se in seList]:
       metadata['Failed'][lfn] = 'No such file at %s in FC' % ' '.join( seList )
@@ -754,12 +756,17 @@ def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = 
         lfnMetadataDict = res['Value']['Successful']
       else:
         lfnMetadataDict = {}
+    nbCalls = len( [0 for se in seList for lfn in lfnList if se in replicas.get( lfn, [] ) ] )
+    chunkSize = 20
+    progressBar = ProgressBar( nbCalls, title = "Getting SE metadata of %d replicas" % nbCalls, step = chunkSize )
     for se in seList:
       fileList = [url for url in lfnList if se in replicas.get( url, [] )]
       if not fileList:
         continue
       oSe = StorageElement( se )
-      for fileChunk in breakListIntoChunks( fileList, 100 ):
+      for fileChunk in breakListIntoChunks( fileList, chunkSize ):
+        for _i in xrange( len( fileChunk ) ):
+          progressBar.loop()
         res = oSe.getFileMetadata( fileChunk )
         if res['OK']:
           seMetadata = res['Value']
@@ -794,6 +801,7 @@ def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = 
         else:
           for url in fileChunk:
             metadata['Failed'][url] = res['Message'] + ' at %s' % se
+    progressBar.endLoop()
 
   if not summary:
     return printDMResult( S_OK( metadata ), empty = "File not at SE" )
