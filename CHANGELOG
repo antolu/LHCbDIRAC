@@ -1,3 +1,11 @@
+[v8r8-pre3]
+use DIRAC v6r17p20
+
+* allow to change the step for a given production
+* event type has to be number
+* add visibility flag to the primary key
+* schama changed
+
 [v8r8-pre2]
 use DIRAC v6r17p19
 * use m2crypto
