@@ -894,7 +894,7 @@ def executeGetStats( dmScript ):
   else:
     prodList = [None]
     fileType = None
-  if fileType != ['RAW'] and triggerRate:
+  if triggerRate and fileType != ['RAW'] and not [lfn for lfn in lfns if '.raw' in lfn]:
     gLogger.notice( 'TriggerRate option ignored as not looking for RAW files' )
     triggerRate = False
 
