@@ -24,6 +24,8 @@ class UserJobTestCase( IntegrationTest ):
   def setUp( self ):
     super( UserJobTestCase, self ).setUp()
 
+    print "\n \n ********************************* \n   Running a new test \n *********************************"
+
     self.dLHCb = DiracLHCb()
     self.exeScriptLocation = find_all( 'exe-script.py', '.', 'Integration' )[0]
     self.exeScriptFromDIRACLocation = find_all( 'exe-script-fromDIRAC.py', '.', 'Integration' )[0]
