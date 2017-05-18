@@ -775,7 +775,7 @@ def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = 
             if isinstance( pfnMetadata.get( 'Mode' ), ( int, long ) ):
               pfnMetadata['Mode'] = '%o' % pfnMetadata['Mode']
             metadata['Successful'].setdefault( url, {} )[se] = pfnMetadata if not exists \
-            else {'Exists': 'True (%sCached%s)' % ( ( '' if pfnMetadata.get( 'Cached' ) else 'Not ' ),
+            else {'Exists': 'True (%sCached%s)' % ( ( '' if pfnMetadata.get( 'Cached', pfnMetadata.get( 'Accessible' ) ) else 'Not ' ),
                                                    ( ' and unavailable' if pfnMetadata.get( 'Unavailable' ) else '' ) )}
             if exists and not pfnMetadata.get( 'Size' ):
               metadata['Successful'][url][se].update( {'Exists':'Zero size'} )
