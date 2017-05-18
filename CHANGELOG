@@ -1,3 +1,8 @@
+[v8r8-pre5]
+use DIRAC v6r17p20
+* change the lcgBundle
+* change name for json file
+
 [v8r8-pre4]
 use DIRAC v6r17p20
 * change the lcgBundle
