@@ -38,8 +38,8 @@ glob_data = {}
 # Now import the code to generate the XML files
 from LbUtils.LbRunConfigTools import prettify, loadConfig
 from LbUtils.LbRunConfigTools import ManifestGenerator, XEnvGenerator
-log.info( "Loading LHCbDirac_version.json from %s" % jsonMetadataDir )
-glob_data.update( loadConfig( jsonMetadataDir, 'LHCbDirac_version.json' ) )
+log.info( "Loading projectConfig.json from %s" % jsonMetadataDir )
+glob_data.update( loadConfig( jsonMetadataDir ) )
 
 try:
   localconfig = getattr( options, 'cmtconfig' )
@@ -47,11 +47,11 @@ except:
   print "cmtconfig not defined"
   sys.exit( 0 )
 
-log.info( "Loading projectConfig.json from %s" % jsonMetadataDir )
+log.info( "Loading heptools.json from %s" % jsonMetadataDir )
 if os.path.exists( os.path.join( jsonMetadataDir, 'heptools_' + localconfig + '.json' ) ):
   glob_data.update( loadConfig( jsonMetadataDir, 'heptools_' + localconfig + '.json' ) )
 else:
-  glob_data.update( loadConfig( jsonMetadataDir ) )
+  glob_data.update( loadConfig( jsonMetadataDir, 'heptools.json' ) )
 
 configfile = os.path.join( jsonMetadataDir, 'projectConfigConcat.json' )
 with open( configfile, 'w' ) as f:
