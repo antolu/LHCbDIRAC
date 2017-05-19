@@ -961,7 +961,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return S_OK( self.util.createTasks( storageElementGroups ) )
 
 
-  def _ReplicateDataset( self ):
+  def _ReplicateDataset( self, maxFiles = None ):
     """ Plugin for replicating files to specified SEs
     """
     destSEs = resolveSEGroup( self.util.getPluginParam( 'DestinationSEs', [] ) )
@@ -970,7 +970,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     secondarySEs = resolveSEGroup( self.util.getPluginParam( 'SecondarySEs', [] ) )
     fromSEs = resolveSEGroup( self.util.getPluginParam( 'FromSEs', [] ) )
     numberOfCopies = self.util.getPluginParam( 'NumberOfReplicas', 0 )
-    return self._simpleReplication( destSEs, secondarySEs, numberOfCopies, fromSEs = fromSEs )
+    return self._simpleReplication( destSEs, secondarySEs, numberOfCopies, fromSEs = fromSEs, maxFiles = maxFiles )
 
   def _ArchiveDataset( self ):
     """ Plugin for archiving datasets (normally 2 archives, unless one of the lists is empty)
@@ -990,7 +990,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       archive1SE = []
     return self._simpleReplication( archive1SE, archive2ActiveSEs, numberOfCopies = numberOfCopies )
 
-  def _simpleReplication( self, mandatorySEs, secondarySEs, numberOfCopies = 0, fromSEs = None ):
+  def _simpleReplication( self, mandatorySEs, secondarySEs, numberOfCopies = 0, fromSEs = None, maxFiles = None ):
     """ Actually creates the replication tasks for replication plugins
     """
     self.util.logInfo( "Starting execution of plugin" )
@@ -1077,7 +1077,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     self.util.logDebug( "Storage Element Groups created: %s" % storageElementGroups )
 
-    return S_OK( self.util.createTasks( storageElementGroups ) )
+    return S_OK( self.util.createTasks( storageElementGroups, chunkSize = maxFiles ) )
 
   def _FakeReplication( self ):
     """ Creates replication tasks for to the existing SEs. Used only for tests!
@@ -1612,8 +1612,12 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
   def _ReplicateWithAncestors( self ):
     """ Same as _ReplicateToLocalSE but also replicate parents
+    If only one SE is given, use _ReplicateDataset
     This plugin is useful for prestaging at once RDST and RAW files before stripping
     """
+    destSEs = set( resolveSEGroup( self.util.getPluginParam( 'DestinationSEs', [] ) ) )
+    if len( destSEs ) == 1:
+      return self.__addAncestors( pluginMethod = self._ReplicateDataset )
     return self.__addAncestors( pluginMethod = self._ReplicateToLocalSE )
 
   def _Healing( self ):

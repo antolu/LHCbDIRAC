@@ -22,7 +22,7 @@ class fakeClient:
     ( self.files, self.replicas ) = self.prepareForPlugin( lfns )
 
   def addFilesToTransformation( self, transID, lfns ):
-    return S_OK( {'Failed':{}, 'Successful': [( lfn, 'Added' ) for lfn in lfns]} )
+    return S_OK( {'Failed':{}, 'Successful': dict( [( lfn, 'Added' ) for lfn in lfns] )} )
 
   def getTransformation( self, transID, extraParams = False ):
     if transID == self.transID and self.asIfProd:
