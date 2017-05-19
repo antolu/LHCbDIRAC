@@ -15,10 +15,13 @@
       [ "pygraphics", "2.0",
         [ "bin", "python", "lib" ]
       ],
-      [ "Qt", "4.8.7",
+      [ "qt", "4.8.7",
         [ "bin", "python", "lib" ]
       ],
       [ "gcc", "4.9.3",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "jsonc", "0.12",
         [ "bin", "python", "lib" ]
       ],
       [ "m2crypto", "0.25.1",
