@@ -1,3 +1,14 @@
+[v8r8-pre6]
+use DIRAC v6r17p20
+
+* use Accessible metadata
+* fix returned value for addFilesToTransformation in fake client
+* fix
+* if one SE given replicate with ancestors to that SE
+* add activity information
+* better output
+* allow individual files to be used for trigger rate
+
 [v8r8-pre5]
 use DIRAC v6r17p20
 * change the lcgBundle
