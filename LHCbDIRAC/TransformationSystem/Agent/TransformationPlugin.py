@@ -135,6 +135,31 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         # Here one should check descendants of children
         self.util.logVerbose( "No input files have already been processed" )
 
+  def __getRunFiles( self ):
+    """
+    Get files per run in a dicctionary and set the run number if not done
+    """
+    # Split the files in run groups
+    res = groupByRun( self.transFiles )
+    if not res['OK']:
+      self.util.logError( "Error splitting by run", res['Message'] )
+      return res
+    runFileDict = res['Value']
+    if not runFileDict:
+      # No files, no tasks!
+      self.util.logVerbose( "No runs found!" )
+      return S_OK( [] )
+    self.util.logVerbose( 'Obtained %d runs' % len( runFileDict ) )
+
+    # If some files don't have a run number, get it and set it
+    zeroRun = runFileDict.pop( 0, None )
+    if zeroRun:
+      self.util.logInfo( "Setting run number for files with run #0, which means it was not set yet" )
+      newRuns = self.util.setRunForFiles( zeroRun )
+      for newRun, runLFNs in newRuns.iteritems():
+        runFileDict.setdefault( newRun, [] ).extend( runLFNs )
+    return S_OK( runFileDict )
+
   def _RAWReplication( self ):
     """
     Plugin for replicating RAW data to Tier1s according to shares, and defining the processing destination site
@@ -161,24 +186,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return res
     existingCount, targetShares = res['Value']
 
-    # Split the files in run groups
-    res = groupByRun( self.transFiles )
-    if not res['OK']:
-      self.util.logError( "Error splitting by run", res['Message'] )
+    res = self.__getRunFiles()
+    if not res['OK'] or not res['Value']:
       return res
     runFileDict = res['Value']
-    if not runFileDict:
-      # No files, no tasks!
-      self.util.logVerbose( "No runs found!" )
-      return S_OK( [] )
-    self.util.logVerbose( 'Obtained %d runs' % len( runFileDict ) )
 
-    zeroRun = runFileDict.pop( 0, None )
-    if zeroRun:
-      self.util.logInfo( "Setting run number for files with run #0, which means it was not set yet" )
-      newRuns = self.util.setRunForFiles( zeroRun )
-      for newRun, runLFNs in newRuns.iteritems():
-        runFileDict.setdefault( newRun, [] ).extend( runLFNs )
     # For each of the runs determine the destination of any previous files
     res = self.util.getTransformationRuns( runFileDict )
     if not res['OK']:
@@ -971,6 +983,40 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     fromSEs = resolveSEGroup( self.util.getPluginParam( 'FromSEs', [] ) )
     numberOfCopies = self.util.getPluginParam( 'NumberOfReplicas', 0 )
     return self._simpleReplication( destSEs, secondarySEs, numberOfCopies, fromSEs = fromSEs, maxFiles = maxFiles )
+
+  def _ReplicateToRunDestination( self ):
+    """ Plugin for replicating files to the run destination
+    """
+    destSEs = resolveSEGroup( self.util.getPluginParam( 'DestinationSEs', [] ) )
+    res = self.__getRunFiles()
+    if not res['OK'] or not res['Value']:
+      return res
+    runFileDict = res['Value']
+
+    maxFiles = self.util.getPluginParam( 'MaxFilesPerTask', 100 )
+    tasks = []
+    alreadyReplicated = set()
+    for runID in runFileDict:
+      runLfns = set( runFileDict[runID] ) & set( self.transReplicas )
+      if not runLfns:
+        continue
+      runDestination = self.util.getSEForDestination( runID, destSEs )
+      if runDestination:
+        replicated = set( lfn for lfn in runLfns if runDestination in self.transReplicas[lfn] )
+        runLfns -= replicated
+        alreadyReplicated.update( replicated )
+        if runLfns:
+          for lfnChunk in breakListIntoChunks( runLfns, maxFiles ):
+            tasks.append( ( runDestination, lfnChunk ) )
+
+    if alreadyReplicated:
+      self.util.logInfo( 'Found %d files that are already present at destination SE, set them Processed' % len( alreadyReplicated ) )
+      res = self.transClient.setFileStatusForTransformation( self.transID, 'Processed', alreadyReplicated )
+      if not res['OK']:
+        self.util.logError( "Error setting files Processed", res['Message'] )
+        return res
+
+    return S_OK( tasks )
 
   def _ArchiveDataset( self ):
     """ Plugin for archiving datasets (normally 2 archives, unless one of the lists is empty)
