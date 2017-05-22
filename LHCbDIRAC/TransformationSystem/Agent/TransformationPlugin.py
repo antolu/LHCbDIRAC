@@ -251,7 +251,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             else:
               assignedRAW = res['Value']
               self.util.logVerbose( "RAW destination assigned for run %d: %s" % ( runID, assignedRAW ) )
-          else:
+          elif rawTargets:
             self.util.logVerbose( "Run destination not yet defined for run %d" % runID )
             # We can go to next in the loop there
             continue
@@ -278,26 +278,30 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             else:
               self.util.logWarn( 'Failed to find Buffer destination SE for run', str( runID ) )
               continue
-          else:
+          elif bufferTargets:
             self.util.logVerbose( "Run destination not yet defined for run %d" % runID )
         elif assignedBuffer and not bufferLogged:
           self.util.logVerbose( 'Buffer destination existing for run %d: %s' % ( runID, assignedBuffer ) )
 
         # # Find out if the replication is necessary
-        assignedSE = [assignedRAW, assignedBuffer] if assignedBuffer else [assignedRAW]
-        if not updated:
-          updated = True
-          res = self.transClient.setTransformationRunsSite( self.transID, runID, ','.join( assignedSE ) )
-          if not res['OK']:
-            self.util.logError( "Failed to assign TransformationRun SE", res['Message'] )
-            return res
-        ses = sorted( set( assignedSE ) - replicaSE )
-        # Update the counters as we know the number of files
-        if assignedRAW in ses:
-          # Here we pass both the number of files and the runID as we can use either metrics
-          self.util.updateSharesUsage( existingCount, assignedRAW, len( lfns ), runID )
-        assignedSE = ','.join( ses )
+        assignedSE = []
+        if assignedRAW:
+          assignedSE.append( assignedRAW )
+        if assignedBuffer:
+          assignedSE.append( assignedBuffer )
         if assignedSE:
+          if not updated:
+            updated = True
+            res = self.transClient.setTransformationRunsSite( self.transID, runID, ','.join( assignedSE ) )
+            if not res['OK']:
+              self.util.logError( "Failed to assign TransformationRun SE", res['Message'] )
+              return res
+          ses = sorted( set( assignedSE ) - replicaSE )
+          # Update the counters as we know the number of files
+          if assignedRAW in ses:
+            # Here we pass both the number of files and the runID as we can use either metrics
+            self.util.updateSharesUsage( existingCount, assignedRAW, len( lfns ), runID )
+          assignedSE = ','.join( ses )
           self.util.logVerbose( 'Creating a task (%d files, run %d) for SEs %s' % ( len( lfns ), runID, assignedSE ) )
           tasks.append( ( assignedSE, lfns ) )
         else:
