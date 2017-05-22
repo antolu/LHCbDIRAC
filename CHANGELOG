@@ -1,3 +1,9 @@
+[v8r8-pre7]
+use DIRAC v6r17p20
+
+* add jsonc
+* change qt in Qt
+
 [v8r8-pre6]
 use DIRAC v6r17p20
 
