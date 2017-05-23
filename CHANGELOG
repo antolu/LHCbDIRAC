@@ -1,3 +1,10 @@
+[v8r8-pre8]
+use DIRAC v6r17p20
+
+* fix logging when no RAW or Buffer replication is required
+* New plugin ReplicateToRunDestination
+* fix getBKAncestors
+
 [v8r8-pre7]
 use DIRAC v6r17p20
 
