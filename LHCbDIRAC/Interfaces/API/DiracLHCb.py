@@ -173,9 +173,9 @@ class DiracLHCb( Dirac ):
     result = self.bk.getFileAncestors( lfns, depth, replica = replica )
     if not result['OK']:
       return S_ERROR( 'Could not get ancestors: ' + result['Message'] )
-    ancestors = [x[0]['FileName'] for x in result['Value']['Successful'].values()]
+    ancestors = set( x['FileName'] for ancestors in result['Value']['Successful'].itervalues() for x in ancestors )
 
-    return S_OK( lfns + ancestors )
+    return S_OK( lfns + list( ancestors ) )
 
   #############################################################################
 
@@ -755,14 +755,14 @@ class DiracLHCb( Dirac ):
 
   #############################################################################
 
-  def lhcbProxyInit( self, *args ): #pylint: disable=no-self-use
+  def lhcbProxyInit( self, *args ):  # pylint: disable=no-self-use
     """ just calling the dirac-proxy-init script
     """
     os.system( "dirac-proxy-init -o LogLevel=NOTICE -t --rfc %s" % "' '".join( args ) )
 
   #############################################################################
 
-  def lhcbProxyInfo( self, *args ): #pylint: disable=no-self-use
+  def lhcbProxyInfo( self, *args ):  # pylint: disable=no-self-use
     """ just calling the dirac-proxy-info script
     """
     os.system( "dirac-proxy-info -o LogLevel=NOTICE %s" % "' '".join( args ) )
@@ -846,7 +846,7 @@ class DiracLHCb( Dirac ):
     return S_OK( summary )
 
   #############################################################################
-  def checkSites( self, printOutput = False ): #pylint: disable=no-self-use
+  def checkSites( self, printOutput = False ):  # pylint: disable=no-self-use
     """Return the list of sites in the DIRAC site mask and those which are banned.
 
        Example usage:
@@ -884,7 +884,7 @@ class DiracLHCb( Dirac ):
     return S_OK( {'AllowedSites':sites, 'BannedSites':bannedSites} )
 
   #############################################################################
-  def checkSEs( self, printOutput = False ): #pylint: disable=no-self-use
+  def checkSEs( self, printOutput = False ):  # pylint: disable=no-self-use
     """Check the status of read and write operations in the DIRAC SE mask.
 
        Example usage:
@@ -908,7 +908,7 @@ class DiracLHCb( Dirac ):
     for se in seList:
       res = ResourceStatus().getStorageElementStatus( se )
       if not res[ 'OK' ]:
-        gLogger.error("Failed to get StorageElement status for %s" % se)
+        gLogger.error( "Failed to get StorageElement status for %s" % se )
 
       result = {}
       for k, val in res[ 'Value' ].iteritems():
