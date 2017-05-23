@@ -111,10 +111,7 @@ targets = '{{Target#PROD-1:MC: Target for MC (e.g. Tier2, ALL, LCG.CERN.cern#Tie
 MCPriority = '{{MCPriority#PROD-1:MC: Production priority#0}}'
 MCmulticoreFlag = '{{MCMulticoreFLag#PROD-1: multicore flag#True}}'
 simulationCompressionLvl = '{{simulationCompressionLvl#PROD-1: Compression level#Compression-ZLIB-1}}'
-try:
-  simulationOutputVisFlag = '{{simulationOutputVisFlag#PROD-1: Dictionary (one flag per step) #{"1":"N"}}}'
-except:
-  simulationOutputVisFlag = {}
+simulationOutputVisFlag = ast.literal_eval( '{{simulationOutputVisFlag#PROD-1: Simulation visibility flag dictionary (one flag per step {"step":"Y|N"}) # {} }}' )
 try:
   simulationOutputVisFlagSpecial = ast.literal_eval( '{{simulationOutputVisFlagSpecial#PROD-1: Special Visibility flag of output files (a dictionary {"step n":{("FType":flag)}} )#}}' )
 except SyntaxError:
@@ -127,10 +124,7 @@ selectionCPU = '{{selectionCPU#PROD-2:Selection: Max CPU time in secs#100000}}'
 removeInputSelection = '{{removeInputSelection#PROD-2:Selection: remove inputs#True}}'
 selmulticoreFlag = '{{selMulticoreFLag#PROD-2:Selection: multicore flag#True}}'
 selectionCompressionLvl = '{{selectionCompressionLvl#PROD-2:Selection: Compression level#Compression-ZLIB-1}}'
-try:
-  selectionOutputVisFlag = '{{selectionOutputVisFlag#PROD-2: Dictionary {"step n": Y|N})#}}'
-except:
-  selectionOutputVisFlag = {}
+selectionOutputVisFlag = ast.literal_eval( '{{selectionOutputVisFlag#PROD-2: Selection visibility flag dictionary ({"step n": "Y|N"})# {} }}' )
 try:
   selectionOutputVisFlagSpecial = ast.literal_eval( '{{selectionOutputVisFlagSpecial#PROD-2: Special Visibility flag of output files (a dictionary {"step n":{"FType":flag}} )#}}' )
 except SyntaxError:
@@ -144,10 +138,7 @@ removeInputMerge = '{{removeInputMerge#PROD-3:Merging: remove inputs#True}}'
 mergemulticoreFlag = '{{mergeMulticoreFLag#PROD-3:Merging: multicore flag#True}}'
 
 mergeCompressionLvl = '{{mergeCompressionLvl#PROD-3:Merging: Compression level#Compression-LZMA-4}}'
-try:
-  mergeOutputVisFlag = '{{mergeOutputVisFlag#PROD-3: Dictionary {"step n": Y|N}#}}'
-except:
-  mergeOutputVisFlag = {}
+mergeOutputVisFlag = ast.literal_eval( '{{mergeOutputVisFlag#PROD-3: Merge visibility flag dictionary ({"step":"Y|N"}) # {} }}')
 try:
   mergeOutputVisFlagSpecial = ast.literal_eval( '{{mergeOutputVisFlagSpecial#PROD-3: Special Visibility flag of output files (a dictionary {"step n":{"FType":flag}} )#}}' )
 except SyntaxError:
