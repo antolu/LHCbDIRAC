@@ -484,7 +484,7 @@ class OracleBookkeepingDB( object ):
     if stepid != default:
       condition = " and s.stepid=%s" % stepid
     
-    command = "select s.filetype, s.visible from productionoutputfiles s where s.production=%s %s" % ( prod, condition )
+    command = "select ft.name, s.visible from productionoutputfiles s, filetypes ft where s.filetypeid=ft.filetypeid and s.production=%s %s" % ( prod, condition )
     retVal = self.dbR_.query( command )
     if not retVal['OK']:
       return retVal
