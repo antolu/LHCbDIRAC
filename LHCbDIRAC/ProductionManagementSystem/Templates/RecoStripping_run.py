@@ -85,7 +85,7 @@ recoOutputVisFlag = '{{recoOutputVisFlag#PROD-1: Visibility flag of output files
 try:
   recoOutputVisFlagSpecial = ast.literal_eval( '{{recoOutputVisFlagSpecial#PROD-1: Special Visibility flag of output files (dict FType:Y|N )#}}' )
 except SyntaxError:
-  simulationOutputVisFlagSpecial = {}
+  recoOutputVisFlagSpecial = {}
 
 # stripp params
 strippPriority = int( '{{priority#PROD-2:Stripping: priority#5}}' )
