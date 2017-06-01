@@ -48,7 +48,7 @@ def __replaceReplica( seLFNs ):
       gLogger.notice( '\tError %s : %d files' % ( reason, errors[reason] ) )
 
 
-def doCheckFC2SE( cc, bkCheck = True, fixIt = False, replace = False ):
+def doCheckFC2SE( cc, bkCheck = True, fixIt = False, replace = False, maxFiles = None ):
   """
   Method actually calling for the the check using ConsistencyChecks module
   It prints out results and calls corrective actions if required
@@ -58,7 +58,8 @@ def doCheckFC2SE( cc, bkCheck = True, fixIt = False, replace = False ):
   bk = cc.bkClient
   cc.checkFC2SE( bkCheck )
 
-  maxFiles = 20
+  if maxFiles is None:
+    maxFiles = 20
   if cc.existLFNsBKRepNo:
     gLogger.notice( '>>>>' )
     affectedRuns = set( str( run ) for run in cc.existLFNsBKRepNo.itervalues() if run )
