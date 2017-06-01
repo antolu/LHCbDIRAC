@@ -1,3 +1,13 @@
+[v8r8-pre9]
+use DIRAC v6r17p20
+
+* just added some imports
+* added script to test interaction with DIRAC environment
+* Fix the visibility flag dictionary for MC template - avoid too many try except
+* fileid is used instead of filetype
+* Fix variable in RecoStripping template
+* added script to test interaction with DIRAC environment
+
 [v8r8-pre8]
 use DIRAC v6r17p20
 
