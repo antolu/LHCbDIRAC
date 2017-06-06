@@ -1,3 +1,10 @@
+[v8r8-pre10]
+use DIRAC v6r17p21
+
+* use the filetypeid insetad of the name
+* user jobs with inputs to all T1s
+* fix error check
+
 [v8r8-pre9]
 use DIRAC v6r17p20
 
