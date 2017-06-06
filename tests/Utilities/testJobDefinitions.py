@@ -249,6 +249,103 @@ def jobWithSingleInputData():
   return res
 
 @executeWithUserProxy
+def jobWithSingleInputDataCERN():
+
+  job = baseToAllJobs( 'jobWithSingleInputDataCERN', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script-with-input-single-location.py', '.', 'GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script-with-input-single-location.py", "", "exeWithInput.log" )
+  job.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
+  job.setInputDataPolicy( 'protocol' )
+  job.setDestination( ['LCG.CERN.cern'] )
+  res = endOfAllJobs( job )
+  return res
+
+@executeWithUserProxy
+def jobWithSingleInputDataRAL():
+
+  job = baseToAllJobs( 'jobWithSingleInputDataRAL', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script-with-input-single-location.py', '.', 'GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script-with-input-single-location.py", "", "exeWithInput.log" )
+  job.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
+  job.setInputDataPolicy( 'protocol' )
+  job.setDestination( ['LCG.RAL.uk'] )
+  res = endOfAllJobs( job )
+  return res
+
+@executeWithUserProxy
+def jobWithSingleInputDataIN2P3():
+
+  job = baseToAllJobs( 'jobWithSingleInputDataIN2P3', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script-with-input-single-location.py', '.', 'GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script-with-input-single-location.py", "", "exeWithInput.log" )
+  job.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
+  job.setInputDataPolicy( 'protocol' )
+  job.setDestination( ['LCG.IN2P3.fr'] )
+  res = endOfAllJobs( job )
+  return res
+
+@executeWithUserProxy
+def jobWithSingleInputDataRRCKI():
+
+  job = baseToAllJobs( 'jobWithSingleInputDataRRCKI', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script-with-input-single-location.py', '.', 'GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script-with-input-single-location.py", "", "exeWithInput.log" )
+  job.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
+  job.setInputDataPolicy( 'protocol' )
+  job.setDestination( ['LCG.RRCKI.ru'] )
+  res = endOfAllJobs( job )
+  return res
+
+@executeWithUserProxy
+def jobWithSingleInputDataSARA():
+
+  job = baseToAllJobs( 'jobWithSingleInputDataSARA', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script-with-input-single-location.py', '.', 'GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script-with-input-single-location.py", "", "exeWithInput.log" )
+  job.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
+  job.setInputDataPolicy( 'protocol' )
+  job.setDestination( ['LCG.SARA.nl'] )
+  res = endOfAllJobs( job )
+  return res
+
+@executeWithUserProxy
+def jobWithSingleInputDataNIKHEF():
+
+  job = baseToAllJobs( 'jobWithSingleInputDataNIKHEF', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script-with-input-single-location.py', '.', 'GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script-with-input-single-location.py", "", "exeWithInput.log" )
+  job.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
+  job.setInputDataPolicy( 'protocol' )
+  job.setDestination( ['LCG.NIKHEF.nl'] )
+  res = endOfAllJobs( job )
+  return res
+
+@executeWithUserProxy
+def jobWithSingleInputDataPIC():
+
+  job = baseToAllJobs( 'jobWithSingleInputDataPIC', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script-with-input-single-location.py', '.', 'GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script-with-input-single-location.py", "", "exeWithInput.log" )
+  job.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
+  job.setInputDataPolicy( 'protocol' )
+  job.setDestination( ['LCG.PIC.es'] )
+  res = endOfAllJobs( job )
+  return res
+
+@executeWithUserProxy
+def jobWithSingleInputDataGRIDKA():
+
+  job = baseToAllJobs( 'jobWithSingleInputDataGRIDKA', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script-with-input-single-location.py', '.', 'GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script-with-input-single-location.py", "", "exeWithInput.log" )
+  job.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
+  job.setInputDataPolicy( 'protocol' )
+  job.setDestination( ['LCG.GRIDKA.de'] )
+  res = endOfAllJobs( job )
+  return res
+
+
+@executeWithUserProxy
 def jobWithSingleInputDataSpreaded():
 
   job = baseToAllJobs( 'jobWithSingleInputDataSpreaded', jobClass )
