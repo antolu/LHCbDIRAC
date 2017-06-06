@@ -319,7 +319,7 @@ class TestMethods( DataInsertTestCase ):
     retVal = self.bk.getConfigVersions( {"ConfigName":"MC"} )
     self.assert_( retVal['OK'] )
     self.assert_( len( retVal['Value'] ) > 0 )
-    self.assertEqual( retVal['Value']['TotalRecords'], 11 )
+    self.assertEqual( retVal['Value']['TotalRecords'], 14 )
   
   def test_getConditions( self ):
     """
@@ -367,7 +367,7 @@ class TestMethods( DataInsertTestCase ):
     retVal = self.bk.getConfigVersions( {"ConfigName":"MC"} )
     self.assert_( retVal['OK'] )
     self.assert_( len( retVal['Value'] ) > 0 )
-    self.assertEqual( retVal['Value']['TotalRecords'], 11 )
+    self.assertEqual( retVal['Value']['TotalRecords'], 14 )
     
     retVal = self.bk.getConditions( {"ConfigName":"MC",
                                      "ConfigVersion":"2012"} )
@@ -1920,7 +1920,7 @@ class MCProductionTest ( MCXMLReportInsert ):
     """
     retVal = self.bk.getProductionOutputFileTypes( {"Production" : self.production} )
     self.assert_( retVal['OK'] )
-    self.assertDictEqual( retVal['Value'], {'DIGI': 'N', 'SIM': 'N'} )
+    self.assertDictEqual( retVal['Value'], {'DIGI': 'N'} )
     
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Sim09b - 2012 - MU - Pythia8'} )
     self.assert_( retVal['OK'] )
