@@ -677,7 +677,11 @@ class Production( object ):
       if stepID:
         stepName = bkSteps[step]['StepName']
         stepVisible = bkSteps[step]['StepVisible']
-        stepList.append( {'StepId':int( stepID ), 'StepName':stepName, 'Visible':stepVisible} )
+        outputFileTypes = bkSteps[step]['OutputFileTypes']
+        stepList.append( {'StepId':int( stepID ),
+                          'OutputFileTypes':outputFileTypes,
+                          'StepName':stepName,
+                          'Visible':stepVisible} )
 
     # This is the last component necessary for the BK publishing (post reorganisation)
     bkDictStep['Steps'] = stepList
