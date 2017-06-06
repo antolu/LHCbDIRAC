@@ -135,6 +135,31 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         # Here one should check descendants of children
         self.util.logVerbose( "No input files have already been processed" )
 
+  def __getRunFiles( self ):
+    """
+    Get files per run in a dicctionary and set the run number if not done
+    """
+    # Split the files in run groups
+    res = groupByRun( self.transFiles )
+    if not res['OK']:
+      self.util.logError( "Error splitting by run", res['Message'] )
+      return res
+    runFileDict = res['Value']
+    if not runFileDict:
+      # No files, no tasks!
+      self.util.logVerbose( "No runs found!" )
+      return S_OK( [] )
+    self.util.logVerbose( 'Obtained %d runs' % len( runFileDict ) )
+
+    # If some files don't have a run number, get it and set it
+    zeroRun = runFileDict.pop( 0, None )
+    if zeroRun:
+      self.util.logInfo( "Setting run number for files with run #0, which means it was not set yet" )
+      newRuns = self.util.setRunForFiles( zeroRun )
+      for newRun, runLFNs in newRuns.iteritems():
+        runFileDict.setdefault( newRun, [] ).extend( runLFNs )
+    return S_OK( runFileDict )
+
   def _RAWReplication( self ):
     """
     Plugin for replicating RAW data to Tier1s according to shares, and defining the processing destination site
@@ -161,24 +186,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return res
     existingCount, targetShares = res['Value']
 
-    # Split the files in run groups
-    res = groupByRun( self.transFiles )
-    if not res['OK']:
-      self.util.logError( "Error splitting by run", res['Message'] )
+    res = self.__getRunFiles()
+    if not res['OK'] or not res['Value']:
       return res
     runFileDict = res['Value']
-    if not runFileDict:
-      # No files, no tasks!
-      self.util.logVerbose( "No runs found!" )
-      return S_OK( [] )
-    self.util.logVerbose( 'Obtained %d runs' % len( runFileDict ) )
 
-    zeroRun = runFileDict.pop( 0, None )
-    if zeroRun:
-      self.util.logInfo( "Setting run number for files with run #0, which means it was not set yet" )
-      newRuns = self.util.setRunForFiles( zeroRun )
-      for newRun, runLFNs in newRuns.iteritems():
-        runFileDict.setdefault( newRun, [] ).extend( runLFNs )
     # For each of the runs determine the destination of any previous files
     res = self.util.getTransformationRuns( runFileDict )
     if not res['OK']:
@@ -239,7 +251,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             else:
               assignedRAW = res['Value']
               self.util.logVerbose( "RAW destination assigned for run %d: %s" % ( runID, assignedRAW ) )
-          else:
+          elif rawTargets:
             self.util.logVerbose( "Run destination not yet defined for run %d" % runID )
             # We can go to next in the loop there
             continue
@@ -266,26 +278,30 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             else:
               self.util.logWarn( 'Failed to find Buffer destination SE for run', str( runID ) )
               continue
-          else:
+          elif bufferTargets:
             self.util.logVerbose( "Run destination not yet defined for run %d" % runID )
         elif assignedBuffer and not bufferLogged:
           self.util.logVerbose( 'Buffer destination existing for run %d: %s' % ( runID, assignedBuffer ) )
 
         # # Find out if the replication is necessary
-        assignedSE = [assignedRAW, assignedBuffer] if assignedBuffer else [assignedRAW]
-        if not updated:
-          updated = True
-          res = self.transClient.setTransformationRunsSite( self.transID, runID, ','.join( assignedSE ) )
-          if not res['OK']:
-            self.util.logError( "Failed to assign TransformationRun SE", res['Message'] )
-            return res
-        ses = sorted( set( assignedSE ) - replicaSE )
-        # Update the counters as we know the number of files
-        if assignedRAW in ses:
-          # Here we pass both the number of files and the runID as we can use either metrics
-          self.util.updateSharesUsage( existingCount, assignedRAW, len( lfns ), runID )
-        assignedSE = ','.join( ses )
+        assignedSE = []
+        if assignedRAW:
+          assignedSE.append( assignedRAW )
+        if assignedBuffer:
+          assignedSE.append( assignedBuffer )
         if assignedSE:
+          if not updated:
+            updated = True
+            res = self.transClient.setTransformationRunsSite( self.transID, runID, ','.join( assignedSE ) )
+            if not res['OK']:
+              self.util.logError( "Failed to assign TransformationRun SE", res['Message'] )
+              return res
+          ses = sorted( set( assignedSE ) - replicaSE )
+          # Update the counters as we know the number of files
+          if assignedRAW in ses:
+            # Here we pass both the number of files and the runID as we can use either metrics
+            self.util.updateSharesUsage( existingCount, assignedRAW, len( lfns ), runID )
+          assignedSE = ','.join( ses )
           self.util.logVerbose( 'Creating a task (%d files, run %d) for SEs %s' % ( len( lfns ), runID, assignedSE ) )
           tasks.append( ( assignedSE, lfns ) )
         else:
@@ -961,7 +977,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return S_OK( self.util.createTasks( storageElementGroups ) )
 
 
-  def _ReplicateDataset( self ):
+  def _ReplicateDataset( self, maxFiles = None ):
     """ Plugin for replicating files to specified SEs
     """
     destSEs = resolveSEGroup( self.util.getPluginParam( 'DestinationSEs', [] ) )
@@ -970,7 +986,41 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     secondarySEs = resolveSEGroup( self.util.getPluginParam( 'SecondarySEs', [] ) )
     fromSEs = resolveSEGroup( self.util.getPluginParam( 'FromSEs', [] ) )
     numberOfCopies = self.util.getPluginParam( 'NumberOfReplicas', 0 )
-    return self._simpleReplication( destSEs, secondarySEs, numberOfCopies, fromSEs = fromSEs )
+    return self._simpleReplication( destSEs, secondarySEs, numberOfCopies, fromSEs = fromSEs, maxFiles = maxFiles )
+
+  def _ReplicateToRunDestination( self ):
+    """ Plugin for replicating files to the run destination
+    """
+    destSEs = resolveSEGroup( self.util.getPluginParam( 'DestinationSEs', [] ) )
+    res = self.__getRunFiles()
+    if not res['OK'] or not res['Value']:
+      return res
+    runFileDict = res['Value']
+
+    maxFiles = self.util.getPluginParam( 'MaxFilesPerTask', 100 )
+    tasks = []
+    alreadyReplicated = set()
+    for runID in runFileDict:
+      runLfns = set( runFileDict[runID] ) & set( self.transReplicas )
+      if not runLfns:
+        continue
+      runDestination = self.util.getSEForDestination( runID, destSEs )
+      if runDestination:
+        replicated = set( lfn for lfn in runLfns if runDestination in self.transReplicas[lfn] )
+        runLfns -= replicated
+        alreadyReplicated.update( replicated )
+        if runLfns:
+          for lfnChunk in breakListIntoChunks( runLfns, maxFiles ):
+            tasks.append( ( runDestination, lfnChunk ) )
+
+    if alreadyReplicated:
+      self.util.logInfo( 'Found %d files that are already present at destination SE, set them Processed' % len( alreadyReplicated ) )
+      res = self.transClient.setFileStatusForTransformation( self.transID, 'Processed', alreadyReplicated )
+      if not res['OK']:
+        self.util.logError( "Error setting files Processed", res['Message'] )
+        return res
+
+    return S_OK( tasks )
 
   def _ArchiveDataset( self ):
     """ Plugin for archiving datasets (normally 2 archives, unless one of the lists is empty)
@@ -990,7 +1040,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       archive1SE = []
     return self._simpleReplication( archive1SE, archive2ActiveSEs, numberOfCopies = numberOfCopies )
 
-  def _simpleReplication( self, mandatorySEs, secondarySEs, numberOfCopies = 0, fromSEs = None ):
+  def _simpleReplication( self, mandatorySEs, secondarySEs, numberOfCopies = 0, fromSEs = None, maxFiles = None ):
     """ Actually creates the replication tasks for replication plugins
     """
     self.util.logInfo( "Starting execution of plugin" )
@@ -1077,7 +1127,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     self.util.logDebug( "Storage Element Groups created: %s" % storageElementGroups )
 
-    return S_OK( self.util.createTasks( storageElementGroups ) )
+    return S_OK( self.util.createTasks( storageElementGroups, chunkSize = maxFiles ) )
 
   def _FakeReplication( self ):
     """ Creates replication tasks for to the existing SEs. Used only for tests!
@@ -1612,8 +1662,12 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
   def _ReplicateWithAncestors( self ):
     """ Same as _ReplicateToLocalSE but also replicate parents
+    If only one SE is given, use _ReplicateDataset
     This plugin is useful for prestaging at once RDST and RAW files before stripping
     """
+    destSEs = set( resolveSEGroup( self.util.getPluginParam( 'DestinationSEs', [] ) ) )
+    if len( destSEs ) == 1:
+      return self.__addAncestors( pluginMethod = self._ReplicateDataset )
     return self.__addAncestors( pluginMethod = self._ReplicateToLocalSE )
 
   def _Healing( self ):

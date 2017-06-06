@@ -37,9 +37,6 @@ class XMLSummaryAnalysisTestCase( unittest.TestCase ):
 
 class XMLSummaryAnalysisDataReconstruction( XMLSummaryAnalysisTestCase ):
 
-  def setUp( self ):
-    super( XMLSummaryAnalysisDataReconstruction, self ).setUp()
-
   def test_brunel_ok( self ):
     self.generalTest( 'DataReconstruction', 'ok' )
   def test_daVinci_ok( self ):
@@ -53,9 +50,6 @@ class XMLSummaryAnalysisDataReconstruction( XMLSummaryAnalysisTestCase ):
 
 class XMLSummaryAnalysisDataReprocessing( XMLSummaryAnalysisTestCase ):
 
-  def setUp( self ):
-    super( XMLSummaryAnalysisDataReprocessing, self ).setUp()
-
   def test_brunel_ok( self ):
     self.generalTest( 'DataReprocessing', 'ok' )
   def test_daVinci_ok( self ):
@@ -68,9 +62,6 @@ class XMLSummaryAnalysisDataReprocessing( XMLSummaryAnalysisTestCase ):
 
 class XMLSummaryAnalysisDataStripping( XMLSummaryAnalysisTestCase ):
 
-  def setUp( self ):
-    super( XMLSummaryAnalysisDataStripping, self ).setUp()
-
   def test_daVinci_ok( self ):
     self.generalTest( 'DataStripping', 'ok' )
 
@@ -79,9 +70,6 @@ class XMLSummaryAnalysisDataStripping( XMLSummaryAnalysisTestCase ):
 
 class XMLSummaryAnalysisSelection( XMLSummaryAnalysisTestCase ):
 
-  def setUp( self ):
-    super( XMLSummaryAnalysisSelection, self ).setUp()
-
   def test_daVinci_ok( self ):
     self.generalTest( 'Selection', 'ok' )
 
@@ -89,9 +77,6 @@ class XMLSummaryAnalysisSelection( XMLSummaryAnalysisTestCase ):
     self.generalTest( 'Selection', 'nok' )
 
 class XMLSummaryAnalysisMCSimulation( XMLSummaryAnalysisTestCase ):
-
-  def setUp( self ):
-    super( XMLSummaryAnalysisMCSimulation, self ).setUp()
 
   def test_brunel_ok( self ):
     self.generalTest( 'MCSimulation', 'ok' )
@@ -108,9 +93,6 @@ class XMLSummaryAnalysisMCSimulation( XMLSummaryAnalysisTestCase ):
 #    self.generalTest( 'MCSimulation', 'nok' )
 
 class XMLSummaryAnalysisMerge( XMLSummaryAnalysisTestCase ):
-
-  def setUp( self ):
-    super( XMLSummaryAnalysisMerge, self ).setUp()
 
 #  def test_brunel_ok( self ):
 #    self.generalTest( 'Merge', 'ok' )

@@ -1,3 +1,44 @@
+[v8r8-pre10]
+use DIRAC v6r17p21
+
+* use the filetypeid insetad of the name
+* user jobs with inputs to all T1s
+* fix error check
+
+[v8r8-pre9]
+use DIRAC v6r17p20
+
+* just added some imports
+* added script to test interaction with DIRAC environment
+* Fix the visibility flag dictionary for MC template - avoid too many try except
+* fileid is used instead of filetype
+* Fix variable in RecoStripping template
+* added script to test interaction with DIRAC environment
+
+[v8r8-pre8]
+use DIRAC v6r17p20
+
+* fix logging when no RAW or Buffer replication is required
+* New plugin ReplicateToRunDestination
+* fix getBKAncestors
+
+[v8r8-pre7]
+use DIRAC v6r17p20
+
+* add jsonc
+* change qt in Qt
+
+[v8r8-pre6]
+use DIRAC v6r17p20
+
+* use Accessible metadata
+* fix returned value for addFilesToTransformation in fake client
+* fix
+* if one SE given replicate with ancestors to that SE
+* add activity information
+* better output
+* allow individual files to be used for trigger rate
+
 [v8r8-pre5]
 use DIRAC v6r17p20
 * change the lcgBundle

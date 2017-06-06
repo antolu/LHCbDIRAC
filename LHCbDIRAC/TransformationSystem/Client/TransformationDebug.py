@@ -1370,7 +1370,7 @@ class TransformationDebug( object ):
           self.__fixRunNumber( filesWithNoRunTable, fixRun, noTable = True )
 
         # Problematic files
-        if problematicFiles:
+        if problematicFiles and not byFiles:
           self.__checkReplicasForProblematic( problematicFiles, self.__getReplicas( problematicFiles ), nbReplicasProblematic, problematicReplicas )
 
         # Check files with missing FC

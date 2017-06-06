@@ -1167,7 +1167,7 @@ def getRemovalPlugins():
 def getReplicationPlugins():
   return ( "LHCbDSTBroadcast", "LHCbMCDSTBroadcastRandom",
            "ArchiveDataset", "ReplicateDataset",
-           'RAWReplication',
+           'RAWReplication', "ReplicateToRunDestination",
            'FakeReplication', 'ReplicateToLocalSE', 'ReplicateWithAncestors',
            'Healing' )
 

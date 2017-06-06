@@ -484,7 +484,7 @@ class OracleBookkeepingDB( object ):
     if stepid != default:
       condition = " and s.stepid=%s" % stepid
     
-    command = "select s.filetype, s.visible from productionoutputfiles s where s.production=%s %s" % ( prod, condition )
+    command = "select ft.name, s.visible from productionoutputfiles s, filetypes ft where s.filetypeid=ft.filetypeid and s.production=%s %s" % ( prod, condition )
     retVal = self.dbR_.query( command )
     if not retVal['OK']:
       return retVal
@@ -4105,7 +4105,8 @@ and files.qualityid= dataquality.qualityid'
     :param number/list eventtype given event type which will be produced by the jobs 
     :return S_OK/S_ERROR
     """
-    
+    #if we have some specific file type version, it can be added to this dictionary
+    fileTypeMap = {'RAW':'MDF'}
     eventtypes = [] 
     if eventType:
       if isinstance( eventType, ( basestring, int, long ) ):
@@ -4114,15 +4115,21 @@ and files.qualityid= dataquality.qualityid'
         eventtypes = eventType
       else:
         return S_ERROR( "%s event type is not valid!" % eventType )
-    gLogger.verbose("The following event types will be inserted", eventtypes)
+    gLogger.verbose( "The following event types will be inserted", eventtypes )
       
     for step in steps:
-      #the runs have more than one event type 
+      # the runs have more than one event type 
       for eventtype in eventtypes: 
         for ftype in step.get( 'OutputFileTypes', {} ):
+          fversion = fileTypeMap.get( ftype.get( 'FileType' ), 'ROOT' )
+          result = self.checkFileTypeAndVersion( ftype.get( 'FileType' ), fversion )
+          if not result['OK']:
+            return S_ERROR( "The type:%s, version:%s is missing." % ( ftype.get( 'FileType' ), fversion ) )
+          else:
+            fileTypeid = long( result['Value'] )
           retVal = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.insertProdnOutputFtypes',
                                                    [production, step['StepId'],
-                                                    ftype.get( 'FileType', None ),
+                                                    fileTypeid,
                                                     ftype.get( 'Visible', 'Y' ),
                                                     eventtype], False )
           if not retVal['OK']:
