@@ -1506,7 +1506,7 @@ class MCProductionRegistration ( MCInsertTestCase ):
     
     self.assert_( retVal['OK'] )
     self.assert_( retVal['Value'] > 0 )
-    self.productionSteps['Steps'].append( {'StepId':retVal['Value'], 'Visible':'N'} )
+    self.productionSteps['Steps'].append( {'StepId':retVal['Value'], 'Visible':'N', 'OutputFileTypes': [{'Visible': 'N', 'FileType': 'DIGI'}]} )
     
     retVal = self.bk.insertStep( {'Step': {'ApplicationName': 'Moore',
                                            'Usable': 'Yes',
@@ -1527,7 +1527,7 @@ class MCProductionRegistration ( MCInsertTestCase ):
     
     self.assert_( retVal['OK'] )
     self.assert_( retVal['Value'] > 0 )
-    self.productionSteps['Steps'].append( {'StepId':retVal['Value'], 'Visible':'N'} )
+    self.productionSteps['Steps'].append( {'StepId':retVal['Value'], 'Visible':'N', 'OutputFileTypes': [{'Visible': 'N', 'FileType': 'DIGI'}]} )
     
     retVal = self.bk.insertStep( {'Step': {'ApplicationName': 'Moore',
                                            'Usable': 'Yes',
@@ -1546,7 +1546,7 @@ class MCProductionRegistration ( MCInsertTestCase ):
     
     self.assert_( retVal['OK'] )
     self.assert_( retVal['Value'] > 0 )
-    self.productionSteps['Steps'].append( {'StepId':retVal['Value'], 'Visible':'N'} )
+    self.productionSteps['Steps'].append( {'StepId':retVal['Value'], 'Visible':'N', 'OutputFileTypes': [{'Visible': 'N', 'FileType': 'DIGI'}]} )
     
     retVal = self.bk.insertStep( {'Step': {'ApplicationName': 'Noether',
                                            'Usable': 'Yes',
@@ -1565,7 +1565,7 @@ class MCProductionRegistration ( MCInsertTestCase ):
     
     self.assert_( retVal['OK'] )
     self.assert_( retVal['Value'] > 0 )
-    self.productionSteps['Steps'].append( {'StepId':retVal['Value'], 'Visible':'N'} )
+    self.productionSteps['Steps'].append( {'StepId':retVal['Value'], 'Visible':'N', 'OutputFileTypes': [{'Visible': 'N', 'FileType': 'DIGI'}]} )
     
     retVal = self.bk.insertStep( {'Step': {'ApplicationName': 'Moore',
                                            'Usable': 'Yes',
@@ -1585,7 +1585,7 @@ class MCProductionRegistration ( MCInsertTestCase ):
     
     self.assert_( retVal['OK'] )
     self.assert_( retVal['Value'] > 0 )
-    self.productionSteps['Steps'].append( {'StepId':retVal['Value'], 'Visible':'N'} )
+    self.productionSteps['Steps'].append( {'StepId':retVal['Value'], 'Visible':'N', 'OutputFileTypes': [{'Visible': 'N', 'FileType': 'DIGI'}]} )
     
     retVal = self.bk.insertStep( {'Step': {'ApplicationName': 'Moore',
                                            'Usable': 'Yes',
@@ -1605,7 +1605,7 @@ class MCProductionRegistration ( MCInsertTestCase ):
     
     self.assert_( retVal['OK'] )
     self.assert_( retVal['Value'] > 0 )
-    self.productionSteps['Steps'].append( {'StepId':retVal['Value'], 'Visible':'N'} )
+    self.productionSteps['Steps'].append( {'StepId':retVal['Value'], 'Visible':'N', 'OutputFileTypes': [{'Visible': 'N', 'FileType': 'DIGI'}]} )
     
     retVal = self.bk.insertStep( {'Step': {'ApplicationName': 'Noether',
                                            'Usable': 'Yes',
@@ -1625,7 +1625,7 @@ class MCProductionRegistration ( MCInsertTestCase ):
     
     self.assert_( retVal['OK'] )
     self.assert_( retVal['Value'] > 0 )
-    self.productionSteps['Steps'].append( {'StepId':retVal['Value'], 'Visible':'N'} )
+    self.productionSteps['Steps'].append( {'StepId':retVal['Value'], 'Visible':'N', 'OutputFileTypes': [{'Visible': 'N', 'FileType': 'DIGI'}]} )
     self.productionSteps['EventType'] = 11104131
     retVal = self.bk.addProduction( self.productionSteps )
     self.assert_( retVal['OK'] )
