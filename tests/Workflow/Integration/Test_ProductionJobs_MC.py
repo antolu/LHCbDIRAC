@@ -34,7 +34,7 @@ class MCSuccess( ProductionJobTestCase ):
     stepsInProd = [{'StepId': 131147, 'StepName': 'Sim09b', 'ApplicationName': 'Gauss', 'ApplicationVersion': 'v49r7',
                     'ExtraPackages': 'AppConfig.v3r304;DecFiles.v29r21', 'ProcessingPass': 'Sim09b', 'Visible': 'Y', 'Usable': 'Yes',
                     'DDDB': 'dddb-20150724', 'CONDDB': 'sim-20161124-2-vc-md100', 'DQTag': '', 'OptionsFormat': '',
-                    'OptionFiles': ' $APPCONFIGOPTS/Gauss/Beam6500GeV-md100-2016-nu1.6.py;$APPCONFIGOPTS/Gauss/EnableSpillover-25ns.py;$APPCONFIGOPTS/Gauss/DataType-2016.py;$APPCONFIGOPTS/Gauss/RICHRandomHits.py;$DECFILESROOT/options/@{eventType}.py;$LBPYTHIA8ROOT/options/Pythia8.py;$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py',
+                    'OptionFiles': '$APPCONFIGOPTS/Gauss/Beam6500GeV-md100-2016-nu1.6.py;$APPCONFIGOPTS/Gauss/EnableSpillover-25ns.py;$APPCONFIGOPTS/Gauss/DataType-2016.py;$APPCONFIGOPTS/Gauss/RICHRandomHits.py;$DECFILESROOT/options/@{eventType}.py;$LBPYTHIA8ROOT/options/Pythia8.py;$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py',
                     'isMulticore': 'N', 'SystemConfig': 'x86_64-slc6-gcc48-opt', 'mcTCK': '', 'ExtraOptions': '',
                     'fileTypesIn':[],
                     'fileTypesOut':['SIM'],
