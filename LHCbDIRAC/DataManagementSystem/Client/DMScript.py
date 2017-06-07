@@ -378,13 +378,13 @@ class DMScript( object ):
     vo = self.__voName()
     if vo:
       vo = '/%s/' % vo
-      lfnList = [l.split( 'LFN:' )[-1].strip().replace( '"', ' ' ).replace( ',', ' ' ).replace( "'", " " ).replace( ':', ' ' ).replace( '(', ' ' ).replace( ')', ' ' ) for l in lfnList]
+      lfnList = [l.split( 'LFN:' )[-1].strip() for l in lfnList]
+      for sep in ( '"', ',', "'", ':', '(', ')', ';', '|' ):
+        lfnList = [l.replace( sep, ' ' ) for l in lfnList]
       lfnList = [ vo + lfn.split( vo )[-1].split()[0] if vo in lfn else lfn if lfn == vo[:-1] else '' for lfn in lfnList]
       lfnList = [lfn.split( '?' )[0] for lfn in lfnList]
-      if directories:
-        lfnList = [lfn for lfn in lfnList if lfn.endswith( '/' )]
-      else:
-        lfnList = [lfn for lfn in lfnList if not lfn.endswith( '/' )]
+      lfnList = [lfn for lfn in lfnList if lfn.endswith( '/' )] if directories else \
+                [lfn for lfn in lfnList if not lfn.endswith( '/' )]
     return sorted( lfn for lfn in set( lfnList ) if lfn )
 
   @staticmethod
