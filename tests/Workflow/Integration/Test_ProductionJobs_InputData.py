@@ -26,44 +26,13 @@ class ProductionJobTestCase( IntegrationTest ):
     self.pr = ProductionRequest()
     self.diracProduction = DiracProduction()
 
-
-class Reco14Success( ProductionJobTestCase ):
-  def test_Integration_Production( self ):
-    lfns = ['/lhcb/data/2012/RAW/FULL/LHCb/COLLISION12/114753/114753_0000000296.raw']
-    # From request 8772
-    stepsInProd = [{'StepId': 38427, 'StepName': 'Reco14', 'ApplicationName': 'Brunel', 'ApplicationVersion': 'v43r2p11',
-                    'ExtraPackages': 'AppConfig.v3r149', 'ProcessingPass': 'Reco14', 'Visible': 'Y', 'Usable': 'Yes',
-                    'DDDB': 'dddb-20120831', 'CONDDB': 'cond-20120831', 'DQTag': '', 'OptionsFormat': '',
-                    'OptionFiles': '$APPCONFIGOPTS/Brunel/DataType-2012.py', 'mcTCK': '', 'ExtraOptions': '',
-                    'isMulticore': 'N', 'SystemConfig': '',
-                    'fileTypesIn':['RAW'],
-                    'fileTypesOut':['BRUNELHIST', 'FULL.DST'],
-                    'visibilityFlag':[{'Visible': 'N', 'FileType': 'FULL.DST'},
-                                      {'Visible': 'Y', 'FileType':'BRUNELHIST'}]},
-                   {'StepId': 38510, 'StepName': 'DataQuality-FULL', 'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v32r2',
-                    'ExtraPackages': 'AppConfig.v3r149', 'ProcessingPass': 'DataQuality-FULL', 'Visible': 'N', 'Usable': 'Yes',
-                    'DDDB': 'dddb-20120831', 'CONDDB': 'cond-20120831', 'DQTag': '', 'OptionsFormat': 'DQ',
-                    'OptionFiles': '$APPCONFIGOPTS/DaVinci/DVMonitor-RealData.py;$APPCONFIGOPTS/DaVinci/DataType-2012.py;$APPCONFIGOPTS/DaVinci/DaVinci-InputType-SDST.py',
-                    'isMulticore': 'N', 'SystemConfig': '', 'mcTCK': '', 'ExtraOptions': '',
-                    'fileTypesIn':['FULL.DST'],
-                    'fileTypesOut':['DAVINCIHIST'],
-                    'visibilityFlag':[{'Visible': 'Y', 'FileType': 'DAVINCIHIST'}]}]
-
-    prod = self.pr._buildProduction( 'Reconstruction', stepsInProd, {'FULL.DST': 'Tier1-BUFFER'}, 0, 100,
-                                     outputMode = 'Run', inputDataPolicy = 'protocol', inputDataList = lfns, events = 25 )
-    prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
-    prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
-    prod.LHCbJob._addParameter( prod.LHCbJob.workflow, 'runNumber', 'JDL', 154030, 'Input run number' )
-    res = self.diracProduction.launchProduction( prod, False, True, 0 )
-    self.assertTrue( res['OK'] )
-
 #TODO (disabled now)
 class Reco17Success( ProductionJobTestCase ):
   def test_Integration_Production( self ):
     lfns = ['']
-    # From request 8772
-    stepsInProd = [{'StepId': 38427, 'StepName': 'Reco14', 'ApplicationName': 'Brunel', 'ApplicationVersion': 'v43r2p11',
-                    'ExtraPackages': 'AppConfig.v3r149', 'ProcessingPass': 'Reco14', 'Visible': 'Y', 'Usable': 'Yes',
+    # From request XXXXXX
+    stepsInProd = [{'StepId': , 'StepName': 'Reco17', 'ApplicationName': 'Brunel', 'ApplicationVersion': '',
+                    'ExtraPackages': 'AppConfig.v3r149', 'ProcessingPass': 'Reco17', 'Visible': 'Y', 'Usable': 'Yes',
                     'DDDB': 'dddb-20120831', 'CONDDB': 'cond-20120831', 'DQTag': '', 'OptionsFormat': '',
                     'OptionFiles': '$APPCONFIGOPTS/Brunel/DataType-2012.py', 'mcTCK': '', 'ExtraOptions': '',
                     'isMulticore': 'N', 'SystemConfig': '',
@@ -316,13 +285,12 @@ class RootMergeSuccess( ProductionJobTestCase ):
 
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( ProductionJobTestCase )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( Reco14Success ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( Reco17Success ) )
+  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( Reco17Success ) )
   #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RecoSuccessMultiProcessor ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( StrippSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCMergeSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMultStreamsSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMDFSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( SwimmingSuccess ) )
+  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCMergeSuccess ) )
+  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMultStreamsSuccess ) )
+  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMDFSuccess ) )
+  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( SwimmingSuccess ) )
   #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RootMergeSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
