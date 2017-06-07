@@ -1,36 +1,25 @@
-[v8r8-pre10]
+[v8r8]
 use DIRAC v6r17p21
 
+* adding the Output Files Visibility
+* add stepid to the primary key and correct the tests
+* add the file types to the tests
+* add ; as separator
+* allow to change the number of printed LFNs fix check when SEs are specified
 * use the filetypeid insetad of the name
 * user jobs with inputs to all T1s
 * fix error check
-
-[v8r8-pre9]
-use DIRAC v6r17p20
-
 * just added some imports
 * added script to test interaction with DIRAC environment
 * Fix the visibility flag dictionary for MC template - avoid too many try except
 * fileid is used instead of filetype
 * Fix variable in RecoStripping template
 * added script to test interaction with DIRAC environment
-
-[v8r8-pre8]
-use DIRAC v6r17p20
-
 * fix logging when no RAW or Buffer replication is required
 * New plugin ReplicateToRunDestination
 * fix getBKAncestors
-
-[v8r8-pre7]
-use DIRAC v6r17p20
-
 * add jsonc
 * change qt in Qt
-
-[v8r8-pre6]
-use DIRAC v6r17p20
-
 * use Accessible metadata
 * fix returned value for addFilesToTransformation in fake client
 * fix
@@ -38,31 +27,15 @@ use DIRAC v6r17p20
 * add activity information
 * better output
 * allow individual files to be used for trigger rate
-
-[v8r8-pre5]
-use DIRAC v6r17p20
 * change the lcgBundle
 * change name for json file
-
-[v8r8-pre4]
-use DIRAC v6r17p20
 * change the lcgBundle
-
-[v8r8-pre3]
-use DIRAC v6r17p20
-
 * allow to change the step for a given production
 * event type has to be number
 * add visibility flag to the primary key
 * schama changed
-
-[v8r8-pre2]
-use DIRAC v6r17p19
 * use m2crypto
 * use LCG 88
-
-[v8r8-pre1]
-use DIRAC v6r17p19
 * remove fake name
 * Change CMTCONFIG value
 * default json file
@@ -78,9 +51,6 @@ use DIRAC v6r17p19
 * adapting integration tests to new outputVisibilityFlag of steps
 * simple fixes for log and output
 * fixed tests for using outVisibilityFlag
-
-[v8r8-pre0]
-use DIRAC v6r17p19
 * Use LHCbGrid v11r6
 * Fixes according to comments by Federico (see MR https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/merge_requests/306)
 * typo fix
