@@ -33,7 +33,6 @@ from LHCbDIRAC.BookkeepingSystem.Client.test.mock_BookkeepingClient import bkc_m
 
 # sut
 from LHCbDIRAC.Workflow.Modules.AnalyseXMLSummary import AnalyseXMLSummary
-from LHCbDIRAC.Workflow.Modules.AnalyseLogFile import AnalyseLogFile
 from LHCbDIRAC.Workflow.Modules.BookkeepingReport import BookkeepingReport
 from LHCbDIRAC.Workflow.Modules.FailoverRequest import FailoverRequest
 from LHCbDIRAC.Workflow.Modules.RemoveInputData import RemoveInputData
@@ -163,8 +162,6 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
 
     for wf_cs in copy.deepcopy( wf_commons ):
       for s_cs in step_commons:
-        if wf_cs.has_key( 'AnalyseLogFilePreviouslyFinalized' ):
-          continue
         self.assertTrue( axlf.execute( prod_id, prod_job_id, wms_job_id,
                                        workflowStatus, stepStatus,
                                        wf_cs, s_cs,
@@ -245,68 +242,6 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
     res = axlf._basicSuccess()
     self.assertTrue( res )
     self.assertEqual( axlf.fileReport.statusDict, {'aa/1.txt': 'Problematic'} )
-
-
-#############################################################################
-# AnalyseLogFile.py
-#############################################################################
-
-@patch( "LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect = MagicMock() )
-class AnalyseLogFileSuccess( ModulesTestCase ):
-
-  #################################################
-
-  def test_execute( self, _patch ):
-
-    alf = AnalyseLogFile( bkClient = bkc_mock, dm = dm_mock )
-    alf.stepInputData = ['some.sdst', '00012345_00006789_1.sdst']
-    alf.jobType = 'merge'
-    alf.nc = self.nc_mock
-
-    logAnalyser = MagicMock()
-    logAnalyser.return_value = True
-    alf.logAnalyser = logAnalyser
-#    no errors, no input data
-    for wf_cs in copy.deepcopy( wf_commons ):
-      for s_cs in step_commons:
-        self.assertTrue( alf.execute( prod_id, prod_job_id, wms_job_id,
-                                      workflowStatus, stepStatus,
-                                      wf_cs, s_cs,
-                                      step_number, step_id )['OK'] )
-
-
-    alf.jobType = 'reco'
-
-    # logAnalyser gives errors
-    logAnalyser.return_value = False
-    alf.logAnalyser = logAnalyser
-
-    for wf_cs in copy.deepcopy( wf_commons ):
-      for s_cs in copy.deepcopy( step_commons ):
-        if wf_cs.has_key( 'AnalyseLogFilePreviouslyFinalized' ):
-          continue
-        self.assertFalse( alf.execute( prod_id, prod_job_id, wms_job_id,
-                                       workflowStatus, stepStatus,
-                                       wf_cs, s_cs,
-                                       step_number, step_id )['OK'] )
-
-    # there's a core dump
-    logAnalyser.return_value = False
-    alf.logAnalyser = logAnalyser
-    open( 'ErrorLogging_Step1_coredump.log', 'w' ).close()
-    for wf_cs in copy.deepcopy( wf_commons ):
-      for s_cs in step_commons:
-        if not wf_cs.has_key( 'AnalyseLogFilePreviouslyFinalized' ):
-          self.assertFalse( alf.execute( prod_id, prod_job_id, wms_job_id,
-                                         workflowStatus, stepStatus,
-                                         wf_cs, s_cs,
-                                         step_number, step_id )['OK'] )
-        else:
-          self.assertTrue( alf.execute( prod_id, prod_job_id, wms_job_id,
-                                        workflowStatus, stepStatus,
-                                        wf_cs, s_cs,
-                                        step_number, step_id )['OK'] )
-
 
 #############################################################################
 # FailoverRequest.py
