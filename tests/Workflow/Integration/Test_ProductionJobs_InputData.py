@@ -91,8 +91,9 @@ class RecoSuccessMultiProcessor( ProductionJobTestCase ):
 class StrippSuccess( ProductionJobTestCase ):
   def test_Integration_Production( self ):
     # From request 38945 (Stripping24r0p1)
-    lfns = ['/lhcb/data/2015/RAW/FULL/LHCb/COLLISION15/167123/167123_0000000379.raw',
-            '/lhcb/LHCb/Collision15/RDST/00048427/0009/00048427_00090769_1.rdst']
+    lfns = ['/lhcb/LHCb/Collision15/RDST/00048427/0009/00048427_00090769_1.rdst']
+    # ancestor: '/lhcb/data/2015/RAW/FULL/LHCb/COLLISION15/167123/167123_0000000379.raw'
+
     stepsInProd = [{'StepId': 125625, 'StepName': 'Stripping24r0p1-DV-v38r1p4-AppConfig-v3r323', 'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v38r1p4',
                     'ExtraPackages': 'AppConfig.v3r323;SQLDDDB.v7r10', 'ProcessingPass': 'Stripping24r0p1', 'Visible': 'Y', 'Usable': 'Yes',
                     'DDDB': 'dddb-20150724', 'CONDDB': 'cond-20150828', 'DQTag': '', 'OptionsFormat': 'Stripping',
@@ -126,7 +127,8 @@ class StrippSuccess( ProductionJobTestCase ):
                                                                 'RADIATIVE.DST': 'Tier1-BUFFER',
                                                                 'SEMILEPTONIC.DST': 'Tier1-BUFFER'},
                                      0, 100,
-                                     outputMode = 'Run', inputDataPolicy = 'protocol', inputDataList = lfns, events = 500 )
+                                     outputMode = 'Run', inputDataPolicy = 'protocol', inputDataList = lfns, events = 500,
+                                     ancestorDepth = 1 )
     prod.LHCbJob._addParameter( prod.LHCbJob.workflow, 'runNumber', 'JDL', 167123, 'Input run number' )
     prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
     prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
