@@ -36,10 +36,10 @@ def initializeBookkeepingManagerHandler( serviceInfo ):
 
   global reader_
   reader_ = XMLFilesReaderManager()
-  
+
   global __eventTypeCache
   __eventTypeCache = {}
-  
+
   return S_OK()
 
 
@@ -1637,7 +1637,7 @@ class BookkeepingManagerHandler( RequestHandler ):
     """more info in the BookkeepingClient.py"""
 
     gLogger.debug( infos )
-    result = None
+    result = S_OK()
     simcond = infos.get( 'SimulationConditions', None )
     daqdesc = infos.get( 'DataTakingConditions', None )
     production = None
@@ -1649,21 +1649,25 @@ class BookkeepingManagerHandler( RequestHandler ):
       result = S_ERROR( "Missing Steps!" )
     if 'Production' not in infos:
       result = S_ERROR( 'Production is missing!' )
+    if 'EventType' not in infos:
+      result = S_ERROR( "EventType is missing!" )
 
-    if not result:
+    if result['OK']:
       steps = infos['Steps']
       inputProdTotalProcessingPass = ''
       production = infos['Production']
       inputProdTotalProcessingPass = infos.get( 'InputProductionTotalProcessingPass', '' )
-      configName = infos.get("ConfigName")
-      configVersion = infos.get("ConfigVersion")
+      configName = infos.get( "ConfigName" )
+      configVersion = infos.get( "ConfigVersion" )
+      eventType = infos.get( "EventType" )
       result = dataMGMT_.addProduction( production = production,
                                         simcond = simcond,
                                         daq = daqdesc,
                                         steps = steps,
                                         inputproc = inputProdTotalProcessingPass,
                                         configName = configName,
-                                        configVersion = configVersion )
+                                        configVersion = configVersion,
+                                        eventType = eventType )
     return result
 
   #############################################################################
@@ -1714,8 +1718,10 @@ class BookkeepingManagerHandler( RequestHandler ):
     """more info in the BookkeepingClient.py"""
 
     production = in_dict.get( 'Production', default )
+    stepid = in_dict.get( 'StepId', default )
+
     if production != default:
-      return dataMGMT_.getProductionOutputFileTypes( production )
+      return dataMGMT_.getProductionOutputFileTypes( production, stepid )
     else:
       return S_ERROR( 'The Production dictionary key is missing!!!' )
 
@@ -2048,7 +2054,7 @@ class BookkeepingManagerHandler( RequestHandler ):
   def export_getRunConfigurationsAndDataTakingCondition( runnumber ):
     """more info in the BookkeepingClient.py"""
     return dataMGMT_.getRunConfigurationsAndDataTakingCondition( runnumber )
-  
+
   types_deleteCertificationData = []
   def export_deleteCertificationData( self ):
     """more info in the BookkeepingClient.py"""

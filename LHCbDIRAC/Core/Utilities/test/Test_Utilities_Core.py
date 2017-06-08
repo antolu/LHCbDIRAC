@@ -348,7 +348,6 @@ class ProductionDataSuccess( UtilitiesTestCase ):
                                   {'outputDataType': 'dst', 'outputDataSE': 'Tier1_MC_M-DST', 'outputDataName': '00012345_00012345_4.dst'},
                                   {'outputDataType': 'ALLSTREAMS.DST', 'outputBKType': 'ALLSTREAMS.DST',
                                    'outputDataSE': 'Tier1_MC_M-DST', 'outputDataName': '00012345_00012345_5.AllStreams.dst'}],
- #                 'outputDataFileMask': ''
                 }
 
     reslist = [ { 'LogTargetPath': ['/lhcb/certification/test/LOG/00012345/0005/00012345_00054321.tar'],

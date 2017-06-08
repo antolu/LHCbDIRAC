@@ -1,0 +1,71 @@
+{
+  "name": "LHCbDirac",
+  "version": "v8r7p1",
+  "used_projects": {
+    "project": [
+      [ "Dirac", "v6r17p19",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "LHCbGrid", "v11r6",
+        [ "bin", "python", "lib" ]
+      ]
+    ]
+  },
+  "heptools": {
+    "binary_tag": "$CMTCONFIG",
+    "version": "79",
+    "packages": [
+      [ "Python", "2.7.10",
+        [ "bin" ]
+      ],
+      [ "libtool", "2.4.2",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "pygsi", "0.6.3",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "pygraphics", "2.0",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "Qt", "4.8.7",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "gcc", "4.9.3",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "mysql", "5.7.11",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "pyparsing", "2.1.8",
+        [ "bin", "python" ]
+      ],
+      [ "pytools", "2.0",
+        [ "bin", "python" ]
+      ],
+      [ "simplegeneric", "0.8.1",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "wcwidth", "0.1.7",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "prompt_toolkit", "1.0.3",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "pickleshare", "0.7.2",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "pathlib2", "2.1.0",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "backports", "1.0.0",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "pexpect", "4.2.0",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "ipython_genutils", "0.1.0",
+        [ "bin", "python", "lib" ]
+      ]
+    ]
+  }
+}

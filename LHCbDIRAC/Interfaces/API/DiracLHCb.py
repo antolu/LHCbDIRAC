@@ -16,6 +16,7 @@ from DIRAC.Core.Utilities.SiteSEMapping                  import getSEsForSite, g
 from DIRAC.Interfaces.API.Dirac                          import Dirac
 from DIRAC.Interfaces.API.DiracAdmin                     import DiracAdmin
 from DIRAC.ResourceStatusSystem.Client.ResourceStatus    import ResourceStatus
+from DIRAC.ResourceStatusSystem.Utilities.CSHelpers      import getSites, getStorageElements
 
 from LHCbDIRAC.Core.Utilities.File                        import makeGuid
 from LHCbDIRAC.Core.Utilities.ClientTools                 import mergeRootFiles
@@ -66,7 +67,6 @@ class DiracLHCb( Dirac ):
                              'DataQuality'              : 'All',
                              'Visible'                  : 'Yes'}
     self.bk = BookkeepingClient()  # to expose all BK client methods indirectly
-    self.resourceStatus = ResourceStatus()
 
   #############################################################################
   def addRootFile( self, lfn, fullPath, diracSE, printOutput = False ):
@@ -173,9 +173,9 @@ class DiracLHCb( Dirac ):
     result = self.bk.getFileAncestors( lfns, depth, replica = replica )
     if not result['OK']:
       return S_ERROR( 'Could not get ancestors: ' + result['Message'] )
-    ancestors = [x[0]['FileName'] for x in result['Value']['Successful'].values()]
+    ancestors = set( x['FileName'] for ancestors in result['Value']['Successful'].itervalues() for x in ancestors )
 
-    return S_OK( lfns + ancestors )
+    return S_OK( lfns + list( ancestors ) )
 
   #############################################################################
 
@@ -689,7 +689,7 @@ class DiracLHCb( Dirac ):
     elif isinstance( lfns, list ):
       try:
         lfns = [str( lfn.replace( 'LFN:', '' ) ) for lfn in lfns]
-      except Exception as x:
+      except ValueError as x:
         return self._errorReport( str( x ), 'Expected strings for LFNs' )
     else:
       return self._errorReport( 'Expected single string or list of strings for LFN(s)' )
@@ -736,7 +736,7 @@ class DiracLHCb( Dirac ):
     elif isinstance( lfns, list ):
       try:
         lfns = [str( lfn.replace( 'LFN:', '' ) ) for lfn in lfns]
-      except Exception as x:
+      except ValueError as x:
         return self._errorReport( str( x ), 'Expected strings for LFNs' )
     else:
       return self._errorReport( 'Expected single string or list of strings for LFN(s)' )
@@ -755,19 +755,19 @@ class DiracLHCb( Dirac ):
 
   #############################################################################
 
-  def lhcbProxyInit( self, *args ):
+  def lhcbProxyInit( self, *args ):  # pylint: disable=no-self-use
     """ just calling the dirac-proxy-init script
     """
     os.system( "dirac-proxy-init -o LogLevel=NOTICE -t --rfc %s" % "' '".join( args ) )
 
   #############################################################################
 
-  def lhcbProxyInfo( self, *args ):
+  def lhcbProxyInfo( self, *args ):  # pylint: disable=no-self-use
     """ just calling the dirac-proxy-info script
     """
     os.system( "dirac-proxy-info -o LogLevel=NOTICE %s" % "' '".join( args ) )
-
   #############################################################################
+
   def gridWeather( self, printOutput = False ):
     """This method gives a snapshot of the current Grid weather from the perspective
        of the DIRAC site and SE masks.  Tier-1 sites are returned with more detailed
@@ -823,10 +823,14 @@ class DiracLHCb( Dirac ):
       print '========> Tier-1 status in DIRAC site and SE masks'
       for site in sorted( self.tier1s ):
         print '\n====> %s is %s in site mask\n' % ( site, tierInfo[site]['MaskStatus'] )
-        print '%s %s %s' % ( 'Storage Element'.ljust( 25 ), 'Read Status'.rjust( 15 ), 'Write Status'.rjust( 15 ) )
+        print '%s %s %s' % ( 'Storage Element'.ljust( 25 ),
+                             'Read Status'.rjust( 15 ),
+                             'Write Status'.rjust( 15 ) )
         for se in sorted( tierSEs[site] ):
           if se in tierInfo[site]:
-            print '%s %s %s' % ( se.ljust( 25 ), tierInfo[site][se]['ReadStatus'].rjust( 15 ), tierInfo[site][se]['WriteStatus'].rjust( 15 ) )
+            print '%s %s %s' % ( se.ljust( 25 ),
+                                 tierInfo[site][se]['ReadStatus'].rjust( 15 ),
+                                 tierInfo[site][se]['WriteStatus'].rjust( 15 ) )
 
       print '\n========> Tier-2 status in DIRAC site mask\n'
       allowedSites = siteInfo['AllowedSites']
@@ -842,7 +846,7 @@ class DiracLHCb( Dirac ):
     return S_OK( summary )
 
   #############################################################################
-  def checkSites( self, gridType = 'LCG', printOutput = False ):
+  def checkSites( self, printOutput = False ):  # pylint: disable=no-self-use
     """Return the list of sites in the DIRAC site mask and those which are banned.
 
        Example usage:
@@ -858,7 +862,7 @@ class DiracLHCb( Dirac ):
     if not siteMask['OK']:
       return siteMask
 
-    totalList = gConfig.getSections( '/Resources/Sites/%s' % gridType )
+    totalList = getSites()
 
     if not totalList['OK']:
       return S_ERROR( 'Could not get list of sites from CS' )
@@ -880,7 +884,7 @@ class DiracLHCb( Dirac ):
     return S_OK( {'AllowedSites':sites, 'BannedSites':bannedSites} )
 
   #############################################################################
-  def checkSEs( self, printOutput = False ):
+  def checkSEs( self, printOutput = False ):  # pylint: disable=no-self-use
     """Check the status of read and write operations in the DIRAC SE mask.
 
        Example usage:
@@ -892,8 +896,7 @@ class DiracLHCb( Dirac ):
        @type printOutput: boolean
        @return: S_OK,S_ERROR
     """
-    storageCFGBase = '/Resources/StorageElements'
-    res = gConfig.getSections( storageCFGBase, True )
+    res = getStorageElements()
 
     if not res['OK']:
       return S_ERROR( 'Failed to get storage element information' )
@@ -902,18 +905,19 @@ class DiracLHCb( Dirac ):
       print '%s %s %s' % ( 'Storage Element'.ljust( 25 ), 'Read Status'.rjust( 15 ), 'Write Status'.rjust( 15 ) )
 
     seList = sorted( res['Value'] )
-    res = self.resourceStatus.getStorageElementStatus( seList )
-    if not res[ 'OK' ]:
-      gLogger.error( "Failed to get StorageElement status for %s" % str( seList ) )
+    for se in seList:
+      res = ResourceStatus().getStorageElementStatus( se )
+      if not res[ 'OK' ]:
+        gLogger.error( "Failed to get StorageElement status for %s" % se )
 
-    result = {}
-    for k, v in res[ 'Value' ].items():
-      readState = v.get( 'ReadAccess' , 'Active' )
-      writeState = v.get( 'WriteAccess', 'Active' )
+      result = {}
+      for k, val in res[ 'Value' ].iteritems():
+        readState = val.get( 'ReadAccess' , 'Active' )
+        writeState = val.get( 'WriteAccess', 'Active' )
 
-      result[ k ] = { 'ReadStatus' : readState, 'WriteStatus' : writeState }
-      if printOutput:
-        print '%s %s %s' % ( k.ljust( 25 ), readState.rjust( 15 ), writeState.rjust( 15 ) )
+        result[ k ] = { 'ReadStatus' : readState, 'WriteStatus' : writeState }
+        if printOutput:
+          print '%s %s %s' % ( k.ljust( 25 ), readState.rjust( 15 ), writeState.rjust( 15 ) )
 
     return S_OK( result )
 
@@ -943,7 +947,7 @@ class DiracLHCb( Dirac ):
     elif isinstance( lfns, list ):
       try:
         lfns = [str( lfn.replace( 'LFN:', '' ) ) for lfn in lfns]
-      except Exception as x:
+      except TypeError as x:
         return self._errorReport( str( x ), 'Expected strings for LFNs' )
     else:
       return self._errorReport( 'Expected single string or list of strings for LFN(s)' )
@@ -951,7 +955,7 @@ class DiracLHCb( Dirac ):
     if not isinstance( maxSizePerJob, int ):
       try:
         maxSizePerJob = int( maxSizePerJob )
-      except Exception as x:
+      except ValueError as x:
         return self._errorReport( str( x ), 'Expected integer for maxSizePerJob' )
     maxSizePerJob *= 1000 * 1000 * 1000
 

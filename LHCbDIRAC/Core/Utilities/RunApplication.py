@@ -5,7 +5,6 @@ import sys
 import os
 import multiprocessing
 import shlex
-from distutils.version import LooseVersion #pylint: disable=import-error,no-name-in-module
 
 from DIRAC import gConfig, gLogger
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
@@ -69,16 +68,15 @@ class RunApplication(object):
                                                                                 self.applicationVersion,
                                                                                 self.systemConfig ) )
 
+    lbRunOptions = self.opsH.getValue('GaudiExecution/lbRunOptions', '--use-grid')
 
     extraPackagesString, runtimeProjectString, externalsString = self._lbRunCommandOptions()
 
     # "CMT" Config
     # if a CMTConfig is provided, then only that should be called (this should be safeguarded with the following method)
-    # if not, we call --list-configs (waiting for "-c BEST") and then:
-    #   - try only the first that is compatible with the current setup
-    #     (what's in LocalSite/Architecture, and this should be already checked by the method below)
+    # if not, we call "-c best"
     if self.systemConfig.lower() == 'any':
-      self.systemConfig = self._findSystemConfig( self.lhcbEnvironment )
+      self.systemConfig = 'best'
     configString = "-c %s" % self.systemConfig
 
     # App
@@ -92,7 +90,10 @@ class RunApplication(object):
     else:
       command = self.command
 
-    finalCommand = ' '.join( [self.runApp, configString, extraPackagesString, runtimeProjectString, externalsString, app, command] )
+    finalCommand = ' '.join( [self.runApp, lbRunOptions,
+                              configString, extraPackagesString,
+                              runtimeProjectString, externalsString,
+                              app, command] )
 
     # Run it!
     runResult = self._runApp( finalCommand, self.lhcbEnvironment )
@@ -111,35 +112,6 @@ class RunApplication(object):
     self.log.info( "%s execution completed successfully" % self.applicationName )
 
     return runResult
-
-  def _findSystemConfig( self, env = None ):
-    """ Invokes lb-run --list-platform to find the "best" CMT config available
-
-    Args:
-        env (dict): LHCb environment (from LbLogin)
-    """
-    lbRunListConfigs = "lb-run --list-platforms %s/%s" % (self.applicationName, self.applicationVersion)
-    self.log.always( "Calling %s" % lbRunListConfigs )
-
-    res = systemCall( timeout = 0,
-                      cmdSeq = shlex.split( lbRunListConfigs ),
-                      env = env )
-    if not res['OK']:
-      self.log.error( "Problem executing lb-run --list-platforms: %s" % res['Message'] )
-      if env:
-        self.log.error( "LHCb environment used: %s" % env )
-      else:
-        self.log.error( "Environment: %s" % os.environ )
-      raise LbRunError( "Problem executing lb-run --list-platforms" )
-    platforms = res['Value']
-    if platforms[0]:
-      raise LbRunError( "Problem executing lb-run (returned %s)" %platforms )
-    platformsAvailable = platforms[1].split('\n')
-    platformsAvailable = [ plat for plat in platformsAvailable if plat and '-opt' in plat ] #ignoring "debug" platforms
-
-    # FIXME: this won't work with centos7, but we should get a solution from the core software before
-    platformsAvailable.sort( key = LooseVersion, reverse = True )
-    return platformsAvailable[0]
 
   def _lbRunCommandOptions( self ):
     """ Return lb-run command options
@@ -271,11 +243,7 @@ def _multicoreWN():
   tags = fromChar( gConfig.getValue( '/Resources/Sites/%s/%s/CEs/%s/Queues/%s/Tag' % ( siteName.split( '.' )[0], queue,
                                                                                        siteName, gridCE ), '' ) )
 
-  if tags and 'MultiProcessor' in tags:
-    return True
-  else:
-    return False
-
+  return bool(tags and 'MultiProcessor' in tags)
 
 def getLHCbEnvironment():
   """ Run LbLogin and returns the environment created.

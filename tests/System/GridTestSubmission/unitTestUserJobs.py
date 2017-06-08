@@ -133,6 +133,38 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
     self.assert_( res['OK'] )
     jobsSubmittedList.append( res['Value'] )
 
+    res = jobWithSingleInputDataCERN()
+    self.assert_( res['OK'] )
+    jobsSubmittedList.append( res['Value'] )
+
+    res = jobWithSingleInputDataRAL()
+    self.assert_( res['OK'] )
+    jobsSubmittedList.append( res['Value'] )
+
+    res = jobWithSingleInputDataIN2P3()
+    self.assert_( res['OK'] )
+    jobsSubmittedList.append( res['Value'] )
+
+    res = jobWithSingleInputDataGRIDKA()
+    self.assert_( res['OK'] )
+    jobsSubmittedList.append( res['Value'] )
+
+    res = jobWithSingleInputDataRRCKI()
+    self.assert_( res['OK'] )
+    jobsSubmittedList.append( res['Value'] )
+
+    res = jobWithSingleInputDataSARA()
+    self.assert_( res['OK'] )
+    jobsSubmittedList.append( res['Value'] )
+
+    res = jobWithSingleInputDataNIKHEF()
+    self.assert_( res['OK'] )
+    jobsSubmittedList.append( res['Value'] )
+
+    res = jobWithSingleInputDataPIC()
+    self.assert_( res['OK'] )
+    jobsSubmittedList.append( res['Value'] )
+
     res = jobWithInputDataAndAncestor()
     self.assert_( res['OK'] )
     jobsSubmittedList.append( res['Value'] )
@@ -162,6 +194,10 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
     jobsSubmittedList.append( res['Value'] )
 
     res = wrongJob()
+    self.assert_( res['OK'] )
+    jobsSubmittedList.append( res['Value'] )
+
+    res = booleJobWithConf()
     self.assert_( res['OK'] )
     jobsSubmittedList.append( res['Value'] )
 

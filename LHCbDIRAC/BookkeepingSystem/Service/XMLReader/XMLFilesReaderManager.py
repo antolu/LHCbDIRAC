@@ -396,7 +396,8 @@ class XMLFilesReaderManager( object ):
 
     outputFiles = job.getJobOutputFiles()
     prod = job.getParam( 'Production' ).getValue()
-    retVal = self.bkClient_.getProductionOutputFileTypes( prod )
+    stepid = job.getParam( 'StepID' ).getValue()
+    retVal = self.bkClient_.getProductionOutputFileTypes( prod, stepid )
     if not retVal['OK']:
       return retVal
     outputFileTypes = retVal['Value']
@@ -529,7 +530,17 @@ class XMLFilesReaderManager( object ):
 
       if not retVal['OK']:
         return S_ERROR( retVal['Message'] )
+      
       stepid = retVal['Value'][0]
+      
+      #now we have to get the list of eventtypes
+      eventtypes = []
+      for outputFiles in job.getJobOutputFiles():
+        for outPutfileParam in outputFiles.getFileParams(): 
+          outputFileParamName = outPutfileParam.getParamName()
+          if outputFileParamName == "EventType":
+            eventtypes.append( long( outPutfileParam.getParamValue() ) )    
+      
       steps = {'Steps':
                [{'StepId':stepid,
                  'StepName':retVal['Value'][1],
@@ -554,7 +565,8 @@ class XMLFilesReaderManager( object ):
                                           steps = steps['Steps'],
                                           inputproc = '',
                                           configName = config.getConfigName(),
-                                          configVersion = config.getConfigVersion() )
+                                          configVersion = config.getConfigVersion(),
+                                          eventType = eventtypes )
 
       if res['OK']:
         gLogger.info( "New processing pass has been created!" )

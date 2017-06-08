@@ -658,36 +658,64 @@ class PluginUtilities( DIRACPluginUtilities ):
   def getFileAncestors( self, lfns, depth = 10, replica = True ):
     return self.bkClient.getFileAncestors( lfns, depth = depth, replica = replica )
 
-  def checkAncestorsAtSE( self, lfns, okSEs ):
+  def __clearTaskLFNs( self, taskLfns ):
+    """
+    Clear the input list of lists, keeping its reference
+    """
+    nbLfns = 0
+    for lfnList in taskLfns:
+      nbLfns += len( lfnList )
+      del lfnList[:]
+    return nbLfns
+
+  def checkAncestorsAtSE( self, taskLfns, seList ):
     """
     Check if ancestors of a list of files are present at a set of SEs
+
+    :param list taskLfns: list of lfn lists for all tasks
+    :param list seList: list of SEs to consider
+
+    :return int missingAtSEs: number of files that are not at the specified SEs
     """
     # We request also that ancestors are at the fromSEs
+    lfns = [lfn for lfnList in taskLfns for lfn in lfnList]
     nbLfns = len( lfns )
     ancestors = self.getFileAncestors( lfns, depth = 1, replica = True )
     if not ancestors['OK']:
       self.logError( "Error getting ancestors", ancestors['Message'] )
-      return ancestors
+      return self.__clearTaskLFNs( taskLfns )
     ancestors = ancestors['Value']['Successful']
     ancLfns = [anc['FileName'] for ancList in ancestors.itervalues() for anc in ancList]
-    self.logVerbose( 'Checking ancestors presence at %s for %d files' % ( ','.join( okSEs ), len( ancLfns ) ) )
+    self.logVerbose( 'Checking ancestors presence at %s for %d files' % ( ','.join( sorted( seList ) ), len( ancLfns ) ) )
     res = self.dm.getReplicasForJobs( ancLfns, getUrl = False )
     if not res['OK']:
       self.logError( "Error getting replicas of ancestors", res['Message'] )
-      return res
-    success = res['Value']['Successful']
+      # Fake no replicas for all files
+      return self.__clearTaskLFNs( taskLfns )
+    else:
+      success = res['Value']['Successful']
     for lfn, ancList in ancestors.iteritems():
       for anc in ancList:
-        if not okSEs & set( success[anc['FileName']] ):
-          lfns.remove( lfn )
-    missingAtSEs = nbLfns - len( lfns )
+        if not seList & set( success[anc['FileName']] ):
+          # Remove the LFN from the list of lists
+          for lfnList in taskLfns:
+            if lfn in lfnList:
+              lfnList.remove( lfn )
+    missingAtSEs = nbLfns - len( [lfn for lfnList in taskLfns for lfn in lfnList] )
     if missingAtSEs:
-      self.logVerbose( "%d ancestor files found not to be at %s" % ( missingAtSEs, ','.join( okSEs ) ) )
-    return S_OK( missingAtSEs )
+      self.logVerbose( "%d ancestor files found not to be at %s" % ( missingAtSEs, ','.join( sorted( seList ) ) ) )
+    return missingAtSEs
 
   # @timeThis
   def getTransformationRuns( self, runs = None, transID = None ):
-    """ get the run table for a list of runs, if missing, add them """
+    """
+    get the run table for a list of runs, if missing, add them
+
+    :param (list,tuple,dict,set,int,long): iterable with run numbers or single run number
+    :param int transID: transformation ID. If not speficied, use the current ID
+
+    :return S_OK / S_ERROR: value is the list of run dictionaries
+    """
     if transID is None:
       transID = self.transID
     condDict = {'TransformationID':transID}
@@ -1139,7 +1167,7 @@ def getRemovalPlugins():
 def getReplicationPlugins():
   return ( "LHCbDSTBroadcast", "LHCbMCDSTBroadcastRandom",
            "ArchiveDataset", "ReplicateDataset",
-           'RAWReplication',
+           'RAWReplication', "ReplicateToRunDestination",
            'FakeReplication', 'ReplicateToLocalSE', 'ReplicateWithAncestors',
            'Healing' )
 

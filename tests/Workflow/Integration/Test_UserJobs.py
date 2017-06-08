@@ -9,9 +9,6 @@ import copy
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
-from DIRAC.Core.Base.Script import parseCommandLine
-parseCommandLine()
-
 from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
 
 from DIRAC.tests.Utilities.utils import find_all
@@ -27,8 +24,11 @@ class UserJobTestCase( IntegrationTest ):
   def setUp( self ):
     super( UserJobTestCase, self ).setUp()
 
+    print "\n \n ********************************* \n   Running a new test \n *********************************"
+
     self.dLHCb = DiracLHCb()
-    self.exeScriptLocation = find_all( 'exe-script.py', '..', 'Integration' )[0]
+    self.exeScriptLocation = find_all( 'exe-script.py', 'LHCbDIRAC/tests', 'Integration' )[0]
+    self.exeScriptFromDIRACLocation = find_all( 'exe-script-fromDIRAC.py', 'LHCbDIRAC/tests', 'Integration' )[0]
     self.lhcbJobTemplate = LHCbJob()
     self.lhcbJobTemplate.setLogLevel( 'DEBUG' )
     self.lhcbJobTemplate.setInputSandbox( find_all( 'pilot.cfg', '..' )[0] )
@@ -102,6 +102,17 @@ class HelloWorldSuccessOutputWithJobID( UserJobTestCase ):
     self.assertFalse( res['OK'] )
 
     del os.environ['JOBID']
+
+class HelloWorldFromDIRACSuccess( UserJobTestCase ):
+  """ Simple hello world (but using DIRAC gLogger)
+  """
+  def test_Integration_User( self ):
+
+    oJob = copy.deepcopy( self.lhcbJobTemplate )
+    oJob.setName( "helloWorldFROMDIRAC-test" )
+    oJob.setExecutable( self.exeScriptFromDIRACLocation )
+    res = oJob.runLocal( self.dLHCb )
+    self.assertTrue( res['OK'] )
 
 class GaudirunSuccess( UserJobTestCase ):
   def test_Integration_User_mc( self ):

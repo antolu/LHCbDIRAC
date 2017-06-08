@@ -162,6 +162,7 @@ class Production( object ):
         'DDDB': 'head-20110302', 'CONDDB': 'head-20110407', 'DQTag': '',
         'isMulticore': 'N', 'SystemConfig': '', 'mcTCK': '',
         'fileTypesIn': ['SDST'],
+        'visibilityFlag': [{'Visible': 'Y', 'FileType': 'BHADRON.DST'}],
         'fileTypesOut': ['BHADRON.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST']}
 
         Note: this step treated here does not necessarily corresponds to a step of the BKK:
@@ -185,6 +186,7 @@ class Production( object ):
     dqOpt = stepDict['DQTag']
     multicore = stepDict['isMulticore']
     sysConfig = stepDict['SystemConfig']
+    outputVisibility = stepDict['visibilityFlag']
     if sysConfig == 'None' or sysConfig == 'NULL' or not sysConfig or sysConfig is None:
       sysConfig = 'ANY'
     mcTCK = stepDict['mcTCK']
@@ -325,7 +327,8 @@ class Production( object ):
                   'ExtraPackages':extraPackages,
                   'BKStepID':stepID,
                   'StepName':stepName,
-                  'StepVisible':stepVisible}
+                  'StepVisible':stepVisible,
+                  'OutputFileTypes': outputVisibility}
 
     self.bkSteps[stepIDInternal] = stepBKInfo
     self.__addBKPassStep()
@@ -438,7 +441,8 @@ class Production( object ):
     parameters = {}
     info = []
 
-    for parameterName in ( 'Priority', 'CondDBTag', 'DDDBTag', 'DQTag', 'eventType', 'FractionToProcess',
+    for parameterName in ( 'Priority', 'CondDBTag', 'DDDBTag', 'DQTag', 'eventType',
+                           'processingPass', 'FractionToProcess',
                            'MinFilesToProcess', 'configName', 'configVersion',
                            'outputDataFileMask', 'JobType', 'MaxNumberOfTasks' ):
       try:
@@ -510,11 +514,12 @@ class Production( object ):
 
     # BK output directories (very useful)
     bkPaths = []
-    bkOutputPath = '%s/%s/%s/%s/%s' % ( parameters['configName'],
-                                        parameters['configVersion'],
-                                        parameters['BKCondition'],
-                                        parameters['groupDescription'],
-                                        parameters['eventType'] )
+    bkOutputPath = '%s/%s/%s/%s/%s/%s' % ( parameters['configName'],
+                                           parameters['configVersion'],
+                                           parameters['BKCondition'],
+                                           parameters.get('processingPass', ''),
+                                           parameters['groupDescription'],
+                                           parameters['eventType'] )
     fileTypes = parameters['outputDataFileMask']
     fileTypes = [a.upper() for a in fileTypes.split( ';' )]
 
@@ -523,8 +528,8 @@ class Production( object ):
       fileTypes.remove( 'ROOT' )
       fileTypes.append( 'HIST' )
 
-    for f in fileTypes:
-      bkPaths.append( '%s/%s' % ( bkOutputPath, f ) )
+    for ft in fileTypes:
+      bkPaths.append( '%s/%s' % ( bkOutputPath, ft ) )
     parameters['BKPaths'] = bkPaths
     info.append( '\nBK Browsing Paths:\n%s' % ( '\n'.join( bkPaths ) ) )
     infoString = '\n'.join( info )
@@ -672,10 +677,15 @@ class Production( object ):
       if stepID:
         stepName = bkSteps[step]['StepName']
         stepVisible = bkSteps[step]['StepVisible']
-        stepList.append( {'StepId':int( stepID ), 'StepName':stepName, 'Visible':stepVisible} )
+        outputFileTypes = bkSteps[step]['OutputFileTypes']
+        stepList.append( {'StepId':int( stepID ),
+                          'OutputFileTypes':outputFileTypes,
+                          'StepName':stepName,
+                          'Visible':stepVisible} )
 
     # This is the last component necessary for the BK publishing (post reorganisation)
     bkDictStep['Steps'] = stepList
+    bkDictStep['EventType'] = paramsDict['eventType']
 
     bkDictStep['ConfigName'] = self.LHCbJob.workflow.findParameter( 'configName' ).getValue()
     bkDictStep['ConfigVersion'] = self.LHCbJob.workflow.findParameter( 'configVersion' ).getValue()

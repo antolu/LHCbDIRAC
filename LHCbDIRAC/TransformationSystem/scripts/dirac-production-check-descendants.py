@@ -154,53 +154,42 @@ if __name__ == '__main__':
     if cc.inFCNotInBK:
       lfns = cc.inFCNotInBK
       gLogger.always( "%d descendants were found in FC but not in BK" % len( lfns ) )
-      if fixIt:
-        fixIt = False
-        res = cc.bkClient.addFiles( lfns )
-        if not res['OK']:
-          gLogger.always( "Error setting replica flag", res['Message'] )
-        else:
-          gLogger.always( 'Replica flag set successfully' )
-      else:
-        if not fp:
-          fp = open( fileName, 'w' )
-        fp.write( '\nInFCNotInBK '.join( [''] + lfns ) )
-        gLogger.always( 'First %d files:' % nMax if not verbose and len( lfns ) > nMax else 'All files:',
-                       '\n'.join( [''] + lfns[0:nMax] ) )
-        gLogger.always( "Use --FixIt for setting replica flag in BK (or safer grep InFCNotInBK %s | dirac-dms-check-fc2bkk)" % fileName )
+      if not fp:
+        fp = open( fileName, 'w' )
+      fp.write( '\nInFCNotInBK '.join( [''] + lfns ) )
+      gLogger.always( 'First %d files:' % nMax if not verbose and len( lfns ) > nMax else 'All files:',
+                     '\n'.join( [''] + lfns[0:nMax] ) )
+      gLogger.always( "To fix it:   grep InFCNotInBK %s | dirac-dms-check-fc2bkk" % fileName )
 
     if cc.inFailover:
       lfns = cc.inFailover
       gLogger.always( "%d descendants were found in Failover and not in BK" % len( lfns ) )
-      if fixIt:
-        fixIt = False
-        res = cc.bkClient.addFiles( lfns )
-        if not res['OK']:
-          gLogger.always( "Error setting replica flag", res['Message'] )
-        else:
-          gLogger.always( 'Replica flag set successfully' )
-      else:
-        if not fp:
-          fp = open( fileName, 'w' )
-        fp.write( '\nInFailover '.join( [''] + lfns ) )
-        gLogger.always( 'First %d files:' % nMax if not verbose and len( lfns ) > nMax else 'All files:',
-                       '\n'.join( [''] + lfns[0:nMax] ) )
-        gLogger.always( "Use --FixIt for brutally setting replica flag in BK or, better something like..." )
-        gLogger.always( "     grep InFailover %s | dirac-dms-replicate[-lfn|-to-run-destination] --SE <SE-list>)" % fileName )
+      if not fp:
+        fp = open( fileName, 'w' )
+      fp.write( '\nInFailover '.join( [''] + lfns ) )
+      gLogger.always( 'First %d files:' % nMax if not verbose and len( lfns ) > nMax else 'All files:',
+                     '\n'.join( [''] + lfns[0:nMax] ) )
+      gLogger.always( "You should check whether they are in a failover request by looking at their job status and in the RMS..." )
+      gLogger.always( "To list them:     grep InFailover %s" % fileName )
 
     if cc.inBKNotInFC:
       lfns = cc.inBKNotInFC
       gLogger.always( "%d descendants were found in BK but not in FC" % len( lfns ) )
       if not fp:
         fp = open( fileName, 'w' )
-      fp.write( '\InBKNotInFC '.join( [''] + lfns ) )
+      fp.write( '\nInBKNotInFC '.join( [''] + lfns ) )
       gLogger.always( 'First %d files:' % nMax if not verbose and len( lfns ) > nMax else 'All files:',
                      '\n'.join( [''] + lfns[0:nMax] ) )
-      # gLogger.always( "Use --FixIt for removing replica flag in BK (or safer grep InBKNotInFC %s | dirac-dms-check-bkk2fc)" % fileName )
+      gLogger.always( "To try and fix this:    grep InBKNotInFC %s | dirac-dms-check-bkk2fc" % fileName )
 
     if cc.removedFiles:
       from DIRAC.Core.Utilities.List import breakListIntoChunks
-      gLogger.always( "%d input files are processed, have no descendants but are not in the FC" % len( cc.removedFiles ) )
+      gLogger.always( "%d input files are processed, have no descendants but are not in the FC, set them Removed" % len( cc.removedFiles ) )
+      if not fp:
+        fp = open( fileName, 'w' )
+      fp.write( '\nProcNotinFC '.join( [''] + cc.removedFiles ) )
+      gLogger.always( 'First %d files:' % nMax if not verbose and len( cc.removedFiles ) > nMax else 'All files:',
+                     '\n'.join( [''] + cc.removedFiles[0:nMax] ) )
       for lfnChunk in breakListIntoChunks( cc.removedFiles, 1000 ):
         while True:
           res = cc.transClient.setFileStatusForTransformation( cc.prod, 'Removed', lfnChunk, force = True )
@@ -208,7 +197,7 @@ if __name__ == '__main__':
             gLogger.always( 'Error setting files Removed, retry...', res['Message'] )
           else:
             break
-      gLogger.always( "\tFiles set to status Removed" )
+      gLogger.always( "\tFiles successfully set to status Removed" )
 
 
     gLogger.always( "%d unique daughters found with real descendants" % ( len( set( cc.descForPrcdLFNs ).union( cc.descForNonPrcdLFNs ) ) ) )

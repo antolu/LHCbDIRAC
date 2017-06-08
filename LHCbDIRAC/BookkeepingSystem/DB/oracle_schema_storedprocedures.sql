@@ -224,7 +224,7 @@ procedure getFileDesJobId(v_Filename varchar2, a_Cursor out udt_RefCursor);
 procedure getAllMetadata(v_jobid NUMBER, v_prod number, a_Cursor  out udt_RefCursor);
 function getProducedEvents(v_prodid number) return number;
 procedure bulkgetIdsFromFiles(lfns varchararray,  a_Cursor out udt_RefCursor);
-
+PROCEDURE insertProdnOutputFtypes(v_production number, v_stepid number, v_filetypeid number, v_visible char, v_eventtype number);
 end;
 /
 
@@ -2295,5 +2295,17 @@ FOR i in lfns.FIRST .. lfns.LAST LOOP
  END LOOP;
 open a_Cursor for select FILENAME, jobid, fileid, filetypeid from table(lfnmeta);
 END;
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+PROCEDURE insertProdnOutputFtypes(v_production number, v_stepid number, v_filetypeid number, v_visible char, v_eventtype number)IS
+BEGIN
+	INSERT INTO productionoutputfiles(production, stepid, filetypeid, visible, eventtypeid)VALUES(v_production,v_stepid, v_filetypeid, v_visible,v_eventtype);
+	COMMIT;
+EXCEPTION
+  WHEN DUP_VAL_ON_INDEX THEN
+    DBMS_OUTPUT.put_line ('EXISTS:'||v_production||'->'||v_stepid||'->'||v_filetypeid||'->'||v_visible||'->'||v_eventtype);
+    --NOT: If the production is already in the table, we only change the step!!!
+    UPDATE productionoutputfiles SET stepid=v_stepid WHERE production=v_production and filetypeid=v_filetypeid and visible =v_visible and eventtypeid=v_eventtype;
 END;
+
+END; 
 /

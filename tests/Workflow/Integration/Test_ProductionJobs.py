@@ -37,35 +37,41 @@ class MCSuccess( ProductionJobTestCase ):
                     'OptionFiles': '$APPCONFIGOPTS/Gauss/Beam6500GeV-mu100-nu1.6.py;$APPCONFIGOPTS/Gauss/DataType-2015.py;$APPCONFIGOPTS/Gauss/RICHRandomHits.py;$DECFILESROOT/options/30000000.py;$LBPYTHIA8ROOT/options/Pythia8.py;$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py',
                     'isMulticore': 'N', 'SystemConfig': 'x86_64-slc6-gcc48-opt', 'mcTCK': '', 'ExtraOptions': '',
                     'fileTypesIn':[],
-                    'fileTypesOut':['SIM']},
+                    'fileTypesOut':['SIM'],
+                    'visibilityFlag':[{'Visible': 'N', 'FileType': 'SIM'}]},
                    {'StepId': 126995, 'StepName': 'Digi13', 'ApplicationName': 'Boole', 'ApplicationVersion': 'v29r1p1',
                     'ExtraPackages': 'AppConfig.v3r203', 'ProcessingPass': 'Digi13', 'Visible': 'N', 'Usable': 'Yes',
                     'DDDB': 'dddb-20140729', 'CONDDB': 'sim-20140730-vc-mu100', 'DQTag': '', 'OptionsFormat': '',
                     'isMulticore': 'N', 'SystemConfig': '', 'mcTCK': '', 'ExtraOptions': '',
                     'OptionFiles': '$APPCONFIGOPTS/Boole/Default.py;$APPCONFIGOPTS/Boole/DataType-2012.py;$APPCONFIGOPTS/Boole/Boole-SiG4EnergyDeposit.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py',
                     'fileTypesIn':['SIM'],
-                    'fileTypesOut':['DIGI']},
+                    'fileTypesOut':['DIGI'],
+                    'visibilityFlag':[{'Visible': 'N', 'FileType': 'DIGI'}]},
                    {'StepId': 126926, 'StepName': 'L0Trig0x0033', 'ApplicationName': 'Moore', 'ApplicationVersion': 'v22r1p1',
                     'ExtraPackages': 'AppConfig.v3r200', 'ProcessingPass': 'L0Trig0x0033', 'Visible': 'N', 'Usable': 'Yes',
                     'DDDB': 'dddb-20140729', 'CONDDB': 'sim-20140730-vc-mu100', 'DQTag': '', 'OptionsFormat': 'l0App',
                     'isMulticore': 'N', 'SystemConfig': '', 'mcTCK': '', 'ExtraOptions': '',
                     'OptionFiles': '$APPCONFIGOPTS/L0App/L0AppSimProduction.py;$APPCONFIGOPTS/L0App/L0AppTCK-0x0033.py;$APPCONFIGOPTS/L0App/DataType-2012.py',
                     'fileTypesIn':['DIGI'],
-                    'fileTypesOut':['DIGI']},
+                    'fileTypesOut':['DIGI'],
+                    'visibilityFlag':[{'Visible': 'N', 'FileType': 'DIGI'}]},
                    {'StepId': 126927, 'StepName': 'Trig0x40b10033', 'ApplicationName': 'Moore', 'ApplicationVersion': 'v22r1p1',
                     'ExtraPackages': 'AppConfig.v3r201', 'ProcessingPass': 'Trig0x40b10033', 'Visible': 'N', 'Usable': 'Yes',
                     'DDDB': 'dddb-20140729', 'CONDDB': 'sim-20140730-vc-mu100', 'DQTag': '', 'OptionsFormat': '',
                     'OptionFiles': '$APPCONFIGOPTS/Moore/MooreSimProductionForSeparateL0AppStep2015.py;$APPCONFIGOPTS/Conditions/TCK-0x40b10033.py;$APPCONFIGOPTS/Moore/DataType-2012.py',
                     'isMulticore': 'N', 'SystemConfig': '', 'mcTCK': '', 'ExtraOptions': '',
                     'fileTypesIn':['DIGI'],
-                    'fileTypesOut':['DIGI']},
+                    'fileTypesOut':['DIGI'],
+                    'visibilityFlag':[{'Visible': 'N', 'FileType': 'DIGI'}]},
                    {'StepId': 127060, 'StepName': 'Reco15DEV', 'ApplicationName': 'Brunel', 'ApplicationVersion': 'v47r2p1',
                     'ExtraPackages': 'AppConfig.v3r203', 'ProcessingPass': 'Reco15DEV', 'Visible': 'N', 'Usable': 'Yes',
                     'DDDB': 'dddb-20140729', 'CONDDB': 'sim-20140730-vc-mu100', 'DQTag': '', 'OptionsFormat': '',
                     'OptionFiles': '$APPCONFIGOPTS/Brunel/DataType-2015.py;$APPCONFIGOPTS/Brunel/MC-WithTruth.py;$APPCONFIGOPTS/Brunel/ldst.py;$APPCONFIGOPTS/Brunel/patchUpgrade1.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py',
                     'isMulticore': 'N', 'SystemConfig': '', 'mcTCK': '', 'ExtraOptions': '',
                     'fileTypesIn':['DIGI'],
-                    'fileTypesOut':['LDST']}]
+                    'fileTypesOut':['LDST'],
+                    'visibilityFlag':[{'Visible': 'Y', 'FileType': 'LDST'}]},
+                  ]
 
     # First create the production object
     prod = self.pr._buildProduction( prodType = 'MCSimulation', stepsInProd = stepsInProd, outputSE = {'LDST': 'Tier1_MC-DST'},
@@ -91,35 +97,40 @@ class MCSuccessMultiProcessor( ProductionJobTestCase ):
                     'OptionFiles': '$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.py;$DECFILESROOT/options/11102400.py;$LBPYTHIA8ROOT/options/Pythia8.py;$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py',
                     'isMulticore': 'Y', 'SystemConfig': 'x86_64-slc5-gcc43-opt', 'mcTCK': '', 'ExtraOptions': '',
                     'fileTypesIn':[],
-                    'fileTypesOut':['SIM']},
+                    'fileTypesOut':['SIM'],
+                    'visibilityFlag':[{'Visible': 'N', 'FileType': 'SIM'}]},
                    {'StepId': 124620, 'StepName': 'Digi13', 'ApplicationName': 'Boole', 'ApplicationVersion': 'v26r3',
                     'ExtraPackages': 'AppConfig.v3r164', 'ProcessingPass': 'Digi13', 'Visible': 'N', 'Usable': 'Yes',
                     'DDDB': 'Sim08-20130503-1', 'CONDDB': 'Sim08-20130503-1-vc-mu100', 'DQTag': '', 'OptionsFormat': '',
                     'isMulticore': 'Y', 'SystemConfig': 'x86_64-slc5-gcc43-opt', 'mcTCK': '', 'ExtraOptions': '',
                     'OptionFiles': '$APPCONFIGOPTS/Boole/Default.py;$APPCONFIGOPTS/Boole/DataType-2012.py;$APPCONFIGOPTS/Boole/Boole-SiG4EnergyDeposit.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py',
                     'fileTypesIn':['SIM'],
-                    'fileTypesOut':['DIGI']},
+                    'fileTypesOut':['DIGI'],
+                    'visibilityFlag':[{'Visible': 'N', 'FileType': 'DIGI'}]},
                    {'StepId': 124632, 'StepName': 'Trig0x409f0045', 'ApplicationName': 'Moore', 'ApplicationVersion': 'v14r8p1',
                     'ExtraPackages': 'AppConfig.v3r164', 'ProcessingPass': 'Trig0x40760037Flagged', 'Visible': 'N', 'Usable': 'Yes',
                     'DDDB': 'Sim08-20130503-1', 'CONDDB': 'Sim08-20130503-1-vc-mu100', 'DQTag': '', 'OptionsFormat': '',
                     'OptionFiles': '$APPCONFIGOPTS/Moore/MooreSimProductionWithL0Emulation.py;$APPCONFIGOPTS/Conditions/TCK-0x409f0045.py;$APPCONFIGOPTS/Moore/DataType-2012.py;$APPCONFIGOPTS/L0/L0TCK-0x0045.py',
                     'isMulticore': 'Y', 'SystemConfig': 'x86_64-slc5-gcc43-opt', 'mcTCK': '', 'ExtraOptions': '',
                     'fileTypesIn':['DIGI'],
-                    'fileTypesOut':['DIGI']},
+                    'fileTypesOut':['DIGI'],
+                    'visibilityFlag':[{'Visible': 'N', 'FileType': 'DIGI'}]},
                    {'StepId': 124834, 'StepName': 'Reco14a', 'ApplicationName': 'Brunel', 'ApplicationVersion': 'v43r2p7',
                     'ExtraPackages': 'AppConfig.v3r164', 'ProcessingPass': 'Reco14a', 'Visible': 'N', 'Usable': 'Yes',
                     'DDDB': 'Sim08-20130503-1', 'CONDDB': 'Sim08-20130503-1-vc-mu100', 'DQTag': '', 'OptionsFormat': '',
                     'OptionFiles': '$APPCONFIGOPTS/Brunel/DataType-2012.py;$APPCONFIGOPTS/Brunel/MC-WithTruth.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py',
                     'isMulticore': 'Y', 'SystemConfig': 'x86_64-slc5-gcc43-opt', 'mcTCK': '', 'ExtraOptions': '',
                     'fileTypesIn':['DIGI'],
-                    'fileTypesOut':['DST']},
+                    'fileTypesOut':['DST'],
+                    'visibilityFlag':[{'Visible': 'N', 'FileType': 'DST'}]},
                    {'StepId': 124630, 'StepName': 'Stripping20NoPrescalingFlagged', 'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v32r2p1',
                     'ExtraPackages': 'AppConfig.v3r164', 'ProcessingPass': 'Stripping20NoPrescalingFlagged', 'Visible': 'N', 'Usable': 'Yes',
                     'DDDB': 'Sim08-20130503-1', 'CONDDB': 'Sim08-20130503-1-vc-mu100', 'DQTag': '', 'OptionsFormat': '',
                     'OptionFiles': '$APPCONFIGOPTS/DaVinci/DV-Stripping20-Stripping-MC-NoPrescaling.py;$APPCONFIGOPTS/DaVinci/DataType-2012.py;$APPCONFIGOPTS/DaVinci/InputType-DST.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py',
                     'isMulticore': 'Y', 'SystemConfig': 'x86_64-slc5-gcc43-opt', 'mcTCK': '', 'ExtraOptions': '',
                     'fileTypesIn':['DST'],
-                    'fileTypesOut':['ALLSTREAMS.DST']}]
+                    'fileTypesOut':['ALLSTREAMS.DST'],
+                    'visibilityFlag':[{'Visible': 'Y', 'FileType': 'ALLSTREAMS.DST'}]}]
 
     # First create the production object
     prod = self.pr._buildProduction( 'MCSimulation', stepsInProd, {'ALLSTREAMS.DST': 'Tier1_MC-DST'}, 0, 100,
@@ -145,21 +156,24 @@ class MCSuccess_new( ProductionJobTestCase ):
                     'OptionFiles': '$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.py;$DECFILESROOT/options/11102400.py;$LBPYTHIA8ROOT/options/Pythia8.py;$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py',
                     'isMulticore': 'N', 'SystemConfig': 'x86_64-slc5-gcc43-opt', 'mcTCK': '', 'ExtraOptions': '',
                     'fileTypesIn':[],
-                    'fileTypesOut':['SIM']},
+                    'fileTypesOut':['SIM'],
+                    'visibilityFlag':[{'Visible': 'N', 'FileType': 'SIM'}]},
                    {'StepId': 124620, 'StepName': 'Digi13', 'ApplicationName': 'Boole', 'ApplicationVersion': 'v26r3',
                     'ExtraPackages': 'AppConfig.v3r164', 'ProcessingPass': 'Digi13', 'Visible': 'N', 'Usable': 'Yes',
                     'DDDB': 'Sim08-20130503-1', 'CONDDB': 'Sim08-20130503-1-vc-mu100', 'DQTag': '', 'OptionsFormat': '',
                     'OptionFiles': '$APPCONFIGOPTS/Boole/Default.py;$APPCONFIGOPTS/Boole/DataType-2012.py;$APPCONFIGOPTS/Boole/Boole-SiG4EnergyDeposit.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py',
                     'isMulticore': 'N', 'SystemConfig': 'x86_64-slc5-gcc43-opt', 'mcTCK': '', 'ExtraOptions': '',
                     'fileTypesIn':['SIM'],
-                    'fileTypesOut':['DIGI']},
+                    'fileTypesOut':['DIGI'],
+                    'visibilityFlag':[{'Visible': 'N', 'FileType': 'DIGI'}]},
                    {'StepId': 124632, 'StepName': 'Trig0x409f0045', 'ApplicationName': 'Moore', 'ApplicationVersion': 'v14r8p1',
                     'ExtraPackages': 'AppConfig.v3r164', 'ProcessingPass': 'Trig0x40760037Flagged', 'Visible': 'N', 'Usable': 'Yes',
                     'DDDB': 'Sim08-20130503-1', 'CONDDB': 'Sim08-20130503-1-vc-mu100', 'DQTag': '', 'OptionsFormat': '',
                     'OptionFiles': '$APPCONFIGOPTS/Moore/MooreSimProductionWithL0Emulation.py;$APPCONFIGOPTS/Conditions/TCK-0x409f0045.py;$APPCONFIGOPTS/Moore/DataType-2012.py;$APPCONFIGOPTS/L0/L0TCK-0x0045.py',
                     'isMulticore': 'N', 'SystemConfig': 'x86_64-slc5-gcc43-opt', 'mcTCK': '', 'ExtraOptions': '',
                     'fileTypesIn':['DIGI'],
-                    'fileTypesOut':['DIGI']}]
+                    'fileTypesOut':['DIGI'],
+                    'visibilityFlag':[{'Visible': 'Y', 'FileType': 'DIGI'}]}]
 
     # First create the production object
     prod = self.pr._buildProduction( 'MCSimulation', stepsInProd, {'DIGI':'Tier1_MC-DST'}, 0, 100,
@@ -186,14 +200,17 @@ class RecoSuccess( ProductionJobTestCase ):
                     'OptionFiles': '$APPCONFIGOPTS/Brunel/DataType-2012.py', 'mcTCK': '', 'ExtraOptions': '',
                     'isMulticore': 'N', 'SystemConfig': '',
                     'fileTypesIn':['RAW'],
-                    'fileTypesOut':['BRUNELHIST', 'FULL.DST']},
+                    'fileTypesOut':['BRUNELHIST', 'FULL.DST'],
+                    'visibilityFlag':[{'Visible': 'N', 'FileType': 'FULL.DST'},
+                                      {'Visible': 'Y', 'FileType':'BRUNELHIST'}]},
                    {'StepId': 38510, 'StepName': 'DataQuality-FULL', 'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v32r2',
                     'ExtraPackages': 'AppConfig.v3r149', 'ProcessingPass': 'DataQuality-FULL', 'Visible': 'N', 'Usable': 'Yes',
                     'DDDB': 'dddb-20120831', 'CONDDB': 'cond-20120831', 'DQTag': '', 'OptionsFormat': 'DQ',
                     'OptionFiles': '$APPCONFIGOPTS/DaVinci/DVMonitor-RealData.py;$APPCONFIGOPTS/DaVinci/DataType-2012.py;$APPCONFIGOPTS/DaVinci/DaVinci-InputType-SDST.py',
                     'isMulticore': 'N', 'SystemConfig': '', 'mcTCK': '', 'ExtraOptions': '',
                     'fileTypesIn':['FULL.DST'],
-                    'fileTypesOut':['DAVINCIHIST']}]
+                    'fileTypesOut':['DAVINCIHIST'],
+                    'visibilityFlag':[{'Visible': 'Y', 'FileType': 'DAVINCIHIST'}]}]
 
     prod = self.pr._buildProduction( 'Reconstruction', stepsInProd, {'FULL.DST': 'Tier1-BUFFER'}, 0, 100,
                                      outputMode = 'Run', inputDataPolicy = 'protocol', inputDataList = lfns, events = 25 )
@@ -217,7 +234,9 @@ class RecoSuccessMultiProcessor( ProductionJobTestCase ):
                     'OptionFiles': '$APPCONFIGOPTS/Brunel/DataType-2011.py', 'mcTCK': '', 'ExtraOptions': '',
                     'isMulticore': 'Y', 'SystemConfig': '',
                     'fileTypesIn':['RAW'],
-                    'fileTypesOut':['BRUNELHIST', 'FULL.DST']}]
+                    'fileTypesOut':['BRUNELHIST', 'FULL.DST'],
+                    'visibilityFlag':[{'Visible': 'N', 'FileType': 'FULL.DST'},
+                                      {'Visible': 'Y', 'FileType':'BRUNELHIST'}]}]
 
     prod = self.pr._buildProduction( 'Reconstruction', stepsInProd, {'FULL.DST': 'Tier1-BUFFER'}, 0, 100,
                                      outputMode = 'Run', inputDataPolicy = 'protocol', inputDataList = lfns, events = 25 )
@@ -243,7 +262,16 @@ class StrippSuccess( ProductionJobTestCase ):
                     'isMulticore': 'N', 'SystemConfig': 'x86_64-slc5-gcc43-opt', 'mcTCK': '', 'ExtraOptions': '',
                     'fileTypesIn':['FULL.DST'],
                     'fileTypesOut':['BHADRON.MDST', 'BHADRONCOMPLETEEVENT.DST', 'CALIBRATION.DST', 'CHARM.MDST',
-                                    'CHARMCOMPLETEEVENT.DST', 'DIMUON.DST', 'EW.DST', 'LEPTONIC.MDST', 'SEMILEPTONIC.DST']}]
+                                    'CHARMCOMPLETEEVENT.DST', 'DIMUON.DST', 'EW.DST', 'LEPTONIC.MDST', 'SEMILEPTONIC.DST'],
+                    'visibilityFlag':[{'Visible': 'N', 'FileType':'BHADRON.MDST'},
+                                      {'Visible': 'N', 'FileType':'BHADRONCOMPLETEEVENT.DST'},
+                                      {'Visible': 'N', 'FileType':'CALIBRATION.DST'},
+                                      {'Visible': 'N', 'FileType':'CHARM.MDST'},
+                                      {'Visible': 'N', 'FileType':'CHARMCOMPLETEEVENT.DST'},
+                                      {'Visible': 'N', 'FileType':'DIMUON.DST'},
+                                      {'Visible': 'N', 'FileType':'EW.DST'},
+                                      {'Visible': 'N', 'FileType':'LEPTONIC.MDST'},
+                                      {'Visible': 'N', 'FileType':'SEMILEPTONIC.DST'}]}]
 
     prod = self.pr._buildProduction( 'Stripping', stepsInProd, {'BHADRON.MDST': 'Tier1-BUFFER',
                                                                 'BHADRONCOMPLETEEVENT.DST': 'Tier1-BUFFER',
@@ -278,7 +306,8 @@ class MCMergeSuccess( ProductionJobTestCase ):
                     'mcTCK': '', 'ExtraOptions': '',
                     'isMulticore': 'N', 'SystemConfig': 'x86_64-slc6-gcc48-opt',
                     'fileTypesIn':['DST'],
-                    'fileTypesOut':['ALLSTREAMS.DST']}]
+                    'fileTypesOut':['ALLSTREAMS.DST'],
+                    'visibilityFlag':[{'Visible': 'Y', 'FileType': 'ALLSTREAMS.DST'}]}]
 
 
     prod = self.pr._buildProduction( 'Merge', stepsInProd, {'ALLSTREAMS.DST': 'Tier1_MC-DST'}, 0, 100,
@@ -306,7 +335,19 @@ class MergeMultStreamsSuccess( ProductionJobTestCase ):
                                    'LEPTONIC.MDST', 'MINIBIAS.DST', 'PID.MDST', 'RADIATIVE.DST', 'SEMILEPTONIC.DST'],
                     'fileTypesOut':['BHADRON.MDST', 'BHADRONCOMPLETEEVENT.DST', 'CALIBRATION.DST', 'CHARM.MDST',
                                     'CHARMCOMPLETEEVENT.DST', 'CHARMCONTROL.DST', 'DIMUON.DST', 'EW.DST',
-                                    'LEPTONIC.MDST', 'MINIBIAS.DST', 'PID.MDST', 'RADIATIVE.DST', 'SEMILEPTONIC.DST']}]
+                                    'LEPTONIC.MDST', 'MINIBIAS.DST', 'PID.MDST', 'RADIATIVE.DST', 'SEMILEPTONIC.DST'],
+                    'visibilityFlag':[{'Visible': 'N', 'FileType':'BHADRON.MDST'},
+                                      {'Visible': 'N', 'FileType':'BHADRONCOMPLETEEVENT.DST'},
+                                      {'Visible': 'N', 'FileType':'CALIBRATION.DST'},
+                                      {'Visible': 'N', 'FileType':'CHARM.MDST'},
+                                      {'Visible': 'N', 'FileType':'CHARMCONTROL.DST'},
+                                      {'Visible': 'N', 'FileType':'CHARMCOMPLETEEVENT.DST'},
+                                      {'Visible': 'N', 'FileType':'DIMUON.DST'},
+                                      {'Visible': 'N', 'FileType':'EW.DST'},
+                                      {'Visible': 'N', 'FileType':'MINIBIAS.DST'},
+                                      {'Visible': 'N', 'FileType':'PID.MDST'},
+                                      {'Visible': 'N', 'FileType':'RADIATIVE.DST'},
+                                      {'Visible': 'N', 'FileType':'SEMILEPTONIC.DST'}]}                                  ]
 
     prod = self.pr._buildProduction( 'Merge', stepsInProd, {'BHADRON.MDST': 'Tier1-BUFFER',
                                                             'BHADRONCOMPLETEEVENT.DST': 'Tier1-BUFFER',
@@ -341,7 +382,8 @@ class MergeMDFSuccess( ProductionJobTestCase ):
                     'OptionFiles': '', 'SystemConfig': '', 'mcTCK': '', 'ExtraOptions': '',
                     'isMulticore': 'N',
                     'fileTypesIn':['RAW'],
-                    'fileTypesOut':['RAW']}]
+                    'fileTypesOut':['RAW'],
+                    'visibilityFlag':[{'Visible': 'Y', 'FileType': 'RAW'}]}]
     self.pr.modulesList = ['MergeMDF', 'BookkeepingReport']
     prod = self.pr._buildProduction( 'Merge', stepsInProd, {'RAW':'Tier1-BUFFER'}, 0, 100,
                                      inputDataPolicy = 'download', inputDataList = lfns )
@@ -362,7 +404,8 @@ class SwimmingSuccess( ProductionJobTestCase ):
                     'OptionFiles': '$APPCONFIGOPTS/EnableCustomMainLoop.py;$CHARMCONFIGROOT/scripts/SwimTriggerD2KSkk.py',
                     'isMulticore': 'N', 'SystemConfig': 'x86_64-slc5-gcc43-opt', 'mcTCK': '', 'ExtraOptions': '',
                     'fileTypesIn':['CHARMCOMPLETEEVENT.DST'],
-                    'fileTypesOut':['SWIMTRIGGERD02KSKK.DST']},
+                    'fileTypesOut':['SWIMTRIGGERD02KSKK.DST'],
+                    'visibilityFlag':[{'Visible': 'Y', 'FileType': 'SWIMTRIGGERD02KSKK.DST'}]},
                    {'StepId': 125694, 'StepName': 'WG-CharmConfig-Swimming-D02KSKK', 'ApplicationName': 'DaVinci',
                     'ApplicationVersion': 'v29r2p6',
                     'ExtraPackages': 'CharmConfig.v2r21', 'ProcessingPass': 'WG-CharmConfig-Swimming-D02KSKK',
@@ -371,7 +414,8 @@ class SwimmingSuccess( ProductionJobTestCase ):
                     'OptionFiles': '$APPCONFIGOPTS/EnableCustomMainLoop.py;$CHARMCONFIGROOT/scripts/SwimStrippingD2KSkk.py',
                     'isMulticore': 'N', 'SystemConfig': 'x86_64-slc5-gcc43-opt', 'mcTCK': '', 'ExtraOptions': '',
                     'fileTypesIn':['SWIMTRIGGERD02KSKK.DST'],
-                    'fileTypesOut':['SWIMSTRIPPINGD02KSKK.MDST']}]
+                    'fileTypesOut':['SWIMSTRIPPINGD02KSKK.MDST'],
+                    'visibilityFlag':[{'Visible': 'Y', 'FileType': 'SWIMSTRIPPINGD02KSKK.MDST'}]}]
     prod = self.pr._buildProduction( 'Swimming', stepsInProd, {'SWIMTRIGGERD02KSKK.DST':'Tier1-DST',
                                                                'SWIMSTRIPPINGD02KSKK.MDST':'Tier1-DST'}, 0, 100,
                                      inputDataPolicy = 'protocol', inputDataList = lfns, events = 10 )
@@ -395,7 +439,8 @@ class RootMergeSuccess( ProductionJobTestCase ):
                     'mcTCK': '', 'ExtraOptions': '',
                     'isMulticore': 'N', 'SystemConfig': 'x86_64-slc6-gcc48-opt',
                     'fileTypesIn':['BRUNELHIST', 'DAVINCIHIST'],
-                    'fileTypesOut':['ROOT']}]
+                    'fileTypesOut':['ROOT'],
+                    'visibilityFlag':[{'Visible': 'Y', 'FileType': 'ROOT'}]}]
 
 
     prod = self.pr._buildProduction( 'Merge', stepsInProd, {'ROOT': 'CERN-EOS-HIST'}, 0, 100,

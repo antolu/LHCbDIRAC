@@ -4,13 +4,13 @@
 
 __RCSID__ = "$Id$"
 
+import platform
+
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine( ignoreErrors = True )
 
-import sys, platform
-from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getDIRACPlatform
-
 from DIRAC import exit as dExit
+from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getDIRACPlatform
 
 if __name__ == "__main__" :
   dist = platform.linux_distribution()
@@ -33,7 +33,7 @@ if __name__ == "__main__" :
     error = True
   else:
     msg = res['Value'][0]
-    
+
   if error:
     from DIRAC import gConfig
     from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient

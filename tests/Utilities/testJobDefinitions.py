@@ -1,10 +1,9 @@
 """ Collection of user jobs for testing purposes
 """
 
-# pylint: disable=missing-docstring
+# pylint: disable=protected-access, wrong-import-position, invalid-name, missing-docstring, unused-wildcard-import
 
 # imports
-
 import time
 import os
 import errno
@@ -250,6 +249,103 @@ def jobWithSingleInputData():
   return res
 
 @executeWithUserProxy
+def jobWithSingleInputDataCERN():
+
+  job = baseToAllJobs( 'jobWithSingleInputDataCERN', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script-with-input-single-location.py', '.', 'GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script-with-input-single-location.py", "", "exeWithInput.log" )
+  job.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
+  job.setInputDataPolicy( 'protocol' )
+  job.setDestination( ['LCG.CERN.cern'] )
+  res = endOfAllJobs( job )
+  return res
+
+@executeWithUserProxy
+def jobWithSingleInputDataRAL():
+
+  job = baseToAllJobs( 'jobWithSingleInputDataRAL', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script-with-input-single-location.py', '.', 'GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script-with-input-single-location.py", "", "exeWithInput.log" )
+  job.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
+  job.setInputDataPolicy( 'protocol' )
+  job.setDestination( ['LCG.RAL.uk'] )
+  res = endOfAllJobs( job )
+  return res
+
+@executeWithUserProxy
+def jobWithSingleInputDataIN2P3():
+
+  job = baseToAllJobs( 'jobWithSingleInputDataIN2P3', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script-with-input-single-location.py', '.', 'GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script-with-input-single-location.py", "", "exeWithInput.log" )
+  job.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
+  job.setInputDataPolicy( 'protocol' )
+  job.setDestination( ['LCG.IN2P3.fr'] )
+  res = endOfAllJobs( job )
+  return res
+
+@executeWithUserProxy
+def jobWithSingleInputDataRRCKI():
+
+  job = baseToAllJobs( 'jobWithSingleInputDataRRCKI', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script-with-input-single-location.py', '.', 'GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script-with-input-single-location.py", "", "exeWithInput.log" )
+  job.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
+  job.setInputDataPolicy( 'protocol' )
+  job.setDestination( ['LCG.RRCKI.ru'] )
+  res = endOfAllJobs( job )
+  return res
+
+@executeWithUserProxy
+def jobWithSingleInputDataSARA():
+
+  job = baseToAllJobs( 'jobWithSingleInputDataSARA', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script-with-input-single-location.py', '.', 'GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script-with-input-single-location.py", "", "exeWithInput.log" )
+  job.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
+  job.setInputDataPolicy( 'protocol' )
+  job.setDestination( ['LCG.SARA.nl'] )
+  res = endOfAllJobs( job )
+  return res
+
+@executeWithUserProxy
+def jobWithSingleInputDataNIKHEF():
+
+  job = baseToAllJobs( 'jobWithSingleInputDataNIKHEF', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script-with-input-single-location.py', '.', 'GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script-with-input-single-location.py", "", "exeWithInput.log" )
+  job.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
+  job.setInputDataPolicy( 'protocol' )
+  job.setDestination( ['LCG.NIKHEF.nl'] )
+  res = endOfAllJobs( job )
+  return res
+
+@executeWithUserProxy
+def jobWithSingleInputDataPIC():
+
+  job = baseToAllJobs( 'jobWithSingleInputDataPIC', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script-with-input-single-location.py', '.', 'GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script-with-input-single-location.py", "", "exeWithInput.log" )
+  job.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
+  job.setInputDataPolicy( 'protocol' )
+  job.setDestination( ['LCG.PIC.es'] )
+  res = endOfAllJobs( job )
+  return res
+
+@executeWithUserProxy
+def jobWithSingleInputDataGRIDKA():
+
+  job = baseToAllJobs( 'jobWithSingleInputDataGRIDKA', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script-with-input-single-location.py', '.', 'GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script-with-input-single-location.py", "", "exeWithInput.log" )
+  job.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
+  job.setInputDataPolicy( 'protocol' )
+  job.setDestination( ['LCG.GRIDKA.de'] )
+  res = endOfAllJobs( job )
+  return res
+
+
+@executeWithUserProxy
 def jobWithSingleInputDataSpreaded():
 
   job = baseToAllJobs( 'jobWithSingleInputDataSpreaded', jobClass )
@@ -321,6 +417,32 @@ def booleJob():
   res = endOfAllJobs( job )
   return res
 
+@executeWithUserProxy
+def booleJobWithConf():
+
+  job = baseToAllJobs( 'booleJobWithConf', jobClass )
+  job.setInputSandbox( [find_all( 'prodConf_Boole_00012345_00067890_1.py', '.', 'GridTestSubmission' )[0],
+                        find_all( 'rootConfig.cfg', '.', 'GridTestSubmission' )[0] ] )
+  job.setOutputSandbox( '00012345_00067890_1.digi' )
+
+  opts = "$APPCONFIGOPTS/Boole/Default.py;"
+  optDT = "$APPCONFIGOPTS/Boole/DataType-2011.py;"
+  optTCK = "$APPCONFIGOPTS/Boole/Boole-SiG4EnergyDeposit.py;"
+  optComp = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;"
+  optPConf = "prodConf_Boole_00012345_00067890_1.py"
+  options = opts + optDT + optTCK + optComp + optPConf
+
+  job.setApplication( 'Boole', 'v26r3', options,  # pylint: disable=no-member
+                      inputData = '/lhcb/user/f/fstagni/test/12345/12345678/00012345_00067890_1.sim',
+                      extraPackages = 'AppConfig.v3r171;ProdConf.v1r9',
+                      systemConfig = 'x86_64-slc5-gcc43-opt' )
+
+
+  job.setDIRACPlatform()  # pylint: disable=no-member
+  job.setConfigArgs( 'rootConfig.cfg' )
+  job.setCPUTime( 172800 )
+  res = endOfAllJobs( job )
+  return res
 
 @executeWithUserProxy
 def gaudiApplicationScriptJob():
@@ -329,7 +451,7 @@ def gaudiApplicationScriptJob():
   job.setInputSandbox( [find_all( '_input_sandbox_1324_master.tgz', wdir, 'GridTestSubmission' )[0]] \
                      + [find_all( 'runToys.C', wdir, 'GridTestSubmission' )[0]] \
                      + [find_all( 'script_wrapper.py', wdir, 'GridTestSubmission' )[0]] )
-  job.setApplicationScript( 'root', '6.06.02', 'script_wrapper.py',
+  job.setApplicationScript( 'root', '6.06.02', 'script_wrapper.py', # pylint: disable=no-member
                             systemConfig = 'x86_64-slc6-gcc49-opt' )
   job.setOutputSandbox( 'FitResultsToyData*.root' )
   job.setDIRACPlatform()  # pylint: disable=no-member
