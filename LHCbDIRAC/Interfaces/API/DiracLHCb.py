@@ -39,6 +39,22 @@ def getSiteForSE( se ):
     return S_OK( result['Value'][0] )
   return S_OK( '' )
 
+def __translateBKPath( bkPath, procPassID = 3 ):
+  bk = filter( None, bkPath.split( '/' ) )
+  if procPassID < 0:
+    return bk
+  try:
+    bkNodes = bk[0:procPassID]
+    bkNodes.append( '/' + '/'.join( bk[procPassID:-2] ) )
+    bkNodes.append( bk[-2] )
+    bkNodes.append( bk[-1] )
+  except:
+    print "Incorrect BKQuery...\n"
+    bkNodes = None
+  return bkNodes
+
+
+
 class DiracLHCb( Dirac ):
 
   #############################################################################
@@ -92,7 +108,7 @@ class DiracLHCb( Dirac ):
                                              fileGuid = makeGuid( fullPath )[fullPath],
                                              printOutput = printOutput )
 
-  def addFile( self, lfn, fullPath, diracSE, printOutput = False ):
+  def addFile( self, lfn, fullPath, diracSE, printOutput = False ): #pylint: disable=arguments-differ
     """ Copy of addRootFile
     """
     return super( DiracLHCb, self ).addFile( lfn, fullPath, diracSE,
@@ -178,22 +194,6 @@ class DiracLHCb( Dirac ):
     return S_OK( lfns + list( ancestors ) )
 
   #############################################################################
-
-  def __translateBKPath( self, bkPath, procPassID = 3 ):
-    bk = filter( None, bkPath.split( '/' ) )
-    if procPassID < 0:
-      return bk
-    try:
-      bkNodes = bk[0:procPassID]
-      bkNodes.append( '/' + '/'.join( bk[procPassID:-2] ) )
-      bkNodes.append( bk[-2] )
-      bkNodes.append( bk[-1] )
-    except:
-      print "Incorrect BKQuery...\n"
-      bkNodes = None
-    return bkNodes
-
-  #############################################################################
   def bkQueryRunsByDate( self, bkPath, startDate, endDate, dqFlag = 'All', selection = 'Runs' ):
     """ This function allows to create and perform a BK query given a supplied
         BK path. The following BK path convention is expected:
@@ -217,7 +217,8 @@ class DiracLHCb( Dirac ):
        >>> dirac.bkQueryRunsByDate('/LHCb/Collision16//Real Data/90000000/RAW','2016-08-20','2016-08-22',dqFlag='OK',selection='Runs')
        {'OK': True, 'Value': [<LFN1>,<LFN2>]}
 
-      dirac.bkQueryRunsByDate('/LHCb/Collision16/Beam6500GeV-VeloClosed-MagDown/Real Data/Reco16/Stripping26/90000000/EW.DST','2016-08-20','2016-08-22',dqFlag='OK',selection='Runs')
+      dirac.bkQueryRunsByDate('/LHCb/Collision16/Beam6500GeV-VeloClosed-MagDown/Real Data/Reco16/Stripping26/90000000/EW.DST',
+                              '2016-08-20','2016-08-22',dqFlag='OK',selection='Runs')
 
        @param bkPath: BK path as described above
        @type bkPath: string
@@ -232,7 +233,7 @@ class DiracLHCb( Dirac ):
        @return: S_OK,S_ERROR
     """
     runSelection = ['Runs', 'ProcessedRuns', 'NotProcessed']
-    if not selection in runSelection:
+    if selection not in runSelection:
       return S_ERROR( 'Expected one of %s not "%s" for selection' % ( ', '.join( runSelection ), selection ) )
 
     if not isinstance( bkPath, str ):
@@ -332,7 +333,7 @@ class DiracLHCb( Dirac ):
 
     # remove any double slashes, spaces must be preserved
     # remove any empty components from leading and trailing slashes
-    bkPath = self.__translateBKPath( bkPath, procPassID = 1 )
+    bkPath = __translateBKPath( bkPath, procPassID = 1 )
     if not len( bkPath ) == 4:
       return S_ERROR( 'Expected 4 components to the BK path: /<Run Number>/<Processing Pass>/<Event Type>/<File Type>' )
 
@@ -407,7 +408,7 @@ class DiracLHCb( Dirac ):
 
     # remove any double slashes, spaces must be preserved
     # remove any empty components from leading and trailing slashes
-    bkPath = self.__translateBKPath( bkPath, procPassID = 1 )
+    bkPath = __translateBKPath( bkPath, procPassID = 1 )
     if len( bkPath ) < 2:
       return S_ERROR( 'Invalid bkPath: should at least contain /ProductionID/FileType' )
     query = self.bkQueryTemplate.copy()
@@ -465,7 +466,7 @@ class DiracLHCb( Dirac ):
 
     # remove any double slashes, spaces must be preserved
     # remove any empty components from leading and trailing slashes
-    bkPath = self.__translateBKPath( bkPath, procPassID = 3 )
+    bkPath = __translateBKPath( bkPath, procPassID = 3 )
     if not len( bkPath ) == 6:
       return S_ERROR( 'Expected 6 components to the BK path: \
       /<ConfigurationName>/<Configuration Version>/<Sim or Data Taking Condition>/<Processing Pass>/<Event Type>/<File Type>' )
@@ -1050,6 +1051,6 @@ class DiracLHCb( Dirac ):
         ancestorsLFNs = []
         for ancestorsLFN in res['Value']['Successful'].itervalues():
           ancestorsLFNs += [ i['FileName'] for i in ancestorsLFN]
-        inputData += ancestorsLFN
+        inputData += ancestorsLFNs
 
     return inputData
