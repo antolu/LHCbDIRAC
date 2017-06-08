@@ -78,10 +78,10 @@ class SpaceTokenOccupancyCommand( STOC ):
         return resQuery
 
       accountingDict = {
-                        'SpaceToken' : result [ 'Token' ],
-                        'Endpoint'   : result[ 'Endpoint' ],
-                        'Site'       : self.getSiteNameFromEndpoint( result[ 'Endpoint' ] )
-                        }
+          'SpaceToken': result [ 'Token' ],
+          'Endpoint': result[ 'Endpoint' ],
+          'Site': self.getSiteNameFromEndpoint( result[ 'Endpoint' ] )
+          }
 
       result[ 'Used' ] = result[ 'Total' ] - result[ 'Free' ]
 
