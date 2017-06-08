@@ -31,19 +31,6 @@ class RegressionTestCase( IntegrationTest ):
 #   def tearDown( self ):
 #     pass
 
-class MCSuccess( RegressionTestCase ):
-  def test_Regression_Production( self ):
-
-    location40651 = find_all( '40651.xml', '..', 'Regression' )[0]
-    j_mc_40651 = LHCbJob( location40651 )
-    j_mc_40651.setConfigArgs( 'pilot.cfg' )
-
-    res = j_mc_40651.runLocal( self.diracLHCb, self.bkkClient )
-    self.assertTrue( res['OK'] )
-
-#     for found, expected in getOutput( 'MC' ):
-#       self.assertEqual( found, expected )
-
 class MCReconstructionSuccess( RegressionTestCase ):
   def test_Regression_Production( self ):
     location40652 = find_all( '40652.xml', '..', 'Regression' )[0]
@@ -53,8 +40,6 @@ class MCReconstructionSuccess( RegressionTestCase ):
     res = j_mc_40652.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
-#     for found, expected in getOutput( 'MC' ):
-#       self.assertEqual( found, expected )
 
 class RecoSuccess( RegressionTestCase ):
   def test_Regression_Production( self ):
@@ -66,8 +51,6 @@ class RecoSuccess( RegressionTestCase ):
     res = j_reco_46146.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
-#     for found, expected in getOutput( 'Reco' ):
-#       self.assertEqual( found, expected )
 
 class StrippSuccess( RegressionTestCase ):
   def test_Regression_Production( self ):
@@ -79,8 +62,6 @@ class StrippSuccess( RegressionTestCase ):
     res = j_stripp_46403.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
-#     for found, expected in getOutput( 'Stripp' ):
-#       self.assertEqual( found, expected )
 
 class MCMergeSuccess( RegressionTestCase ):
   def test_Regression_Production( self ):
@@ -91,8 +72,6 @@ class MCMergeSuccess( RegressionTestCase ):
     res = j_MCmerge_51753.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
-#     for found, expected in getOutput( 'Merge' ):
-#       self.assertEqual( found, expected )
 
 # FIXME: to update
 class MergeMultStreamsSuccess( RegressionTestCase ):
@@ -104,8 +83,6 @@ class MergeMultStreamsSuccess( RegressionTestCase ):
     res = j_merge_21211.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
-#     for found, expected in getOutput( 'MergeM' ):
-#       self.assertEqual( found, expected )
 
 class MergeMDFSuccess( RegressionTestCase ):
   def test_Regression_Production( self ):
@@ -133,7 +110,6 @@ class SwimmingSuccess( RegressionTestCase ):
 
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( RegressionTestCase )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCReconstructionSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RecoSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( StrippSuccess ) )
