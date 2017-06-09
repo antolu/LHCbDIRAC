@@ -81,7 +81,7 @@ recoIDPolicy = '{{recoIDPolicy#PROD-1:RECO(Stripp): policy for input data access
 recoMulticoreFlag = '{{recoMulticoreFLag#PROD-1: multicore flag#True}}'
 recoAncestorDepth = int( '{{recoAncestorDepth#PROD-1: Ancestor Depth#0}}' )
 recoCompressionLvl = '{{recoCompressionLvl#PROD-1: compression level#Compression-ZLIB-1}}'
-recoOutputVisFlag = '{{recoOutputVisFlag#PROD-1: Visibility flag of output files #Y}}}'
+recoOutputVisFlag = '{{recoOutputVisFlag#PROD-1: Visibility flag of output files #Y}}'
 try:
   recoOutputVisFlagSpecial = ast.literal_eval( '{{recoOutputVisFlagSpecial#PROD-1: Special Visibility flag of output files (dict FType:Y|N )#}}' )
 except SyntaxError:
