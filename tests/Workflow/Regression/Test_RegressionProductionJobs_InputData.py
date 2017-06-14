@@ -33,7 +33,7 @@ class RegressionTestCase( IntegrationTest ):
 
 class MCReconstructionSuccess( RegressionTestCase ):
   def test_Regression_Production( self ):
-    location40652 = find_all( '40652.xml', '..', 'Regression' )[0]
+    location40652 = find_all( '40652.xml', '..', '/LHCbDIRAC/tests/Workflow/Regression' )[0]
     j_mc_40652 = LHCbJob( location40652 )
     j_mc_40652.setConfigArgs( 'pilot.cfg' )
 
@@ -44,7 +44,7 @@ class MCReconstructionSuccess( RegressionTestCase ):
 class RecoSuccess( RegressionTestCase ):
   def test_Regression_Production( self ):
     # Reco from Collision15em
-    location46146 = find_all( '46146.xml', '..', 'Regression' )[0]
+    location46146 = find_all( '46146.xml', '..', '/LHCbDIRAC/tests/Workflow/Regression' )[0]
     j_reco_46146 = LHCbJob( location46146 )
     j_reco_46146.setConfigArgs( 'pilot.cfg' )
 
@@ -55,7 +55,7 @@ class RecoSuccess( RegressionTestCase ):
 class StrippSuccess( RegressionTestCase ):
   def test_Regression_Production( self ):
     # Turbo Stripping Collision15em
-    location46403 = find_all( '46403.xml', '..', 'Regression' )[0]
+    location46403 = find_all( '46403.xml', '..', '/LHCbDIRAC/tests/Workflow/Regression' )[0]
     j_stripp_46403 = LHCbJob( location46403 )
     j_stripp_46403.setConfigArgs( 'pilot.cfg' )
 
@@ -65,7 +65,7 @@ class StrippSuccess( RegressionTestCase ):
 
 class MCMergeSuccess( RegressionTestCase ):
   def test_Regression_Production( self ):
-    location51753 = find_all( '51753.xml', '..', 'Regression' )[0]
+    location51753 = find_all( '51753.xml', '..', '/LHCbDIRAC/tests/Workflow/Regression' )[0]
     j_MCmerge_51753 = LHCbJob( location51753 )
     j_MCmerge_51753.setConfigArgs( 'pilot.cfg' )
 
@@ -76,7 +76,7 @@ class MCMergeSuccess( RegressionTestCase ):
 # FIXME: to update
 class MergeMultStreamsSuccess( RegressionTestCase ):
   def test_Regression_Production( self ):
-    location21211 = find_all( '21211.xml', '..', 'Regression' )[0]
+    location21211 = find_all( '21211.xml', '..', '/LHCbDIRAC/tests/Workflow/Regression' )[0]
     j_merge_21211 = LHCbJob( location21211 )
     j_merge_21211.setConfigArgs( 'pilot.cfg' )
 
@@ -86,7 +86,7 @@ class MergeMultStreamsSuccess( RegressionTestCase ):
 
 class MergeMDFSuccess( RegressionTestCase ):
   def test_Regression_Production( self ):
-    location20657 = find_all( '20657.xml', '..', 'Regression' )[0]
+    location20657 = find_all( '20657.xml', '..', '/LHCbDIRAC/tests/Workflow/Regression' )[0]
     j_mergeMDF_20657 = LHCbJob( location20657 )
     j_mergeMDF_20657.setConfigArgs( 'pilot.cfg' )
 
@@ -96,7 +96,7 @@ class MergeMDFSuccess( RegressionTestCase ):
 # FIXME: to update
 class SwimmingSuccess( RegressionTestCase ):
   def test_Regression_Production( self ):
-    location31057 = find_all( '31057.xml', '..', 'Regression' )[0]
+    location31057 = find_all( '31057.xml', '..', '/LHCbDIRAC/tests/Workflow/Regression' )[0]
     j_swimming_31057 = LHCbJob( location31057 )
     j_swimming_31057.setConfigArgs( 'pilot.cfg' )
 

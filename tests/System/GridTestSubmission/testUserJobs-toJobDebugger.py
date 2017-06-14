@@ -14,7 +14,7 @@ from DIRAC.tests.Utilities.utils import find_all
 
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
-from tests.Workflow.Integration.test_UserJobs import createJob
+#from tests.Workflow.Integration.Test_UserJobs import createJob
 
 gLogger.setLevel( 'VERBOSE' )
 
@@ -45,7 +45,7 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
     helloJ = LHCbJob()
 
     helloJ.setName( "helloWorld-test-CERN" )
-    helloJ.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+    helloJ.setInputSandbox( [find_all( 'exe-script.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
     helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 
     helloJ.setCPUTime( 17800 )
@@ -65,7 +65,7 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
     helloJ = LHCbJob()
 
     helloJ.setName( "helloWorld-test-slc6" )
-    helloJ.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+    helloJ.setInputSandbox( [find_all( 'exe-script.py', '.', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
     helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 
     helloJ.setCPUTime( 17800 )
@@ -86,8 +86,10 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
     helloJ = LHCbJob()
 
     helloJ.setName( "upload-Output-test" )
-    helloJ.setInputSandbox( [find_all( 'testFileUpload.txt', '.', 'GridTestSubmission' )[0]] + [find_all( 'exe-script.py',
-                                                                                                          '.', 'GridTestSubmission' )[0]] )
+    helloJ.setInputSandbox( [find_all( 'testFileUpload.txt', '.',
+                                       '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]]\
+                                        + [find_all( 'exe-script.py', '.',
+                                                     '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
     helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 
     helloJ.setCPUTime( 17800 )

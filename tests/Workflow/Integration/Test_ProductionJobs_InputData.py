@@ -63,7 +63,6 @@ class Reco17Success( ProductionJobTestCase ):
     self.assertTrue( res['OK'] )
 
 
-
 # THIS does NOT work!
 class RecoSuccessMultiProcessor( ProductionJobTestCase ):
   def test_Integration_Production( self ):
@@ -160,6 +159,7 @@ class MCMergeSuccess( ProductionJobTestCase ):
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
+
 class MergeMultStreamsSuccess( ProductionJobTestCase ):
   def test_Integration_Production( self ):
     lfns = ['/lhcb/LHCb/Collision12/LEPTONIC.MDST/00021210/0000/00021210_00002481_1.Leptonic.mdst',
@@ -207,6 +207,7 @@ class MergeMultStreamsSuccess( ProductionJobTestCase ):
     prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
+
 
 class MergeMDFSuccess( ProductionJobTestCase ):
   def test_Integration_Production( self ):
