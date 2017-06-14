@@ -84,9 +84,6 @@ class MCSuccess( ProductionJobTestCase ):
 
     self.assertTrue( res['OK'] )
 
-#     for found, expected in getOutput( 'MC' ):
-#       self.assertEqual( found, expected )
-
 class MCSuccessMultiProcessor( ProductionJobTestCase ):
   def test_Integration_Production( self ):
 
@@ -143,9 +140,6 @@ class MCSuccessMultiProcessor( ProductionJobTestCase ):
 
     self.assertTrue( res['OK'] )
 
-#     for found, expected in getOutput( 'MC' ):
-#       self.assertEqual( found, expected )
-
 class MCSuccess_new( ProductionJobTestCase ):
   def test_Integration_Production( self ):
 
@@ -186,8 +180,6 @@ class MCSuccess_new( ProductionJobTestCase ):
 
     self.assertTrue( res['OK'] )
 
-#     for found, expected in getOutput( 'MC_new' ):
-#       self.assertEqual( found, expected )
 
 
 class RecoSuccess( ProductionJobTestCase ):
@@ -220,8 +212,6 @@ class RecoSuccess( ProductionJobTestCase ):
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
-#     for found, expected in getOutput( 'Reco' ):
-#       self.assertEqual( found, expected )
 
 # THIS does NOT work!
 class RecoSuccessMultiProcessor( ProductionJobTestCase ):
@@ -245,9 +235,6 @@ class RecoSuccessMultiProcessor( ProductionJobTestCase ):
     prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
-
-#     for found, expected in getOutput( 'Reco' ):
-#       self.assertEqual( found, expected )
 
 
 class StrippSuccess( ProductionJobTestCase ):
@@ -290,8 +277,6 @@ class StrippSuccess( ProductionJobTestCase ):
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
-#     for found, expected in getOutput( 'Stripp' ):
-#       self.assertEqual( found, expected )
 
 class MCMergeSuccess( ProductionJobTestCase ):
   def test_Integration_Production( self ):
@@ -317,8 +302,6 @@ class MCMergeSuccess( ProductionJobTestCase ):
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
-#     for found, expected in getOutput( 'Merge' ):
-#       self.assertEqual( found, expected )
 
 class MergeMultStreamsSuccess( ProductionJobTestCase ):
   def test_Integration_Production( self ):
@@ -368,8 +351,6 @@ class MergeMultStreamsSuccess( ProductionJobTestCase ):
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
-#     for found, expected in getOutput( 'MergeM' ):
-#       self.assertEqual( found, expected )
 
 class MergeMDFSuccess( ProductionJobTestCase ):
   def test_Integration_Production( self ):
