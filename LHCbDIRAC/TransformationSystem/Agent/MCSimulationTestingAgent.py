@@ -196,7 +196,7 @@ class MCSimulationTestingAgent ( AgentModule ):
     if not self.email:
       self.email = getUserOption( self.operations.getValue( "Shifter/ProductionManager/User" ), 'Email' )
     body = '\n'.join( report['body'] )
-    res = self.notifyClient.sendMail( self.email, report['subject'], body, self.email )
+    res = self.notifyClient.sendMail( self.email, report['subject'], body, self.email, localAttempt = False, avoidSpam = True )
     if not res['OK']:
       self.log.error( "sendMail failed", res['Message'] )
     else:
