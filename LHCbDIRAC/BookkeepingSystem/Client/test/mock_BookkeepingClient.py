@@ -104,7 +104,7 @@ class BookkeepingClientFake(object):
               'Value' : { 'TotalRecords': 1,
                           'ParameterNames' : ['StepId', 'OptionFiles', 'ExtraOptions', 'SystemConfig', 'mcTCK', 'isMulticore', 'StepName',
                                               'ApplicationName', 'ApplicationVersion', 'Visible', 'Usable', 'ProcessingPass', 'ExtraPackages', 'DDDB', 'CONDDB', 'DQTag'],
-                          'Records': [[ 999, '$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py', '', 'x86_64-slc6-gcc49-opt', '', 'N',
+                          'Records': [[ 999, '$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py', '', 'x86_64-slc5-gcc49-opt', '', 'N',
                                         'Stripping28', 'DaVinci', 'v41r3', 'Yes', 'Yes', 'Stripping28', 'AppConfig.v3r306', 'dddb-20150724', 'cond-20161011', '']]}}
     elif stepID == {'StepId':998}:
       return {'OK': True,
