@@ -6,6 +6,8 @@ MAINTAINER Christophe HAEN <christophe.haen@cern.ch>
 
 RUN mkdir -p /opt/dirac/etc
 
+RUN yum install -y git && yum clean all
+
 # Copy the self pinging script
 COPY dirac_self_ping.py /opt/dirac/
 
