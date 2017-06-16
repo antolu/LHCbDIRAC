@@ -233,7 +233,7 @@ if w1:
   pr.outputModes = ['Run']
   pr.ancestorDepths = [recoAncestorDepth]
   pr.compressionLvl = [recoCompressionLvl] * len( pr.stepsInProds[0] )
-  pr.outputVisFlag = [{"1":recoOutputVisFlag}]
+  pr.outputVisFlag = [{str(i+1):recoOutputVisFlag} for i in xrange(len(pr.stepsInProds[0]))]
   pr.specialOutputVisFlag = [{"1":recoOutputVisFlagSpecial}]
 
 elif w2:
