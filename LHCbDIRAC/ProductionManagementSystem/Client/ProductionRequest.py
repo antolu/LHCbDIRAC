@@ -167,10 +167,10 @@ class ProductionRequest( object ):
             if p.search(value):
               value = p.sub('', value)
 
-	  if ('systemConfig' in stepsListDictItem and re.search( 'slc5', stepsListDictItem['SystemConfig']) ):
-	    p = re.compile(r'\$\w+/Persistency/Compression-[A-Z]{4}-[1-9].py;?')
-            if p.search(value):
-              value = p.sub('', value)
+        if parameter == 'SystemConfig' and re.search( 'slc5', value):
+	  p = re.compile(r'\$\w+/Persistency/Compression-[A-Z]{4}-[1-9].py;?')
+          if p.search(stepsListDictItem['OptionFiles']):
+            stepsListDictItem['OptionFiles'] = p.sub('', stepsListDictItem['OptionFiles'])
 
         stepsListDictItem[parameter] = value # Fixing what decided
 
