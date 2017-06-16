@@ -215,7 +215,7 @@ class BookkeepingClientFake(object):
 
 step125080 = {'StepId': 125080, 'StepName':'Sim08a',
               'ApplicationName':'Gauss', 'ApplicationVersion':'v45r3', 'ExtraOptions': '',
-              'OptionFiles':'$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.py;$DECFILESROOT/options/11102400.py;$LBPYTHIA8ROOT/options/Pythia8.py;$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py',
+              'OptionFiles':'$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.py;$DECFILESROOT/options/11102400.py;$LBPYTHIA8ROOT/options/Pythia8.py;$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;',
               'Usable': 'Yes','Visible':'Y', 'ExtraPackages':'AppConfig.v3r171',
               'ProcessingPass':'Sim08a', 'OptionsFormat':'',
               'prodStepID': "125080['']", 'SystemConfig':'x86_64-slc5-gcc43-opt',

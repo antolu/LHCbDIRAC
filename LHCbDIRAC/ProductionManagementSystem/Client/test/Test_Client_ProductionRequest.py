@@ -258,7 +258,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.outputVisFlag = [{'1':'N'}]
     pr.resolveSteps()
     expected = dict(step125080)
-    expected['OptionFiles'] = '$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.py;$DECFILESROOT/options/11102400.py;$LBPYTHIA8ROOT/options/Pythia8.py;$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py'
+    expected['OptionFiles'] = '$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.py;$DECFILESROOT/options/11102400.py;$LBPYTHIA8ROOT/options/Pythia8.py;$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;'
     self.assertEqual( pr.stepsListDict, [expected] )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
@@ -350,7 +350,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.stepsListDict, [{'StepId': 999, 'StepName':'Stripping28',
                                           'ApplicationName':'DaVinci', 'ApplicationVersion':'v41r3', 'ExtraOptions': '',
                                           #'OptionFiles':'$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py',
-                                          'OptionFiles':'$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py',
+                                          #'OptionFiles':'$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py',
+                                          'OptionFiles':'',
                                           'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc5-gcc49-opt',
                                           'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"999['SDST']",
                                           'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
