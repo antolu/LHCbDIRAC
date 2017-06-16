@@ -1,3 +1,14 @@
+[v8r8p2]
+use DIRAC v6r17p22
+
+* Move the check on SystemConfig at for loop level
+* Fix the RecoStripping template to cope with more than one step
+* avoiding spam emails
+* fix for stupid formats of output directories
+* visibility flag must be not used during the step modification
+* Update tests according to the new compression level specification
+* Set defaults for compression level in templates
+
 [v8r8p1]
 use DIRAC v6r17p21
 

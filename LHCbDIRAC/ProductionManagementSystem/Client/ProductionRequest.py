@@ -107,6 +107,7 @@ class ProductionRequest( object ):
     self.specialOutputSEs = []  # a list of dictionaries - might be empty
     self.outputSEsPerFileType = []  # a list of dictionaries - filled later
     self.ancestorDepths = []
+    self.compDict = {'HIGH': 'Compression-LZMA-4', 'LOW':'Compression-ZLIB-1'}
     self.compressionLvl = [''] # List: one compression level each step
     self.appConfig = '$APPCONFIGOPTS/Persistency/' # Default location of the compression level configuration files
     #
@@ -147,7 +148,8 @@ class ProductionRequest( object ):
           #
           if len(self.compressionLvl) > count and self.compressionLvl[count] != '':
             p = re.compile('Compression-[A-Z]{4}-[1-9]')
-            self.compressionLvl[count] = self.appConfig + self.compressionLvl[count] + '.py'
+            #self.compressionLvl[count] = self.appConfig + self.compressionLvl[count] + '.py'
+            self.compressionLvl[count] = self.appConfig + self.compDict[self.compressionLvl[count].upper()] + '.py'
             if not p.search(value):
               if value == '':
                 value = self.compressionLvl[count]
@@ -164,6 +166,11 @@ class ProductionRequest( object ):
             p = re.compile(r'\$\w+/Persistency/Compression-[A-Z]{4}-[1-9].py;?')
             if p.search(value):
               value = p.sub('', value)
+
+        if parameter == 'SystemConfig' and re.search( 'slc5', value):
+	  p = re.compile(r'\$\w+/Persistency/Compression-[A-Z]{4}-[1-9].py;?')
+          if p.search(stepsListDictItem['OptionFiles']):
+            stepsListDictItem['OptionFiles'] = p.sub('', stepsListDictItem['OptionFiles'])
 
         stepsListDictItem[parameter] = value # Fixing what decided
 

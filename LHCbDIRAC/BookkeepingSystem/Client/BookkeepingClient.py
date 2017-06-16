@@ -30,7 +30,7 @@ class BookkeepingClient( object ):
     if self.rpcClient:
       return self.rpcClient
     else:
-      return RPCClient( 'Bookkeeping/BookkeepingManager', timeout = timeout )
+      return RPCClient( 'Bookkeeping/TestBookkeepingManager', timeout = timeout )
 
   #############################################################################
   def echo( self, string ):
@@ -226,7 +226,7 @@ class BookkeepingClient( object ):
     'ProcessingPass','Production','RunNumber', 'FileType', DataQuality, StartDate, EndDate
     """
     in_dict = dict( in_dict )
-    bkk = TransferClient( 'Bookkeeping/BookkeepingManager' )
+    bkk = TransferClient( 'Bookkeeping/TestBookkeepingManager' )
     params = JEncoder.dumps( in_dict )
     #params = cPickle.dumps( in_dict )
     file_name = tempfile.NamedTemporaryFile()    
@@ -1038,7 +1038,7 @@ class BookkeepingClient( object ):
     It returns a list of files for a given condition.
     """
     in_dict = dict( in_dict )
-    bkk = TransferClient( 'Bookkeeping/BookkeepingManager' )
+    bkk = TransferClient( 'Bookkeeping/TestBookkeepingManager' )
     in_dict['MethodName'] = 'getFiles'
     #params = cPickle.dumps( in_dict )
     params = JEncoder.dumps( in_dict )

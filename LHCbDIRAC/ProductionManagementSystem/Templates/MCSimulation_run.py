@@ -35,13 +35,13 @@ def modifyCompression(dict1, dict2, lis1):
 
   for k,v in dict1.items():
     if v=='Y':
-      lis1[int(k)-1] = 'Compression-LZMA-4'
+      lis1[int(k)-1] = 'HIGH'
 
     else:
       if k in dict2.keys():
         for _,v2 in dict2[k].items():
           if v2=='Y':
-            lis1[int(k)-1] = 'Compression-LZMA-4'
+            lis1[int(k)-1] = 'HIGH'
   return lis1
 
 #
@@ -110,7 +110,7 @@ extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepID:opti
 targets = '{{Target#PROD-1:MC: Target for MC (e.g. Tier2, ALL, LCG.CERN.cern#Tier2}}'
 MCPriority = '{{MCPriority#PROD-1:MC: Production priority#0}}'
 MCmulticoreFlag = '{{MCMulticoreFLag#PROD-1: multicore flag#True}}'
-simulationCompressionLvl = '{{simulationCompressionLvl#PROD-1: Compression level#Compression-ZLIB-1}}'
+simulationCompressionLvl = '{{simulationCompressionLvl#PROD-1: Compression level#LOW}}'
 simulationOutputVisFlag = ast.literal_eval( '{{simulationOutputVisFlag#PROD-1: Simulation visibility flag dictionary (one flag per step {"step":"Y|N"}) # {} }}' )
 try:
   simulationOutputVisFlagSpecial = ast.literal_eval( '{{simulationOutputVisFlagSpecial#PROD-1: Special Visibility flag of output files (a dictionary {"step n":{("FType":flag)}} )#}}' )
@@ -123,7 +123,7 @@ selectionPriority = '{{selectionPriority#PROD-2:Selection: Job Priority e.g. 8 b
 selectionCPU = '{{selectionCPU#PROD-2:Selection: Max CPU time in secs#100000}}'
 removeInputSelection = '{{removeInputSelection#PROD-2:Selection: remove inputs#True}}'
 selmulticoreFlag = '{{selMulticoreFLag#PROD-2:Selection: multicore flag#True}}'
-selectionCompressionLvl = '{{selectionCompressionLvl#PROD-2:Selection: Compression level#Compression-ZLIB-1}}'
+selectionCompressionLvl = '{{selectionCompressionLvl#PROD-2:Selection: Compression level#LOW}}'
 selectionOutputVisFlag = ast.literal_eval( '{{selectionOutputVisFlag#PROD-2: Selection visibility flag dictionary ({"step n": "Y|N"})# {} }}' )
 try:
   selectionOutputVisFlagSpecial = ast.literal_eval( '{{selectionOutputVisFlagSpecial#PROD-2: Special Visibility flag of output files (a dictionary {"step n":{"FType":flag}} )#}}' )
@@ -137,7 +137,7 @@ mergingCPU = '{{mergingCPU#PROD-3:Merging: Max CPU time in secs#100000}}'
 removeInputMerge = '{{removeInputMerge#PROD-3:Merging: remove inputs#True}}'
 mergemulticoreFlag = '{{mergeMulticoreFLag#PROD-3:Merging: multicore flag#True}}'
 
-mergeCompressionLvl = '{{mergeCompressionLvl#PROD-3:Merging: Compression level#Compression-LZMA-4}}'
+mergeCompressionLvl = '{{mergeCompressionLvl#PROD-3:Merging: Compression level#HIGH}}'
 mergeOutputVisFlag = ast.literal_eval( '{{mergeOutputVisFlag#PROD-3: Merge visibility flag dictionary ({"step":"Y|N"}) # {} }}')
 try:
   mergeOutputVisFlagSpecial = ast.literal_eval( '{{mergeOutputVisFlagSpecial#PROD-3: Special Visibility flag of output files (a dictionary {"step n":{"FType":flag}} )#}}' )

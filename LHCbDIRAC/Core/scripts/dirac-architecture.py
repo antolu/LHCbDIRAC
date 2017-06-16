@@ -49,7 +49,8 @@ if __name__ == "__main__" :
 
     for mA in mailAddress.replace( ' ', '' ).split( ',' ):
       NotificationClient().sendMail( mailAddress, "Problem with DIRAC architecture",
-                                     body, 'federico.stagni@cern.ch', localAttempt = False )
+                                     body, 'federico.stagni@cern.ch', localAttempt = False,
+                                     avoidSpam = True )
     print msg
     dExit( 1 )
 
