@@ -226,8 +226,8 @@ a quick test to validate the installation is to run the SHELL script $LHCBRELEAS
 
 go to this `web page <https://jenkins-lhcb-nightlies.web.cern.ch/job/nightly-builds/job/release/build/>`_ for asking to install the client release in AFS and CVMFS:
 
-* in the field "Project list" put : "Dirac vNrMpK LHCbDirac vArBpC"  (NOTE: If LHCbGRID is already released, please use only DIRAC and LHCbDIRAC: DIRAC vNrMpK LHCbDirac vArBpC)
-* in the field "platforms" put : "x86_64-slc6-gcc48-opt x86_64-slc6-gcc49-opt"
+* in the field "Project list" put : "Dirac vNrMpK LHCbGrid vArB LHCbDirac vArBpC"  (NOTE: LHCbGrid version can be found: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/blob/master/dist-tools/projectConfig.json)
+* in the field "platforms" put : "x86_64-slc6-gcc48-opt x86_64-slc6-gcc49-opt x86_64-slc6-gcc62-opt x86_64-centos7-gcc62-opt"
 
 Then click on the "BUILD" button
 
@@ -240,7 +240,7 @@ take note of the build id (you can use the direct link icon) and make the reques
 
 * NOTE: If some package is already released, please do not indicate in the Jira task. For example: a Jira task when:
     * DIRAC is not released, then the message in the JIRA task: Summary:Dirac v6r14p37 and LHCbDirac v8r2p50; Description: Please release  Dirac and  LHCbDirac in  this order  based on build 1526; Please you must deploy only x86_64-slc6-gcc49-opt platform
-    * DIRAC is released, then the message in the JIRA task: Summary:LHCbDirac v8r2p50;  Description: Please release  LHCbDirac based on build 1526; Please you must deploy only x86_64-slc6-gcc49-opt platform
+    * DIRAC is released, then the message in the JIRA task: Summary:LHCbDirac v8r2p50;  Description: Please release  LHCbDirac based on build 1526; 
 
 
 Server
