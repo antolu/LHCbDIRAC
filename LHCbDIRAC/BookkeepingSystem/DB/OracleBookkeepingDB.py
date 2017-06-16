@@ -675,9 +675,8 @@ class OracleBookkeepingDB( object ):
               ftypes = sorted( ftypes, key = lambda k: k['FileType'] )
               for j in ftypes:
                 filetype = j.get( 'FileType', default )
-                visible = j.get( 'Visible', default )
-                if filetype != default and visible != default:
-                  values += "ftype('%s','%s')," % ( filetype.strip(), visible.strip() )
+                if filetype != default:
+                  values += "ftype('%s','')," % filetype.strip() 
               values = values[:-1]
               values += ')'
               command += i + '=' + values + ','
