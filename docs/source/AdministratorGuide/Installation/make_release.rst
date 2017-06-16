@@ -49,6 +49,7 @@ Verify what is the last tag of DIRAC::
   # it should be in this list:
   git describe --tags $(git rev-list --tags --max-count=10)
 
+
 A tarball containing it is should be already
 uploaded `here <http://lhcbproject.web.cern.ch/lhcbproject/dist/Dirac_project/installSource/>`_
 
@@ -69,6 +70,7 @@ If there are no MRs, or none ready: please skip to the "update the CHANGELOG" su
 Otherwise, simply click the "Accept merge request" button for each of them.
 
 Then, from the LHCbDIRAC local fork you need to update some files::
+
 
   # if you start from scratch otherwise skip the first 2 commands
   mkdir $(date +20%y%m%d) && cd $(date +20%y%m%d)
@@ -94,7 +96,9 @@ Then, from the LHCbDIRAC local fork you need to update some files::
   vim dist-tools/projectConfig.json
   git add -A && git commit -av -m "<YourNewTag>"
 
+
 Time to tag and push::
+
 
   # make the tag
   git tag -a <YourNewTag> -m <YourNewTag>
@@ -313,16 +317,15 @@ When the compilation is finished::
     runsvctrl t startup/Framework_SystemAdministrator/
 
 
-````
 TODO
 ````
+
 When the machines are updated, then you have to go through all the components and check the errors. There are two possibilities:
    1. Use the Web portal (SystemAdministrator)
 
    2. Command line::
 
     for h in $(grep 'set host' vobox_update_* | awk {'print $NF'}); do echo "show errors" | dirac-admin-sysadmin-cli -H $h; done | less
-
 
 Pilot
 `````
@@ -361,15 +364,16 @@ In order to push a new version on the Mesos cluster, 3 steps are needed:
 - Push it the lhcbdirac gitlab repository
 - Update the version of the running containers
 
+
 Automatic procedure
-^^^^^^^^^^^^^^^^^^^
+````````````````````
 
 The first two steps should be automatically done by the gitlab-ci of the LHCbDIRAC repository.
 The last step will be taken care of by the gitlab-ci of the MesosClusterConf repository (https://gitlab.cern.ch/lhcb-dirac/MesosClusterConf)
 For a simple version upgrade, edit directly on the gitlab web page the file clusterConfiguration.json and replace the "version" attribute with what you want. Of course add a meaningful commit message.
 
 Manual procedure
-^^^^^^^^^^^^^^^^
+````````````````
 
 This should in principle not happen. Remember that any manual change of the mesos cluster will be erased next time the gitlab-ci of the MesosClusterConf repository will run.
 However, you can do all the above step manually.
@@ -391,3 +395,6 @@ The next steps are the following::
     # The services and number of instances running
     # will be preserved
     dirac-docker-mgmt.py -v v8r5 --deploy
+
+
+
