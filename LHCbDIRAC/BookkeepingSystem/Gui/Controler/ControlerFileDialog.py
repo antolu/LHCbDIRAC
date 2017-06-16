@@ -8,6 +8,8 @@ Controller of the File Dialog window
 
 __RCSID__ = "$Id$"
 
+import webbrowser
+
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 
@@ -400,8 +402,9 @@ class ControlerFileDialog(ControlerAbstract):
     if action == 'error':
       self.getWidget().showError(feedback['message'])
     elif action == 'showLog':
-      controlers = self.getChildren()
-      controlers['LogFileWidget'].messageFromParent(feedback)
+      fileName = feedback['fileName']
+      webbrowser.open( "http://lhcb-logs.cern.ch/storage%s" % fileName )
+
 
   #############################################################################
   def advancedSave(self):
