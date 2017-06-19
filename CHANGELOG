@@ -1,6 +1,9 @@
 [v8r8p2]
 use DIRAC v6r17p22
 
+ˇ* remove the qtweb and use the default browser insteed
+* add all platforms to the documentation
+* correct the document format
 * Move the check on SystemConfig at for loop level
 * Fix the RecoStripping template to cope with more than one step
 * avoiding spam emails
