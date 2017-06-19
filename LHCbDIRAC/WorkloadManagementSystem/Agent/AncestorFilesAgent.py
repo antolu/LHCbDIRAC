@@ -1,9 +1,6 @@
 """   The LHCb AncestorFilesAgent queries the Bookkeeping catalogue for ancestor
       files if the JDL parameter AncestorDepth is specified.  The ancestor files
       are subsequently added to the existing input data requirement of the job.
-
-      Initially the Ancestor Files Agent uses the previous Bookkeeping
-      'genCatalog' utility but this will be updated in due course.
 """
 
 import time
