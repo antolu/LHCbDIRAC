@@ -49,7 +49,7 @@ def __translateBKPath( bkPath, procPassID = 3 ):
     bkNodes.append( bk[-2] )
     bkNodes.append( bk[-1] )
   except:
-    print "Incorrect BKQuery...\n"
+    gLogger.error("Incorrect BKQuery")
     bkNodes = None
   return bkNodes
 
