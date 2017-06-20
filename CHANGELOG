@@ -1,3 +1,26 @@
+[v8r9-pre1]
+use DIRAC v6r18p1
+
+* gLogger instead of print
+* fixing location finder
+* add lbvobox110,201 and 27 hosts
+* Docker:allow to specify alternative repository to checkout the code when running
+* final removal of AnalyseLogFile
+* split regression tests
+* using ancestor
+* minor fixes
+* just pylint
+* added eventType
+* added missing file type
+* removed Reco14
+* split of prod tests in MC and data, and updated data
+* added switched for custom commands and options
+* fix runLocal for ancestors
+* Deleted spaces
+* Removed spaces
+* Changed column order
+* Moved RMS db to sqlalchemy
+
 [v8r8p2]
 use DIRAC v6r17p22
 
