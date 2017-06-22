@@ -97,6 +97,7 @@ class DiracLHCb( Dirac ):
                                              printOutput = printOutput )
 
   #############################################################################
+  #FIXME: Unused?
   def rootMergeRepository( self, outputFileName, inputFileMask = '*.root',
                            location = 'Sandbox', requestedStates = ['Done'] ):
     """ Create a merged ROOT file using root files retrived in the sandbox or output data
@@ -898,9 +899,10 @@ class DiracLHCb( Dirac ):
       print '%s %s %s' % ( 'Storage Element'.ljust( 25 ), 'Read Status'.rjust( 15 ), 'Write Status'.rjust( 15 ) )
 
     seList = sorted( res['Value'] )
-    res = self.resourceStatus.getStorageElementStatus( seList )
-    if not res[ 'OK' ]:
-      gLogger.error( "Failed to get StorageElement status for %s" % str( seList ) )
+    for se in seList:
+      res = ResourceStatus().getElementStatus( se, 'StorageElement' )
+      if not res['OK']:
+        gLogger.error( "Failed to get StorageElement status for %s" % se )
 
     result = {}
     for k, v in res[ 'Value' ].items():
