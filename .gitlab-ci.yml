@@ -1,0 +1,66 @@
+# This gitlab ci tests, deploys and build the docker images
+# It performs some operations with an account.
+# Its credentials are stored as secret variable KRB_PASSWORD and KRB_USERNAME
+stages:
+   # Run all the tests
+  - test
+  # Release the software on AFS
+  - release
+  # Build the docker
+  - release_docker
+
+
+# This creates and deploy the tarball on AFS
+# It is triggered with a tag only
+create_tarball:
+  before_script:
+    # Fetch a Kerberos token
+    - echo "${KRB_PASSWORD}" | kinit ${KRB_USERNAME}@CERN.CH
+    # Get the group_login to be able to use lb-run
+    - source /cvmfs/lhcb.cern.ch/group_login.sh
+    # Configure ssh to use kerberos
+    - mkdir /root/.ssh
+    - echo -e  "PreferredAuthentications=gssapi-with-mic\nStrictHostKeyChecking=no\nHost lxplus*\n\tForwardX11Trusted yes\n\tGSSAPITrustDns yes\n\tGSSAPIDelegateCredentials yes\n\tGSSAPIAuthentication yes\n" > /root/.ssh/config
+    # Configure git to use kerberos
+    - git config --global http.emptyAuth true
+  stage: release
+  tags:
+    # We need a runner with CVMFS
+    - cvmfs
+  only:
+    - tags
+  script:
+
+    # Get the releases.cfg from the devel branch
+    - curl -L https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/raw/devel/LHCbDIRAC/releases.cfg > releases.cfg
+    # This is how it was originaly retrieved....
+    #- git archive --remote  ${CI_PROJECT_DIR} origin/devel LHCbDIRAC/releases.cfg  | tar -x -v -f - --transform 's|^LHCbDIRAC/||' LHCbDIRAC/releases.cfg
+    # use the kerberos gitlab auth rather than ssh
+    - sed 's/ssh:\/\/git@gitlab.cern.ch:7999/https:\/\/:@gitlab.cern.ch:8443/g' -i releases.cfg
+    # Create the release tarball
+    # The last line output by the script is the command to run in order to deploy
+    - lb-run LHCbDIRAC/prod dirac-distribution -r ${CI_COMMIT_TAG} -l LHCb -C file:///$(pwd)/releases.cfg | tail -n 1  > /tmp/deploy.sh
+    # Use the proper user
+    - sed "s/lhcbprod/${KRB_USERNAME}/g" -i /tmp/deploy.sh
+   #  # FIXME: this is the wrong path, but is used as a test
+   #  - sed 's/\/afs\/cern.ch\/lhcb\/distribution\/LHCbDirac_project/\/afs\/cern.ch\/user\/l\/lbmesos/g' -i /tmp/deploy.sh
+    # There are not html and pdf file, so the script returns a non 0 code, despite working fine
+    - sed 's/\*.pdf \*.html//g' -i /tmp/deploy.sh
+    - cat /tmp/deploy.sh
+    # Execute the deployment
+    - source /tmp/deploy.sh
+
+
+
+# When we have a git tag, after creating the tarball, create the docker image
+build_docker_image:
+  tags:
+    - docker-image-build
+  stage: release_docker
+  only:
+    - tags
+  # This needs to be there for gitlab
+  script: echo ""
+  variables:
+    TO: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}
+    CONTEXT_DIR: ${CI_PROJECT_DIR}/container/lhcbdirac/

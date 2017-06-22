@@ -119,7 +119,7 @@ class ModuleBase( object ):
     self.siteName = None
     self.stepName = None
     self.stepInputData = None
-    self.XMLSummary = None
+    self.XMLSummary = '' # name of the file, not the object
     self.stepProcPass = None
     self.outputFilePrefix = None
 
@@ -136,6 +136,8 @@ class ModuleBase( object ):
 
     if version:
       self.log.info( '===== Executing ' + version + ' ===== ' )
+
+    self.log.verbose( "Executing directory for job is %s" % os.getcwd() )
 
     if production_id:
       self.production_id = production_id
@@ -370,9 +372,13 @@ class ModuleBase( object ):
 
     if 'extraPackages' in self.step_commons:
       self.extraPackages = self.step_commons['extraPackages']
-      if not self.extraPackages == '':
-        if not isinstance( self.extraPackages, list ):
-          self.extraPackages = self.extraPackages.split( ';' )
+      if self.extraPackages:
+        if isinstance( self.extraPackages, basestring ):
+          eps = self.extraPackages.split( ';' ) #pylint: disable=no-member
+          epList = []
+          for ep in eps:
+            epList.append(tuple(ep.split('.')))
+          self.extraPackages = epList
 
     stepInputData = []
     if 'inputData' in self.step_commons:
@@ -397,6 +403,9 @@ class ModuleBase( object ):
     self.condDBTag = self.step_commons.get( 'CondDBTag', self.condDBTag )
 
     self.dqTag = self.step_commons.get( 'DQTag', self.dqTag )
+
+    # This is resolved also in __resolveInputWorkflow but can be specialized per step (e.g. LHCbJob().setApplication())
+    self.numberOfEvents = int( self.step_commons.get( 'numberOfEvents', self.numberOfEvents ) )
 
   #############################################################################
 

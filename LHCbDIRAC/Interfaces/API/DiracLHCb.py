@@ -16,10 +16,14 @@ from DIRAC.Core.Utilities.SiteSEMapping                  import getSEsForSite, g
 from DIRAC.Interfaces.API.Dirac                          import Dirac
 from DIRAC.Interfaces.API.DiracAdmin                     import DiracAdmin
 from DIRAC.ResourceStatusSystem.Client.ResourceStatus    import ResourceStatus
+from DIRAC.ResourceStatusSystem.Utilities.CSHelpers      import getSites, getStorageElements
 
 from LHCbDIRAC.Core.Utilities.File                        import makeGuid
 from LHCbDIRAC.Core.Utilities.ClientTools                 import mergeRootFiles
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
+from LHCbDIRAC.DataManagementSystem.Client.DMScript       import printDMResult
+from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import getAccessURL
 
 __RCSID__ = "$Id$"
 
@@ -34,6 +38,22 @@ def getSiteForSE( se ):
   if result['Value']:
     return S_OK( result['Value'][0] )
   return S_OK( '' )
+
+def __translateBKPath( bkPath, procPassID = 3 ):
+  bk = filter( None, bkPath.split( '/' ) )
+  if procPassID < 0:
+    return bk
+  try:
+    bkNodes = bk[0:procPassID]
+    bkNodes.append( '/' + '/'.join( bk[procPassID:-2] ) )
+    bkNodes.append( bk[-2] )
+    bkNodes.append( bk[-1] )
+  except:
+    gLogger.error("Incorrect BKQuery")
+    bkNodes = None
+  return bkNodes
+
+
 
 class DiracLHCb( Dirac ):
 
@@ -88,7 +108,7 @@ class DiracLHCb( Dirac ):
                                              fileGuid = makeGuid( fullPath )[fullPath],
                                              printOutput = printOutput )
 
-  def addFile( self, lfn, fullPath, diracSE, printOutput = False ):
+  def addFile( self, lfn, fullPath, diracSE, printOutput = False ): #pylint: disable=arguments-differ
     """ Copy of addRootFile
     """
     return super( DiracLHCb, self ).addFile( lfn, fullPath, diracSE,
@@ -145,7 +165,7 @@ class DiracLHCb( Dirac ):
           return self._errorReport( "Location of .root should be 'Sandbox' or 'OutputFiles'." )
 
     # Perform the root merger
-    res = mergeRootFiles( outputFileName, inputFiles, daVinciVersion = '' )
+    res = mergeRootFiles( outputFileName, inputFiles )
     if not res['OK']:
       return self._errorReport( res['Message'], "Failed to perform final ROOT merger" )
     return S_OK()
@@ -170,36 +190,20 @@ class DiracLHCb( Dirac ):
     result = self.bk.getFileAncestors( lfns, depth, replica = replica )
     if not result['OK']:
       return S_ERROR( 'Could not get ancestors: ' + result['Message'] )
-    ancestors = [x[0]['FileName'] for x in result['Value']['Successful'].values()]
+    ancestors = set( x['FileName'] for ancestors in result['Value']['Successful'].itervalues() for x in ancestors )
 
-    return S_OK( lfns + ancestors )
-
-  #############################################################################
-
-  def __translateBKPath( self, bkPath, procPassID = 3 ):
-    bk = filter( None, bkPath.split( '/' ) )
-    if procPassID < 0:
-      return bk
-    try:
-      bkNodes = bk[0:procPassID]
-      bkNodes.append( '/' + '/'.join( bk[procPassID:-2] ) )
-      bkNodes.append( bk[-2] )
-      bkNodes.append( bk[-1] )
-    except:
-      self.log.notice("Incorrect BKQuery...\n")
-      bkNodes = None
-    return bkNodes
+    return S_OK( lfns + list( ancestors ) )
 
   #############################################################################
   def bkQueryRunsByDate( self, bkPath, startDate, endDate, dqFlag = 'All', selection = 'Runs' ):
     """ This function allows to create and perform a BK query given a supplied
         BK path. The following BK path convention is expected:
 
-        /<ConfigurationName>/<Configuration Version>/<Processing Pass>/<Event Type>/<File Type>
+        /<ConfigurationName>/<Configuration Version>/<Condition Description><Processing Pass>/<Event Type>/<File Type>
 
-        so an example for 2010 collisions data would be:
+        so an example for 2016 collisions data would be:
 
-        /LHCb/Collision09/Real Data + RecoToDST-07/90000000/DST
+        /LHCb/Collision09//LHCb/Collision16/Beam6500GeV-VeloClosed-MagDown/Real Data/Reco16/Stripping26/90000000/EW.DST
 
         The startDate and endDate must be specified as yyyy-mm-dd.
 
@@ -211,8 +215,11 @@ class DiracLHCb( Dirac ):
 
        Example Usage:
 
-       >>> dirac.bkQueryRunsByDate('/LHCb/Collision10/Real Data/90000000/RAW','2010-05-18','2010-05-20',dqFlag='EXPRESS_OK',selection='ProcessedRuns')
+       >>> dirac.bkQueryRunsByDate('/LHCb/Collision16//Real Data/90000000/RAW','2016-08-20','2016-08-22',dqFlag='OK',selection='Runs')
        {'OK': True, 'Value': [<LFN1>,<LFN2>]}
+
+      dirac.bkQueryRunsByDate('/LHCb/Collision16/Beam6500GeV-VeloClosed-MagDown/Real Data/Reco16/Stripping26/90000000/EW.DST',
+                              '2016-08-20','2016-08-22',dqFlag='OK',selection='Runs')
 
        @param bkPath: BK path as described above
        @type bkPath: string
@@ -227,7 +234,7 @@ class DiracLHCb( Dirac ):
        @return: S_OK,S_ERROR
     """
     runSelection = ['Runs', 'ProcessedRuns', 'NotProcessed']
-    if not selection in runSelection:
+    if selection not in runSelection:
       return S_ERROR( 'Expected one of %s not "%s" for selection' % ( ', '.join( runSelection ), selection ) )
 
     if not isinstance( bkPath, str ):
@@ -235,9 +242,9 @@ class DiracLHCb( Dirac ):
 
     # remove any double slashes, spaces must be preserved
     # remove any empty components from leading and trailing slashes
-    bkPath = self.__translateBKPath( bkPath, procPassID = 2 )
-    if not len( bkPath ) == 5:
-      return S_ERROR( 'Expected 5 components to the BK path: /<ConfigurationName>/<Configuration Version>/<Processing Pass>/<Event Type>/<File Type>' )
+    bkQuery = BKQuery().buildBKQuery( bkPath )
+    if not bkQuery:
+      return S_ERROR( 'Please provide a BK path: /<ConfigurationName>/<Configuration Version>/<Condition Description>/<Processing Pass>/<Event Type>/<File Type>' )
 
     if not startDate or not endDate:
       return S_ERROR( 'Expected both start and end dates to be defined in format: yyyy-mm-dd' )
@@ -266,29 +273,28 @@ class DiracLHCb( Dirac ):
     runs = result['Value'][selection]
     self.log.info( 'Found the following %s runs:\n%s' % ( len( runs ), ', '.join( [str( i ) for i in runs] ) ) )
     # temporary until we can query for a discrete list of runs
-
     selectedData = []
     for run in runs:
-      query = self.bkQueryTemplate.copy()
+      query = bkQuery.copy()
       query['StartRun'] = run
       query['EndRun'] = run
-      query['ConfigName'] = bkPath[0]
-      query['ConfigVersion'] = bkPath[1]
-      query['ProcessingPass'] = bkPath[2]
-      query['EventType'] = bkPath[3]
-      query['FileType'] = bkPath[4]
+      query['CheckRunStatus'] = True if selection in ['ProcessedRuns', 'NotProcessed'] else False
       if dqFlag:
         check = self.__checkDQFlags( dqFlag )
         if not check['OK']:
           return check
         dqFlag = check['Value']
         query['DataQuality'] = dqFlag
-      result = self.bkQuery( query )
+      start = time.time()
+      result = self.bk.getVisibleFilesWithMetadata( query )
+      rtime = time.time() - start
+      self.log.info( 'BK query time: %.2f sec' % rtime )
       self.log.verbose( result )
       if not result['OK']:
         return result
       self.log.info( 'Selected %s files for run %s' % ( len( result['Value'] ), run ) )
-      selectedData += result['Value']
+      if result['Value']['LFNs']:
+        selectedData += result['Value']['LFNs'].keys()
 
     self.log.info( 'Total files selected = %s' % ( len( selectedData ) ) )
     return S_OK( selectedData )
@@ -328,7 +334,7 @@ class DiracLHCb( Dirac ):
 
     # remove any double slashes, spaces must be preserved
     # remove any empty components from leading and trailing slashes
-    bkPath = self.__translateBKPath( bkPath, procPassID = 1 )
+    bkPath = __translateBKPath( bkPath, procPassID = 1 )
     if not len( bkPath ) == 4:
       return S_ERROR( 'Expected 4 components to the BK path: /<Run Number>/<Processing Pass>/<Event Type>/<File Type>' )
 
@@ -403,7 +409,7 @@ class DiracLHCb( Dirac ):
 
     # remove any double slashes, spaces must be preserved
     # remove any empty components from leading and trailing slashes
-    bkPath = self.__translateBKPath( bkPath, procPassID = 1 )
+    bkPath = __translateBKPath( bkPath, procPassID = 1 )
     if len( bkPath ) < 2:
       return S_ERROR( 'Invalid bkPath: should at least contain /ProductionID/FileType' )
     query = self.bkQueryTemplate.copy()
@@ -461,7 +467,7 @@ class DiracLHCb( Dirac ):
 
     # remove any double slashes, spaces must be preserved
     # remove any empty components from leading and trailing slashes
-    bkPath = self.__translateBKPath( bkPath, procPassID = 3 )
+    bkPath = __translateBKPath( bkPath, procPassID = 3 )
     if not len( bkPath ) == 6:
       return S_ERROR( 'Expected 6 components to the BK path: \
       /<ConfigurationName>/<Configuration Version>/<Sim or Data Taking Condition>/<Processing Pass>/<Event Type>/<File Type>' )
@@ -685,7 +691,7 @@ class DiracLHCb( Dirac ):
     elif isinstance( lfns, list ):
       try:
         lfns = [str( lfn.replace( 'LFN:', '' ) ) for lfn in lfns]
-      except Exception as x:
+      except ValueError as x:
         return self._errorReport( str( x ), 'Expected strings for LFNs' )
     else:
       return self._errorReport( 'Expected single string or list of strings for LFN(s)' )
@@ -732,7 +738,7 @@ class DiracLHCb( Dirac ):
     elif isinstance( lfns, list ):
       try:
         lfns = [str( lfn.replace( 'LFN:', '' ) ) for lfn in lfns]
-      except Exception as x:
+      except ValueError as x:
         return self._errorReport( str( x ), 'Expected strings for LFNs' )
     else:
       return self._errorReport( 'Expected single string or list of strings for LFN(s)' )
@@ -751,19 +757,19 @@ class DiracLHCb( Dirac ):
 
   #############################################################################
 
-  def lhcbProxyInit( self, *args ):
+  def lhcbProxyInit( self, *args ):  # pylint: disable=no-self-use
     """ just calling the dirac-proxy-init script
     """
     os.system( "dirac-proxy-init -o LogLevel=NOTICE -t --rfc %s" % "' '".join( args ) )
 
   #############################################################################
 
-  def lhcbProxyInfo( self, *args ):
+  def lhcbProxyInfo( self, *args ):  # pylint: disable=no-self-use
     """ just calling the dirac-proxy-info script
     """
     os.system( "dirac-proxy-info -o LogLevel=NOTICE %s" % "' '".join( args ) )
-
   #############################################################################
+
   def gridWeather( self, printOutput = False ):
     """This method gives a snapshot of the current Grid weather from the perspective
        of the DIRAC site and SE masks.  Tier-1 sites are returned with more detailed
@@ -841,7 +847,7 @@ class DiracLHCb( Dirac ):
     return S_OK( summary )
 
   #############################################################################
-  def checkSites( self, gridType = 'LCG', printOutput = False ):
+  def checkSites( self, printOutput = False ):  # pylint: disable=no-self-use
     """Return the list of sites in the DIRAC site mask and those which are banned.
 
        Example usage:
@@ -857,7 +863,7 @@ class DiracLHCb( Dirac ):
     if not siteMask['OK']:
       return siteMask
 
-    totalList = gConfig.getSections( '/Resources/Sites/%s' % gridType )
+    totalList = getSites()
 
     if not totalList['OK']:
       return S_ERROR( 'Could not get list of sites from CS' )
@@ -879,7 +885,7 @@ class DiracLHCb( Dirac ):
     return S_OK( {'AllowedSites':sites, 'BannedSites':bannedSites} )
 
   #############################################################################
-  def checkSEs( self, printOutput = False ):
+  def checkSEs( self, printOutput = False ):  # pylint: disable=no-self-use
     """Check the status of read and write operations in the DIRAC SE mask.
 
        Example usage:
@@ -941,7 +947,7 @@ class DiracLHCb( Dirac ):
     elif isinstance( lfns, list ):
       try:
         lfns = [str( lfn.replace( 'LFN:', '' ) ) for lfn in lfns]
-      except Exception as x:
+      except TypeError as x:
         return self._errorReport( str( x ), 'Expected strings for LFNs' )
     else:
       return self._errorReport( 'Expected single string or list of strings for LFN(s)' )
@@ -949,7 +955,7 @@ class DiracLHCb( Dirac ):
     if not isinstance( maxSizePerJob, int ):
       try:
         maxSizePerJob = int( maxSizePerJob )
-      except Exception as x:
+      except ValueError as x:
         return self._errorReport( str( x ), 'Expected integer for maxSizePerJob' )
     maxSizePerJob *= 1000 * 1000 * 1000
 
@@ -997,3 +1003,53 @@ class DiracLHCb( Dirac ):
     if printOutput:
       self.log.notice(self.pPrint.pformat( lfnGroups ))
     return S_OK( lfnGroups )
+
+    #############################################################################
+
+  def getAccessURL( self, lfn, storageElement, protocol = None, printOutput = False ):
+    """Allows to retrieve an access URL for an LFN replica given a valid DIRAC SE
+       name.  Contacts the file catalog and contacts the site SRM endpoint behind
+       the scenes.
+
+       Example Usage:
+
+       >>> print dirac.getAccessURL('/lhcb/data/CCRC08/DST/00000151/0000/00000151_00004848_2.dst','CERN-RAW')
+       {'OK': True, 'Value': {'Successful': {'srm://...': {'SRM2': 'rfio://...'}}, 'Failed': {}}}
+
+       :param lfn: Logical File Name (LFN)
+       :type lfn: str or python:list
+       :param storageElement: DIRAC SE name e.g. CERN-RAW
+       :type storageElement: string
+       :param printOutput: Optional flag to print result
+       :type printOutput: boolean
+       :returns: S_OK,S_ERROR
+    """
+    ret = self._checkFileArgument( lfn, 'LFN' )
+    if not ret['OK']:
+      return ret
+    lfn = ret['Value']
+    if isinstance( lfn, basestring ):
+      lfn = [lfn]
+    results = getAccessURL( lfn, storageElement, protocol = protocol )
+    if printOutput:
+      printDMResult( results, empty = "File not at SE", script = "dirac-dms-lfn-accessURL" )
+    return results
+
+  #############################################################################
+
+  def _getLocalInputData(self, parameters):
+    """ LHCb extension of DIRAC API's _getLocalInputData. Only used for handling ancestors.
+    """
+    inputData = parameters.get( 'InputData' )
+    if inputData:
+      ancestorsDepth = parameters.get('AncestorDepth', 0)
+      if ancestorsDepth:
+        res = self.bk.getFileAncestors( inputData, ancestorsDepth )
+        if not res['OK']:
+          return S_ERROR( "Can't get ancestors: %s" % res['Message'] )
+        ancestorsLFNs = []
+        for ancestorsLFN in res['Value']['Successful'].itervalues():
+          ancestorsLFNs += [ i['FileName'] for i in ancestorsLFN]
+        inputData += ancestorsLFNs
+
+    return inputData

@@ -4,6 +4,7 @@
 
 import unittest
 import os
+import copy
 
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
@@ -23,24 +24,40 @@ class UserJobTestCase( IntegrationTest ):
   def setUp( self ):
     super( UserJobTestCase, self ).setUp()
 
+    print "\n \n ********************************* \n   Running a new test \n *********************************"
+
     self.dLHCb = DiracLHCb()
-    self.exeScriptLocation = find_all( 'exe-script.py', '..', 'Integration' )[0]
-    self.lhcbJob = LHCbJob()
-    self.lhcbJob.setLogLevel( 'DEBUG' )
-    self.lhcbJob.setInputSandbox( find_all( 'pilot.cfg', '..' )[0] )
-    self.lhcbJob.setConfigArgs( 'pilot.cfg' )
+    self.exeScriptLocation = find_all( 'exe-script.py', '../..', '/LHCbDIRAC/tests/Workflow' )[0]
+    self.exeScriptFromDIRACLocation = find_all( 'exe-script-fromDIRAC.py', '../..', '/LHCbDIRAC/tests/Workflow' )[0]
+    self.lhcbJobTemplate = LHCbJob()
+    self.lhcbJobTemplate.setLogLevel( 'DEBUG' )
+    self.lhcbJobTemplate.setInputSandbox( find_all( 'pilot.cfg', '..' )[0] )
+    self.lhcbJobTemplate.setConfigArgs( 'pilot.cfg' )
 
   def tearDown( self ):
-    del self.lhcbJob
+    del self.lhcbJobTemplate
 
 class HelloWorldSuccess( UserJobTestCase ):
   """ Simple hello world
   """
   def test_Integration_User( self ):
 
-    self.lhcbJob.setName( "helloWorld-test" )
-    self.lhcbJob.setExecutable( self.exeScriptLocation )
-    res = self.lhcbJob.runLocal( self.dLHCb )
+    oJob = copy.deepcopy( self.lhcbJobTemplate )
+    oJob.setName( "helloWorld-test" )
+    oJob.setExecutable( self.exeScriptLocation )
+    res = oJob.runLocal( self.dLHCb )
+    self.assertTrue( res['OK'] )
+
+class HelloWorldSuccessPlus( UserJobTestCase ):
+  """ Hello world with few more parameters
+  """
+  def test_Integration_User( self ):
+
+    oJob = copy.deepcopy( self.lhcbJobTemplate )
+    oJob.setName( "helloWorldPlus-test" )
+    oJob.setExecutable( self.exeScriptLocation,
+                        arguments = 'tout le monde!', logFile = 'outputFile.txt', systemConfig = 'x86_64-slc6-gcc48' )
+    res = oJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )
 
 class HelloWorldSuccessWithJobID( UserJobTestCase ):
@@ -50,9 +67,10 @@ class HelloWorldSuccessWithJobID( UserJobTestCase ):
 
     os.environ['JOBID'] = '12345'
 
-    self.lhcbJob.setName( "helloWorld-test" )
-    self.lhcbJob.setExecutable( self.exeScriptLocation )
-    res = self.lhcbJob.runLocal( self.dLHCb )
+    oJob = copy.deepcopy( self.lhcbJobTemplate )
+    oJob.setName( "helloWorld-test" )
+    oJob.setExecutable( self.exeScriptLocation )
+    res = oJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )  # There's nothing to upload, so it will complete happily
 
     del os.environ['JOBID']
@@ -62,10 +80,11 @@ class HelloWorldSuccessOutput( UserJobTestCase ):
   """
   def test_Integration_User( self ):
 
-    self.lhcbJob.setName( "helloWorld-test" )
-    self.lhcbJob.setExecutable( self.exeScriptLocation )
-    self.lhcbJob.setOutputData( "applicationLog.txt" )
-    res = self.lhcbJob.runLocal( self.dLHCb )
+    oJob = copy.deepcopy( self.lhcbJobTemplate )
+    oJob.setName( "helloWorld-test" )
+    oJob.setExecutable( self.exeScriptLocation )
+    oJob.setOutputData( "applicationLog.txt" )
+    res = oJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )
 
 class HelloWorldSuccessOutputWithJobID( UserJobTestCase ):
@@ -75,22 +94,35 @@ class HelloWorldSuccessOutputWithJobID( UserJobTestCase ):
 
     os.environ['JOBID'] = '12345'
 
-    self.lhcbJob.setName( "helloWorld-test" )
-    self.lhcbJob.setExecutable( self.exeScriptLocation )
-    self.lhcbJob.setOutputData( "applicationLog.txt" )
-    res = self.lhcbJob.runLocal( self.dLHCb )  # Can't upload, so it will fail
+    oJob = copy.deepcopy( self.lhcbJobTemplate )
+    oJob.setName( "helloWorld-test" )
+    oJob.setExecutable( self.exeScriptLocation )
+    oJob.setOutputData( "applicationLog.txt" )
+    res = oJob.runLocal( self.dLHCb )  # Can't upload, so it will fail
     self.assertFalse( res['OK'] )
 
     del os.environ['JOBID']
+
+class HelloWorldFromDIRACSuccess( UserJobTestCase ):
+  """ Simple hello world (but using DIRAC gLogger)
+  """
+  def test_Integration_User( self ):
+
+    oJob = copy.deepcopy( self.lhcbJobTemplate )
+    oJob.setName( "helloWorldFROMDIRAC-test" )
+    oJob.setExecutable( self.exeScriptFromDIRACLocation )
+    res = oJob.runLocal( self.dLHCb )
+    self.assertTrue( res['OK'] )
 
 class GaudirunSuccess( UserJobTestCase ):
   def test_Integration_User_mc( self ):
     """ A MC production job, run as a user job
     """
 
-    self.lhcbJob.setName( "gaudirun-test" )
-    self.lhcbJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '..', 'Integration' )[0],
-                                   find_all( 'pilot.cfg', '.' )[0]] )
+    oJob = copy.deepcopy( self.lhcbJobTemplate )
+    oJob.setName( "gaudirun-test" )
+    oJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '../..', '/LHCbDIRAC/tests/Workflow/Integration' )[0],
+                           find_all( 'pilot.cfg', '.' )[0]] )
 
     optGauss = "$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.py;"
     optDec = "$DECFILESROOT/options/11102400.py;"
@@ -100,12 +132,12 @@ class GaudirunSuccess( UserJobTestCase ):
     optPConf = "prodConf_Gauss_00012345_00067890_1.py"
     options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
 
-    self.lhcbJob.setApplication( 'Gauss', 'v45r3', options,
-                                 extraPackages = 'AppConfig.v3r171;ProdConf.v1r9',
-                                 events = '3' )
-    self.lhcbJob.setDIRACPlatform()
+    oJob.setApplication( 'Gauss', 'v45r3', options,
+                         extraPackages = 'AppConfig.v3r171;ProdConf.v1r9',
+                         events = '3' )
+    oJob.setDIRACPlatform()
 
-    res = self.lhcbJob.runLocal( self.dLHCb )
+    res = oJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )
 
   def test_Integration_User_boole( self ):
@@ -115,9 +147,10 @@ class GaudirunSuccess( UserJobTestCase ):
     # get a shifter proxy
     setupShifterProxyInEnv( 'ProductionManager' )
 
-    self.lhcbJob.setName( "gaudirun-test-inputs" )
-    self.lhcbJob.setInputSandbox( [find_all( 'prodConf_Boole_00012345_00067890_1.py', '..', 'Integration' )[0],
-                                   find_all( 'pilot.cfg', '.' )[0]] )
+    oJob = copy.deepcopy( self.lhcbJobTemplate )
+    oJob.setName( "gaudirun-test-inputs" )
+    oJob.setInputSandbox( [find_all( 'prodConf_Boole_00012345_00067890_1.py', '../..', '/LHCbDIRAC/tests/Workflow/Integration' )[0],
+                           find_all( 'pilot.cfg', '.' )[0]] )
 
     opts = "$APPCONFIGOPTS/Boole/Default.py;"
     optDT = "$APPCONFIGOPTS/Boole/DataType-2012.py;"
@@ -126,12 +159,12 @@ class GaudirunSuccess( UserJobTestCase ):
     optPConf = "prodConf_Boole_00012345_00067890_1.py"
     options = opts + optDT + optTCK + optComp + optPConf
 
-    self.lhcbJob.setApplication( 'Boole', 'v24r0', options,
-                                 inputData = '/lhcb/user/f/fstagni/test/12345/12345678/00012345_00067890_1.sim',
-                                 extraPackages = 'AppConfig.v3r155;ProdConf.v1r9' )
+    oJob.setApplication( 'Boole', 'v24r0', options,
+                         inputData = '/lhcb/user/f/fstagni/test/12345/12345678/00012345_00067890_1.sim',
+                         extraPackages = 'AppConfig.v3r155;ProdConf.v1r9' )
 
-    self.lhcbJob.setDIRACPlatform()
-    res = self.lhcbJob.runLocal( self.dLHCb )
+    oJob.setDIRACPlatform()
+    res = oJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )
 
 # class GaudiScriptSuccess( UserJobTestCase ):
@@ -141,8 +174,8 @@ class GaudirunSuccess( UserJobTestCase ):
 #     lhcbJob = LHCbJob()
 #
 #     lhcbJob.setName( "gaudiScript-test" )
-#     script = find_all( 'gaudi-script.py', '.', 'Integration' )[0]
-#     pConfFile = find_all( 'prodConf_Gauss_00012345_00067890_1.py', '.', 'Integration' )[0]
+#     script = find_all( 'gaudi-script.py', '.', '/LHCbDIRAC/tests/WorkflowIntegration' )[0]
+#     pConfFile = find_all( 'prodConf_Gauss_00012345_00067890_1.py', '..', '/LHCbDIRAC/tests/Workflow/Integration' )[0]
 #     lhcbJob.setInputSandbox( [pConfFile, script] )
 #
 #     lhcbJob.setApplicationScript( 'Gauss', 'v45r3', script,
@@ -182,12 +215,15 @@ def createJob( local = True ):
 
   gaudirunJob.setName( "gaudirun-Gauss-test" )
   if local:
-    gaudirunJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '..', 'GridTestSubmission' )[0],
-                                  find_all( 'wrongConfig.cfg', '..', 'GridTestSubmission' )[0],
+    gaudirunJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '../..',
+                                            '/LHCbDIRAC/tests/System/GridTestSubmission' )[0],
+                                  find_all( 'wrongConfig.cfg', '../..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0],
                                   find_all( 'pilot.cfg', '.' )[0] ] )
   else:
-    gaudirunJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '..', 'GridTestSubmission' )[0],
-                                  find_all( 'wrongConfig.cfg', '..', 'GridTestSubmission' )[0] ] )
+    gaudirunJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '../..',
+                                            '/LHCbDIRAC/tests/System/GridTestSubmission' )[0],
+                                  find_all( 'wrongConfig.cfg', '../..',
+                                            '/LHCbDIRAC/tests/System/GridTestSubmission' )[0] ] )
 
   gaudirunJob.setOutputSandbox( '00012345_00067890_1.sim' )
 

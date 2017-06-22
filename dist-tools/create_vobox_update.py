@@ -23,7 +23,7 @@ C_list = ['lbvobox30.cern.ch', 'lbvobox100.cern.ch','lbvobox101.cern.ch','lbvobo
 file_D = os.path.join( HOME_DIR, 'vobox_update_D' )
 D_list = ['lbvobox06.cern.ch', 'lbvobox104.cern.ch','lbvobox105.cern.ch','lbvobox106.cern.ch','lbvobox107.cern.ch','lbvobox108.cern.ch']
 file_E = os.path.join( HOME_DIR, 'vobox_update_E' )
-E_list = ['lbvobox43.cern.ch', 'lbvobox46.cern.ch', 'lbvobox47.cern.ch', 'volhcb04.cern.ch', 'volhcb05.cern.ch']
+E_list = ['lbvobox110.cern.ch','lbvobox201.cern.ch','lbvobox27.cern.ch','lbvobox43.cern.ch', 'lbvobox46.cern.ch', 'lbvobox47.cern.ch', 'volhcb04.cern.ch', 'volhcb05.cern.ch']
 
 def generateTemplate(hosts, filename):
   fdr = open( file_skel )
@@ -45,7 +45,7 @@ def generateTemplate(hosts, filename):
 
 if __name__ == '__main__':
   generateTemplate(T1_list, file_T1)
-  generateTemplate(B_list, file_B)
+  #generateTemplate(B_list, file_B)
   generateTemplate(C_list, file_C)
   generateTemplate(D_list, file_D)
   generateTemplate(E_list, file_E)

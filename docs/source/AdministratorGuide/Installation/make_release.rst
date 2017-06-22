@@ -49,6 +49,7 @@ Verify what is the last tag of DIRAC::
   # it should be in this list:
   git describe --tags $(git rev-list --tags --max-count=10)
 
+
 A tarball containing it is should be already
 uploaded `here <http://lhcbproject.web.cern.ch/lhcbproject/dist/Dirac_project/installSource/>`_
 
@@ -70,6 +71,7 @@ Otherwise, simply click the "Accept merge request" button for each of them.
 
 Then, from the LHCbDIRAC local fork you need to update some files::
 
+
   # if you start from scratch otherwise skip the first 2 commands
   mkdir $(date +20%y%m%d) && cd $(date +20%y%m%d)
   git clone https://:@gitlab.cern.ch:8443/lhcb-dirac/LHCbDIRAC.git
@@ -84,6 +86,8 @@ Then, from the LHCbDIRAC local fork you need to update some files::
   vim LHCbDIRAC/__init__.py
   # Update the version in the releases.cfg file:
   vim LHCbDIRAC/releases.cfg
+  # Update the version in the Dockerfile file:
+  vim container/lhcbdirac/Dockerfile
   # For updating the CHANGELOG, get what's changed since the last tag
   t=$(git describe --abbrev=0 --tags); git --no-pager log ${t}..HEAD --no-merges --pretty=format:'* %s';
   # copy the output, add it to the CHANGELOG (please also add the DIRAC version)
@@ -92,7 +96,9 @@ Then, from the LHCbDIRAC local fork you need to update some files::
   vim dist-tools/projectConfig.json
   git add -A && git commit -av -m "<YourNewTag>"
 
+
 Time to tag and push::
+
 
   # make the tag
   git tag -a <YourNewTag> -m <YourNewTag>
@@ -140,6 +146,15 @@ Conflicts or not, you'll need to push back to upstream::
 
 Creating the release tarball, add uploading it to the LHCb web service
 ``````````````````````````````````````````````````````````````````````
+Automatic procedure
+^^^^^^^^^^^^^^^^^^^
+When a new git tag is pushed to the repository, a gitlab-ci job takes care of (soon testing), creating the tarball, uploading it to the web service, and to build the docker image. You can check it in the pipeline page of the repository (https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/pipelines)
+
+
+Manual procedure
+^^^^^^^^^^^^^^^^
+**This should a priori not be used anymore. If the pipeline fails, you should rather investigate why.**
+
 Login on lxplus, run ::
 
   lb-run LHCbDirac/prod bash -norc
@@ -166,7 +181,7 @@ if the release has been correctly created.
 At this `link <https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/>`_ you'll find some Jenkins Jobs ready to be started.
 Please start the following Jenkins jobs and come back in about an hour to see the results for all of them.
 
-1. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/RELEASE__pylint_unit/
+1. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/!RELEASE!__pylint_unit/ the !RELEASE! is the actual relase for example: https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/v8r5__pylint_unit/
 
 This job will: run pylint (errors only), run all the unit tests found in the system, assess the coverage.
 The job should be considered successful if:
@@ -176,12 +191,12 @@ The job should be considered successful if:
 - the coverage didn't drop from the previous job run
 
 
-2. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/RELEASE__pilot/
+2. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/!RELEASE!__pilot/
 
 This job will simply install the pilot. Please just check if the result does not show in an "unstable" status
 
 
-3. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/RELEASE__/
+3. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/!RELEASE!__/
 
    TODO
 
@@ -211,8 +226,8 @@ a quick test to validate the installation is to run the SHELL script $LHCBRELEAS
 
 go to this `web page <https://jenkins-lhcb-nightlies.web.cern.ch/job/nightly-builds/job/release/build/>`_ for asking to install the client release in AFS and CVMFS:
 
-* in the field "Project list" put : "Dirac vNrMpK LHCbDirac vArBpC"  (NOTE: If DIRAC already released, please use only LHCbDIRAC: LHCbDirac vArBpC)
-* in the field "platforms" put : "x86_64-slc6-gcc48-opt x86_64-slc6-gcc49-opt"
+* in the field "Project list" put : "Dirac vNrMpK LHCbGrid vArB LHCbDirac vArBpC"  (NOTE: LHCbGrid version can be found: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/blob/master/dist-tools/projectConfig.json)
+* in the field "platforms" put : "x86_64-slc6-gcc48-opt x86_64-slc6-gcc49-opt x86_64-slc6-gcc62-opt x86_64-centos7-gcc62-opt"
 
 Then click on the "BUILD" button
 
@@ -224,8 +239,8 @@ If it is the production release, and only in this case, once satisfied by the bu
 take note of the build id (you can use the direct link icon) and make the request via https://sft.its.cern.ch/jira/browse/LHCBDEP.
 
 * NOTE: If some package is already released, please do not indicate in the Jira task. For example: a Jira task when:
-    * DIRAC is not released, then the message in the JIRA task: Summary:Dirac v6r14p37 and LHCbDirac v8r2p50; Description: Please release  Dirac and  LHCbDirac in  this order  based on build 1526
-    * DIRAC is released, then the message in the JIRA task: Summary:LHCbDirac v8r2p50;  Description: Please release  LHCbDirac based on build 1526
+    * DIRAC is not released, then the message in the JIRA task: Summary:Dirac v6r14p37 and LHCbDirac v8r2p50; Description: Please release  Dirac and  LHCbDirac in  this order  based on build 1526; 
+    * DIRAC is released, then the message in the JIRA task: Summary:LHCbDirac v8r2p50;  Description: Please release  LHCbDirac based on build 1526; 
 
 
 Server
@@ -302,16 +317,15 @@ When the compilation is finished::
     runsvctrl t startup/Framework_SystemAdministrator/
 
 
-````
 TODO
 ````
+
 When the machines are updated, then you have to go through all the components and check the errors. There are two possibilities:
    1. Use the Web portal (SystemAdministrator)
 
    2. Command line::
 
     for h in $(grep 'set host' vobox_update_* | awk {'print $NF'}); do echo "show errors" | dirac-admin-sysadmin-cli -H $h; done | less
-
 
 Pilot
 `````
@@ -338,3 +352,49 @@ merging please create a new branch based on master using the web interface of Gi
     git checkout -b newMaster upstream/master
     git merge upstream/devel
     git push upstream newMaster:master
+
+
+5. Mesos cluster
+========================
+
+Mesos is currently only used for the certification.
+In order to push a new version on the Mesos cluster, 3 steps are needed:
+
+- Build the new image
+- Push it the lhcbdirac gitlab repository
+- Update the version of the running containers
+
+
+Automatic procedure
+````````````````````
+
+The first two steps should be automatically done by the gitlab-ci of the LHCbDIRAC repository.
+The last step will be taken care of by the gitlab-ci of the MesosClusterConf repository (https://gitlab.cern.ch/lhcb-dirac/MesosClusterConf)
+For a simple version upgrade, edit directly on the gitlab web page the file clusterConfiguration.json and replace the "version" attribute with what you want. Of course add a meaningful commit message.
+
+Manual procedure
+````````````````
+
+This should in principle not happen. Remember that any manual change of the mesos cluster will be erased next time the gitlab-ci of the MesosClusterConf repository will run.
+However, you can do all the above step manually.
+
+All these functionalities have been wrapped up in a script (dirac-docker-mgmt), available on all the lbmesosadm* machines (01, 02)
+
+The next steps are the following::
+
+    # build the new image
+    # this will download the necessary files, and build
+    # the image localy
+    dirac-docker-mgmt.py -v v8r5 --build
+
+    # Push it to the remote lhcbdirac registry
+    # Your credentials for gitlab will be asked
+    dirac-docker-mgmt.py -v v8r5 --release
+
+    # Update the version of the running containers
+    # The services and number of instances running
+    # will be preserved
+    dirac-docker-mgmt.py -v v8r5 --deploy
+
+
+

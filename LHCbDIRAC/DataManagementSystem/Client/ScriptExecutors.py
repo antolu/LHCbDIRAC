@@ -203,7 +203,7 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
   notExisting = {}
   savedLevel = gLogger.getLevel()
   seList = set( seList )
-  chunkSize = max( 50, min( 500, len( lfnList ) / 10 ) )
+  chunkSize = max( 10, min( 500, len( lfnList ) / 10 ) )
   progressBar = ProgressBar( len( lfnList ), title = 'Removing replicas' + ( ' and setting them invisible in BK' if allDisk else '' ), chunk = chunkSize )
   # Set files invisible in BK if removing all disk replicas
   for lfnChunk in breakListIntoChunks( sorted( lfnList ), chunkSize ):
@@ -433,13 +433,20 @@ def executeAccessURL( dmScript ):
         protocol.insert( protocol.index( 'root' ), 'xroot' )
       elif 'xroot' in protocol and 'root' not in protocol:
         protocol.insert( protocol.index( 'xroot' ) + 1, 'root' )
+      elif 'xroot' in protocol and 'root' in protocol:
+        indexOfRoot = protocol.index( 'root' )
+        indexOfXRoot = protocol.index( 'xroot' )
+        if indexOfXRoot > indexOfRoot:
+          protocol[indexOfRoot], protocol[indexOfXRoot] = protocol[indexOfXRoot], protocol[indexOfRoot]
+
   lfnList, seList = parseArguments( dmScript )
   if not lfnList:
     gLogger.notice( "No list of LFNs provided" )
     Script.showHelp()
     return 1
   else:
-    return getAccessURL( lfnList, seList, protocol )
+    results = getAccessURL( lfnList, seList, protocol )
+    return printDMResult( results, empty = "File not at SE", script = "dirac-dms-lfn-accessURL" )
 
 def getAccessURL( lfnList, seList, protocol = None ):
   """
@@ -448,6 +455,8 @@ def getAccessURL( lfnList, seList, protocol = None ):
   dm = DataManager()
   res = dm.getReplicas( lfnList, getUrl = False )
   replicas = res.get( 'Value', {} ).get( 'Successful', {} )
+  if isinstance( seList, basestring ):
+    seList = seList.split( ',' )
   if not seList:
     seList = sorted( set( se for lfn in lfnList for se in replicas.get( lfn, {} ) ) )
     if len( seList ) > 1:
@@ -486,8 +495,7 @@ def getAccessURL( lfnList, seList, protocol = None ):
         notFoundLfns.remove( lfn )
   if notFoundLfns:
     results['Value']['Failed'] = dict.fromkeys( sorted( notFoundLfns ), 'File not found in required seList' )
-
-  return printDMResult( results, empty = "File not at SE", script = "dirac-dms-lfn-accessURL" )
+  return results
 
 def executeRemoveFiles( dmScript ):
   """
@@ -520,7 +528,7 @@ def removeFiles( lfnList, setProcessed = False ):
   progressBar = ProgressBar( len( lfnList ), title = "Removing %d files" % len( lfnList ), chunk = chunkSize )
   for lfnChunk in breakListIntoChunks( lfnList, chunkSize ):
     progressBar.loop()
-    gLogger.setLevel( 'FATAL' )
+    # gLogger.setLevel( 'FATAL' )
     res = dm.removeFile( lfnChunk, force = False )
     gLogger.setLevel( savedLevel )
     if not res['OK']:
@@ -631,52 +639,53 @@ def executeLfnReplicas( dmScript ):
   active = True
   preferDisk = False
   diskOnly = False
+  forJobs = False
   switches = Script.getUnprocessedSwitches()
   for switch in switches:
     if switch[0] in ( "a", "All" ):
       active = False
-    if switch[0] == 'DiskOnly':
+    elif switch[0] == 'DiskOnly':
       diskOnly = True
-    if switch[0] == 'PreferDisk':
+    elif switch[0] == 'PreferDisk':
       preferDisk = True
+    elif switch[0] == 'ForJobs':
+      forJobs = True
 
   if not lfnList:
     gLogger.fatal( "No LFNs supplies" )
     Script.showHelp()
     return 1
-  return printLfnReplicas( lfnList, active, diskOnly, preferDisk )
+  return printLfnReplicas( lfnList, active = active, diskOnly = diskOnly, preferDisk = preferDisk, forJobs = forJobs )
 
-def printLfnReplicas( lfnList, active = True, diskOnly = False, preferDisk = False ):
+def printLfnReplicas( lfnList, active = True, diskOnly = False, preferDisk = False, forJobs = False ):
   """
   get the replica list for a list of LFNs and print them depending on options
   """
   dm = DataManager()
   fc = FileCatalog()
   while True:
-    dmMethod = dm.getActiveReplicas if active else dm.getReplicas
-    res = dmMethod( lfnList, diskOnly = diskOnly, preferDisk = preferDisk )
+    if forJobs:
+      res = dm.getReplicasForJobs( lfnList, diskOnly = diskOnly )
+    else:
+      res = dm.getReplicas( lfnList, active = active, diskOnly = diskOnly, preferDisk = preferDisk )
     if not res['OK']:
       break
-    if active and not res['Value']['Successful'] and not res['Value']['Failed']:
+    if active and not forJobs and not res['Value']['Successful'] and not res['Value']['Failed']:
       active = False
     else:
       break
-  if res['OK']:
-    if active:
-      res = dm.checkActiveReplicas( res['Value'] )
-      value = res['Value']
-    else:
-      replicas = res['Value']['Successful']
-      value = {'Failed': res['Value']['Failed'], 'Successful' : {}}
-      for lfn in sorted( replicas ):
-        value['Successful'].setdefault( lfn, {} )
-        for se in sorted( replicas[lfn] ):
-          res = fc.getReplicaStatus( {lfn:se} )
-          if not res['OK']:
-            value['Failed'][lfn] = "Can't get replica status"
-          else:
-            value['Successful'][lfn][se] = "(%s) %s" % ( res['Value']['Successful'][lfn], replicas[lfn][se] )
-      res = S_OK( value )
+  if res['OK'] and not active:
+    replicas = res['Value']['Successful']
+    value = {'Failed': res['Value']['Failed'], 'Successful' : {}}
+    for lfn in sorted( replicas ):
+      value['Successful'].setdefault( lfn, {} )
+      for se in sorted( replicas[lfn] ):
+        res = fc.getReplicaStatus( {lfn:se} )
+        if not res['OK']:
+          value['Failed'][lfn] = "Can't get replica status"
+        else:
+          value['Successful'][lfn][se] = "(%s) %s" % ( res['Value']['Successful'][lfn], replicas[lfn][se] )
+    res = S_OK( value )
   return printDMResult( res, empty = "No %sreplica found" % ( 'active disk ' if diskOnly else 'allowed ' if active else '' ), script = "dirac-dms-lfn-replicas" )
 
 def executePfnMetadata( dmScript, check = False, exists = False, summary = False ):
@@ -711,8 +720,6 @@ def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = 
   from DIRAC.Core.Utilities.Adler import compareAdler
   if len( seList ) > 1:
     gLogger.notice( "Using the following list of SEs: %s" % str( seList ) )
-  if len( lfnList ) > 100:
-    gLogger.notice( "Getting metadata for %d files, be patient" % len( lfnList ) )
 
   fc = FileCatalog()
 
@@ -720,7 +727,10 @@ def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = 
   metadata = {'Successful':{}, 'Failed':{}}
   replicas = {}
   # restrict seList to those where the replicas are
-  for lfnChunk in breakListIntoChunks( lfnList, 100 ):
+  chunkSize = 20
+  progressBar = ProgressBar( len( lfnList ), title = "Getting replicas for %d files" % len( lfnList ), chunk = chunkSize )
+  for lfnChunk in breakListIntoChunks( lfnList, chunkSize ):
+    progressBar.loop()
     res = fc.getReplicas( lfnChunk, allStatus = True )
     if not res['OK']:
       gLogger.fatal( 'Error getting replicas for %d files' % len( lfnChunk ), res['Message'] )
@@ -729,6 +739,7 @@ def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = 
       replicas.update( res['Value']['Successful'] )
     for lfn in res['Value']['Failed']:
       metadata['Failed'][lfn] = 'FC: ' + res['Value']['Failed'][lfn]
+  progressBar.endLoop()
   for lfn in sorted( replicas ):
     if seList and not [se for se in replicas[lfn] if se in seList]:
       metadata['Failed'][lfn] = 'No such file at %s in FC' % ' '.join( seList )
@@ -739,12 +750,23 @@ def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = 
     # take all seList in replicas and add a fake '' to printout the SE name
     seList = [''] + sorted( set( se for lfn in replicas for se in replicas[lfn] ) )
   if replicas:
+    if check:
+      res = fc.getFileMetadata( lfnList )
+      if res['OK']:
+        lfnMetadataDict = res['Value']['Successful']
+      else:
+        lfnMetadataDict = {}
+    nbCalls = len( [0 for se in seList for lfn in lfnList if se in replicas.get( lfn, [] ) ] )
+    chunkSize = 20
+    progressBar = ProgressBar( nbCalls, title = "Getting SE metadata of %d replicas" % nbCalls, step = chunkSize )
     for se in seList:
       fileList = [url for url in lfnList if se in replicas.get( url, [] )]
       if not fileList:
         continue
       oSe = StorageElement( se )
-      for fileChunk in breakListIntoChunks( fileList, 100 ):
+      for fileChunk in breakListIntoChunks( fileList, chunkSize ):
+        for _i in xrange( len( fileChunk ) ):
+          progressBar.loop()
         res = oSe.getFileMetadata( fileChunk )
         if res['OK']:
           seMetadata = res['Value']
@@ -753,14 +775,13 @@ def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = 
             if isinstance( pfnMetadata.get( 'Mode' ), ( int, long ) ):
               pfnMetadata['Mode'] = '%o' % pfnMetadata['Mode']
             metadata['Successful'].setdefault( url, {} )[se] = pfnMetadata if not exists \
-            else {'Exists': 'True (%sCached%s)' % ( ( '' if pfnMetadata.get( 'Cached' ) else 'Not ' ),
+            else {'Exists': 'True (%sCached%s)' % ( ( '' if pfnMetadata.get( 'Cached', pfnMetadata.get( 'Accessible' ) ) else 'Not ' ),
                                                    ( ' and unavailable' if pfnMetadata.get( 'Unavailable' ) else '' ) )}
             if exists and not pfnMetadata.get( 'Size' ):
               metadata['Successful'][url][se].update( {'Exists':'Zero size'} )
             if check:
-              res1 = fc.getFileMetadata( url )
-              if res1['OK']:
-                lfnMetadata = res1['Value']['Successful'][url]
+              lfnMetadata = lfnMetadataDict.get( url )
+              if lfnMetadata:
                 ok = True
                 diff = 'False -'
                 for field in ( 'Checksum', 'Size' ):
@@ -773,11 +794,14 @@ def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = 
                   metadata['Successful'][url][se]['MatchLFN'] = ok if ok else diff
                 else:
                   metadata['Successful'][url]['MatchLFN'] = ok if ok else diff
+              else:
+                metadata['Successful'][url]['MatchLFN'] = 'No LFN metadata'
           for url in seMetadata['Failed']:
-            metadata['Failed'].setdefault( url, {} )[se] = seMetadata['Failed'][url] if not exists else {'Exists': False}
+            metadata['Failed'].setdefault( url, {} )[se] = seMetadata['Failed'][url]
         else:
           for url in fileChunk:
             metadata['Failed'][url] = res['Message'] + ' at %s' % se
+    progressBar.endLoop()
 
   if not summary:
     return printDMResult( S_OK( metadata ), empty = "File not at SE" )
@@ -1000,9 +1024,11 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
       gLogger.notice( "   ...but all of them are also somewhere else" )
   if maxArch:
     for nrep in range( 1, maxArch + 1 ):
-      gLogger.notice( "%d archives: %d files" % ( nrep - 1, repStats.setdefault( -nrep, 0 ) ) )
+      gLogger.notice( "%3d archive replicas: %d files" % ( nrep - 1, repStats.setdefault( -nrep, 0 ) ) )
+    gLogger.notice( "---------------------" )
   for nrep in range( maxRep + 1 ):
-    gLogger.notice( "%d replicas: %d files" % ( nrep, repStats.setdefault( nrep, 0 ) ) )
+    gLogger.notice( "%3d  other  replicas: %d files" % ( nrep, repStats.setdefault( nrep, 0 ) ) )
+  gLogger.notice( "---------------------" )
 
   gLogger.notice( "\nSE statistics:" )
   for se in orderSEs( repSEs ):
@@ -1431,16 +1457,22 @@ def executeGetFile( dmScript ):
   """
   get files to a local storage
   """
-  lfnList, _ses = parseArguments( dmScript )
+  lfnList, ses = parseArguments( dmScript )
+  if ses:
+    sourceSE = ses[0]
+  else:
+    sourceSE = None
 
-  dirList = dmScript.getOption( 'Directory', ['.'] )
+  # We cannot use the getOptions() method here as that method only returns LFN directories
+  #   here we define a local directory
+  dirList = sorted( dmScript.options.get( 'Directory', ['.'] ) )
   if len( dirList ) > 1:
     gLogger.fatal( "Not allowed to specify more than one destination directory" )
     return 2
 
   nLfns = len( lfnList )
-  gLogger.notice( 'Downloading %s to %s' % ( ( '%d files' % nLfns ) if nLfns > 1 else 'file', dirList[0] ) )
-  result = DataManager().getFile( lfnList, destinationDir = dirList[0] )
+  gLogger.notice( 'Downloading %s to %s%s' % ( ( '%d files' % nLfns ) if nLfns > 1 else 'file', dirList[0], ' from %s' % sourceSE if sourceSE else '' ) )
+  result = DataManager().getFile( lfnList, destinationDir = dirList[0], sourceSE = sourceSE )
 
   # Prepare popularity report
   if result['OK']:
@@ -1736,7 +1768,7 @@ def registerBK2FC( lfnList, seList, printResult = False ):
         continue
       success = res['Value']['Successful']
       for lfn, metadata in success.iteritems():
-        if metadata['Cached']:
+        if metadata.get( 'Cached', metadata['Accessible'] ):
           checksum = metadata['Checksum']
           size = metadata['Size']
           if size != bkMetadata[lfn]['FileSize']:

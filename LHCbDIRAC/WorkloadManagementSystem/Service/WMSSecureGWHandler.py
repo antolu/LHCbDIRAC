@@ -6,24 +6,16 @@
 import json
 import os
 from types import IntType, LongType, DictType, StringTypes, ListType, FloatType
-from DIRAC import S_OK, S_ERROR, gLogger, gConfig
-from DIRAC.Core.Security import Properties, CS, Locations
-from DIRAC.Core.Utilities.Subprocess import pythonCall
-from DIRAC.Core.Utilities.File import mkDir
+from DIRAC import S_OK, S_ERROR, gLogger
+from DIRAC.Core.Security import Properties, CS
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
 from DIRAC.RequestManagementSystem.Client.Request import Request
 from DIRAC.RequestManagementSystem.Client.Operation import Operation
 from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
-from DIRAC.FrameworkSystem.Client.ProxyManagerClient  import gProxyManager
-from DIRAC.Core.Security.X509Chain import X509Chain
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.ConfigurationSystem.Client.Helpers import cfgPath
 from DIRAC.Core.DISET.RPCClient import RPCClient
-from DIRAC.Resources.Storage.StorageElement import StorageElement
-from DIRAC.Core.Utilities.ReturnValues import returnSingleResult
-
-
 
 __RCSID__ = "$Id: $"
 
@@ -43,9 +35,6 @@ class WMSSecureGWHandler( RequestHandler ):
       raise Exception( "FileCatalog exists types has been changed." )
     if FileCatalogHandler.types_addFile != cls.types_addFile:
       raise Exception( "FileCatalog addFile types has been changed." )
-    from DIRAC.DataManagementSystem.Service.StorageElementProxyHandler import StorageElementProxyHandler
-    if StorageElementProxyHandler.types_prepareFile != cls.types_prepareFile:
-      raise Exception( "StorageElementProxyHandler prepareFile types has been changed." )
     from DIRAC.WorkloadManagementSystem.Service.MatcherHandler import MatcherHandler
     if MatcherHandler.types_requestJob != cls.types_requestJob:
       raise Exception( "Matcher requestJob types has been changed." )
@@ -84,7 +73,7 @@ class WMSSecureGWHandler( RequestHandler ):
     if ReqManagerHandler.types_putRequest != cls.types_putRequest:
       raise Exception( "ReqManagerHandler putRequest types has been changed." )
 
-    
+
 
     return S_OK()
 
@@ -312,59 +301,3 @@ class WMSSecureGWHandler( RequestHandler ):
     return userDN, userGroup, userName
 
 
-  ################################################################################
-  types_prepareFile = [ StringTypes, StringTypes ]
-  def export_prepareFile(self, se, pfn):
-    """ This method simply gets the file to the local storage area
-    """
-    gLogger.debug( "se %s, pfn %s" % ( se, pfn ) )
-    res = pythonCall( 300, self.__prepareFile, se, pfn )
-    gLogger.debug( "Preparing File %s" % res )
-    if res['OK']:
-      return res['Value']
-    return res
-
-  def __prepareFile( self, se, pfn ):
-    """ proxied prepare file """
-
-    res = self.__prepareSecurityDetails()
-    if not res['OK']:
-      return res
-    # Clear the local ache
-    base = gConfig.getValue( "Systems/DataManagement/boincInstance/Services/StorageElementProxy/BasePath" )
-    getFileDir = "%s/getFile" % base
-    mkDir(getFileDir)
-    # Get the file to the cache
-    storageElement = StorageElement( se )
-    res = returnSingleResult( storageElement.getFile( pfn, localPath = getFileDir ) )
-    if not res['OK']:
-      gLogger.error( "prepareFile: Failed to get local copy of file.", res['Message'] )
-      return res
-    return res
-
-  def __prepareSecurityDetails(self):
-    """ Obtains the connection details for the client
-    """
-    try:
-      clientDN, clientGroup, clientUserName = self.__getOwnerGroupDN('ProductionManager')
-      gLogger.debug( "Getting proxy for %s %s" % (clientGroup, clientDN ) )
-      res = gProxyManager.downloadVOMSProxy( clientDN, clientGroup )
-      if not res['OK']:
-        return res
-      chain = res['Value']
-      base = ""
-      base = gConfig.getValue( "Systems/DataManagement/boincInstance/Services/StorageElementProxy/BasePath" )
-      proxyBase = "%s/proxies" % base
-      mkDir(proxyBase)
-      proxyLocation = "%s/proxies/%s-%s" % ( base, clientUserName, clientGroup )
-      gLogger.debug("Obtained proxy chain, dumping to %s." % proxyLocation)
-      res = gProxyManager.dumpProxyToFile( chain, proxyLocation )
-      if not res['OK']:
-        return res
-      gLogger.debug("Updating environment.")
-      os.environ['X509_USER_PROXY'] = res['Value']
-      return res
-    except Exception as error:
-      exStr = "__getConnectionDetails: Failed to get client connection details."
-      gLogger.exception( exStr, '', error )
-      return S_ERROR(exStr)

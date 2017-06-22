@@ -28,6 +28,8 @@ class SiteDirector( DIRACSiteDirector ):
       return res
 
     self.extraModules = self.am_getOption( 'ExtraPilotModules', [] ) + DIRAC_MODULES
+    self.devLbLogin = self.am_getOption( 'devLbLogin', False )
+    self.lbRunOnly = self.am_getOption( 'lbRunOnly', False )
 
     return S_OK()
 
@@ -125,5 +127,12 @@ EOF
 
     pilotOptions.append( '-E LHCbPilot' )
     pilotOptions.append( '-X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,CheckCECapabilities,CheckWNCapabilities,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements,LaunchAgent' )
+    if self.devLbLogin or self.lbRunOnly:
+      opt = ''
+      if self.devLbLogin:
+        opt = 'devLbLogin'
+      if self.lbRunOnly:
+        opt = '.'.join([opt, 'lbRunOnly'])
+      pilotOptions.append( '-o %s' % opt )
 
     return [pilotOptions, newPilotsToSubmit]

@@ -96,18 +96,20 @@ class XMLFilesReaderManager( object ):
     """interprets the xml content"""
     gLogger.info( "Start Processing" )
 
-    # #checking
-    inputFiles = job.getJobInputFiles()
-    for lfn in inputFiles:
-      name = lfn.getFileName()
-      result = self.bkClient_.checkfile( name )
-      if result['OK']:
-        fileID = long( result['Value'][0][0] )
-        lfn.setFileID( fileID )
-      else:
-        errorMessage = "The file %s does not exist in the BKK database!!" % name
-        return S_ERROR( errorMessage )
-
+    # prepare for the insert, check the existence of the input files and retreive the fileid
+    inputFiles = [ inputFile.getFileName() for inputFile in job.getJobInputFiles()]
+    if inputFiles:
+      result = self.bkClient_.bulkgetIDsFromFilesTable( inputFiles )
+      if not result['OK']:
+        return result
+      if result['Value']['Failed']:
+        return S_ERROR( "The following files are not in the bkk: %s" % ( ",".join( result['Value']['Failed'] ) ) )
+    
+      for inputFile in job.getJobInputFiles():
+        lfn = inputFile.getFileName()
+        fileID = long( result['Value']['Successful'][lfn]['FileId'] )
+        inputFile.setFileID( fileID )
+      
     outputFiles = job.getJobOutputFiles()
     dqvalue = None
     for outputfile in outputFiles:
@@ -394,7 +396,8 @@ class XMLFilesReaderManager( object ):
 
     outputFiles = job.getJobOutputFiles()
     prod = job.getParam( 'Production' ).getValue()
-    retVal = self.bkClient_.getProductionOutputFileTypes( prod )
+    stepid = job.getParam( 'StepID' ).getValue()
+    retVal = self.bkClient_.getProductionOutputFileTypes( prod, stepid )
     if not retVal['OK']:
       return retVal
     outputFileTypes = retVal['Value']
@@ -527,7 +530,17 @@ class XMLFilesReaderManager( object ):
 
       if not retVal['OK']:
         return S_ERROR( retVal['Message'] )
+      
       stepid = retVal['Value'][0]
+      
+      #now we have to get the list of eventtypes
+      eventtypes = []
+      for outputFiles in job.getJobOutputFiles():
+        for outPutfileParam in outputFiles.getFileParams(): 
+          outputFileParamName = outPutfileParam.getParamName()
+          if outputFileParamName == "EventType":
+            eventtypes.append( long( outPutfileParam.getParamValue() ) )    
+      
       steps = {'Steps':
                [{'StepId':stepid,
                  'StepName':retVal['Value'][1],
@@ -552,7 +565,8 @@ class XMLFilesReaderManager( object ):
                                           steps = steps['Steps'],
                                           inputproc = '',
                                           configName = config.getConfigName(),
-                                          configVersion = config.getConfigVersion() )
+                                          configVersion = config.getConfigVersion(),
+                                          eventType = eventtypes )
 
       if res['OK']:
         gLogger.info( "New processing pass has been created!" )

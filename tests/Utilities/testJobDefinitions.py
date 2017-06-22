@@ -1,10 +1,9 @@
 """ Collection of user jobs for testing purposes
 """
 
-# pylint: disable=missing-docstring
+# pylint: disable=protected-access, wrong-import-position, invalid-name, missing-docstring, unused-wildcard-import
 
 # imports
-
 import time
 import os
 import errno
@@ -34,7 +33,7 @@ wdir = os.getcwd()
 def helloWorldTestT2s():
 
   job = baseToAllJobs( 'helloWorldTestT2s', jobClass )
-  job.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  job.setInputSandbox( [find_all( 'exe-script.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
   job.setExecutable( "exe-script.py", "", "helloWorld.log" )
   job.setBannedSites( tier1s )
   return endOfAllJobs( job )
@@ -43,7 +42,7 @@ def helloWorldTestT2s():
 def helloWorldTestCERN():
 
   job = baseToAllJobs( 'helloWorld-test-CERN', jobClass )
-  job.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  job.setInputSandbox( [find_all( 'exe-script.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
   job.setExecutable( "exe-script.py", "", "helloWorld.log" )
   job.setDestination( 'LCG.CERN.cern' )
   return endOfAllJobs( job )
@@ -51,7 +50,7 @@ def helloWorldTestCERN():
 @executeWithUserProxy
 def helloWorldTestIN2P3():
   job = baseToAllJobs( 'helloWorld-test-IN2P3', jobClass )
-  job.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  job.setInputSandbox( [find_all( 'exe-script.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
   job.setExecutable( "exe-script.py", "", "helloWorld.log" )
   job.setDestination( 'LCG.IN2P3.fr' )
   return endOfAllJobs( job )
@@ -59,7 +58,7 @@ def helloWorldTestIN2P3():
 @executeWithUserProxy
 def helloWorldTestGRIDKA():
   job = baseToAllJobs( 'helloWorld-test-GRIDKA', jobClass )
-  job.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  job.setInputSandbox( [find_all( 'exe-script.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
   job.setExecutable( "exe-script.py", "", "helloWorld.log" )
   job.setDestination( 'LCG.GRIDKA.de' )
   return endOfAllJobs( job )
@@ -68,7 +67,7 @@ def helloWorldTestGRIDKA():
 def helloWorldTestARC():
 
   job = baseToAllJobs( 'helloWorld-test-ARC', jobClass )
-  job.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  job.setInputSandbox( [find_all( 'exe-script.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
   job.setExecutable( "exe-script.py", "", "helloWorld.log" )
   job.setDestination( ['LCG.RAL.uk'] )
   return endOfAllJobs( job )
@@ -77,7 +76,7 @@ def helloWorldTestARC():
 def helloWorldTestSSH():
 
   job = baseToAllJobs( 'helloWorld-test-SSH', jobClass )
-  job.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  job.setInputSandbox( [find_all( 'exe-script.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
   job.setExecutable( "exe-script.py", "", "helloWorld.log" )
   job.setDestination( ['DIRAC.YANDEX.ru', 'DIRAC.OSC.us', 'DIRAC.Zurich.ch'] )
   return endOfAllJobs( job )
@@ -86,7 +85,7 @@ def helloWorldTestSSH():
 def helloWorldTestSSHCondor():
 
   job = baseToAllJobs( 'helloWorld-test-SSHCondor', jobClass )
-  job.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  job.setInputSandbox( [find_all( 'exe-script.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
   job.setExecutable( "exe-script.py", "", "helloWorld.log" )
   job.setDestination( ['DIRAC.Syracuse.us'] )
   return endOfAllJobs( job )
@@ -95,7 +94,7 @@ def helloWorldTestSSHCondor():
 def helloWorldTestVAC():
 
   job = baseToAllJobs( 'helloWorld-test-VAC', jobClass )
-  job.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  job.setInputSandbox( [find_all( 'exe-script.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
   job.setExecutable( "exe-script.py", "", "helloWorld.log" )
   job.setDestination( ['VAC.Manchester.uk'] )
   return endOfAllJobs( job )
@@ -104,7 +103,7 @@ def helloWorldTestVAC():
 def helloWorldTestCLOUD():
 
   job = baseToAllJobs( 'helloWorld-test-CLOUD', jobClass )
-  job.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  job.setInputSandbox( [find_all( 'exe-script.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
   job.setExecutable( "exe-script.py", "", "helloWorld.log" )
   job.setDestination( ['CLOUD.CERN.cern', 'CLOUD.EGI.eu'] )
   return endOfAllJobs( job )
@@ -113,7 +112,7 @@ def helloWorldTestCLOUD():
 def helloWorldTestBOINC():
 
   job = baseToAllJobs( 'helloWorld-test-BOINC', jobClass )
-  job.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  job.setInputSandbox( [find_all( 'exe-script.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
   job.setExecutable( "exe-script.py", "", "helloWorld.log" )
   job.setDestination( ['BOINC.World.org'] )
   return endOfAllJobs( job )
@@ -122,7 +121,7 @@ def helloWorldTestBOINC():
 def helloWorldTestSLC6():
 
   job = baseToAllJobs( 'helloWorld-test-SLC6', jobClass )
-  job.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  job.setInputSandbox( [find_all( 'exe-script.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
   job.setExecutable( "exe-script.py", "", "helloWorld.log" )
   job.setPlatform( 'x86_64-slc6' )
   return endOfAllJobs( job )
@@ -131,7 +130,7 @@ def helloWorldTestSLC6():
 def helloWorldTestSLC5():
 
   job = baseToAllJobs( 'helloWorld-test-SLC5', jobClass )
-  job.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  job.setInputSandbox( [find_all( 'exe-script.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
   job.setExecutable( "exe-script.py", "", "helloWorld.log" )
   job.setPlatform( 'x86_64-slc5' )
   return endOfAllJobs( job )
@@ -144,7 +143,7 @@ def jobWithOutput():
     f.write( timenow )
   job = baseToAllJobs( 'jobWithOutput', jobClass )
   job.setInputSandbox( [find_all( timenow + 'testFileUpload.txt', wdir, 'GridTestSubmission' )[0]] + \
-                     [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+                     [find_all( 'exe-script.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
   job.setExecutable( "exe-script.py", "", "helloWorld.log" )
   job.setOutputData( [timenow + 'testFileUpload.txt'] )
   res = endOfAllJobs( job )
@@ -162,7 +161,7 @@ def jobWithOutputAndPrepend():
     f.write( timenow )
   job = baseToAllJobs( 'jobWithOutputAndPrepend', jobClass )
   job.setInputSandbox( [find_all( timenow + 'testFileUploadNewPath.txt', wdir, 'GridTestSubmission' )[0]] + \
-                     [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+                     [find_all( 'exe-script.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
   job.setExecutable( "exe-script.py", "", "helloWorld.log" )
   job.setOutputData( [timenow + 'testFileUploadNewPath.txt'], filePrepend = 'testFilePrepend' )
   res = endOfAllJobs( job )
@@ -180,7 +179,7 @@ def jobWithOutputAndPrependWithUnderscore():
     f.write( timenow )
   job = baseToAllJobs( 'jobWithOutputAndPrependWithUnderscore', jobClass )
   job.setInputSandbox( [find_all( timenow + 'testFileUpload_NewPath.txt', wdir, 'GridTestSubmission' )[0]] + \
-                     [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+                     [find_all( 'exe-script.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
   job.setExecutable( "exe-script.py", "", "helloWorld.log" )
   res = job.setOutputData( [timenow + 'testFileUpload_NewPath.txt'], filePrepend = 'testFilePrepend' )
   if not res['OK']:
@@ -200,7 +199,7 @@ def jobWithOutputAndReplication():
     f.write( timenow )
   job = baseToAllJobs( 'jobWithOutputAndReplication', jobClass )
   job.setInputSandbox( [find_all( timenow + 'testFileReplication.txt', wdir, 'GridTestSubmission' )[0]] + \
-                     [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+                     [find_all( 'exe-script.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
   job.setExecutable( "exe-script.py", "", "helloWorld.log" )
   job.setOutputData( [timenow + 'testFileReplication.txt'], replicate = 'True' )
   res = endOfAllJobs( job )
@@ -221,8 +220,8 @@ def jobWith2OutputsToBannedSE():
   job = baseToAllJobs( 'jobWith2OutputsToBannedSE', jobClass )
   job.setInputSandbox( [find_all( timenow + 'testFileUploadBanned-1.txt', wdir, 'GridTestSubmission' )[0]] \
                      + [find_all( timenow + 'testFileUploadBanned-2.txt', wdir, 'GridTestSubmission' )[0]] \
-                     + [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] \
-                     + [find_all( 'partialConfig.cfg', '.', 'GridTestSubmission' )[0] ] )
+                     + [find_all( 'exe-script.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] \
+                     + [find_all( 'partialConfig.cfg', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0] ] )
   job.setExecutable( "exe-script.py", "", "helloWorld.log" )
   job.setConfigArgs( 'partialConfig.cfg' )
   job.setDestination( 'LCG.PIC.es' )
@@ -242,7 +241,7 @@ def jobWith2OutputsToBannedSE():
 def jobWithSingleInputData():
 
   job = baseToAllJobs( 'jobWithSingleInputData', jobClass )
-  job.setInputSandbox( [find_all( 'exe-script-with-input-single-location.py', '.', 'GridTestSubmission' )[0]] )
+  job.setInputSandbox( [find_all( 'exe-script-with-input-single-location.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
   job.setExecutable( "exe-script-with-input-single-location.py", "", "exeWithInput.log" )
   job.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
   job.setInputDataPolicy( 'download' )
@@ -250,10 +249,107 @@ def jobWithSingleInputData():
   return res
 
 @executeWithUserProxy
+def jobWithSingleInputDataCERN():
+
+  job = baseToAllJobs( 'jobWithSingleInputDataCERN', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script-with-input-single-location.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script-with-input-single-location.py", "", "exeWithInput.log" )
+  job.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
+  job.setInputDataPolicy( 'protocol' )
+  job.setDestination( ['LCG.CERN.cern'] )
+  res = endOfAllJobs( job )
+  return res
+
+@executeWithUserProxy
+def jobWithSingleInputDataRAL():
+
+  job = baseToAllJobs( 'jobWithSingleInputDataRAL', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script-with-input-single-location.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script-with-input-single-location.py", "", "exeWithInput.log" )
+  job.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
+  job.setInputDataPolicy( 'protocol' )
+  job.setDestination( ['LCG.RAL.uk'] )
+  res = endOfAllJobs( job )
+  return res
+
+@executeWithUserProxy
+def jobWithSingleInputDataIN2P3():
+
+  job = baseToAllJobs( 'jobWithSingleInputDataIN2P3', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script-with-input-single-location.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script-with-input-single-location.py", "", "exeWithInput.log" )
+  job.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
+  job.setInputDataPolicy( 'protocol' )
+  job.setDestination( ['LCG.IN2P3.fr'] )
+  res = endOfAllJobs( job )
+  return res
+
+@executeWithUserProxy
+def jobWithSingleInputDataRRCKI():
+
+  job = baseToAllJobs( 'jobWithSingleInputDataRRCKI', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script-with-input-single-location.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script-with-input-single-location.py", "", "exeWithInput.log" )
+  job.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
+  job.setInputDataPolicy( 'protocol' )
+  job.setDestination( ['LCG.RRCKI.ru'] )
+  res = endOfAllJobs( job )
+  return res
+
+@executeWithUserProxy
+def jobWithSingleInputDataSARA():
+
+  job = baseToAllJobs( 'jobWithSingleInputDataSARA', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script-with-input-single-location.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script-with-input-single-location.py", "", "exeWithInput.log" )
+  job.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
+  job.setInputDataPolicy( 'protocol' )
+  job.setDestination( ['LCG.SARA.nl'] )
+  res = endOfAllJobs( job )
+  return res
+
+@executeWithUserProxy
+def jobWithSingleInputDataNIKHEF():
+
+  job = baseToAllJobs( 'jobWithSingleInputDataNIKHEF', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script-with-input-single-location.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script-with-input-single-location.py", "", "exeWithInput.log" )
+  job.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
+  job.setInputDataPolicy( 'protocol' )
+  job.setDestination( ['LCG.NIKHEF.nl'] )
+  res = endOfAllJobs( job )
+  return res
+
+@executeWithUserProxy
+def jobWithSingleInputDataPIC():
+
+  job = baseToAllJobs( 'jobWithSingleInputDataPIC', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script-with-input-single-location.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script-with-input-single-location.py", "", "exeWithInput.log" )
+  job.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
+  job.setInputDataPolicy( 'protocol' )
+  job.setDestination( ['LCG.PIC.es'] )
+  res = endOfAllJobs( job )
+  return res
+
+@executeWithUserProxy
+def jobWithSingleInputDataGRIDKA():
+
+  job = baseToAllJobs( 'jobWithSingleInputDataGRIDKA', jobClass )
+  job.setInputSandbox( [find_all( 'exe-script-with-input-single-location.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
+  job.setExecutable( "exe-script-with-input-single-location.py", "", "exeWithInput.log" )
+  job.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
+  job.setInputDataPolicy( 'protocol' )
+  job.setDestination( ['LCG.GRIDKA.de'] )
+  res = endOfAllJobs( job )
+  return res
+
+
+@executeWithUserProxy
 def jobWithSingleInputDataSpreaded():
 
   job = baseToAllJobs( 'jobWithSingleInputDataSpreaded', jobClass )
-  job.setInputSandbox( [find_all( 'exe-script-with-input.py', '.', 'GridTestSubmission' )[0]] )
+  job.setInputSandbox( [find_all( 'exe-script-with-input.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
   job.setExecutable( "exe-script-with-input.py", "", "exeWithInput.log" )
   job.setInputData( '/lhcb/user/f/fstagni/test/testInputFile.txt' )  # this file should be at CERN-USER and IN2P3-USER
   job.setInputDataPolicy( 'download' )
@@ -264,7 +360,7 @@ def jobWithSingleInputDataSpreaded():
 def jobWithInputDataAndAncestor():
 
   job = baseToAllJobs( 'jobWithInputDataAndAncestor', jobClass )
-  job.setInputSandbox( [find_all( 'exe-script-with-input-and-ancestor.py', '.', 'GridTestSubmission' )[0]] )
+  job.setInputSandbox( [find_all( 'exe-script-with-input-and-ancestor.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
   job.setExecutable( "exe-script-with-input-and-ancestor.py", "", "exeWithInput.log" )
   # WARNING: Collision10!!
   job.setInputData( '/lhcb/data/2010/SDST/00008375/0005/00008375_00053941_1.sdst' )  # this file should be at SARA-RDST
@@ -278,7 +374,7 @@ def jobWithInputDataAndAncestor():
 def gaussJob():
 
   job = baseToAllJobs( 'gaussJob', jobClass )
-  job.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '.', 'GridTestSubmission' )[0]] )
+  job.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
   job.setOutputSandbox( '00012345_00067890_1.sim' )
 
   optGauss = "$APPCONFIGOPTS/Gauss/Sim08-Beam3500GeV-md100-2011-nu2.py;"
@@ -301,7 +397,7 @@ def gaussJob():
 def booleJob():
 
   job = baseToAllJobs( 'booleJob', jobClass )
-  job.setInputSandbox( [find_all( 'prodConf_Boole_00012345_00067890_1.py', '.', 'GridTestSubmission' )[0]] )
+  job.setInputSandbox( [find_all( 'prodConf_Boole_00012345_00067890_1.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
   job.setOutputSandbox( '00012345_00067890_1.digi' )
 
   opts = "$APPCONFIGOPTS/Boole/Default.py;"
@@ -321,6 +417,82 @@ def booleJob():
   res = endOfAllJobs( job )
   return res
 
+@executeWithUserProxy
+def booleJobWithConf():
+
+  job = baseToAllJobs( 'booleJobWithConf', jobClass )
+  job.setInputSandbox( [find_all( 'prodConf_Boole_00012345_00067890_1.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0],
+                        find_all( 'rootConfig.cfg', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0] ] )
+  job.setOutputSandbox( '00012345_00067890_1.digi' )
+
+  opts = "$APPCONFIGOPTS/Boole/Default.py;"
+  optDT = "$APPCONFIGOPTS/Boole/DataType-2011.py;"
+  optTCK = "$APPCONFIGOPTS/Boole/Boole-SiG4EnergyDeposit.py;"
+  optComp = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;"
+  optPConf = "prodConf_Boole_00012345_00067890_1.py"
+  options = opts + optDT + optTCK + optComp + optPConf
+
+  job.setApplication( 'Boole', 'v26r3', options,  # pylint: disable=no-member
+                      inputData = '/lhcb/user/f/fstagni/test/12345/12345678/00012345_00067890_1.sim',
+                      extraPackages = 'AppConfig.v3r171;ProdConf.v1r9',
+                      systemConfig = 'x86_64-slc5-gcc43-opt' )
+
+
+  job.setDIRACPlatform()  # pylint: disable=no-member
+  job.setConfigArgs( 'rootConfig.cfg' )
+  job.setCPUTime( 172800 )
+  res = endOfAllJobs( job )
+  return res
+
+@executeWithUserProxy
+def gaudiApplicationScriptJob():
+
+  job = baseToAllJobs( 'gaudiApplicationScriptJob', jobClass )
+  job.setInputSandbox( [find_all( '_input_sandbox_1324_master.tgz', wdir, 'GridTestSubmission' )[0]] \
+                     + [find_all( 'runToys.C', wdir, 'GridTestSubmission' )[0]] \
+                     + [find_all( 'script_wrapper.py', wdir, 'GridTestSubmission' )[0]] )
+  job.setApplicationScript( 'root', '6.06.02', 'script_wrapper.py', # pylint: disable=no-member
+                            systemConfig = 'x86_64-slc6-gcc49-opt' )
+  job.setOutputSandbox( 'FitResultsToyData*.root' )
+  job.setDIRACPlatform()  # pylint: disable=no-member
+  job.setCPUTime( 172800 )
+  res = endOfAllJobs( job )
+  return res
+
+@executeWithUserProxy
+def daVinciLHCbScriptJob_v41r2():
+  """ This job internally will try to run using 'x86_64-slc6-gcc49-opt'
+
+      DaVinci v41r2 is not on lb-run
+  """
+
+  job = baseToAllJobs( 'daVinciLHCbScriptJob_v41r2', jobClass )
+  job.setInputSandbox( ['LFN:/lhcb/user/f/fstagni/GangaInputFile/LHCb-Scripts.tar.gz',
+                        'LFN:/lhcb/user/f/fstagni/GangaInputFile/minimal_DaVinciDev_v41r2.tgz'] )
+  job.setExecutable( 'jobScript/GaudiExec_Job_6_script.py', arguments = '', logFile = 'Ganga_GaudiExec.log',
+                     systemConfig = 'x86_64-slc6-gcc49-opt' )
+  job.setDIRACPlatform()  # pylint: disable=no-member
+  job.setCPUTime( 172800 )
+  res = endOfAllJobs( job )
+  return res
+
+
+@executeWithUserProxy
+def daVinciLHCbScriptJob_v42r1():
+  """ This job internally will try to run using 'x86_64-slc6-gcc49-opt' while here 'x86_64-slc6-gcc48-opt' is set
+
+      DaVinci v42r1 uses lb-run only
+  """
+
+  job = baseToAllJobs( 'daVinciLHCbScriptJob_v42r1', jobClass )
+  job.setInputSandbox( ['LFN:/lhcb/user/f/fstagni/GangaInputFile/LHCb-Scripts.tar.gz',
+                        'LFN:/lhcb/user/f/fstagni/GangaInputFile/minimal_DaVinciDev_v42r1.tgz'] )
+  job.setExecutable( 'jobScript/GaudiExec_Job_6_script.py', arguments = '', logFile = 'Ganga_GaudiExec.log',
+                     systemConfig = 'x86_64-slc6-gcc48-opt' )
+  job.setDIRACPlatform()  # pylint: disable=no-member
+  job.setCPUTime( 172800 )
+  res = endOfAllJobs( job )
+  return res
 
 @executeWithUserProxy
 def wrongJob():
@@ -329,7 +501,6 @@ def wrongJob():
   print "This will generate a job that should become Completed, use the failover, and only later it will be Done"
 
   from tests.Workflow.Integration.Test_UserJobs import createJob
-  job = baseToAllJobs( 'wrongJob', jobClass )
   job = createJob( local = False )
   job.setName( "gaudirun-gauss-completed-than-done" )
   res = endOfAllJobs( job )
@@ -346,7 +517,7 @@ def wrongJob():
 # #     gaudirunJob = LHCbJob()
 # #
 # #     gaudirunJob.setName( "gaudirun-Gauss-test-TAG-multicore" )
-# #     gaudirunJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '.', 'GridTestSubmission' )[0]] )
+# #     gaudirunJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
 # #     gaudirunJob.setOutputSandbox( '00012345_00067890_1.sim' )
 # #
 # #     optGauss = "$APPCONFIGOPTS/Gauss/Sim08-Beam3500GeV-md100-2011-nu2.py;"

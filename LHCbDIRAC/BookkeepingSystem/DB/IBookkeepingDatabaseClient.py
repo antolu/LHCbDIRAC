@@ -497,9 +497,9 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getStepIdandName(programName, programVersion)
 
   #############################################################################
-  def addProduction( self, production, simcond, daq, steps, inputproc, configName, configVersion ):
+  def addProduction( self, production, simcond, daq, steps, inputproc, configName, configVersion, eventType ):
     "more info in the BookkeepingClient.py"
-    return self.getManager().addProduction( production, simcond, daq, steps, inputproc, configName, configVersion )
+    return self.getManager().addProduction( production, simcond, daq, steps, inputproc, configName, configVersion, eventType )
 
   #############################################################################
   def checkProcessingPassAndSimCond(self, production):
@@ -532,9 +532,9 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getDataTakingCondDesc(condition)
 
   #############################################################################
-  def getProductionOutputFileTypes(self, prod):
+  def getProductionOutputFileTypes(self, prod, stepid):
     "more info in the BookkeepingClient.py"
-    return self.getManager().getProductionOutputFileTypes(prod)
+    return self.getManager().getProductionOutputFileTypes(prod, stepid)
 
   #############################################################################
   def existsTag(self, name, value):
@@ -752,3 +752,9 @@ class IBookkeepingDatabaseClient(object):
   def getAvailableTagsFromSteps( self ):
     """more info in the BookkeepingClient.py"""
     return self.getManager().getAvailableTagsFromSteps()
+  
+  #############################################################################
+  def bulkgetIDsFromFilesTable( self, lfns ):
+    """more info in the BookkeepingClient.py"""
+    return self.getManager().bulkgetIDsFromFilesTable( lfns )
+  

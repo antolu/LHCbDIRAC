@@ -2,6 +2,7 @@
 Set of functions used by the DMS scripts
 """
 import os
+import datetime
 
 from DIRAC  import gLogger, S_OK, exit as diracExit
 from DIRAC.Core.Utilities.List import breakListIntoChunks
@@ -133,9 +134,11 @@ def executeFilePath( dmScript ):
     dmScript.setLFNsFromFile( lfn )
   lfnList = sorted( dmScript.getOption( 'LFNs', [] ) )
 
-  if len( lfnList ) == 0:
-    Script.showHelp()
-    diracExit( 0 )
+  if not lfnList:
+    lfnList = sorted( dmScript.getOption( 'Directory', [] ) )
+    if not lfnList:
+      Script.showHelp()
+      diracExit( 0 )
 
   dirMetadata = ( 'Production', 'ConfigName', 'ConditionDescription', 'EventType',
                  'FileType', 'ConfigVersion', 'ProcessingPass', 'Path' )
@@ -171,17 +174,33 @@ def executeFilePath( dmScript ):
   else:
     directories = {}
     for lfn in lfnList:
-      directories.setdefault( os.path.dirname( lfn ), [] ).append( lfn )
+      dirName = os.path.dirname( lfn )
+      if not dirName:
+        continue
+      if '/RAW/' in dirName:
+        # For RAW files, eliminate the tail (run number)
+        while True:
+          if os.path.basename( dirName ).isdigit():
+            dirName = os.path.dirname( dirName )
+          else:
+            break
+      else:
+        tail = os.path.basename( dirName )
+        # Eliminate the tailing '/0000'
+        if len( tail ) == 4 and tail.isdigit():
+          dirName = os.path.dirname( dirName )
+      directories.setdefault( dirName, [] ).append( lfn )
 
-    chunkSize = 10
+    chunkSize = 2
     progressBar = ProgressBar( len( directories ), title = 'Getting metadata for %d directories' % len( directories ),
                                chunk = chunkSize )
     success = {}
     failed = set()
-    for dirChunk in breakListIntoChunks( sorted( directories ), chunkSize ):
+    for dirChunk in breakListIntoChunks( directories, chunkSize ):
       progressBar.loop()
       res = bkClient.getDirectoryMetadata( dirChunk )
       if not res['OK']:
+        progressBar.endLoop( message = 'Error getting directory metadata' )
         printDMResult( res )
         diracExit( 1 )
       success.update( res['Value']['Successful'] )
@@ -835,8 +854,10 @@ def _getCollidingBunches( fills ):
       runDbUrl = 'https://lbrundb.cern.ch/api/fill/%d/' % fill
       fillInfo = json.load( urllib2.urlopen( runDbUrl ) )
       result[fill] = int( fillInfo['nCollidingBunches'] )
-    except ( urllib2.HTTPError, KeyError, ValueError ) as e:
+    except ( KeyError, ValueError ) as e:
       gLogger.exception( "Exception getting info for fill", str( fill ), lException = e )
+      pass
+    except urllib2.HTTPError as e:
       pass
   return result
 
@@ -873,7 +894,7 @@ def executeGetStats( dmScript ):
   else:
     prodList = [None]
     fileType = None
-  if fileType != ['RAW'] and triggerRate:
+  if triggerRate and fileType != ['RAW'] and not [lfn for lfn in lfns if '.raw' in lfn]:
     gLogger.notice( 'TriggerRate option ignored as not looking for RAW files' )
     triggerRate = False
 
@@ -1108,7 +1129,7 @@ def executeGetStats( dmScript ):
           rate = 'Run duration not available'
         totalLumi, lumiUnit = _scaleLumi( totalLumi )
         gLogger.notice( '%s: %.3f %s' % ( 'Total Luminosity'.ljust( tab ), totalLumi, lumiUnit ) )
-        gLogger.notice( '%s: %.1f hours (%d runs)' % ( 'Run duration'.ljust( tab ), fullDuration, len( runs ) ) )
+        gLogger.notice( '%s: %.2f hours (%d runs)' % ( 'Run duration'.ljust( tab ), fullDuration, len( runs ) ) )
         gLogger.notice( '%s: %s' % ( 'Trigger rate'.ljust( tab ), rate ) )
         rate = ( '%.1f MB/second' % ( size / 1000000. / fullDuration / 3600. ) ) if fullDuration else 'Run duration not available'
         gLogger.notice( '%s: %s' % ( 'Throughput'.ljust( tab ), rate ) )
@@ -1116,7 +1137,7 @@ def executeGetStats( dmScript ):
         collBunches = 0.
         for fill in fillDuration:
           if fill not in result:
-            gLogger.notice( "Error: no number of colliding bunches for fill %d" % fillDuration )
+            gLogger.notice( "Error: no number of colliding bunches for fill %d" % fill )
           else:
             collBunches += result[fill] * fillDuration[fill]
         if fullDuration:
@@ -1128,7 +1149,7 @@ def executeGetStats( dmScript ):
           gLogger.notice( 'List of fills: ', ','.join( "%d (%d runs, %.1f hours)" % ( fill, len( fills[fill] ), fillDuration[fill] ) for fill in sorted( fills ) ) )
         if listRuns:
           for fill in sorted( fills ):
-            gLogger.notice( 'Fill %d (%4d bunches, %.1f hours):' % ( fill, result[fill], fillDuration[fill] ), ','.join( fills[fill] ) )
+            gLogger.notice( 'Fill %d (%s, %.1f hours):' % ( fill, '%4d bunches' % result[fill] if fill in result else 'Unknown bunches', fillDuration[fill] ), ','.join( fills[fill] ) )
     gLogger.notice( "" )
 
 def executeRunInfo( item ):
@@ -1136,17 +1157,34 @@ def executeRunInfo( item ):
   Get the TCK for a range of runs, and then prints each TCK with run ranges
   """
   runsDict = {}
-  if item not in ( 'Tck', 'DataTakingDescription', 'ProcessingPass' ):
+  if item not in ( 'Tck', 'DataTakingDescription', 'ProcessingPass', 'Ranges' ):
     gLogger.fatal( "Incorrect run information item" )
     return 0
-  force = False
+  force = None
   byRange = False
+  activity = None
+  dqFlag = None
+  runGap = 100
+  timeGap = 365
   for switch in Script.getUnprocessedSwitches():
-    if switch[0] == 'Force':
-      force = True
-    if switch[0] == 'ByRange':
+    if switch[0] in ( 'Force', 'Fast' ):
+      # Set True only if not changed by another option
+      if force is None:
+        force = True
+    elif switch[0] == 'ByRange':
       byRange = True
-    if switch[0] == 'Runs':
+    elif switch[0] == 'Activity':
+      activity = switch[1].capitalize()
+    elif switch[0] == 'DQFlag':
+      dqFlag = switch[1].split( ',' )
+    elif switch[0] == 'RunGap':
+      runGap = int( switch[1] )
+    elif switch[0] == 'TimeGap':
+      # Must get run informations to apply it
+      timeGap = int( switch[1] )
+      runGap = 100000000
+      force = False
+    elif switch[0] == 'Runs':
       # Add a fake run number to force parseRuns to return a list
       try:
         runRange = switch[1]
@@ -1155,60 +1193,240 @@ def executeRunInfo( item ):
         gLogger.fatal( "Bad run range" )
         diracExit( 1 )
 
-  if not runsDict:
+  getRanges = ( item == 'Ranges' )
+  byRange = byRange or getRanges
+  if activity:
+    progressBar = ProgressBar( 1, title = "Getting run list for activity %s" % activity, step = 20 )
+    runsList = BKQuery( "/LHCb/%s//Real Data//RAW" % activity ).getBKRuns()
+    progressBar.endLoop( message = 'Obtained %d runs' % len( runsList ) )
+    if runsDict:
+      runsList = sorted( set( runsList ) & set( runsDict['RunNumber'] ) )
+      gLogger.notice( "Only %d runs in range %s" % ( len( runsList ), runRange ) )
+  elif not runsDict:
     Script.showHelp()
     diracExit( 1 )
-  runsList = runsDict['RunNumber']
-  # Remove the fake run number
-  runsList.remove( 0 )
-  runDict = {}
-  if len( runRange ) < 30:
-    progressBar = ProgressBar( 1, title = "Getting runs for run range %s " % runRange, step = 20 )
   else:
-    progressBar = ProgressBar( 1, title = "Getting runs for %d runs " % len( runsList ), step = 20 )
-  res = bkClient.getRunStatus( runsList )
-  progressBar.endLoop()
-  if not res['OK']:
-    gLogger.fatal( "Error getting run list", res['Message'] )
-    diracExit( 1 )
-  runsList = res['Value']['Successful'].keys()
-  progressBar = ProgressBar( len( runsList ), title = "Getting %s for %d runs " % ( item, len( runsList ) ), step = 20 )
-  for run in sorted( runsList ):
-    progressBar.loop()
-    res = bkClient.getRunInformations( run )
-    if res['OK']:
-      itemValue = res['Value'].get( item )
-      streams = res['Value'].get( 'Stream', [] )
-      if ( 90000000 in streams or force ) and itemValue:
-        runDict[run] = itemValue
-  progressBar.endLoop()
-  itemList = []
-  for run in sorted( runDict ):
-    if runDict[run] not in itemList:
-      itemList.append( runDict[run] )
+    runsList = runsDict['RunNumber']
+    # Remove the fake run number
+    runsList.remove( 0 )
+    if len( runRange ) < 30:
+      progressBar = ProgressBar( 1, title = "Getting runs for run range %s " % runRange, step = 20 )
+    else:
+      progressBar = ProgressBar( 1, title = "Getting runs for %d runs " % len( runsList ), step = 20 )
+    res = bkClient.getRunStatus( runsList )
+    progressBar.endLoop()
+    if not res['OK']:
+      gLogger.fatal( "Error getting run list", res['Message'] )
+      diracExit( 1 )
+    runsList = res['Value']['Successful'].keys()
+
+  if dqFlag:
+    nruns = len( runsList )
+    chunkSize = 10
+    progressBar = ProgressBar( len( runsList ), title = "Getting DQFlag for %d runs " % len( runsList ), chunk = chunkSize )
+    for runChunk in breakListIntoChunks( runsList, chunkSize ):
+      progressBar.loop()
+      res = bkClient.getRunFilesDataQuality( runChunk )
+      if not res['OK']:
+        gLogger.fatal( 'Error getting DQFlag', res['Message'] )
+        diracExit( 1 )
+      dq = dict( ( r, dq ) for r, dq, s in res['Value'] if s == 90000000 )
+      for run in runChunk:
+        if dq.get( run ) not in dqFlag:
+          runsList.remove( run )
+    progressBar.endLoop()
+    if len( runsList ) != nruns:
+      gLogger.notice( "Only %d runs have DQ flag in %s" % ( len( runsList ), ','.join( dqFlag ) ) )
+
+  runTime = {}
+  if getRanges and force:
+    counted = 'runs'
+    runDict = dict.fromkeys( runsList, 1 )
+  else:
+    counted = 'files'
+    runDict = {}
+    progressBar = ProgressBar( len( runsList ), title = "Getting %s for %d runs " % ( item, len( runsList ) ), step = 20 )
+    for run in sorted( runsList ):
+      progressBar.loop()
+      res = bkClient.getRunInformations( run )
+      if res['OK']:
+        streams = res['Value'].get( 'Stream', [] )
+        runTime[run] = ( res['Value'].get( 'RunStart' ), res['Value'].get( 'RunEnd' ), res['Value']['DataTakingDescription'] )
+        if getRanges:
+          files = res['Value'].get( 'Number of file', [] )
+          itemValue = dict( zip( streams, files ) ).get( 90000000, 0 )
+        else:
+          itemValue = res['Value'].get( item )
+        if ( 90000000 in streams or force ) and itemValue:
+          runDict[run] = itemValue
+    progressBar.endLoop()
+  if getRanges:
+    itemList = [1]
+  else:
+    itemList = []
+    for run in sorted( runDict ):
+      if runDict[run] not in itemList:
+        itemList.append( runDict[run] )
   itemDict = {}
   rangesDict = {}
   for itemValue in itemList:
     firstRun = None
+    lastRun = None
+    runStart = None
+    runEnd = None
+    lastDesc = None
+    count = 0
     # Add a fake run (None) in order to print out the last range
     for run in sorted( runDict ) + [None]:
-      runValue = runDict.get( run )
-      if runValue == itemValue and not firstRun:
+      runValue = 1 if getRanges and run else runDict.get( run )
+      runStart = runTime.get( run, ( None, None ) )[0]
+      runDesc = runTime.get( run, ( None, None, None ) )[2]
+      # Determine if there is a need to change the run range
+      # Can be a change of conditions, a runGap in time or a runGap in #of runs
+      gap = False
+      if lastDesc:
+        gap = ( runDesc != lastDesc )
+      if not gap and runStart and runEnd:
+        runDiff = runStart - runEnd
+        gap = ( runDiff > datetime.timedelta( days = timeGap ) )
+      if not gap and lastRun and run:
+        gap = ( abs( lastRun - run ) > runGap )
+
+      if runValue == itemValue and firstRun is None:
         firstRun = run
-        lastRun = run
-      elif ( runValue != itemValue or ( lastRun - run ) > 100 ) and firstRun:
+      elif ( runValue != itemValue or gap ) and firstRun is not None:
         if lastRun != firstRun:
           rangeStr = '%d:%d' % ( firstRun, lastRun )
         else:
           rangeStr = '%d' % firstRun
-        rangesDict[rangeStr] = itemValue
+        if lastDesc:
+          rangeStr += ' (%s)' % lastDesc
+        rangesDict[rangeStr] = '%d %s' % ( count, counted ) if getRanges else itemValue
         itemDict.setdefault( itemValue, [] ).append( rangeStr )
-        firstRun = None
-      else:
-        lastRun = run
+        firstRun = run
+      elif getRanges and run:
+          count += runDict[run]
+      # Update parameters with this run's information
+      lastRun = run
+      lastDesc = runDesc
+      runEnd = runTime.get( run, ( None, None, None ) )[1]
+      if run == firstRun and getRanges and run:
+        count = runDict[run]
+
+
   if byRange:
+    if item == 'Ranges':
+      gLogger.notice( "Total number of runs: %d" % len( runDict ) )
     for rangeStr in sorted( rangesDict ):
       gLogger.notice( '%s : %s' % ( rangeStr, rangesDict[rangeStr] ) )
   else:
-    for itemValue, ranges in itemDict.iteritems():
-      gLogger.notice( '%s :' % itemValue, ', '.join( ranges ) )
+    for itemValue in sorted( itemDict ):
+      gLogger.notice( '%s :' % itemValue, ', '.join( itemDict[itemValue] ) )
+
+def executeRejectionStats( dmScript ):
+  """
+  Extract statistics for a BK query
+  """
+  byStream = False
+  for switch in Script.getUnprocessedSwitches():
+    if switch[0] == 'ByStream':
+      byStream = True
+
+  lfns = dmScript.getOption( 'LFNs', [] )
+  bkQuery = dmScript.getBKQuery()
+  if not bkQuery and not lfns:
+    gLogger.notice( "No BK query given..." )
+    diracExit( 1 )
+
+  fileTypes = ['']
+  if bkQuery:
+    bkQuery.setOption( 'ReplicaFlag', bkQuery.isVisible() )
+    fileTypes = bkQuery.getFileTypeList()
+    gLogger.notice( "Using BK query", str( bkQuery ) )
+    if byStream:
+      streams = sorted( fileTypes )
+    else:
+      streams = ['all']
+
+  else:
+    streams = ['all']
+
+  chunkSize = 100
+  eventStatByStream = {}
+  eventInputStatByStream = {}
+  uniqueJobs = {}
+  jobInputStat = {}
+  lfnsByStream = {}
+  jobs = {}
+  for stream in streams:
+    if bkQuery:
+      if byStream:
+        bkQuery.setFileType( stream )
+      lfns = bkQuery.getLFNs( printSEUsage = False, printOutput = False )
+
+    if not lfns:
+      gLogger.notice ( "No files found" )
+      if not byStream:
+        diracExit( 0 )
+      continue
+
+    lfnsByStream[stream] = lfns
+    progressBar = ProgressBar( len( lfns ), title = "Getting metadata for %d files %s" % ( len( lfns ), ( "(stream %s)" % stream ) if byStream else "" ), chunk = chunkSize )
+    eventStat = 0
+    for lfnChunk in breakListIntoChunks( lfns, chunkSize ):
+      progressBar.loop()
+      for lfn in lfnChunk:
+        uniqueJobs.setdefault( os.path.basename( lfn ).split( '.' )[0], lfn )
+      res = bkClient.getFileMetadata( lfnChunk )
+      if not res['OK']:
+        gLogger.fatal( "Error getting files metadata", res['Message'] )
+        diracExit( 1 )
+      eventStat += sum( meta['EventStat'] for meta in res['Value']['Successful'].itervalues() )
+    progressBar.endLoop()
+    eventStatByStream[stream] = eventStat
+
+    jobLfns = set( uniqueJobs.values() ) & set( lfns )
+    if jobLfns:
+      progressBar = ProgressBar( len( lfns ), title = "Getting metadata for %d jobs" % len( jobLfns ), chunk = chunkSize )
+      for lfnChunk in breakListIntoChunks( jobLfns, chunkSize ):
+        res = bkClient.bulkJobInfo( lfnChunk )
+        if not res['OK']:
+          gLogger.fatal( "Error getting job information", res['Message'] )
+          diracExit( 1 )
+        success = res['Value']['Successful']
+        for lfn in success:
+          if isinstance( success[lfn], list ) and len( success[lfn] ) == 1:
+            success[lfn] = success[lfn][0]
+          jobName = os.path.basename( lfn ).split( '.' )[0]
+          jobInputStat[jobName] = success[lfn]['EventInputStat']
+      progressBar.endLoop()
+    if byStream:
+      eventInputStat = 0
+      for lfn in lfns:
+        jobName = os.path.basename( lfn ).split( '.' )[0]
+        jobs.setdefault( stream, set() ).add( jobName )
+        eventInputStat += jobInputStat[jobName]
+    else:
+      jobs[stream] = set( jobInputStat )
+      eventInputStat = sum( jobInputStat.values() )
+    eventInputStatByStream[stream] = eventInputStat
+
+  tab = '\t' if byStream else ''
+  eventInputStat = 0
+  multiStream = len( fileTypes ) > 1 and not byStream and len( jobs['all'] ) == len( lfnsByStream['all'] )
+  if multiStream:
+    gLogger.notice( "*** WARNING *** %d streams with as many jobs as files, rescaled input stat" % len( fileTypes ) )
+    rescale = len( fileTypes )
+  else:
+    rescale = 1
+  for stream in streams:
+    eventStat = eventStatByStream[stream]
+    prInput = eventInputStat != eventInputStatByStream[stream]
+    if prInput:
+      eventInputStat = eventInputStatByStream[stream] / float( rescale )
+    if len( fileTypes ) > 1:
+      gLogger.notice( 'For %s stream%s:' % ( stream, '' if byStream else 's' ) )
+    gLogger.notice( tab + "Event stat: %d on %d files" % ( eventStat, len( lfnsByStream[stream] ) ) )
+    if prInput:
+      gLogger.notice( tab + "EventInputStat: %d" % eventInputStat, ( "from %d jobs" % len( jobs[stream] ) ) if jobs[stream] != lfnsByStream[stream] else '' )
+    gLogger.notice( tab + "Retention: %.2f %%" % ( 100.* eventStat / eventInputStat ) )

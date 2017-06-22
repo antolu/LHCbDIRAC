@@ -135,7 +135,12 @@ class OracleBookkeepingDB( object ):
 
       stepId = in_dict.get( 'StepId', default )
       if stepId != default:
-        condition += ' and s.stepid= %s' % ( str( stepId ) )
+        if isinstance( stepId, ( basestring, int, long ) ):
+          condition += ' and s.stepid= %s' % ( str( stepId ) )
+        elif isinstance( stepId, ( list, tuple ) ):
+          condition += 'and s.stepid in (%s)' % ",".join( [str( sid ) for sid in stepId] ) 
+        else:
+          return S_ERROR( "Wrong StepId" )               
 
       stepName = in_dict.get( 'StepName', default )
       if stepName != default:
@@ -469,19 +474,35 @@ class OracleBookkeepingDB( object ):
     return self.dbR_.query( command )
 
   #############################################################################
-  def getProductionOutputFileTypes( self, prod ):
-    """returns the production output file types"""
-    command = "select o.name,o.visible from steps s, table(s.outputfiletypes) o, stepscontainer st \
-            where st.stepid=s.stepid and st.production=%d order by step" % ( int( prod ) )
+  def getProductionOutputFileTypes( self, prod, stepid ):
+    """returns the production output file types
+    :param int prod:  production number
+    :param int stepid: step id 
+    :rertun S_OK/S_ERROR return a dictionary with file types and visibility flag.
+    """
+    condition = ''
+    if stepid != default:
+      condition = " and s.stepid=%s" % stepid
+    
+    command = "select ft.name, s.visible from productionoutputfiles s, filetypes ft where s.filetypeid=ft.filetypeid and s.production=%s %s" % ( prod, condition )
     retVal = self.dbR_.query( command )
-    values = {}
+    if not retVal['OK']:
+      return retVal
+    if not retVal['Value']:
+      #this is for backward compatibility. 
+      #FIXME: make sure the productionoutputfiles is correctly propagated and after the method can be simpified
+      command = "select o.name,o.visible from steps s, table(s.outputfiletypes) o, stepscontainer st \
+            where st.stepid=s.stepid and st.production=%d %s order by step" % ( int( prod ), condition )
+      retVal = self.dbR_.query( command )
+    
+    outputFiles = {}
     if retVal['OK']:
-      for i in retVal['Value']:
-        values[i[0]] = i[1]
-      result = S_OK( values )
+      for filetype, visible in retVal['Value']:
+        outputFiles[filetype] = visible
     else:
-      result = retVal
-    return result
+      return retVal
+    
+    return S_OK( outputFiles )
 
   #############################################################################
   def getAvailableFileTypes( self ):
@@ -521,10 +542,10 @@ class OracleBookkeepingDB( object ):
       values = ',filetypesARRAY('
       selection += ',InputFileTypes'
       for i in inFileTypes:
-        values += "ftype('%s', '%s')," % ( ( i.get( 'FileType', None ).strip() if i.get( 'FileType', None )
-                                             else i.get( 'FileType', None ) ),
-                                           ( i.get( 'Visible', None ).strip() if i.get( 'Visible', None )
-                                             else i.get( 'Visible', None ) ) )
+        values += "ftype('%s', '%s')," % ( ( i.get( 'FileType', '' ).strip() if i.get( 'FileType', '' )
+                                             else i.get( 'FileType', '' ) ),
+                                           ( i.get( 'Visible', '' ).strip() if i.get( 'Visible', '' )
+                                             else i.get( 'Visible', '' ) ) )
       values = values[:-1]
       values += ')'
 
@@ -534,10 +555,10 @@ class OracleBookkeepingDB( object ):
       values += ' , filetypesARRAY('
       selection += ',OutputFileTypes'
       for i in outFileTypes:
-        values += "ftype('%s', '%s')," % ( ( i.get( 'FileType', None ).strip() if i.get( 'FileType', None )
-                                             else i.get( 'FileType', None ) ),
-                                           ( i.get( 'Visible', None ).strip() if i.get( 'Visible', None )
-                                             else i.get( 'Visible', None ) ) )
+        values += "ftype('%s', '%s')," % ( ( i.get( 'FileType', '' ).strip() if i.get( 'FileType', '' )
+                                             else i.get( 'FileType', '' ) ),
+                                           ( i.get( 'Visible', '' ).strip() if i.get( 'Visible', '' )
+                                             else i.get( 'Visible', '' ) ) )
       values = values[:-1]
       values += ')'
 
@@ -654,9 +675,8 @@ class OracleBookkeepingDB( object ):
               ftypes = sorted( ftypes, key = lambda k: k['FileType'] )
               for j in ftypes:
                 filetype = j.get( 'FileType', default )
-                visible = j.get( 'Visible', default )
-                if filetype != default and visible != default:
-                  values += "ftype('%s','%s')," % ( filetype.strip(), visible.strip() )
+                if filetype != default:
+                  values += "ftype('%s','')," % filetype.strip() 
               values = values[:-1]
               values += ')'
               command += i + '=' + values + ','
@@ -3090,22 +3110,25 @@ and files.qualityid= dataquality.qualityid'
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-
+    
     retVal = self.__buildConditions( simdesc, datataking, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-
+    
+    hint = ''
+    if ( not startDate and not endDate ) and tables.strip() == 'files f,jobs j  ,filetypes ft':
+      hint = '/*+INDEX(j JOBS_PRODUCTIONID) INDEX(f FILES_JOB_EVENT_FILETYPE) INDEX(ft FILETYPES_ID_NAME)*/'
+      
     if nbofEvents:
-      command = " select sum(f.eventstat) \
-      from %s where f.jobid= j.jobid %s " % ( tables, condition )
+      command = " select %s sum(f.eventstat) \
+      from %s where f.jobid= j.jobid %s " % ( hint, tables, condition )
     elif filesize:
-      command = " select sum(f.filesize) \
-      from %s where f.jobid= j.jobid %s " % ( tables, condition )
+      command = " select %s sum(f.filesize) \
+      from %s where f.jobid= j.jobid %s " % ( hint, tables, condition )
     else:
-      command = " select distinct f.filename \
-      from %s where f.jobid= j.jobid %s " % ( tables, condition )
-
+      command = " select %s distinct f.filename \
+      from %s where f.jobid= j.jobid %s " % ( hint, tables, condition )
     res = self.dbR_.query( command )
 
     return res
@@ -3114,11 +3137,13 @@ and files.qualityid= dataquality.qualityid'
   @staticmethod
   def __buildConfiguration( configName, configVersion, condition, tables ):
     """ it make the condition string for a given configName and configVersion"""
+    
     if configName not in [default, None, '']  and configVersion not in [default, None, '']:
-      if tables.upper().find( 'CONFIGURATIONS' ) < 0:
+      if 'CONFIGURATIONS' not in tables.upper():
         tables += ' ,configurations c'
       condition += "  and c.ConfigName='%s' and c.ConfigVersion='%s' and \
       j.configurationid=c.configurationid " % ( configName, configVersion )
+        
     return S_OK( ( condition, tables ) )
 
   #############################################################################
@@ -4014,7 +4039,7 @@ and files.qualityid= dataquality.qualityid'
     return res
 
   #############################################################################
-  def addProduction( self, production, simcond = None, daq = None, steps = default, inputproc = '', configName = None, configVersion = None ):
+  def addProduction( self, production, simcond = None, daq = None, steps = default, inputproc = '', configName = None, configVersion = None, eventType = None ):
     """adds a production"""
     path = []
     if inputproc != '':
@@ -4061,12 +4086,56 @@ and files.qualityid= dataquality.qualityid'
           sim = retVal['Value']
         else:
           return S_ERROR( 'Data taking condition is missing!!' )
-      return self.insertproductionscontainer( production, processingid, sim, did, configName, configVersion )
+      retVal = self.insertproductionscontainer( production, processingid, sim, did, configName, configVersion )
+      if retVal['OK']:#now we can register the production output file types
+        return self.insertProductionOutputFiletypes( production, steps, eventType )
+      else:
+        return retVal
     else:
       return retVal
     return S_OK( 'The production processing pass is entered to the bkk' )
 
-
+  #############################################################################
+  def insertProductionOutputFiletypes(self, production, steps, eventType):
+    """
+    This method is used to register the output filetypes for a given production
+    :param int production: it is the production number
+    :param list steps it contains all the steps and output file types
+    :param number/list eventtype given event type which will be produced by the jobs 
+    :return S_OK/S_ERROR
+    """
+    #if we have some specific file type version, it can be added to this dictionary
+    fileTypeMap = {'RAW':'MDF'}
+    eventtypes = [] 
+    if eventType:
+      if isinstance( eventType, ( basestring, int, long ) ):
+        eventtypes.append( long( eventType ) )
+      elif isinstance( eventType, list ):
+        eventtypes = eventType
+      else:
+        return S_ERROR( "%s event type is not valid!" % eventType )
+    gLogger.verbose( "The following event types will be inserted", eventtypes )
+      
+    for step in steps:
+      # the runs have more than one event type 
+      for eventtype in eventtypes: 
+        for ftype in step.get( 'OutputFileTypes', {} ):
+          fversion = fileTypeMap.get( ftype.get( 'FileType' ), 'ROOT' )
+          result = self.checkFileTypeAndVersion( ftype.get( 'FileType' ), fversion )
+          if not result['OK']:
+            return S_ERROR( "The type:%s, version:%s is missing." % ( ftype.get( 'FileType' ), fversion ) )
+          else:
+            fileTypeid = long( result['Value'] )
+          retVal = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.insertProdnOutputFtypes',
+                                                   [production, step['StepId'],
+                                                    fileTypeid,
+                                                    ftype.get( 'Visible', 'Y' ),
+                                                    eventtype], False )
+          if not retVal['OK']:
+            return retVal
+    
+    return S_OK()
+  
   #############################################################################
   def getEventTypes( self, configName = default, configVersion = default, prod = default ):
     """returns the events types for a given dataset"""
@@ -4418,8 +4487,9 @@ and files.qualityid= dataquality.qualityid'
     """returns the steps with metadata"""
     command = None
     processing = {}
+    productions = None
     result = None
-    if configName.upper().find( 'MC' ) >= 0:
+    if 'MC' in configName.upper():
       command = self.__prepareStepMetadata( configName,
                                             configVersion,
                                             cond,
@@ -4433,47 +4503,31 @@ and files.qualityid= dataquality.qualityid'
       if not retVal['OK']:
         result = retVal
       else:
-        production = tuple( [ i[0] for i in retVal['Value']] )
-        gLogger.debug( 'Production' + str( production ) )
-        parentprod = ()
-        for i in production:
-          command = "select j.production from jobs j, files f where \
-        j.jobid=f.jobid and\
-        f.fileid in (select i.fileid from jobs j, inputfiles i where \
-        j.jobid=i.jobid and j.production = %d and ROWNUM <2)" % ( int( i ) )
-          retVal = self.dbR_.query( command )
-          if not retVal['OK']:
+        productions = tuple( [ i[0] for i in retVal['Value']] )
+        gLogger.debug( 'Productions' + str( productions ) )
+        parametersNames = ['id', 'name']
+        for production in productions:
+          retVal = self.getSteps( production )
+          if not retVal:
             result = retVal
-            break
           else:
-            prods = [ i[0] for i in retVal['Value']]
-            parentprod = tuple( prods )
-          gLogger.debug( 'Parent production:' + str( parentprod ) )
-          condition = ''
-          tables = 'steps s, productionscontainer prod, stepscontainer cont'
-          if procpass != default:
-            condition += " and prod.processingid in ( \
-                          select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
-                                              FROM processing v   START WITH id in (select distinct id from processing where name='%s') \
-                                              CONNECT BY NOCYCLE PRIOR  id=parentid) v where v.path='%s' \
-                             )" % ( procpass.split( '/' )[1], procpass )
-
-          if cond != default:
-            retVal = self.__getConditionString( cond, 'prod' )
-            if retVal['OK']:
-              condition += retVal['Value']
-            else:
-              return retVal
-
-        parentprod += production
-        command = "select distinct s.stepid,s.stepname,s.applicationname,s.applicationversion,\
-       s.optionfiles,s.dddb, s.conddb,s.extrapackages,s.visible, cont.step  from  %s \
-                     where cont.stepid=s.stepid and \
-                      prod.production=cont.production and\
-                      prod.production in %s %s order by cont.step" % ( tables, str( parentprod ), condition )
-
-
+            nb = 0
+            for stepName, appName, appVersion, optionFiles, dddb, conddb, extrapackages, stepid, visible in retVal['Value']:
+              records = [ ['StepId', stepid],
+                          ['StepName', stepName],
+                          ['ApplicationName', appName],
+                          ['ApplicationVersion', appVersion],
+                          ['OptionFiles', optionFiles],
+                          ['DDDB', dddb],
+                          ['CONDDB', conddb],
+                          ['ExtraPackages', extrapackages],
+                          ['Visible', visible]]
+              step = 'Step-%d' % stepid 
+              processing[step] = records
+              nb += 1
+            result = S_OK( {'Parameters':parametersNames, 'Records':processing, 'TotalRecords':nb} )
     else:
+      # #Now we are getting the metadata for a given run
       command = self.__prepareStepMetadata( configName,
                                             configVersion,
                                             cond,
@@ -4483,33 +4537,29 @@ and files.qualityid= dataquality.qualityid'
                                             filetype,
                                             runnb,
                                             selection = 'distinct s.stepid,s.stepname,s.applicationname,s.applicationversion,\
-       s.optionfiles,s.dddb, s.conddb,s.extrapackages,s.visible, cont.step' )
-
-    if not result:
+                                            s.optionfiles,s.dddb, s.conddb,s.extrapackages,s.visible, cont.step' )
       retVal = self.dbR_.query( command )
-      records = []
-
-      parametersNames = ['id', 'name']
-      if retVal['OK']:
-        nb = 0
-        for i in retVal['Value']:
-          # records = [[i[0],i[1],i[2],i[3],i[4],i[5],i[6], i[7], i[8]]]
-          records = [ ['StepId', i[0]],
-                      ['StepName', i[1]],
-                      ['ApplicationName', i[2]],
-                      ['ApplicationVersion', i[3]],
-                      ['OptionFiles', i[4]],
-                      ['DDDB', i[5]],
-                      ['CONDDB', i[6]],
-                      ['ExtraPackages', i[7]],
-                      ['Visible', i[8]]]
-          step = 'Step-%s' % ( i[0] )
-          processing[step] = records
-          nb += 1
-        result = S_OK( {'Parameters':parametersNames, 'Records':processing, 'TotalRecords':nb} )
-      else:
+      if not retVal['OK']:
         result = retVal
-
+      else:
+        nb = 0
+        parametersNames = ['id', 'name']
+        for stepid, stepName, appName, appVersion, optionFiles, dddb, conddb, extrapackages, visible, _ in retVal['Value']:
+          records = [ ['StepId', stepid],
+                    ['StepName', stepName],
+                    ['ApplicationName', appName],
+                    ['ApplicationVersion', appVersion],
+                    ['OptionFiles', optionFiles],
+                    ['DDDB', dddb],
+                    ['CONDDB', conddb],
+                    ['ExtraPackages', extrapackages],
+                    ['Visible', visible]]
+          step = 'Step-%d' % stepid 
+          nb += 1
+          processing[step] = records
+     
+        result = S_OK( {'Parameters':parametersNames, 'Records':processing, 'TotalRecords':nb} )
+          
     return result
 
   #############################################################################
@@ -5109,3 +5159,24 @@ and files.qualityid= dataquality.qualityid'
         records.append( [ 'DQTAG', record[2]] )
     
     return S_OK( {'ParameterNames': ['TagName', 'TagValue'], 'Records':records} )
+  
+  #############################################################################
+  def bulkgetIDsFromFilesTable( self, lfns ):
+    """
+    This method used to retreive the JobId, FileId and FiletypeId for a given list of lfns
+    :return S_OK/S_ERROR {"FileId:1","JobId":22, "FileTypeId":3}
+    """
+    retVal = self.dbR_.executeStoredProcedure( packageName = 'BOOKKEEPINGORACLEDB.bulkgetIdsFromFiles',
+                                               parameters = [],
+                                               output = True,
+                                               array = lfns )
+    if not retVal['OK']:
+      return retVal
+    
+    fileParams = ['JobId', 'FileId', 'FileTypeId']
+    result = {}
+    for record in retVal['Value']:
+      result[record[0]] = dict( zip( fileParams, record[1:] ) )
+    
+    failed = list( set ( lfns ) - set( result.keys() ) )
+    return S_OK( {'Successful':result, 'Failed':failed} )

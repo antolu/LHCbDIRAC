@@ -6,15 +6,15 @@ import os
 import time
 import re
 import socket
+import shlex
 from xml.dom.minidom import Document, DocumentType
 
-import DIRAC
-
 from DIRAC import gLogger, S_OK, S_ERROR, gConfig
-from DIRAC.Core.Utilities.Subprocess import shellCall
+from DIRAC.Core.Utilities.Subprocess import systemCall
 from DIRAC.Resources.Catalog.PoolXMLFile import getGUID
 from DIRAC.Workflow.Utilities.Utils import getStepCPUTimes
 
+import LHCbDIRAC
 from LHCbDIRAC.Resources.Catalog.PoolXMLFile import getOutputType
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
@@ -62,7 +62,6 @@ class BookkeepingReport( ModuleBase ):
                step_number = None, step_id = None, saveOnFile = True ):
     """ Usual executor
     """
-
     try:
 
       super( BookkeepingReport, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
@@ -324,7 +323,7 @@ class BookkeepingReport( ModuleBase ):
     typedParams.append( ( "ProgramVersion", self.applicationVersion ) )
 
     # DIRAC version
-    tempVar = "v%dr%dp%d" % ( DIRAC.majorVersion, DIRAC.minorVersion, DIRAC.patchLevel )
+    tempVar = "v%dr%dp%d" % ( LHCbDIRAC.majorVersion, LHCbDIRAC.minorVersion, LHCbDIRAC.patchLevel )
     typedParams.append( ( "DiracVersion", tempVar ) )
 
     typedParams.append( ( "FirstEventNumber", 1 ) )
@@ -445,7 +444,7 @@ class BookkeepingReport( ModuleBase ):
 
       if not self.step_commons.has_key( 'md5' ) or output not in self.step_commons[ 'md5' ]:
         comm = 'md5sum ' + str( output )
-        resultTuple = shellCall( 0, comm )
+        resultTuple = systemCall( 0, shlex.split( comm ) )
         status = resultTuple[ 'Value' ][ 0 ]
         out = resultTuple[ 'Value' ][ 1 ]
       else:

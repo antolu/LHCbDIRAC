@@ -7,9 +7,10 @@ import shutil
 import glob
 import random
 import stat
+import shlex
 
 from DIRAC                                              import S_OK, S_ERROR, gLogger, gConfig
-from DIRAC.Core.Utilities.Subprocess                    import shellCall
+from DIRAC.Core.Utilities.Subprocess                    import systemCall
 from DIRAC.Core.Utilities.File                          import mkDir
 from DIRAC.DataManagementSystem.Client.FailoverTransfer import FailoverTransfer
 from DIRAC.RequestManagementSystem.Client.Operation     import Operation
@@ -42,8 +43,7 @@ class UploadLogFile( ModuleBase ):
     self.logSizeLimit = self.opsH.getValue( 'LogFiles/SizeLimit', 1 * 1024 * 1024 )
     self.logExtensions = self.opsH.getValue( 'LogFiles/Extensions', [] )
     self.failoverSEs = gConfig.getValue( '/Resources/StorageElementGroups/Tier1-Failover', [] )
-    self.diracLogo = self.opsH.getValue( 'SAM/LogoURL',
-                                         'https://lhcbweb.pic.es/DIRAC/images/logos/DIRAC-logo-transp.png' )
+    self.diracLogo = 'https://lhcb-portal-dirac.cern.ch/DIRAC/s:LHCb-Production/g:lhcb_prmgr/static/LHCbDIRAC/img/icons/lhcb.jpg'
     self.logFilePath = ''
     self.logLFNPath = ''
     self.logdir = ''
@@ -89,14 +89,13 @@ class UploadLogFile( ModuleBase ):
       self.request.JobID = self.jobID
       self.request.SourceComponent = "Job_%d" % self.jobID
 
-      res = shellCall( 0, 'ls -al' )
+      res = systemCall( 0, shlex.split('ls -al') )
       if res['OK'] and res['Value'][0] == 0:
         self.log.info( 'The contents of the working directory...' )
         self.log.info( str( res['Value'][1] ) )
       else:
         self.log.error( 'Failed to list the log directory', str( res['Value'][2] ) )
 
-      self.log.info( 'Job root is found to be %s' % ( gConfig.getValue( '/LocalSite/Root', os.getcwd() ) ) )
       self.log.info( 'PRODUCTION_ID = %s, JOB_ID = %s ' % ( self.production_id, self.prod_job_id ) )
       self.logdir = os.path.realpath( './job/log/%s/%s' % ( self.production_id, self.prod_job_id ) )
       self.log.info( 'Selected log files will be temporarily stored in %s' % self.logdir )

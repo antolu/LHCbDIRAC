@@ -73,21 +73,6 @@
      jobID = dirac.submitJob(j,mode='local')
      print 'Submission Result: ',jobID
 
-   To execute a protocol access test (for experts) the following example script should suffice:
-
-     from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
-     from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
-
-     j = LHCbJob()
-     j.setCPUTime(50000)
-     j.setProtocolAccessTest(['xroot','root','rfio'],'5.22.00a',
-     inputData='/lhcb/data/2009/DST/00005727/0000/00005727_00000001_1.dst')
-     j.setLogLevel('verbose')
-
-     dirac = DiracLHCb()
-     jobID = dirac.submitJob(j,mode='wms')
-     print 'Submission Result: ',jobID
-
 """
 
 import os
@@ -214,9 +199,12 @@ class LHCbJob( Job ):
     tmpList = optionsFile.split( ';' )
     optionsFile = ';'.join( list( set( tmpList ) ) )
     self.log.verbose( 'Final options list is: %s' % optionsFile )
+
     if inputData:
       if isinstance( inputData, str ):
         inputData = [inputData]
+      if not isinstance( inputData, list ):
+        return self._reportError( 'Expected single LFN string or list of LFN(s) for inputData', __name__, **kwargs )
       if inputData != ['previousStep']:
         for i in xrange( len( inputData ) ):
           inputData[i] = inputData[i].replace( 'LFN:', '' )
@@ -351,11 +339,12 @@ class LHCbJob( Job ):
         inputData = [inputData]
       if not isinstance( inputData, list ):
         return self._reportError( 'Expected single LFN string or list of LFN(s) for inputData', __name__, **kwargs )
-      for i in xrange( len( inputData ) ):
-        inputData[i] = inputData[i].replace( 'LFN:', '' )
-      inputData = ['LFN:' + x for x in inputData ]
-      inputDataStr = ';'.join( inputData )
-      self.addToInputData.append( inputDataStr )
+      if inputData != ['previousStep']:
+        for i in xrange( len( inputData ) ):
+          inputData[i] = inputData[i].replace( 'LFN:', '' )
+        inputData = ['LFN:' + x for x in inputData ]
+        inputDataStr = ';'.join( inputData )
+        self.addToInputData.append( inputDataStr )
 
     self.stepCount += 1
 
@@ -608,9 +597,9 @@ class LHCbJob( Job ):
 
     # now we have to tell DIRAC to install the necessary software
     appRoot = '%s/%s' % ( self.rootSection, rootVersion )
-    # currentApp = gConfig.getValue( appRoot, '' )
-    currentApp = gConfig.getValue( 'Operations/' + appRoot )
-#     currentApp = self.opsHelper.getValue( appRoot, '' )
+    currentApp = self.opsHelper.getValue( appRoot, '' )
+    if not currentApp: #FIXME: this is an old location, the whole /Operations/SoftwareDistribution section should be removed
+      currentApp = gConfig.getValue( 'Operations/' + appRoot )
     if not currentApp:
       return self._reportError( 'Could not get value from DIRAC Configuration Service for option %s' % appRoot,
                                 __name__, **kwargs )
@@ -671,7 +660,7 @@ class LHCbJob( Job ):
     if not isinstance( inputDataType, str ):
       try:
         inputDataType = str( inputDataType )
-      except Exception as _x:
+      except TypeError as _x:
         return self._reportError( 'Expected string for input data type', __name__, **{'inputDataType':inputDataType} )
 
     self.inputDataType = inputDataType
@@ -737,7 +726,7 @@ class LHCbJob( Job ):
     # If we remove this method (which is totally similar to the Job() one, the output data will be
     # treated by the JobWrapper. So, can and maybe should be done, but have to pay attention
     kwargs = {'lfns':lfns, 'OutputSE':OutputSE, 'OutputPath':OutputPath}
-    if isinstance( lfns, list ) and len( lfns ):
+    if isinstance( lfns, list ) and lfns:
       outputDataStr = ';'.join( lfns )
       description = 'List of output data files'
       self._addParameter( self.workflow, 'UserOutputData', 'JDL', outputDataStr, description )
@@ -761,7 +750,8 @@ class LHCbJob( Job ):
       if not isinstance( OutputPath, str ):
         return self._reportError( 'Expected string for OutputPath', **kwargs )
       # Remove leading "/" that might cause problems with os.path.join
-      while OutputPath[0] == '/': OutputPath = OutputPath[1:]
+      while OutputPath[0] == '/':
+        OutputPath = OutputPath[1:]
       self._addParameter( self.workflow, 'UserOutputPath', 'JDL', OutputPath, description )
 
     if replicate:
@@ -829,7 +819,7 @@ class LHCbJob( Job ):
 
     if not modulesNameList:
       modulesNameList = ['CreateDataFile',
-                         'Script',
+                         'LHCbScript',
                          'FileUsage',
                          'UserJobFinalization']
     if not parametersList:
@@ -873,122 +863,16 @@ class LHCbJob( Job ):
 
     listOfCMTConfigs = uniqueElements( listOfCMTConfigs )
     listOfCMTConfigs.sort( key = LooseVersion )
+
     if listOfCMTConfigs[0] == 'zzz':
       return super( LHCbJob, self ).setPlatform( 'ANY' )
-    else:
-      try:
-        platform = getPlatformFromConfig( listOfCMTConfigs[0] )[0]
-      except ValueError as error:
-        self.log.warn( error )
-        platform = 'ANY'
-      return super( LHCbJob, self ).setPlatform( platform )
 
-  #############################################################################
-
-  def setProtocolAccessTest( self, protocols, rootVersion, inputData = None, logFile = None,
-                             modulesNameList = None, parametersList = None ):
-    """Performs a protocol access test at an optional site with the input data specified.
-
-       Example usage:
-
-       >>> job = Job()
-       >>> job.setProtocolAccessTest(['xroot','root','rfio'],'5.22.00a',
-                                      inputData='/lhcb/data/2009/DST/00005727/0000/00005727_00000001_1.dst')
-
-       :param protocols: data access protocols
-       :type protocols: string or list of protocols
-       :param rootVersion: ROOT version to use
-       :type rootVersion: string
-       :param inputData: Input data for application
-       :type inputData: single LFN string or list of LFNs
-       :param logFile: log file name
-       :type logFile: string
-       :param modulesList: Optional list of modules (to be used mostly when extending this method
-       :type modulesList: list
-       :param parameters: Optional list of parameters (to be used mostly when extending this method
-       :type parameters: list
-    """
-    kwargs = {'protocols':protocols, 'inputData':inputData, 'logFile':logFile, 'rootVersion':rootVersion}
-    self.stepCount += 1
-
-    if not protocols:
-      return self._reportError( 'A list of protocols is required for this test', __name__, **kwargs )
-
-    if not isinstance( rootVersion, str ):
-      return self._reportError( 'Expected strings for input parameters', __name__, **kwargs )
-
-    if logFile:
-      if not isinstance( logFile, str ):
-        return self._reportError( 'Expected string for log file name', __name__, **kwargs )
-      logPrefix = 'Step%s_' % ( self.stepCount )
-      logFile = '%s%s' % ( logPrefix, logFile )
-    self.addToOutputSandbox.append( '*.log' )
-    self.addToOutputSandbox.append( '*.output' )
-    self.addToOutputSandbox.append( '*.error' )
-    self.addToOutputSandbox.append( '*.readtimes' )
-
-    if inputData:
-      if isinstance( inputData, str ):
-        inputData = [inputData]
-      if not isinstance( inputData, list ):
-        return self._reportError( 'Expected single LFN string or list of LFN(s) for inputData', __name__, **kwargs )
-      for i in xrange( len( inputData ) ):
-        inputData[i] = inputData[i].replace( 'LFN:', '' )
-      inputData = ['LFN:' + x for x in inputData ]
-      inputDataStr = ';'.join( inputData )
-      self.addToInputData.append( inputDataStr )
-
-    if isinstance( protocols, str ):
-      protocols = [protocols]
-    protocols = ';'.join( protocols )
-
-    # Must check if ROOT version in available versions and define appName appVersion...
-    rootVersions = gConfig.getOptionsDict( 'Operations/' + self.rootSection )
-    # rootVersions = self.opsHelper.getOptions( self.rootSection, [] )
-    if not rootVersions['OK']:
-      return self._reportError( 'Could not contact DIRAC Configuration Service for supported ROOT version list',
-                                __name__, **kwargs )
-
-    rootList = rootVersions['Value']
-    if not rootVersion in rootList:
-      return self._reportError( 'Requested ROOT version %s \
-      is not in supported list: %s' % ( rootVersion, ', '.join( rootList ) ), __name__, **kwargs )
-
-    stepName = 'ProtocolTestStep%s' % ( self.stepCount )
-
-    if not modulesNameList:
-      modulesNameList = ['ProtocolAccessTest'],
-    if not parametersList:
-      parametersList = [( 'protocols', 'string', '', 'List of Protocols' ),
-                        ( 'applicationLog', 'string', '', 'Log file name' ),
-                        ( 'applicationVersion', 'string', '', 'DaVinci version' ),
-                        ( 'rootVersion', 'string', '', 'ROOT version' ),
-                        ( 'inputData', 'string', '', 'Input Data' )]
-    step = getStepDefinition( stepName, modulesNameList = modulesNameList, parametersList = parametersList )
-
-    stepName = 'RunProtocolTestStep%s' % ( self.stepCount )
-
-    stepInstance = addStepToWorkflow( self.workflow, step, stepName )
-
-    stepInstance.setValue( "protocols", protocols )
-    if logFile:
-      stepInstance.setValue( "applicationLog", logFile )
-    if inputData:
-      stepInstance.setValue( "inputData", ';'.join( inputData ) )
-
-    # now we have to tell DIRAC to install the necessary software
-    appRoot = '%s/%s' % ( self.rootSection, rootVersion )
-    # currentApp = gConfig.getValue( appRoot, '' )
-    currentApp = self.opsHelper.getValue( appRoot, '' )
-    if not currentApp:
-      return self._reportError( 'Could not get value from DIRAC Configuration Service for option %s' % appRoot,
-                                __name__, **kwargs )
-
-    appVersion = currentApp.split( '.' )[1]
-    stepInstance.setValue( "applicationVersion", appVersion )
-    stepInstance.setValue( "rootVersion", rootVersion )
-
-    return S_OK()
+    try:
+      platform = getPlatformFromConfig( listOfCMTConfigs[0] )[0]
+    except ValueError as error:
+      self.log.warn( error )
+      platform = 'ANY'
+    return super( LHCbJob, self ).setPlatform( platform )
 
   #############################################################################
 
@@ -1078,31 +962,6 @@ class LHCbJob( Job ):
       diracLHCb = diracLHCb
     else:
       diracLHCb = DiracLHCb()
-
-    if self.workflow.parameters.find( 'AncestorDepth' ):
-
-      ancestorsDepth = int( self.workflow.parameters.find( 'AncestorDepth' ).getValue() )
-
-      if ancestorsDepth:
-        if bkkClientIn is not None:
-          bkClient = bkkClientIn
-        else:
-          bkClient = BookkeepingClient()
-
-        lfnsString = self.workflow.parameters.find( 'InputData' ).getValue()
-        lfns = [x.replace( 'LFN:', '' ) for x in lfnsString.split( ';' )]
-        ancestors = bkClient.getFileAncestors( lfns, ancestorsDepth )
-        if not ancestors['OK']:
-          return S_ERROR( "Can't get ancestors: %s" % ancestors['Message'] )
-        ancestorsLFNs = []
-        for ancestorsLFN in ancestors['Value']['Successful'].values():
-          ancestorsLFNs += [ i['FileName'] for i in ancestorsLFN]
-
-        ancestorsLFNsString = ""
-        for ancestorsLFN in ancestorsLFNs:
-          ancestorsLFNsString += 'LFN:' + ancestorsLFN + ';'
-
-        self.workflow.setValue( 'InputData', ancestorsLFNsString + lfnsString )
 
     return diracLHCb.submitJob( self, mode = 'local' )
 

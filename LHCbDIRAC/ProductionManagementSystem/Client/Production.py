@@ -162,6 +162,7 @@ class Production( object ):
         'DDDB': 'head-20110302', 'CONDDB': 'head-20110407', 'DQTag': '',
         'isMulticore': 'N', 'SystemConfig': '', 'mcTCK': '',
         'fileTypesIn': ['SDST'],
+        'visibilityFlag': [{'Visible': 'Y', 'FileType': 'BHADRON.DST'}],
         'fileTypesOut': ['BHADRON.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST']}
 
         Note: this step treated here does not necessarily corresponds to a step of the BKK:
@@ -185,6 +186,7 @@ class Production( object ):
     dqOpt = stepDict['DQTag']
     multicore = stepDict['isMulticore']
     sysConfig = stepDict['SystemConfig']
+    outputVisibility = stepDict['visibilityFlag']
     if sysConfig == 'None' or sysConfig == 'NULL' or not sysConfig or sysConfig is None:
       sysConfig = 'ANY'
     mcTCK = stepDict['mcTCK']
@@ -232,7 +234,7 @@ class Production( object ):
       gLogger.debug("Determining the modules of the steps (modulesList = %s)" % modulesList)
       if modulesList is None: # we assume it's a standard list of modules for Gaudi steps
         gaudiPath = 'Productions/GaudiStep_Modules'
-        modulesList = self.opsHelper.getValue( gaudiPath, ['GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
+        modulesList = self.opsHelper.getValue( gaudiPath, ['GaudiApplication', 'AnalyseXMLSummary',
                                                            'ErrorLogging', 'BookkeepingReport', 'StepAccounting'] )
 
       # pName, pType, pValue, pDesc
@@ -325,7 +327,8 @@ class Production( object ):
                   'ExtraPackages':extraPackages,
                   'BKStepID':stepID,
                   'StepName':stepName,
-                  'StepVisible':stepVisible}
+                  'StepVisible':stepVisible,
+                  'OutputFileTypes': outputVisibility}
 
     self.bkSteps[stepIDInternal] = stepBKInfo
     self.__addBKPassStep()
@@ -438,7 +441,8 @@ class Production( object ):
     parameters = {}
     info = []
 
-    for parameterName in ( 'Priority', 'CondDBTag', 'DDDBTag', 'DQTag', 'eventType', 'FractionToProcess',
+    for parameterName in ( 'Priority', 'CondDBTag', 'DDDBTag', 'DQTag', 'eventType',
+                           'processingPass', 'FractionToProcess',
                            'MinFilesToProcess', 'configName', 'configVersion',
                            'outputDataFileMask', 'JobType', 'MaxNumberOfTasks' ):
       try:
@@ -476,7 +480,7 @@ class Production( object ):
     outputLFNs = result['Value']
     parameters['OutputLFNs'] = outputLFNs
 
-    outputDirectories = []
+    outputDirectories = [] # the list of output directories is later used for consistency check and for removing output data
     del outputLFNs['BookkeepingLFNs']  # since ProductionOutputData uses the file mask
     for i in outputLFNs.values():
       for j in i:
@@ -503,18 +507,19 @@ class Production( object ):
     try:
       if parameters['BkQuery']:
         info.append( '\nBK Input Data Query:' )
-        for n, v in parameters['BkQuery'].items():
-          info.append( '%s= %s' % ( n, v ) )
+        for bkn, bkv in parameters['BkQuery'].iteritems():
+          info.append( '%s= %s' % ( bkn, bkv ) )
     except KeyError:
       pass
 
     # BK output directories (very useful)
     bkPaths = []
-    bkOutputPath = '%s/%s/%s/%s/%s' % ( parameters['configName'],
-                                        parameters['configVersion'],
-                                        parameters['BKCondition'],
-                                        parameters['groupDescription'],
-                                        parameters['eventType'] )
+    bkOutputPath = '%s/%s/%s/%s/%s/%s' % ( parameters['configName'],
+                                           parameters['configVersion'],
+                                           parameters['BKCondition'],
+                                           parameters.get('processingPass', ''),
+                                           parameters['groupDescription'],
+                                           parameters['eventType'] )
     fileTypes = parameters['outputDataFileMask']
     fileTypes = [a.upper() for a in fileTypes.split( ';' )]
 
@@ -523,8 +528,8 @@ class Production( object ):
       fileTypes.remove( 'ROOT' )
       fileTypes.append( 'HIST' )
 
-    for f in fileTypes:
-      bkPaths.append( '%s/%s' % ( bkOutputPath, f ) )
+    for ft in fileTypes:
+      bkPaths.append( '%s/%s' % ( bkOutputPath, ft ) )
     parameters['BKPaths'] = bkPaths
     info.append( '\nBK Browsing Paths:\n%s' % ( '\n'.join( bkPaths ) ) )
     infoString = '\n'.join( info )
@@ -627,7 +632,7 @@ class Production( object ):
                                                    bkPassInfo = bkSteps,
                                                    reqID = requestID,
                                                    derivedProd = self.ancestorProduction )
-      for parName, parValue in paramsDict.items():
+      for parName, parValue in paramsDict.iteritems():
         result = getattr( self.transformation, 'set' + parName )( parValue )
 
     else:
@@ -672,14 +677,19 @@ class Production( object ):
       if stepID:
         stepName = bkSteps[step]['StepName']
         stepVisible = bkSteps[step]['StepVisible']
-        stepList.append( {'StepId':int( stepID ), 'StepName':stepName, 'Visible':stepVisible} )
+        outputFileTypes = bkSteps[step]['OutputFileTypes']
+        stepList.append( {'StepId':int( stepID ),
+                          'OutputFileTypes':outputFileTypes,
+                          'StepName':stepName,
+                          'Visible':stepVisible} )
 
     # This is the last component necessary for the BK publishing (post reorganisation)
     bkDictStep['Steps'] = stepList
-    
+    bkDictStep['EventType'] = paramsDict['eventType']
+
     bkDictStep['ConfigName'] = self.LHCbJob.workflow.findParameter( 'configName' ).getValue()
     bkDictStep['ConfigVersion'] = self.LHCbJob.workflow.findParameter( 'configVersion' ).getValue()
-    
+
     if publish:
       gLogger.verbose( 'Attempting to publish production %s to the BK' % ( prodID ) )
       result = self.bkkClient.addProduction( bkDictStep )
@@ -766,11 +776,19 @@ class Production( object ):
 
   #############################################################################
 
-  def setBKParameters( self, configName, configVersion, groupDescription, conditions ):
+  def setBKParameters( self, configName, configVersion, groupDescriptionOrStepsList, conditions ):
     """ Sets BK parameters for production.
     """
     self.setParameter( 'configName', 'string', configName, 'ConfigName' )
     self.setParameter( 'configVersion', 'string', configVersion, 'ConfigVersion' )
+    if isinstance(groupDescriptionOrStepsList, list):
+      # in this case we assume it is a list of steps (stepsListDict in ProductionRequest module), so we calculate the BK path
+      groupDescription = ''
+      for step in groupDescriptionOrStepsList:
+        if step['Visible'] == 'Y':
+          groupDescription = os.path.sep.join([groupDescription, step['ProcessingPass']])
+    else:
+      groupDescription = groupDescriptionOrStepsList
     self.setParameter( 'groupDescription', 'string', groupDescription, 'GroupDescription' )
     self.setParameter( 'conditions', 'string', conditions, 'SimOrDataTakingCondsString' )
     self.setParameter( 'simDescription', 'string', conditions, 'SimDescription' )

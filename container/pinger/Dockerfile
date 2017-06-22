@@ -1,15 +1,3 @@
-# TO BUILD IT
-# docker build -t bcmesosms02:5000/registry/dirac_pinger:v0r1 -t bcmesosms02:5000/registry/dirac_pinger:latest .
-
-# TO RUN IT ON OUR MESOS CLUSTER
-# docker run  -v /etc/grid-security/:/opt/dirac/etc/grid-security \
-#   -v /etc/dirac/dirac.cfg:/opt/dirac/etc/dirac.cfg \ withgood source
-#   -p 9997:1234  \ with good port
-#   :5000/registry/dirac_pinger:latest 
-
-
-
-
 FROM centos:7
 MAINTAINER Christophe HAEN <christophe.haen@cern.ch>
 

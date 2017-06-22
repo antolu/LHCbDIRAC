@@ -1,3 +1,457 @@
+[v8r9-pre1]
+use DIRAC v6r18p1
+
+* gLogger instead of print
+* fixing location finder
+* add lbvobox110,201 and 27 hosts
+* Docker:allow to specify alternative repository to checkout the code when running
+* final removal of AnalyseLogFile
+* split regression tests
+* using ancestor
+* minor fixes
+* just pylint
+* added eventType
+* added missing file type
+* removed Reco14
+* split of prod tests in MC and data, and updated data
+* added switched for custom commands and options
+* fix runLocal for ancestors
+* Deleted spaces
+* Removed spaces
+* Changed column order
+* Moved RMS db to sqlalchemy
+
+[v8r8p2]
+use DIRAC v6r17p22
+
+ˇ* remove the qtweb and use the default browser insteed
+* add all platforms to the documentation
+* correct the document format
+* Move the check on SystemConfig at for loop level
+* Fix the RecoStripping template to cope with more than one step
+* avoiding spam emails
+* fix for stupid formats of output directories
+* visibility flag must be not used during the step modification
+* Update tests according to the new compression level specification
+* Set defaults for compression level in templates
+
+[v8r8p1]
+use DIRAC v6r17p21
+
+* Fix extra curry brace in recoOutputVisFlag
+
+[v8r8]
+use DIRAC v6r17p21
+
+* adding the Output Files Visibility
+* add stepid to the primary key and correct the tests
+* add the file types to the tests
+* add ; as separator
+* allow to change the number of printed LFNs fix check when SEs are specified
+* use the filetypeid insetad of the name
+* user jobs with inputs to all T1s
+* fix error check
+* just added some imports
+* added script to test interaction with DIRAC environment
+* Fix the visibility flag dictionary for MC template - avoid too many try except
+* fileid is used instead of filetype
+* Fix variable in RecoStripping template
+* added script to test interaction with DIRAC environment
+* fix logging when no RAW or Buffer replication is required
+* New plugin ReplicateToRunDestination
+* fix getBKAncestors
+* add jsonc
+* change qt in Qt
+* use Accessible metadata
+* fix returned value for addFilesToTransformation in fake client
+* fix
+* if one SE given replicate with ancestors to that SE
+* add activity information
+* better output
+* allow individual files to be used for trigger rate
+* change the lcgBundle
+* change name for json file
+* change the lcgBundle
+* allow to change the step for a given production
+* event type has to be number
+* add visibility flag to the primary key
+* schama changed
+* use m2crypto
+* use LCG 88
+* remove fake name
+* Change CMTCONFIG value
+* default json file
+* rename projectConfig.json
+* change filename
+* change logic for the config tools
+* add qt5 toprepare the migration of the Bookkeeping GUI
+* add case for gcc48
+* add event type to the productionoutputfiles and correctly fill the tables
+* use the productionoutputfiles table for storing the event types
+* use the environment variable
+* setup Bookkeeping jenkins tests
+* adapting integration tests to new outputVisibilityFlag of steps
+* simple fixes for log and output
+* fixed tests for using outVisibilityFlag
+* Use LHCbGrid v11r6
+* Fixes according to comments by Federico (see MR https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/merge_requests/306)
+* typo fix
+* added new test files
+* minor pylints
+* Fix empty array issues (Vladimir's patch)
+* Fix typo in MC template
+* using -c best option of lbRun
+* Enable Gitlab-ci to build the LHCbDIRAC tarball, deploy it on AFS and build the docker image for each tag in the repository
+* Bind compression level to output file visibility in MC template
+* Fix some typos
+* Rolled back to dictionaries for the vis flag (ProdRequest)
+* Rolled back to dictionaries for the vis flag, as it's less error prone
+* Force compression level for MC when output file visibility is Y
+* Add EventType information to bkk
+* Add modifications to templates to manage visibility flags of putput files
+* Fixed logic in resolveStep
+* Added tests, found a bug in the logic of assigning vis to special ftype
+* Create the list of dictionaries needed by the BKK schema for the visibility of output files
+* spotted the point in which to insert the visibility information of output files
+* Implemented using dictionaries for step-wide visibility and dict of dict for special filetype visibility
+* Move the visibility flag of output files from steps to templates
+
+[v8r7p1]
+Use DIRAC v6r17p19
+* use better comparision
+* bad arg when checking a production
+* Vladimir's fix to avoid empty arrays to crash the template
+* remove some automatic/semi-automatic fixes as not always good
+* fix option --Date
+* set proper error message if getFileMetadata failed
+* fix for case of real data
+* Remove method definition check
+* prepareFile not needed anymore.
+* add DQFlag in transformation name if special
+* Allow giving a name to a transformation, then we can create an empty transformation (no BK query, no LFN)
+* Allow ancestor to be at a different SE than daughter (for stripping jobs)
+* Fix docstring
+
+[v8r7]
+Use DIRAC v6r17p18
+
+* fix
+* Fix WMSSecureGW prepareFile method in order to allow the removal of local files after downloading them.
+* typos
+* lbRunOptions in CS
+* optimize pfn-metadata
+* minor bug fixed
+* testing root access
+* several fixes
+* allow to provide the name through the agent configuration
+* added new script
+* fix wrong file
+* Consider case when stripping is from FULL.DST
+* use different SE for storing the logs
+* fixed typo (\ instead of \n)
+* options were exchanged :(
+* add docstrings
+* optimise ancestor presence checking
+* v8r7 still on DIRAC v6r17
+* Fix advice for files in FC and replica=No in BK Set two options (fix FC and fix BK)
+* allow to provide  more than one step
+* change the default value of the file types of the steps
+* remove the visibility flag from the steps output
+* added option for lbRunOnly
+* do not return errors when checking ancestors, just ignore
+* added option for exiting at lb-run failure
+* print number of tasks per run
+* split in methods + getting CSServers list
+* optimise ancestor presence checking
+* add eventtype to the stepscontainer
+* fix status string tes
+* add libtool 2.4.2
+* add pygsi 0.6.3
+* Minor fixes
+* [Patch] Little changes documented on the file
+* optimise ancestor presence checking
+* Fix advice for files in FC and replica=No in BK Set two options (fix FC and fix BK)
+* do not return errors when checking ancestors, just ignore
+* print number of tasks per run
+* optimise ancestor presence checking
+* [Patch] Little changes documented on the file
+* fix status string test
+* move logging to utilities
+* Count missing ancestors and log it at INFO level
+* Add possibility to check the presence of ancestor files at required SEs
+* modify the execution plan
+* fixed dirac logo location
+* Removed diracSAM and scripts
+* removed scripts directory (old confusing stuff)
+* using rss methods for interacting with sites and resources
+
+[v8r6p2]
+Use DIRAC v6r17p14
+
+* bug fix
+
+[v8r6p1]
+Use DIRAC v6r17p14
+
+* improve the query execution time by using the configurationid in the productionscontainer table
+* NagiosTopologyAgent final (for now)
+* Improve logging of allTasks
+* Exclude HIST files to be replicated in MCDSTBroadcast
+* Final Fixes at NagiosTopologyAgent.py in order to make it more compatible with the rules of wlcg
+* Add RemoveReplica to the list of Operation to cleanup in the UploadOutputData module
+* Improve searching for LFNs in file and adapt TS-debug
+* Add API method getAccessURL and adapt method in ScriptExecutors for it
+* Protect against empty LFN list
+* Handle case when files are reset Unused: only put in tasks added files
+* correctly setting the BK path (for visualization)
+* wrong indent level
+* retreive the db tags using an existing method
+* reformat RAWIntegrityAgent to perform direct delete Does not use anymore this non existing retransfer call Does not try to remove from Destination anymore Performs bulk removal and registrations Does not create requests anymore, but delete directly Uses intermediate states in case of errors (Copied, Migrated) Correct documentation
+* Use the bulk removal instead of sequential in the xmlrpc call of DataMover Remove useless methods. Don't call again checkArgumentFormat
+* return a list of processed runs for a given period
+* include ReplicateWithAncestors
+* Allow speficying the source in get-file
+* in the time being we only deploy LHCbDIRAC to one platform
+
+[v8r6]
+Use DIRAC v6r17p13
+
+* fixes for correctly using the steps definitions
+* minor fixes and comments
+* fixed setting of compression level
+* using LHCbDIRAC version
+* replace __strip... with _strip...
+* logging where it should be
+* split test, removed importlib
+* added ganga test jobs
+* Comment pr.resolveSteps() call as it's not needed and prevents compressionLvl variable from being filled correctly
+* fixes for user jobs
+* self.siteName is unknown before resolveInputVariables
+ * clever naming
+ * get iterators and remove has_key
+ * review getDestinationSEList() and use for Failover
+ * corrected location
+ * using a fuction
+ * fix for spaces
+ * Release doc for Mesos
+ * interpreting DNs
+ * test fix
+ * fixed creation
+ * re-saving for security variables
+* added test dv v41r2
+* added tests for LHCbScript jobs
+* reading numberOfEvents from step
+* one more cycle
+* added limit of 1 event
+* using bash
+* test
+* fix for jenkins
+* using env file in test
+* Saving/using environment file
+* Use Externals v6r5p4 for GSI and LCG for pyparsing
+* log and messages
+* submitting gauss job to Jenkins
+* added gaudiApplicationScript job
+* Identifying correctly LbLogin errors
+* added rooFit test job
+* simpler tests
+* removed test for ProductionLogAnalysis.py
+* partial removal of AnalyseLogFile
+* basic fix for loading WMSSecureGW
+* log outputs fix
+* removing outdated code
+* added fileMask in template
+* LBLOGINDEV in Jenkins
+* lbLoginDev in pilot
+* Fixed a couple of typoes
+* Forgot to delete a duplicate line
+* Improved the logic of insertion of the compression levels
+* Fixed pr.compressionLvl as list of lists to comply with the step granularity
+* More tests, added compression defaults to MC template
+* Add the possibility to delete a compression level if present, but not needed, in the OptionFiles
+* Set default compression level in the template for Merging prodctions
+* Added another test to the test chain
+* Add the possibility to put the compression options at template level
+* Better error reporting
+* Fixed pr.compressionLvl as list of lists to comply with the step granularity
+* Added command wrapper
+* removing SetupProject
+* minor fixes
+* string not list
+* find prodConf
+* bug fix (exe in wrong position)
+* finding prodConf
+* More tests, added compression defaults to MC template
+* Add the possibility to delete a compression level if present, but not needed, in the OptionFiles
+* Set default compression level in the template for Merging prodctions
+* Added another test to the test chain
+* Add the possibility to put the compression options at template level
+* add comments
+* use wget to get the External tar
+* change wget by curl
+* change Jenkins url
+*  bug fixes
+*  from shellCall to systemCall
+*  fixed bad merge
+* using list
+* test
+* devs doc update
+* fixes
+* update info about LHCbGrid
+* sourcing all envs
+* fix unboundLocalError
+* fixed case for ProdConf
+* tests fixes
+* correct the link!
+* Change cmtconfig and URL for building the client
+* uniform tests
+* pylint
+* comment the line which is not used...
+* using safe function
+* added a test using ANY CMT Config
+* using lb-run --list-configs
+* moving to lb-run, semplifying
+* running ErrorLogging with lb-run
+* converted RootApplication to lb-run
+* fixed test
+* removed old test
+* lb-run for GaudiApplicationScript
+* unit test for gaudiapplication
+* setting up the test
+* added mock_commons file for workflows commons
+* re-using mocks
+* split test file further
+* split test file in 2 parts
+* removed unwanted file
+* added test for setExecutable
+* added LHCbScript module, made default for LHCbJob
+* corrected file names
+* added systemConfig everywhere
+* fix event type
+* escaping env variables
+* reshaped, corrected use of option
+* removed AnalyseLogFile
+* DaVinci
+* added brunel
+* More documentation and tools
+* Added prod style boole
+* Added user style Gauss job test
+* converted to real unit test, added second Gauss
+* added some tests
+* added first stub of integration test for LbRun module
+* pylints
+* Add documentation for deployment on Mesos
+
+[v8r5p11]
+use DIRAC v6r17p12
+
+* do not use the hint when a time is specified
+* define a function for stripping out numerical directories
+* take into account files Assigned and Processed inthe last 12 hours
+* add comment for info/error trick
+* one more line shorten
+* Implement comments from review
+* Change a few parameter names
+* protect against adding empty list of ancestors
+* add docstring and comments
+* Add important feature for prestaging (use staged statistics)
+* improve reporting of FC2BK discrepencies (use visibility)
+* do not determine a new run destination if already existing
+* new plugin for removing ancestors as well as files in the BKQuery
+* define local variable
+* Introduce new plugins for adding ancestors to the tasks (for replication and removal)
+* change the release documentation, becuase we always has to release DIRAC
+* get iterators and remove has_key
+* review getDestinationSEList() and use for Failover
+
+[v8r5p10]
+use DIRAC v6r17p11
+
+* remove the commented block
+* use hint for a certain queries
+* add more tests
+
+[v8r5p9]
+use DIRAC v6r17p11
+
+* fix for file removals for DFC
+* Fix for SE metadata
+* Improve gthe get-run-ranges capabilities
+* Add options
+* add comment
+* dirList must be a list
+* Fix directory option
+* Add new script and modify ScriptExecutors accordingly
+* print the list of LFNs in order
+* added more test cases
+* fix of test
+* avoid constarint failures
+
+[v8r5p8]
+use DIRAC v6r17p10
+
+* Better error handling of the PopularityAnalysisAgent
+* improve recommandation
+* improve print out
+* new options --TopDir and --Depth to print list of directories to a limited number of levels
+* allow to limit the check to a (list of) SE
+* don't set level to FATAL
+* when filetype is requested, don't exclude it + many minor fixes
+* improve printout
+* When getting a (list of) directories, require they are ending with "/"
+* for getting BK directory metadata, improve the directory list selection
+* Revert to externals v6r4p2 for GSI and  pyparsing
+* minimal test
+* Using filter for output directories
+* change the log level
+* log the production id
+* Add option --ByStream
+
+[v8r5p7]
+use DIRAC v6r17p9
+
+* no need to get the keys() for setting file status (dict is OK)
+* fix when asking for specific jobs
+* New script dirac-bookkeeping-rejection-stats
+
+[v8r5p6]
+use DIRAC v6r17p8
+
+* propagate back the modifications from level to master for client release
+* improve the bookkeeping integration tests
+* do not use the file name
+* some minor fixes
+* use bulk queries
+* do not take into account the jobid and stepid
+* fix unit test
+* JobStart and JobEnd can not hardcoded
+* reduce the number of calls
+
+[v8r5p5]
+use DIRAC v6r17p7
+* Change order of root and xroot in case both are in protocol: 'xroot' should be before 'root'
+* try and remove empty directories with the shifter proxy first
+* Temporal addition to template workflows with single Gauss step in production
+* Change external version to v6r5p4 and get the tar with wget
+* fix printout
+* use getReplicasForJobs()
+
+[v8r5p4]
+use DIRAC v6r17p6
+
+* hacking for testing LbLoginDev.sh
+* use getReplicasForJobs rather than getReplicas(forJobs=TTrue)
+* fix the fact that ancestor RAW files are returning only the basename
+* add option --ForJobs in dirac-dms-lfn-replicas to get only replicas usable for jobs
+* fix exception when runDB not available
+
+[v8r5p3]
+use DIRAC v6r17p5
+
+* just pylint
+* docs update
+* fixed a test
+
 [v8r5p2]
 use DIRAC v6r17p3
 

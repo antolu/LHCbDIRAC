@@ -3,6 +3,7 @@
 
 import itertools
 import copy
+import re
 
 from DIRAC import gLogger, S_OK
 
@@ -74,12 +75,12 @@ class ProductionRequest( object ):
     self.fullListOfOutputFileTypes = []
 
     # parameters that are the same for each productions
-    self.prodGroup = ''
-    self.visibility = ''
+    self.prodGroup = '' # This ends up being 'ProcessingType', workflow parameter, and it is used for accounting
+    self.visibility = '' # For BKQuery
     self.fractionToProcess = 0
     self.minFilesToProcess = 0
     self.modulesList = None # Usually:
-                            # ['GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
+                            # ['GaudiApplication', 'AnalyseXMLSummary',
                             # 'ErrorLogging', 'BookkeepingReport', 'StepAccounting' ]
 
     # parameters of each production (the length of each list has to be the same as the number of productions
@@ -106,6 +107,15 @@ class ProductionRequest( object ):
     self.specialOutputSEs = []  # a list of dictionaries - might be empty
     self.outputSEsPerFileType = []  # a list of dictionaries - filled later
     self.ancestorDepths = []
+    self.compDict = {'HIGH': 'Compression-LZMA-4', 'LOW':'Compression-ZLIB-1'}
+    self.compressionLvl = [''] # List: one compression level each step
+    self.appConfig = '$APPCONFIGOPTS/Persistency/' # Default location of the compression level configuration files
+    #
+    # These lists define the visibility of the output files produced by each step. For MC productions, the visibility
+    # is tied to compression level. VIsible files are compressed at the highest level
+    #
+    self.outputVisFlag = [] # List of dictionary with default visibility flag of the output files per single step
+    self.specialOutputVisFlag = [] # List of dictionaries with special visibility flag for given file type
 
   #############################################################################
 
@@ -113,7 +123,11 @@ class ProductionRequest( object ):
     """ Given a list of steps in strings, some of which might be missing,
         resolve it into a list of dictionary of steps
     """
+    outputVisFlag = dict( [k,v] for el in self.outputVisFlag for k,v in el.iteritems() ) # Transform the list of dictionaries in a dictionary
+    specialOutputVisFlag = dict( [k,v] for el in self.specialOutputVisFlag for k,v in el.iteritems() )
+    count = 0 # Needed to add correctly the optionFiles to the list of dictonaries of steps
     for stepID in self.stepsList:
+
       stepDict = self.bkkClient.getAvailableSteps( {'StepId':stepID} )
       if not stepDict['OK']:
         raise ValueError( stepDict['Message'] )
@@ -126,7 +140,39 @@ class ProductionRequest( object ):
         if parameter.lower() in ['conddb', 'dddb', 'dqtag'] and value:
           if value.lower() == 'frompreviousstep':
             value = self.stepsListDict[-1][parameter]
-        stepsListDictItem[parameter] = value
+
+        if parameter == 'OptionFiles': #Modifying the OptionFiles (for setting the compression level)
+          #
+          # If the prod manager sets a compression level for a particular step, either we append the option file
+          # or we overwrite the existing one inherited with the step
+          #
+          if len(self.compressionLvl) > count and self.compressionLvl[count] != '':
+            p = re.compile('Compression-[A-Z]{4}-[1-9]')
+            #self.compressionLvl[count] = self.appConfig + self.compressionLvl[count] + '.py'
+            self.compressionLvl[count] = self.appConfig + self.compDict[self.compressionLvl[count].upper()] + '.py'
+            if not p.search(value):
+              if value == '':
+                value = self.compressionLvl[count]
+              else:
+                value = ";".join((value, self.compressionLvl[count]))
+            else:
+              value = p.sub(p.search(self.compressionLvl[count]).group(), value)
+          #
+          # If instead the prod manager doesn't declare a compression level, e.g. for intermediate steps,
+          # we check if there is one in the options and in case we delete it. This leaves the default zip level
+          # defined inside Gaudi
+          #
+          elif len(self.compressionLvl) > count and self.compressionLvl[count] == '':
+            p = re.compile(r'\$\w+/Persistency/Compression-[A-Z]{4}-[1-9].py;?')
+            if p.search(value):
+              value = p.sub('', value)
+
+        if parameter == 'SystemConfig' and re.search( 'slc5', value):
+	  p = re.compile(r'\$\w+/Persistency/Compression-[A-Z]{4}-[1-9].py;?')
+          if p.search(stepsListDictItem['OptionFiles']):
+            stepsListDictItem['OptionFiles'] = p.sub('', stepsListDictItem['OptionFiles'])
+
+        stepsListDictItem[parameter] = value # Fixing what decided
 
       s_in = self.bkkClient.getStepInputFiles( stepID )
       if not s_in['OK']:
@@ -150,16 +196,27 @@ class ProductionRequest( object ):
 
       stepsListDictItem['prodStepID'] = str( stepID ) + str( stepsListDictItem['fileTypesIn'] )
 
-      if not stepsListDictItem.has_key( 'isMulticore' ):
+      if 'isMulticore' not in stepsListDictItem:
         stepsListDictItem['isMulticore'] = 'N'
 
-      if not stepsListDictItem.has_key( 'SystemConfig' ):
+      if 'SystemConfig' not in stepsListDictItem:
         stepsListDictItem['SystemConfig'] = ''
 
-      if not stepsListDictItem.has_key( 'mcTCK' ):
+      if 'mcTCK' not in stepsListDictItem:
         stepsListDictItem['mcTCK'] = ''
 
+      # Add visibility info during step resolution
+      if 'visibilityFlag' not in stepsListDictItem:
+        outputVisList = list( {'Visible': outputVisFlag[str(count+1)], 'FileType': ftype} for ftype in stepsListDictItem['fileTypesOut'] )
+        if str(count + 1) in specialOutputVisFlag:
+          for it in outputVisList:
+            if it['FileType'] in specialOutputVisFlag[str(count + 1)]:
+              it['Visible'] = specialOutputVisFlag[str(count + 1)][it['FileType']]
+
+        stepsListDictItem['visibilityFlag'] = outputVisList
+
       self.stepsListDict.append( stepsListDictItem )
+      count += 1
 
   #############################################################################
 
@@ -640,7 +697,7 @@ class ProductionRequest( object ):
                                                                              ''.join( [x.split( '.' )[0] for x in fTypeIn] ),
                                                                              self.appendName ) )
     prod.setBKParameters( configName = self.outConfigName, configVersion = self.configVersion,
-                          groupDescription = self.prodGroup, conditions = self.dataTakingConditions )
+                          groupDescriptionOrStepsList = stepsInProd, conditions = self.dataTakingConditions )
     prod.setParameter( 'eventType', 'string', self.eventType, 'Event Type of the production' )
     prod.setParameter( 'numberOfEvents', 'string', str( events ), 'Number of events requested' )
 

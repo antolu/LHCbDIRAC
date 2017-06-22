@@ -11,6 +11,20 @@ from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import Produc
 
 __RCSID__ = "$Id$"
 
+def fillVisList(vdict, num):
+
+  # Assuming that, if there's only one element in the list of output visibility flags, every step will catch that flag
+  if len( vdict ) == 1:
+    # '1' key is given by default by the template
+    val = vdict['1']
+    vdict = dict( [(str(i), val) for i in range(num)] )
+  # Another assumption: if the number of steps is bigger than that of vis flags, then extend the list with the last flag available
+  # to fill the "holes"
+  #if len(vlist) < len(slist):
+  #  vlist.extend( vlist[-1] * (len(slist) - len(vlist)) )
+
+  return vdict
+
 gLogger = gLogger.getSubLogger( 'LaunchingRequest_run.py' )
 currentSetup = gConfig.getValue( 'DIRAC/Setup' )
 
@@ -57,11 +71,15 @@ if p2:
   p2 = p2.split( ',' )
   p2 = [int( x ) for x in p2]
   pr.stepsInProds.append( p2 )
+else:
+  pr.stepsInProds.append( [] )
 p3 = '{{p3#-Production 3 steps (e.g. 6)#}}'
 if p3:
   p3 = p3.split( ',' )
   p3 = [int( x ) for x in p3]
   pr.stepsInProds.append( p3 )
+else:
+  pr.stepsInProds.append( [] )
 
 localTestFlag = ast.literal_eval( '{{localTestFlag#GENERAL: Set True for local test#False}}' )
 validationFlag = ast.literal_eval( '{{validationFlag#GENERAL: Set True for validation prod#False}}' )
@@ -93,10 +111,21 @@ except SyntaxError:
 p1Policy = '{{p1Policy#PROD-P1: data policy (download or protocol)#download}}'
 p1RemoveInputs = ast.literal_eval( '{{p1RemoveInputs#PROD-P1: removeInputs flag#False}}' )
 p1StepMask = '{{P1StepMask#PROD-P1: step output to save, semicolon separated (default is last)#}}'
+p1FileMask = '{{P1FileMask#PROD-P1: file types in output to save, semicolon separated (default is all)#}}'
 p1multicoreFlag = '{{P1MulticoreFLag#PROD-P1: multicore flag#True}}'
 p1outputMode = '{{P1OutputMode#PROD-P1: output mode#Local}}'
 p1eventsRequested = '{{P1EventsRequested#PROD-P1: events requested (-1 = ALL)#-1}}'
 p1ancestorDepth = int( '{{P1AncestorDepth#PROD-P1: ancestor depth#0}}' )
+try:
+  p1compressionLvl = ast.literal_eval( '{{P1CompressionLevel#PROD-P1: Compression Level per step, e.g. ["LOW","HIGH"]#LOW}}' )
+except SyntaxError:
+  p1compressionLvl = []
+p1OutputVisFlag = '{{P1OutputVisFlag#PROD-P1: Visibility flag of output files (a dict {"n step":flag})#{"1":"N"}}}'
+p1OutputVisFlag = fillVisList(p1OutputVisFlag, pr.stepsInProds[0])
+try:
+  p1OutputVisFlagSpecial = ast.literal_eval( '{{P1OutputVisFlagSpecial#PROD-P1: Special Visibility flag of output files (a dict {"n step":{"FType":flag}})#}}' )
+except SyntaxError:
+  p1OutputVisFlagSpecial = {}
 
 # p2 params
 p2Plugin = '{{p2PluginType#PROD-P2: production plugin name#LHCbStandard}}'
@@ -111,14 +140,25 @@ except SyntaxError:
 p2Policy = '{{p2Policy#PROD-P2: data policy (download or protocol)#download}}'
 p2RemoveInputs = ast.literal_eval( '{{p2RemoveInputs#PROD-P2: removeInputs flag#False}}' )
 p2StepMask = '{{P2StepMask#PROD-P2: step output to save, semicolon separated (default is last#}}'
+p2FileMask = '{{P2FileMask#PROD-P2: file types in output to save, semicolon separated (default is all)#}}'
 p2multicoreFlag = '{{P2MulticoreFLag#PROD-P2: multicore flag#True}}'
 p2outputMode = '{{P2OutputMode#PROD-P2: output mode#Local}}'
 p2eventsRequested = '{{P2EventsRequested#PROD-P2: events requested (-1 = ALL)#-1}}'
 p2ancestorDepth = int( '{{P2AncestorDepth#PROD-P2: ancestor depth#0}}' )
+try:
+  p2compressionLvl = ast.literal_eval( '{{P2CompressionLevel#PROD-P2: Compression Level per step, e.g. ["LOW","HIGH"]#LOW}}' )
+except SyntaxError:
+  p2compressionLvl = []
+p2OutputVisFlag = '{{P2OutputVisFlag#PROD-P2: Visibility flag of output files (a dict {"n step":flag})#{"1":False}}}'
+p2OutputVisFlag = fillVisList(p2OutputVisFlag, pr.stepsInProds[1])
+try:
+  p2OutputVisFlagSpecial = ast.literal_eval( '{{P2OutputVisFlagSpecial#PROD-P2: Special Visibility flag of output files (a dict {"n step":{"FType":flag}})#}}' )
+except SyntaxError:
+  p2OutputVisFlagSpecial = {}
 
 # p3 params
 p3Plugin = '{{p3PluginType#PROD-P3: production plugin name#LHCbStandard}}'
-p3Priority = int( '{{p3Priority#PROD-p3: priority#2}}' )
+p3Priority = int( '{{p3Priority#PROD-P3: priority#2}}' )
 p3CPU = '{{p3MaxCPUTime#PROD-P3: Max CPU time in secs#1000000}}'
 p3GroupSize = '{{p3GroupSize#PROD-P3: Group Size#1}}'
 p3DataSE = '{{p3DataSE#PROD-P3: Output Data Storage Element#Tier1-DST}}'
@@ -129,18 +169,27 @@ except SyntaxError:
 p3Policy = '{{p3Policy#PROD-P3: data policy (download or protocol)#download}}'
 p3RemoveInputs = ast.literal_eval( '{{p3RemoveInputs#PROD-P3: removeInputs flag#False}}' )
 p3StepMask = '{{P3StepMask#PROD-P3: step output to save, semicolon separated (default is last#}}'
+p3FileMask = '{{P3FileMask#PROD-P3: file types in output to save, semicolon separated (default is all)#}}'
 p3multicoreFlag = '{{P3MulticoreFLag#PROD-P3: multicore flag#True}}'
 p3outputMode = '{{P3OutputMode#PROD-P3: output mode#Any}}'
 p3eventsRequested = '{{P3EventsRequested#PROD-P3: events requested (-1 = ALL)#-1}}'
 p3ancestorDepth = int( '{{P3AncestorDepth#PROD-P3: ancestor depth#0}}' )
+try:
+  p3compressionLvl = ast.literal_eval( '{{P3CompressionLevel#PROD-P3: Compression Level per step, e.g. ["LOW","HIGH"]#HIGH}}' )
+except SyntaxError:
+  p3compressionLvl = []
+p3OutputVisFlag = '{{P3OutputVisFlag#PROD-P3: Visibility flag of output files (a dict {"n step":flag})#{"1":False}}}'
+p3OutputVisFlag = fillVisList(p3OutputVisFlag, pr.stepsInProds[2])
+try:
+  p3OutputVisFlagSpecial = ast.literal_eval( '{{P3OutputVisFlagSpecial#PROD-P3: Special Visibility flag of output files (a dict {"n step":{"FType":flag}})#}}' )
+except SyntaxError:
+  p3OutputVisFlagSpecial = {}
 
 parentReq = '{{_parent}}'
 if not parentReq:
   pr.requestID = '{{ID}}'
 else:
   pr.requestID = parentReq
-
-pr.resolveSteps()
 
 pr.prodGroup = '{{inProPass}}' + '/' + '{{pDsc}}'
 # used in case of a test e.g. certification etc.
@@ -227,9 +276,16 @@ pr.plugins = [p1Plugin, p2Plugin, p3Plugin][0:len( pr.prodsTypeList )]
 pr.inputs = [inputDataList, [], []][0:len( pr.prodsTypeList )]
 pr.inputDataPolicies = [p1Policy, p2Policy, p3Policy][0:len( pr.prodsTypeList )]
 pr.outputFileSteps = [p1StepMask, p2StepMask, p3StepMask]
+pr.outputFileMasks = [p1FileMask, p2FileMask, p3FileMask]
 pr.multicore = [p1multicoreFlag, p2multicoreFlag, p3multicoreFlag]
 pr.outputModes = [p1outputMode, p2outputMode, p3outputMode]
 pr.events = [p1eventsRequested, p2eventsRequested, p3eventsRequested]
 pr.ancestorDepths = [p1ancestorDepth, p2ancestorDepth, p3ancestorDepth]
+#pr.compressionLvl = [p1compressionLvl] * len( pr.stepsInProds[0] ) +\
+#                    [p2compressionLvl] * len( pr.stepsInProds[1] ) +\
+#                    [p3compressionLvl] * len( pr.stepsInProds[2] )
+pr.compressionLvl = [p1compressionLvl, p2compressionLvl, p3compressionLvl]
+pr.outputVisFlag = [p1OutputVisFlag, p2OutputVisFlag, p3OutputVisFlag]
+pr.specialOutputVisFlag = [p1OutputVisFlagSpecial, p2OutputVisFlagSpecial, p3OutputVisFlagSpecial]
 
 pr.buildAndLaunchRequest()

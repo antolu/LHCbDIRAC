@@ -133,27 +133,8 @@ And just copy/paste/execute it.
 Once the tarball is done and uploaded, the release manager is asked to make basic verifications, via Jenkins,
 if the release has been correctly created.
 
-At this `link <https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/>`_ you'll find some Jenkins Jobs ready to be started.
-Please start the following Jenkins jobs and come back in about an hour to see the results for all of them.
+The tests may vary, but are announced on the Trello board, and on the Slack channel 'lhcb-certification' of the 'lhcbdirac' team.
 
-1. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/PRERELEASE__pylint_unit/
-
-This job will: run pylint (errors only), run all the unit tests found in the system, assess the coverage.
-The job should be considered successful if:
-
-- the pylint error report didn't increase from the previous job run
-- the test results didn't get worse from the previous job run
-- the coverage didn't drop from the previous job run
-
-
-2. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/PRERELEASE__pilot/
-
-This job will simply install the pilot. Please just check if the result does not show in an "unstable" status
-
-
-3. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/RELEASE__/
-
-   TODO
 
 
 3. Deploying the release
@@ -172,12 +153,12 @@ release for client
 Please refer to this `TWIKI page <https://twiki.cern.ch/twiki/bin/view/LHCb/ProjectRelease#LHCbDirac>`_
 a quick test to validate the installation is to run the SHELL script $LHCBRELEASE/LHCBDIRAC/LHCBDIRAC_vXrY/LHCbDiracSys/test/client_test.csh
 
-go to this `web page <https://lhcb-jenkins.cern.ch/jenkins/job/lhcb-release/build/>`_ for asking to install the client release in AFS and CVMFS:
+go to https://jenkins-lhcb-nightlies.web.cern.ch/job/nightly-builds/job/release/build page for asking to install the client release in AFS and CVMFS:
 
-* in the field "Project list" put : "Dirac vNrMpK LHCbDirac vArBpC LHCbGrid vArB" (LHCbGrid version can be found: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/blob/devel/dist-tools/projectConfig.json)
-* in the field "platforms" put : "x86_64-slc6-gcc48-opt x86_64-slc6-gcc49-opt"
+* in the field "Project list" put : "Dirac vNrMpK LHCbGrid vArB LHCbDirac vArBpC " (LHCbGrid version can be found: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/blob/devel/dist-tools/projectConfig.json)
+* in the field "platforms" put : "x86_64-slc6-gcc49-opt x86_64-slc6-gcc62-opt x86_64-centos7-gcc62-opt"
 * inthe field "build_tool" put : "CMake"
-* inthe field "scripts_version" put : "support-platform-indep-projects"
+* inthe field "scripts_version" put : "prepare-for-new-jenkins"
 
 Then click on the "BUILD" button
 

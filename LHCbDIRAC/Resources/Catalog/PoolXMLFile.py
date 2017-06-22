@@ -10,7 +10,7 @@ def getOutputType( outputs, inputs, directory = '' ):
       If not found, inherits from the type of the inputs
   """
 
-  if not type( outputs ) == type( [] ):
+  if not isinstance( outputs, list ):
     outputs = [outputs]
 
   catalog = PoolXMLCatalog( _getPoolCatalogs( directory ) )
@@ -29,7 +29,7 @@ def getOutputType( outputs, inputs, directory = '' ):
       typeFileIn.append( tFileIn )
 
   if generatedIn and inputs:
-    raise ValueError( 'Could not find Type for inputs' )
+    raise ValueError( 'Could not find Type for inputs %s' % inputs )
 
   #outputs - by pfn
   pfnTypesOut = {}

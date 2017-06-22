@@ -755,15 +755,15 @@ class DiracProduction( DiracLHCb ):
     return S_OK( jobInfo )
 
   #############################################################################
-  def selectProductionJobs( self, ProductionID, Status = None, MinorStatus = None, ApplicationStatus = None,
-                            Site = None, Owner = None, Date = None ):
+  def selectProductionJobs( self, productionID, status = None, minorStatus = None, applicationStatus = None,
+                            site = None, owner = None, date = None ):
     """Wraps around DIRAC API selectJobs(). Arguments correspond to the web page
        selections. By default, the date is the creation date of the production.
     """
-    if not Date:
-      self.log.verbose( 'No Date supplied, setting old date for production %s' % ProductionID )
-      Date = '2001-01-01'
-    return self.selectJobs( Status, MinorStatus, ApplicationStatus, Site, Owner, str( ProductionID ).zfill( 8 ), Date )
+    if not date:
+      self.log.verbose( 'No Date supplied, setting old date for production %s' % productionID )
+      date = '2001-01-01'
+    return self.selectJobs( status, minorStatus, applicationStatus, site, owner, str( productionID ).zfill( 8 ), date )
 
   #############################################################################
   def extendProduction( self, productionID, numberOfJobs, printOutput = False ):
@@ -803,8 +803,8 @@ class DiracProduction( DiracLHCb ):
       return result
 
     creationDate = toString( result['Value'] ).split()[0]
-    result = self.selectProductionJobs( productionID, Status = status, MinorStatus = minorStatus, Site = site,
-                                        Date = creationDate )
+    result = self.selectProductionJobs( productionID, status = status, minorStatus = minorStatus, site = site,
+                                        date = creationDate )
     if not result['OK']:
       self.log.warn( 'Problem selecting production jobs for ID %s:\n%s' % ( productionID, result ) )
       return result

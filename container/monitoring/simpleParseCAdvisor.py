@@ -125,7 +125,6 @@ def collectData(target):
 def writeDataInInflux(collected_data, host = 'host', port = 8086, username = 'user', password = 'password', database = 'database', ssl = True ):
   from influxdb import InfluxDBClient
   client = InfluxDBClient(host = host, port =  port, username = username, password = password, database = database, ssl = ssl)
-  client.create_database('cadvisor_test')
 
   for points, tags in collected_data:
     client.write_points(points, tags = tags)

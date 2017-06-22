@@ -77,10 +77,6 @@ class AnalyseXMLSummary( ModuleBase ):
         failTheJob = True
 
       if failTheJob:
-        if self.workflow_commons.has_key( 'AnalyseLogFilePreviouslyFinalized' ):
-          self.log.info( "AnalyseLogFile has already run for this workflow and finalized with sending an error email" )
-          return S_OK()
-
         self._finalizeWithErrors( "XMLSummary reports error" )
 
         self.setApplicationStatus( "XMLSummary reports error" )
@@ -141,9 +137,6 @@ class AnalyseXMLSummary( ModuleBase ):
   def _finalizeWithErrors( self, subj ):
     """ Method that sends an email and uploads intermediate job outputs.
     """
-    # FIXME: refactoring needed, this is very similar to what is in AnalyseLogFile
-
-    self.workflow_commons['AnalyseLogFilePreviouslyFinalized'] = True
     # Have to check that the output list is defined in the workflow commons, this is
     # done by the first BK report module that executes at the end of a step but in
     # this case the current step 'listoutput' must be added.

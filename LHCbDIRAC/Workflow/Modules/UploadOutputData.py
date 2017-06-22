@@ -37,7 +37,6 @@ class UploadOutputData( ModuleBase ):
     self.version = __RCSID__
     self.commandTimeOut = 10 * 60
     self.jobID = ''
-    self.failoverSEs = gConfig.getValue( '/Resources/StorageElementGroups/Tier1-Failover', [] )
     self.existingCatalogs = []
     result = gConfig.getSections( '/Resources/FileCatalogs' )
     if result['OK']:
@@ -51,6 +50,7 @@ class UploadOutputData( ModuleBase ):
     self.request = None
     self.failoverTransfer = None
     self.prodOutputLFNs = []
+    self.failoverSEs = None
 
   #############################################################################
   def _resolveInputVariables( self ):
@@ -81,6 +81,7 @@ class UploadOutputData( ModuleBase ):
         return result
       self.prodOutputLFNs = result['Value']['ProductionOutputData']
 
+
   #############################################################################
 
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
@@ -102,6 +103,10 @@ class UploadOutputData( ModuleBase ):
       super( UploadOutputData, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
                                                workflowStatus, stepStatus,
                                                wf_commons, step_commons, step_number, step_id )
+
+      # This returns all Tier1-Failover unless a specific one is defined for the site
+      self.failoverSEs = getDestinationSEList( 'Tier1-Failover', self.siteName, outputmode = 'Any' )
+      random.shuffle( self.failoverSEs )
 
       self._resolveInputVariables()
 
@@ -161,7 +166,7 @@ class UploadOutputData( ModuleBase ):
           self.log.error( "Found descendants!!! Outputs won't be uploaded" )
           self.log.info( "Files with descendants: %s" ' % '.join( lfnsWithDescendants ) )
           self.log.info( "The files above will be set as 'Processed', other lfns in input will be later reset as Unused" )
-          self.fileReport.setFileStatus( int( self.production_id ), lfnsWithDescendants.keys(), 'Processed' )
+          self.fileReport.setFileStatus( int( self.production_id ), lfnsWithDescendants, 'Processed' )
           return S_ERROR( "Input Data Already Processed" )
 
 
@@ -335,7 +340,7 @@ class UploadOutputData( ModuleBase ):
 
     for op in self.request:
       add = True
-      if op.Type in ['PutAndRegister', 'ReplicateAndRegister', 'RegisterFile', 'RegisterReplica']:
+      if op.Type in ['PutAndRegister', 'ReplicateAndRegister', 'RegisterFile', 'RegisterReplica', 'RemoveReplica']:
         for files in op:
           if files.LFN in lfnList:
             add = False

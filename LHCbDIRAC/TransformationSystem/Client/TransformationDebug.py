@@ -40,7 +40,7 @@ class TransformationDebug( object ):
 
   def __getFilesForRun( self, runID = None, status = None, lfnList = None, seList = None, taskList = None ):
     # print transID, runID, status, lfnList
-    selectDict = {}
+    selectDict = {'TransformationID': self.transID}
     if runID is not None:
       if runID:
         selectDict["RunNumber"] = runID
@@ -53,13 +53,19 @@ class TransformationDebug( object ):
     if seList:
       selectDict['UsedSE'] = seList
     if taskList:
-      selectDict['TaskID'] = taskList
-    selectDict['TransformationID'] = self.transID
+      # First get fileID per task as the task may no longer be in the TransformationFiles table
+      res = self.transClient.getTableDistinctAttributeValues( 'TransformationFileTasks', ['FileID'],
+                                                              {'TransformationID': self.transID, 'TaskID':taskList} )
+      if res['OK']:
+        selectDict['FileID'] = res['Value']['FileID']
+      else:
+        gLogger.error( "Error getting Transformation tasks:", res['Message'] )
+        return []
     res = self.transClient.getTransformationFiles( selectDict )
     if res['OK']:
       return res['Value']
     else:
-      gLogger.error( "Error getting TransformationFiles:", res['Message'] )
+      gLogger.error( "Error getting Transformation files:", res['Message'] )
       return []
 
   def __filesProcessed( self, runID ):
@@ -286,13 +292,15 @@ class TransformationDebug( object ):
     completed = True
     if not rep:
       SEStat[None] = SEStat.setdefault( None, 0 ) + 1
+    if not listSEs:
+      listSEs = ['Some']
     for se in listSEs:
       if self.transType == "Replication":
-        if se not in rep:
+        if se == 'Some' or se not in rep:
           SEStat[se] = SEStat.setdefault( se, 0 ) + 1
           completed = False
       elif self.transType == "Removal":
-        if se in rep:
+        if se == 'Some' or se in rep:
           SEStat[se] = SEStat.setdefault( se, 0 ) + 1
           completed = False
       else:
@@ -864,7 +872,7 @@ class TransformationDebug( object ):
           prStr += ' in status:'
         gLogger.notice( prStr, prevStatus )
         majorStatus, minorStatus, applicationStatus = prevStatus.split( '; ' )
-        if majorStatus == 'Failed' and ( 'Exited With Status' in applicationStatus or 'Problem Executing Application' in applicationStatus ):
+        if majorStatus == 'Failed' and ( 'exited with status' in applicationStatus.lower() or 'problem executing application' in applicationStatus.lower() ):
           exitedJobs += jobs
         if majorStatus == 'Failed' and minorStatus == 'Job stalled: pilot not running':
           lastLine = ''
@@ -886,10 +894,6 @@ class TransformationDebug( object ):
             elif line == lastLine:
               jobs.append( job )
               continue
-            for xx in ( 'LbLogin.sh', 'SetupProject.sh' ):
-              if xx in lastLine:
-                lastLine = lastLine.split()[0] + ' Executing %s' % xx + lastLine.split( xx )[1].split( '&&' )[0]
-                break
             gLogger.notice( '\t%3d jobs stalled with last line: %s' % ( len( jobs ), lastLine ) )
             lastLine = line
             jobs = [job1]
@@ -1027,10 +1031,11 @@ class TransformationDebug( object ):
           # print len( runRAWFiles ), 'RAW files'
           allAncestors = set()
           for paramValue in paramValues:
+            # This call returns only the base name of LFNs as they are unique
             ancFiles = self.pluginUtil.getRAWAncestorsForRun( runID, param, paramValue, getFiles = True )
-            # print paramValue, len( ancFiles )
             allAncestors.update( ancFiles )
-          missingFiles = runRAWFiles - allAncestors
+          # Remove ancestors from their basename in a list of LFNs
+          missingFiles = set( lfn for lfn in runRAWFiles if os.path.basename( lfn ) not in allAncestors )
           if missingFiles:
             gLogger.notice( "Missing RAW files:\n\t%s" % '\n\t'.join( sorted( missingFiles ) ) )
           else:
@@ -1356,14 +1361,16 @@ class TransformationDebug( object ):
 
         # Files with run# == 0
         transWithRun = self.transType != 'Removal' and \
-                       self.transPlugin not in ( 'LHCbStandard', 'ReplicateDataset', 'ArchiveDataset', 'LHCbMCDSTBroadcastRandom', 'ReplicateToLocalSE', 'BySize', 'Standard' )
+                       self.transPlugin not in ( 'LHCbStandard', 'ReplicateDataset', 'ArchiveDataset',
+                                                 'LHCbMCDSTBroadcastRandom', 'ReplicateToLocalSE', 'ReplicateWithAncestors',
+                                                 'BySize', 'Standard' )
         if filesWithRunZero and transWithRun:
           self.__fixRunNumber( filesWithRunZero, fixRun )
         if filesWithNoRunTable and transWithRun:
           self.__fixRunNumber( filesWithNoRunTable, fixRun, noTable = True )
 
         # Problematic files
-        if problematicFiles:
+        if problematicFiles and not byFiles:
           self.__checkReplicasForProblematic( problematicFiles, self.__getReplicas( problematicFiles ), nbReplicasProblematic, problematicReplicas )
 
         # Check files with missing FC
@@ -1375,7 +1382,23 @@ class TransformationDebug( object ):
         jobsForLfn = {}
         if verbose:
           gLogger.notice( "Tasks:", ','.join( str( taskID ) for taskID in sorted( taskDict ) ) )
-        for taskID in sorted( taskList ) if taskList else sorted( taskDict ):
+        if allTasks:
+          # Sort tasks by LFNs in order to print them together
+          lfnTask = {}
+          for taskID in sorted( taskDict ):
+            for lfn in taskDict[taskID]:
+              lfnTask.setdefault( lfn, [] ).append( taskID )
+          sortedTasks = []
+          for lfn in sorted( lfnTask ):
+            for taskID in lfnTask[lfn]:
+              if taskID not in sortedTasks:
+                sortedTasks.append( taskID )
+        else:
+          sortedTasks = sorted( taskDict )
+        lfnsInTask = []
+        for taskID in sorted( taskList ) if taskList else sortedTasks:
+          if allTasks and not byJobs and taskDict[taskID] != lfnsInTask:
+            gLogger.notice( "" )
           if taskID not in taskDict:
             gLogger.notice( 'Task %s not found in the transformation files table' % taskID )
             lfnsInTask = []
@@ -1416,7 +1439,7 @@ class TransformationDebug( object ):
             # print task
             prString = "TaskID: %s (created %s, updated %s) - %d files" % ( taskID, task['CreationTime'], task['LastUpdateTime'], nfiles )
             if byFiles and lfnsInTask:
-              sep = ',' if sys.stdout.isatty() else '\n'
+              sep = ','  # if sys.stdout.isatty() else '\n'
               prString += " (" + sep.join( lfnsInTask ) + ")"
             prString += "- %s: %s - Status: %s" % ( taskType, task['ExternalID'], task['ExternalStatus'] )
             if targetSE:
@@ -1426,8 +1449,8 @@ class TransformationDebug( object ):
             # More information from Request tasks
             if taskType == "Request":
               toBeKicked += self.__printRequestInfo( task, lfnsInTask, taskCompleted, status, dmFileStatusComment )
-
-            gLogger.notice( "" )
+            if not allTasks:
+              gLogger.notice( "" )
         if byJobs and jobsForLfn:
           self.__checkJobs( jobsForLfn, byFiles, checkLogs )
       if 'Problematic' in status and nbReplicasProblematic:

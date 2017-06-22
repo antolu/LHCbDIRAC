@@ -368,26 +368,24 @@ class DMScript( object ):
     return self.setLFNsFromFile( arg )
 
   def getLFNsFromList( self, lfns, directories = False ):
-    if isinstance( lfns, dict ):
-      lfnList = [lfn.strip() for lfn in lfns]
-    elif isinstance( lfns, basestring ):
+    if isinstance( lfns, basestring ):
       lfnList = lfns.split( ',' )
-    elif isinstance( lfns , list ):
+    elif isinstance( lfns , ( list, set, dict ) ):
       lfnList = [lfn.strip() for lfn1 in lfns for lfn in lfn1.split( ',' )]
-    elif isinstance( lfns, set ):
-      lfnList = sorted( lfns )
     else:
       gLogger.error( 'getLFNsFromList: invalid type %s' % type( lfns ) )
       return []
-    if not directories:
-      vo = self.__voName()
-      if vo:
-        vo = '/%s/' % vo
-        lfnList = [l.split( 'LFN:' )[-1].strip().replace( '"', ' ' ).replace( ',', ' ' ).replace( "'", " " ).replace( ':', ' ' ) for l in lfnList]
-        lfnList = [ vo + lfn.split( vo )[-1].split()[0] if vo in lfn else lfn if lfn == vo[:-1] else '' for lfn in lfnList]
-        lfnList = [lfn.split( '?' )[0] for lfn in lfnList]
-        lfnList = [lfn for lfn in lfnList if not lfn.endswith( '/' )]
-    return sorted( lfn for lfn in set( lfnList ) if lfn or directories )
+    vo = self.__voName()
+    if vo:
+      vo = '/%s/' % vo
+      lfnList = [l.split( 'LFN:' )[-1].strip() for l in lfnList]
+      for sep in ( '"', ',', "'", ':', '(', ')', ';', '|' ):
+        lfnList = [l.replace( sep, ' ' ) for l in lfnList]
+      lfnList = [ vo + lfn.split( vo )[-1].split()[0] if vo in lfn else lfn if lfn == vo[:-1] else '' for lfn in lfnList]
+      lfnList = [lfn.split( '?' )[0] for lfn in lfnList]
+      lfnList = [lfn for lfn in lfnList if lfn.endswith( '/' )] if directories else \
+                [lfn for lfn in lfnList if not lfn.endswith( '/' )]
+    return sorted( lfn for lfn in set( lfnList ) if lfn )
 
   @staticmethod
   def getJobIDsFromList( jobids ):
@@ -439,6 +437,8 @@ class DMScript( object ):
       return resolveSEGroup( self.options.get( switch, default ) )
     value = self.options.get( switch, default )
     if switch in ( 'LFNs', 'Directory' ):
+      if value == default and switch == 'Directory':
+        value = self.options.get( 'LFNs', default )
       if not value:
         if not sys.stdin.isatty():
           self.setLFNsFromTerm()

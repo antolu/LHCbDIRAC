@@ -7,6 +7,7 @@
 import time
 import os
 import random
+import sys
 
 from DIRAC import S_OK, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks, randomize
@@ -73,6 +74,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     self.setDebug( self.util.getPluginParam( 'Debug', False ) )
 
     self.processingShares = ( None, None )
+    self._alreadyProcessedLFNs = {}
 
   def voidMethod( self, _id, invalidateCache = False ):
     return
@@ -133,6 +135,31 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         # Here one should check descendants of children
         self.util.logVerbose( "No input files have already been processed" )
 
+  def __getRunFiles( self ):
+    """
+    Get files per run in a dicctionary and set the run number if not done
+    """
+    # Split the files in run groups
+    res = groupByRun( self.transFiles )
+    if not res['OK']:
+      self.util.logError( "Error splitting by run", res['Message'] )
+      return res
+    runFileDict = res['Value']
+    if not runFileDict:
+      # No files, no tasks!
+      self.util.logVerbose( "No runs found!" )
+      return S_OK( [] )
+    self.util.logVerbose( 'Obtained %d runs' % len( runFileDict ) )
+
+    # If some files don't have a run number, get it and set it
+    zeroRun = runFileDict.pop( 0, None )
+    if zeroRun:
+      self.util.logInfo( "Setting run number for files with run #0, which means it was not set yet" )
+      newRuns = self.util.setRunForFiles( zeroRun )
+      for newRun, runLFNs in newRuns.iteritems():
+        runFileDict.setdefault( newRun, [] ).extend( runLFNs )
+    return S_OK( runFileDict )
+
   def _RAWReplication( self ):
     """
     Plugin for replicating RAW data to Tier1s according to shares, and defining the processing destination site
@@ -159,24 +186,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return res
     existingCount, targetShares = res['Value']
 
-    # Split the files in run groups
-    res = groupByRun( self.transFiles )
-    if not res['OK']:
-      self.util.logError( "Error splitting by run", res['Message'] )
+    res = self.__getRunFiles()
+    if not res['OK'] or not res['Value']:
       return res
     runFileDict = res['Value']
-    if not runFileDict:
-      # No files, no tasks!
-      self.util.logVerbose( "No runs found!" )
-      return S_OK( [] )
-    self.util.logVerbose( 'Obtained %d runs' % len( runFileDict ) )
 
-    zeroRun = runFileDict.pop( 0, None )
-    if zeroRun:
-      self.util.logInfo( "Setting run number for files with run #0, which means it was not set yet" )
-      newRuns = self.util.setRunForFiles( zeroRun )
-      for newRun, runLFNs in newRuns.iteritems():
-        runFileDict.setdefault( newRun, [] ).extend( runLFNs )
     # For each of the runs determine the destination of any previous files
     res = self.util.getTransformationRuns( runFileDict )
     if not res['OK']:
@@ -224,12 +238,12 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       for replicaSE, lfns in replicaGroups.iteritems():
         replicaSE = set( replicaSE.split( ',' ) )
         if not assignedRAW:
-          # Files are not yet at a Tier1-RAW
-          if useRunDestination:
-            assignedRAW = self.util.getSEForDestination( runID, rawTargets )
+          # Files are not yet at a Tier1-RAW, if a destination already exists, use it
+          assignedRAW = self.util.getSEForDestination( runID, rawTargets )
           if assignedRAW:
             self.util.logVerbose( 'RAW destination obtained from run %d destination: %s' % ( runID, assignedRAW ) )
-          else:
+          elif not useRunDestination:
+            # Define the destination only if not requested to use it from the run destination
             res = self._getNextSite( existingCount, targetShares )
             if not res['OK']:
               self.util.logError( "Failed to get next destination SE", res['Message'] )
@@ -237,18 +251,21 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             else:
               assignedRAW = res['Value']
               self.util.logVerbose( "RAW destination assigned for run %d: %s" % ( runID, assignedRAW ) )
+          elif rawTargets:
+            self.util.logVerbose( "Run destination not yet defined for run %d" % runID )
+            # We can go to next in the loop there
+            continue
           rawLogged = True
         elif not rawLogged:
           self.util.logVerbose( 'RAW destination existing for run %d: %s' % ( runID, assignedRAW ) )
 
         # # Now get a buffer destination is prestaging is required
         if preStageShares and not assignedBuffer:
-          if useRunDestination:
-            assignedBuffer = self.util.getSEForDestination( runID, bufferTargets )
+          assignedBuffer = self.util.getSEForDestination( runID, bufferTargets )
           if assignedBuffer:
             bufferLogged = True
             self.util.logVerbose( 'Buffer destination obtained from run %d destination: %s' % ( runID, assignedBuffer ) )
-          else:
+          elif not useRunDestination:
             # Files are not at a buffer for processing
             res = self._selectRunSite( runID, sourceSE, replicaSE | set( [assignedRAW] ), bufferTargets, preStageShares = preStageShares )
             if not res['OK']:
@@ -261,24 +278,30 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             else:
               self.util.logWarn( 'Failed to find Buffer destination SE for run', str( runID ) )
               continue
+          elif bufferTargets:
+            self.util.logVerbose( "Run destination not yet defined for run %d" % runID )
         elif assignedBuffer and not bufferLogged:
           self.util.logVerbose( 'Buffer destination existing for run %d: %s' % ( runID, assignedBuffer ) )
 
         # # Find out if the replication is necessary
-        assignedSE = [assignedRAW, assignedBuffer] if assignedBuffer else [assignedRAW]
-        if not updated:
-          updated = True
-          res = self.transClient.setTransformationRunsSite( self.transID, runID, ','.join( assignedSE ) )
-          if not res['OK']:
-            self.util.logError( "Failed to assign TransformationRun SE", res['Message'] )
-            return res
-        ses = sorted( set( assignedSE ) - replicaSE )
-        # Update the counters as we know the number of files
-        if assignedRAW in ses:
-          # Here we pass both the number of files and the runID as we can use either metrics
-          self.util.updateSharesUsage( existingCount, assignedRAW, len( lfns ), runID )
-        assignedSE = ','.join( ses )
+        assignedSE = []
+        if assignedRAW:
+          assignedSE.append( assignedRAW )
+        if assignedBuffer:
+          assignedSE.append( assignedBuffer )
         if assignedSE:
+          if not updated:
+            updated = True
+            res = self.transClient.setTransformationRunsSite( self.transID, runID, ','.join( assignedSE ) )
+            if not res['OK']:
+              self.util.logError( "Failed to assign TransformationRun SE", res['Message'] )
+              return res
+          ses = sorted( set( assignedSE ) - replicaSE )
+          # Update the counters as we know the number of files
+          if assignedRAW in ses:
+            # Here we pass both the number of files and the runID as we can use either metrics
+            self.util.updateSharesUsage( existingCount, assignedRAW, len( lfns ), runID )
+          assignedSE = ','.join( ses )
           self.util.logVerbose( 'Creating a task (%d files, run %d) for SEs %s' % ( len( lfns ), runID, assignedSE ) )
           tasks.append( ( assignedSE, lfns ) )
         else:
@@ -465,6 +488,14 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     groupSize = self.util.getPluginParam( 'GroupSize' )
     typesWithNoCheck = self.util.getPluginParam( 'NoCheckTypes', ['Merge', 'MCMerge', 'Replication', 'Removal'] )
     fromSEs = set( resolveSEGroup( self.util.getPluginParam( 'FromSEs', [] ) ) )
+    # This flag defaults to True for DataStripping transformations
+    lfn = self.transReplicas.keys()[0]
+    res = self.util.getBookkeepingMetadata( lfn, 'FileType' )
+    if not res['OK']:
+      self.util.logError( "Error getting file metadata", res['Message'] )
+      return res
+    fileType = res['Value'][lfn]
+    addAncestors = self.util.getPluginParam( 'UseAncestors', bool( self.params['Type'] == 'DataStripping' ) and fileType != 'FULL.DST' )
     maxTime = self.util.getPluginParam( 'MaxTimeAllowed', 0 )
     self.util.readCacheFile( self.workDirectory )
     if not self.transReplicas:
@@ -633,19 +664,33 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           return res
         tasks = res['Value']
         if fromSEs:
-          okTasks = []
+          missingAncestors = 0
+          okDict = {}
+          # Group the LFNs by (set of) SEs in order to speed up the check for ancestors
+          nbTasks = len( tasks )
           for task in tasks:
-            # If fromSEs is defined, check if in the list
+            # Restrict target SEs to those in fromSEs
             okSEs = fromSEs & set( task[0].split( ',' ) )
             if okSEs:
-              # Restrict target SEs to those in fromSEs
-              okTasks.append( ( ','.join( sorted( okSEs ) ), task[1] ) )
-          if len( tasks ) != len( okTasks ):
+              okDict.setdefault( tuple( okSEs ), [] ).append( task[1] )
+          # Create the real tasks now
+          tasks = []
+          for okSEs, taskLfns in okDict.iteritems():
+            if addAncestors:
+              # taskLfns is modified by this method: lfns are eventually removed
+              missing = self.util.checkAncestorsAtSE( taskLfns, fromSEs )
+              if missing:
+                missingAtSEs = True
+                missingAncestors += missing
+            # Not make the tasks
+            tasks += [( ','.join( sorted( okSEs ) ), lfnList ) for lfnList in taskLfns if lfnList]
+          if missingAncestors:
+            self.util.logInfo( "%d files have been removed from tasks as ancestors were not present at required SEs" % missingAncestors )
+          if nbTasks != len( tasks ):
             missingAtSEs = True
             self.util.logInfo( "%d tasks could not be created for run %d as files are not at required SEs" %
-                               ( len( tasks ) - len( okTasks ), runID ) )
-          tasks = okTasks
-        self.util.logVerbose( "Created %d tasks for run %d%s" %
+                               ( nbTasks - len( tasks ), runID ) )
+        self.util.logInfo( "Created %d tasks for run %d%s" %
                               ( len( tasks ), runID, paramStr ) )
         allTasks.extend( tasks )
         # Cache the left-over LFNs
@@ -891,9 +936,27 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     mandatorySEs = resolveSEGroup( self.util.getPluginParam( 'MandatorySEs', [] ) )
     secondarySEs = resolveSEGroup( self.util.getPluginParam( 'SecondarySEs', [] ) )
     numberOfCopies = self.util.getPluginParam( 'NumberOfReplicas', 3 )
+    excludedFileTypes = self.util.getPluginParam( 'ExcludedFileTypes', ['GAUSSHIST', 'BRUNELHIST', 'DAVINCIHIST'] )
 
     # We need at least all mandatory copies
     numberOfCopies = max( numberOfCopies, len( mandatorySEs ) )
+
+    # Filter file types
+    if excludedFileTypes:
+      res = self.util.getBookkeepingMetadata( self.transReplicas, 'FileType' )
+      if not res['OK']:
+        return res
+      excludedLfns = []
+      for lfn, fileType in res['Value'].iteritems():
+        if fileType in excludedFileTypes:
+          self.transReplicas.pop( lfn )
+          excludedLfns.append( lfn )
+      if excludedLfns:
+        self.util.logInfo( "Found %d files with excluded file type, set them Excluded" % len( excludedLfns ) )
+        res = self.transClient.setFileStatusForTransformation( self.transID, 'Excluded', excludedLfns )
+        if not res['OK']:
+          self.util.logError( "Error setting files Excluded", res['Message'] )
+          return res
 
     storageElementGroups = {}
     for replicaSE, lfnGroup in getFileGroups( self.transReplicas ).iteritems():
@@ -905,13 +968,16 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         if stringTargetSEs:
           storageElementGroups.setdefault( stringTargetSEs, [] ).extend( lfns )
         else:
-          self.util.logInfo( "Found %d files that are already completed" % len( lfns ) )
-          self.transClient.setFileStatusForTransformation( self.transID, 'Processed', lfns )
+          self.util.logInfo( "Found %d files that are already completed, set them Processed" % len( lfns ) )
+          res = self.transClient.setFileStatusForTransformation( self.transID, 'Processed', lfns )
+          if not res['OK']:
+            self.util.logError( "Error setting files Processed", res['Message'] )
+            return res
 
     return S_OK( self.util.createTasks( storageElementGroups ) )
 
 
-  def _ReplicateDataset( self ):
+  def _ReplicateDataset( self, maxFiles = None ):
     """ Plugin for replicating files to specified SEs
     """
     destSEs = resolveSEGroup( self.util.getPluginParam( 'DestinationSEs', [] ) )
@@ -920,7 +986,41 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     secondarySEs = resolveSEGroup( self.util.getPluginParam( 'SecondarySEs', [] ) )
     fromSEs = resolveSEGroup( self.util.getPluginParam( 'FromSEs', [] ) )
     numberOfCopies = self.util.getPluginParam( 'NumberOfReplicas', 0 )
-    return self._simpleReplication( destSEs, secondarySEs, numberOfCopies, fromSEs = fromSEs )
+    return self._simpleReplication( destSEs, secondarySEs, numberOfCopies, fromSEs = fromSEs, maxFiles = maxFiles )
+
+  def _ReplicateToRunDestination( self ):
+    """ Plugin for replicating files to the run destination
+    """
+    destSEs = resolveSEGroup( self.util.getPluginParam( 'DestinationSEs', [] ) )
+    res = self.__getRunFiles()
+    if not res['OK'] or not res['Value']:
+      return res
+    runFileDict = res['Value']
+
+    maxFiles = self.util.getPluginParam( 'MaxFilesPerTask', 100 )
+    tasks = []
+    alreadyReplicated = set()
+    for runID in runFileDict:
+      runLfns = set( runFileDict[runID] ) & set( self.transReplicas )
+      if not runLfns:
+        continue
+      runDestination = self.util.getSEForDestination( runID, destSEs )
+      if runDestination:
+        replicated = set( lfn for lfn in runLfns if runDestination in self.transReplicas[lfn] )
+        runLfns -= replicated
+        alreadyReplicated.update( replicated )
+        if runLfns:
+          for lfnChunk in breakListIntoChunks( runLfns, maxFiles ):
+            tasks.append( ( runDestination, lfnChunk ) )
+
+    if alreadyReplicated:
+      self.util.logInfo( 'Found %d files that are already present at destination SE, set them Processed' % len( alreadyReplicated ) )
+      res = self.transClient.setFileStatusForTransformation( self.transID, 'Processed', alreadyReplicated )
+      if not res['OK']:
+        self.util.logError( "Error setting files Processed", res['Message'] )
+        return res
+
+    return S_OK( tasks )
 
   def _ArchiveDataset( self ):
     """ Plugin for archiving datasets (normally 2 archives, unless one of the lists is empty)
@@ -940,7 +1040,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       archive1SE = []
     return self._simpleReplication( archive1SE, archive2ActiveSEs, numberOfCopies = numberOfCopies )
 
-  def _simpleReplication( self, mandatorySEs, secondarySEs, numberOfCopies = 0, fromSEs = None ):
+  def _simpleReplication( self, mandatorySEs, secondarySEs, numberOfCopies = 0, fromSEs = None, maxFiles = None ):
     """ Actually creates the replication tasks for replication plugins
     """
     self.util.logInfo( "Starting execution of plugin" )
@@ -1027,7 +1127,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     self.util.logDebug( "Storage Element Groups created: %s" % storageElementGroups )
 
-    return S_OK( self.util.createTasks( storageElementGroups ) )
+    return S_OK( self.util.createTasks( storageElementGroups, chunkSize = maxFiles ) )
 
   def _FakeReplication( self ):
     """ Creates replication tasks for to the existing SEs. Used only for tests!
@@ -1271,7 +1371,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       self.pluginCallback( self.transID, invalidateCache = True )
     return S_OK( self.util.createTasks( storageElementGroups ) )
 
-  def _RemoveReplicasWhenProcessed( self ):
+  def _RemoveReplicasWhenProcessed( self, maxFiles = None ):
     """ This plugin considers files and checks whether they were processed for a list of processing passes
         For files that were processed, it sets replica removal tasks from a set of SEs
     """
@@ -1284,12 +1384,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     transStatus = self.params['Status']
     self.util.readCacheFile( self.workDirectory )
-    onlyAtList = False
 
     if not processingPasses:
       self.util.logWarn( "No processing pass(es)" )
       return S_OK( [] )
-    skip = False
 
     transQuery = self.util.getTransQuery( self.transReplicas )
     if transQuery is None:
@@ -1344,7 +1442,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         elif not replicaSEs - fromSEs :
           self.util.logInfo( "%d files are only in required list (only at %s), don't remove (yet)" % \
                              ( len( lfns ), ','.join( sorted( replicaSEs ) ) ) )
-          onlyAtList = True
         else:
           newGroups.setdefault( ','.join( sorted( targetSEs ) ), [] ).extend( lfns )
 
@@ -1412,6 +1509,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           targetSEs = set( stringTargetSEs.split( ',' ) )
           if not targetSEs & fromSEs:
             # Files are processed but are no longer at the requested SEs, set them Processed
+            self._alreadyProcessedLFNs.setdefault( ','.join( fromSEs ), [] ).extend( lfnsProcessed )
             self.util.logInfo( "%d processed files are no longer in required SE list: set them Processed" % len( lfnsProcessed ) )
             self.transClient.setFileStatusForTransformation( self.transID, 'Processed', lfnsProcessed )
           else:
@@ -1425,40 +1523,134 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       self.util.writeCacheFile()
       if self.pluginCallback:
         self.pluginCallback( self.transID, invalidateCache = True )
-    return S_OK( self.util.createTasks( storageElementGroups ) )
+    return S_OK( self.util.createTasks( storageElementGroups, chunkSize = maxFiles ) )
 
-  def _ReplicateToLocalSE( self ):
+  def _RemoveReplicasWithAncestors( self ):
+    """ Same as _RemoveReplicasWhenProcessed but also remove parents
+    This plugin is useful for removing at once RDST and RAW files after stripping
+    """
+    return self.__addAncestors( pluginMethod = self._RemoveReplicasWhenProcessed )
+
+  def __getAncestorLFNs( self, lfns ):
+    ancestors = self.util.getFileAncestors( lfns, depth = 1 )
+    if not ancestors['OK']:
+      self.util.logError( "Error getting ancestors", ancestors['Message'] )
+      return ancestors
+    ancestors = [anc['FileName'] for ancList in ancestors['Value']['Successful'].itervalues() for anc in ancList]
+    return S_OK( ancestors )
+
+  def __addAncestors( self, pluginMethod = None ):
+    """ Call a standard plugin and then add ancestors to tasks
+    """
+    maxFiles = self.util.getPluginParam( 'MaxFilesPerTask', 100 ) / 2
+    tasks = pluginMethod( maxFiles = maxFiles )
+    if not tasks['OK']:
+      return tasks
+    newTasks = []
+    addedAncestors = []
+    for targetSE, lfns in tasks['Value']:
+      ancestors = self.__getAncestorLFNs( lfns )
+      if not ancestors['OK']:
+        return ancestors
+      ancestors = ancestors['Value']
+      # It is not possible to create a task with files that are not in the transformation!
+      # therefore add them...
+      if ancestors:
+        res = self.transClient.addFilesToTransformation( self.transID, ancestors )
+        if not res['OK']:
+          self.util.logError( 'Failed to add files to transformation', res['Message'] )
+          return res
+        # Only put added files in tasks
+        addedLfns = [lfn for ( lfn, status ) in res['Value']['Successful'].iteritems() if status == 'Added' ]
+        addedAncestors += addedLfns
+      else:
+        addedLfns = []
+      newTasks.append( ( targetSE, lfns + addedLfns ) )
+    # This dict is those files already processed by the initial plugin (i.e. no need to process them)
+    for targetSE, lfns in self._alreadyProcessedLFNs.iteritems():
+      ancestors = self.__getAncestorLFNs( lfns )
+      if not ancestors['OK']:
+        return ancestors
+      ancestors = ancestors['Value']
+      if ancestors:
+        res = self.transClient.addFilesToTransformation( self.transID, ancestors )
+        if not res['OK']:
+          self.util.logError( 'Failed to add files to transformation', res['Message'] )
+          return res
+        addedLfns = [lfn for ( lfn, status ) in res['Value']['Successful'].iteritems() if status == 'Added' ]
+        self.util.logVerbose( "Found %d ancestors of Processed files: add them to tasks" % len( addedLfns ) )
+        addedAncestors += addedLfns
+        for ancChunk in breakListIntoChunks( addedLfns, 2 * maxFiles ):
+          newTasks.append( ( targetSE, ancChunk ) )
+    if addedAncestors:
+      self.util.logInfo( "Added %d ancestors to tasks" % len( addedAncestors ) )
+    return S_OK( newTasks )
+
+  def _ReplicateToLocalSE( self, maxFiles = None ):
     """ Used for example to replicate from a buffer to a tape SE on the same site
     """
-    destSEs = resolveSEGroup( self.util.getPluginParam( 'DestinationSEs', [] ) )
+    destSEs = set( resolveSEGroup( self.util.getPluginParam( 'DestinationSEs', [] ) ) )
     watermark = self.util.getPluginParam( 'MinFreeSpace', 30 )
+    targetFilesAtDestination = self.util.getPluginParam( 'TargetFilesAtDestination', 0 )
     if not destSEs:
       self.util.logWarn( 'No destination SE given' )
       return S_OK( [] )
 
+    # if there is a maximum number of files to get at destination, get the current usage
+    if targetFilesAtDestination:
+      self.util.readCacheFile( self.workDirectory )
+      directories = set( os.path.dirname( lfn ) for lfn in self.transReplicas )
+      # Get the maximum number of files that are allowed to be copied at this round (for prestaging mainly)
+      maxFilesAtSE = self.util.getMaxFilesAtSE( targetFilesAtDestination, directories, destSEs )
+      if not maxFilesAtSE['OK']:
+        return maxFilesAtSE
+      maxFilesAtSE = maxFilesAtSE['Value']
+      # This happens when the cycle is to be skipped, then return
+      if not maxFilesAtSE:
+        return S_OK( [] )
+    else:
+      maxFilesAtSE = {}
+
     storageElementGroups = {}
 
     for replicaSE, lfns in getFileGroups( self.transReplicas ).iteritems():
-      replicaSE = [se for se in replicaSE.split( ',' ) if not self.util.dmsHelper.isSEFailover( se ) and not self.util.dmsHelper.isSEArchive( se )]
-      if not replicaSE:
+      replicaSEs = set( se for se in replicaSE.split( ',' ) if not self.util.dmsHelper.isSEFailover( se ) and not self.util.dmsHelper.isSEArchive( se ) )
+      if not replicaSEs:
         continue
-      if [se for se in replicaSE if se in destSEs]:
+      okSEs = replicaSEs & destSEs
+      if okSEs:
+        # We have to choose only one SE to replicate to... There should in principle not be more but to be safe, take one only
+        self._alreadyProcessedLFNs.setdefault( list( okSEs )[0], [] ).extend( lfns )
         self.util.logInfo( "Found %d files that are already present in the destination SEs (status set Processed)" % len( lfns ) )
         res = self.transClient.setFileStatusForTransformation( self.transID, 'Processed', lfns )
         if not res['OK']:
           self.util.logError( "Can't set files to Processed", '(%d files): %s' % ( len( lfns ), res['Message'] ) )
           return res
         continue
-      targetSEs = [se for se in destSEs if se not in replicaSE]
-      candidateSEs = self.util.closerSEs( replicaSE, targetSEs, local = True )
+      targetSEs = destSEs - replicaSEs
+      candidateSEs = self.util.closerSEs( replicaSEs, targetSEs, local = True )
       if candidateSEs:
-        freeSpace = self.util.getStorageFreeSpace( candidateSEs )
-        shortSEs = [se for se in candidateSEs if freeSpace[se] < watermark]
-        if shortSEs:
-          self.util.logVerbose( "No enough space (%s TB) found at %s" % ( watermark, ','.join( shortSEs ) ) )
+        # If the max number of files to copy is negative, stop
+        shortSEs = [se for se in candidateSEs if maxFilesAtSE.get( se, sys.maxint ) == 0]
         candidateSEs = [se for se in candidateSEs if se not in shortSEs]
-        if candidateSEs:
-          storageElementGroups.setdefault( candidateSEs[0], [] ).extend( lfns )
+        if not candidateSEs:
+          self.util.logVerbose( "No candidate SE where files are accepted (%s not allowed)" % ','.join( shortSEs ) )
+        else:
+          # Check if enough free space
+          freeSpace = self.util.getStorageFreeSpace( candidateSEs )
+          shortSEs = [se for se in candidateSEs if freeSpace[se] < watermark]
+          candidateSEs = [se for se in candidateSEs if se not in shortSEs]
+          if not candidateSEs:
+            self.util.logVerbose( "No enough space (%s TB) found at %s" % ( watermark, ','.join( shortSEs ) ) )
+          else:
+            # Select a single SE out of candidates; in most cases there is one only
+            candidateSE = candidateSEs[0]
+            maxToReplicate = maxFilesAtSE.get( candidateSE, sys.maxint )
+            if maxToReplicate < len( lfns ):
+              self.util.logVerbose( "Limit number of files for %s to %d (out of %d)" % ( candidateSE, maxToReplicate, len( lfns ) ) )
+            else:
+              self.util.logVerbose( "Number of files for %s: %d" % ( candidateSE, len( lfns ) ) )
+            storageElementGroups.setdefault( candidateSE, [] ).extend( lfns[:maxToReplicate] )
       else:
         self.util.logWarn( "Could not find a local SE for %d files, set them Problematic" % len( lfns ) )
         res = self.transClient.setFileStatusForTransformation( self.transID, 'Problematic', lfns )
@@ -1466,7 +1658,17 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           self.util.logError( "Can't set files to Problematic", '(%d files): %s' % ( len( lfns ), res['Message'] ) )
           return res
 
-    return S_OK( self.util.createTasks( storageElementGroups ) )
+    return S_OK( self.util.createTasks( storageElementGroups, chunkSize = maxFiles ) )
+
+  def _ReplicateWithAncestors( self ):
+    """ Same as _ReplicateToLocalSE but also replicate parents
+    If only one SE is given, use _ReplicateDataset
+    This plugin is useful for prestaging at once RDST and RAW files before stripping
+    """
+    destSEs = set( resolveSEGroup( self.util.getPluginParam( 'DestinationSEs', [] ) ) )
+    if len( destSEs ) == 1:
+      return self.__addAncestors( pluginMethod = self._ReplicateDataset )
+    return self.__addAncestors( pluginMethod = self._ReplicateToLocalSE )
 
   def _Healing( self ):
     """ Plugin that creates task for replicating files to the same SE where they are declared problematic

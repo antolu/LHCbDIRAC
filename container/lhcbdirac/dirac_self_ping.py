@@ -1,3 +1,6 @@
+# Perform a DIPS ping on a given target and exit with the return code.
+# The target is specified as ""<port>/System/Service"
+
 import sys
 import os
 import time

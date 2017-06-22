@@ -14,7 +14,7 @@ import DIRAC
 
 from DIRAC import gLogger
 
-from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
+from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers, resolveSEGroup
 from DIRAC.DataManagementSystem.Client.ConsistencyInspector import ConsistencyInspector as DiracConsistencyChecks
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.List import breakListIntoChunks
@@ -83,6 +83,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
     self._fileType = []
     self._fileTypesExcluded = []
     self._lfns = []
+    self._seList = []
     self._verbose = False
     self.noFC = False
     self.directories = []
@@ -114,6 +115,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
     self.ancestors = {}
 
     self._verbose = False
+    self._seList = None
 
   def __logVerbose( self, msg, msg1 = '' ):
     if self._verbose:
@@ -577,6 +579,8 @@ class ConsistencyChecks( DiracConsistencyChecks ):
     filesWithoutDescendants = {}
     filesWithMultipleDescendants = {}
     fileTypesExcluded = Operations().getValue( 'DataConsistency/IgnoreDescendantsOfType', [] )
+    if self.fileType:
+      fileTypesExcluded = list( set( fileTypesExcluded ) - set( self.fileType ) )
     inFCNotInBK = []
     inBKNotInFC = []
     allDaughters = []
@@ -588,7 +592,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
 
     daughtersBKInfo = self.__getDaughtersInfo( lfns, status, filesWithDescendants,
                                                filesWithoutDescendants, filesWithMultipleDescendants )
-    for daughter in daughtersBKInfo.keys(): #pylint: disable=consider-iterating-dictionary
+    for daughter in daughtersBKInfo.keys():  # pylint: disable=consider-iterating-dictionary
       # Ignore the daughters that have a type to ignore
       if daughtersBKInfo[daughter][1] in fileTypesExcluded:
         daughtersBKInfo.pop( daughter )
@@ -645,7 +649,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
           _, notPresent = self.getReplicasPresence( uniqueDescendants )
           inBKNotInFC += notPresent
           # Remove descendants that are not in FC, and if no descendants remove ancestor as well
-          for anc in notPresentDescendants.keys(): #pylint: disable=consider-iterating-dictionary
+          for anc in notPresentDescendants.keys():  # pylint: disable=consider-iterating-dictionary
             for desc in notPresentDescendants[anc].keys():
               if desc in notPresent:
                 notPresentDescendants[anc].pop( desc )
@@ -755,6 +759,8 @@ class ConsistencyChecks( DiracConsistencyChecks ):
     ancDict = copy.deepcopy( lfnDict )
     if fileTypes == ['']:
       fileTypes = []
+    if fileTypes:
+      fileTypesExcluded = list( set( fileTypesExcluded ) - set( fileTypes ) )
     # and loop on the original dictionaries
     for ancestor in lfnDict:
       for desc in lfnDict[ancestor]:
@@ -837,7 +843,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
           topDir = os.path.dirname( directory )
           res = self.dm.getCatalogListDirectory( topDir )
           if not res['OK']:
-            raise RuntimeError( res['Message'] )
+            raise RuntimeError( "Error listing directory: " + res['Message'] )
           else:
             matchDir = directory.split( '...' )[0]
             directories += [d for d in res['Value']['Successful'].get( topDir, {} ).get( 'SubDirs', [] ) if d.startswith( matchDir )]
@@ -846,7 +852,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
       return directories
     try:
       bkQuery = self.__getBKQuery()
-    except ValueError, _e:
+    except ValueError as _e:
       bkQuery = None
     if bkQuery and set( bkQuery.getQueryDict() ) - {'Visible', 'Production', 'FileType'}:
       return bkQuery.getDirs()
@@ -857,7 +863,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
         fileType = []
       res = self.transClient.getTransformationParameters( self.prod, ['OutputDirectories'] )
       if not res['OK']:
-        raise RuntimeError( res['Message'] )
+        raise RuntimeError( "Error getting transformation parameters: " + res['Message'] )
       else:
         directories = []
         dirList = res['Value']
@@ -889,7 +895,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
               directories.append( dirName )
         return directories
     else:
-      raise RuntimeError( "Need to specify either the directories or a production id" )
+      raise RuntimeError( "No files found: you need to specify either the directories or a production ID" )
 
     ########################################################################
 
@@ -974,32 +980,41 @@ class ConsistencyChecks( DiracConsistencyChecks ):
     cachedLfns = setLfns & set( self.cachedReplicas )
     for lfn in cachedLfns:
       replicas[lfn] = self.cachedReplicas[lfn]
-    lfnsLeft = list( setLfns - cachedLfns )
+    lfnsLeft = setLfns - cachedLfns
     if lfnsLeft:
       progressBar = ProgressBar( len( lfnsLeft ),
                                  title = "Get replicas for %d files" % len( lfnsLeft ),
                                  chunk = chunkSize, interactive = self.interactive )
       for lfnChunk in breakListIntoChunks( lfnsLeft, chunkSize ):
         progressBar.loop()
-        replicasRes = self.dm.getReplicas( lfnChunk )
+        replicasRes = self.dm.getReplicas( lfnChunk, getUrl = False )
         if not replicasRes['OK']:
-          gLogger.error( "error:  %s" % replicasRes['Message'] )
-          raise RuntimeError( "error:  %s" % replicasRes['Message'] )
+          raise RuntimeError( "Error getting replicas:  " + replicasRes['Message'] )
         replicasRes = replicasRes['Value']
         if replicasRes['Failed']:
           retDict['NoReplicas'].update( replicasRes['Failed'] )
         replicas.update( replicasRes['Successful'] )
       progressBar.endLoop()
 
+    # Reduce the set of files to those at requested SEs if specified
+    if self._seList:
+      notAtSE = 0
+      for lfn, ses in replicas.items():
+        replicas[lfn] = set( ses ) & self._seList
+        if not replicas[lfn]:
+          notAtSE += 1
+          del replicas[lfn]
+      if notAtSE:
+        gLogger.notice( "%d files are not at requested SEs, ignored..." % notAtSE )
     progressBar = ProgressBar( len( replicas ),
                                title = "Get FC metadata for %d files to be checked: " % len( replicas ),
                                chunk = chunkSize, interactive = self.interactive )
     metadata = {}
-    for lfnChunk in breakListIntoChunks( replicas.keys(), chunkSize ): #pylint: disable=consider-iterating-dictionary
+    for lfnChunk in breakListIntoChunks( replicas, chunkSize ):  # pylint: disable=consider-iterating-dictionary
       progressBar.loop()
       res = self.fc.getFileMetadata( lfnChunk )
       if not res['OK']:
-        raise RuntimeError( "error %s" % res['Message'] )
+        raise RuntimeError( "Error getting file metadata: " + res['Message'] )
       metadata.update( res['Value']['Successful'] )
     progressBar.endLoop()
 
@@ -1032,11 +1047,11 @@ class ConsistencyChecks( DiracConsistencyChecks ):
         metadata = oSe.getFileMetadata( surlChunk )
         if not metadata['OK']:
           errMsg = "Error: getFileMetadata returns %s. Ignore those replicas" % ( metadata['Message'] )
+          progressBar.comment( errMsg )
           # Remove from list of replicas as we don't know whether it is OK or not
           for lfn in seFiles[se]:
             lfnNoInfo.setdefault( lfn, [] ).append( se )
         else:
-          # raise RuntimeError( "error StorageElement.getFileMetadata returns %s" % ( metadata['Message'] ) )
           metadata = metadata['Value']
           # print metadata
           notFound += len( metadata['Failed'] )
@@ -1155,7 +1170,17 @@ class ConsistencyChecks( DiracConsistencyChecks ):
   lfns = property( get_lfns, set_lfns )
 
   def set_verbose( self, value ):
+    """ Setter """
     self._verbose = bool( value )
   def get_verbose( self ):
+    """ Getter """
     return self._verbose
   verbose = property( get_verbose, set_verbose )
+
+  def set_seList( self, value ):
+    """ Setter """
+    self._seList = set( resolveSEGroup( value ) )
+  def get_seList( self ):
+    """ Getter """
+    return self._seList
+  seList = property( get_seList, set_seList )
