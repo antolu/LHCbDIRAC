@@ -427,7 +427,7 @@ class Production( object ):
 
     xmlFileName = self.__createWorkflow()
     # it makes a job (a Worklow, with Parameters), out of the xml file
-    return LHCbJob( xmlFileName ).runLocal( bkkClientIn = self.bkkClient )
+    return LHCbJob(xmlFileName).runLocal()
 
   #############################################################################
 
