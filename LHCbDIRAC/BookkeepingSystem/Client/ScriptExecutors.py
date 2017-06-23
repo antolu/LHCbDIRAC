@@ -1,6 +1,6 @@
-"""
+'''
 Set of functions used by the DMS scripts
-"""
+'''
 import os
 import datetime
 
@@ -19,9 +19,12 @@ __RCSID__ = "$Id$"
 #==================================================================================
 
 def executeFileMetadata( dmScript ):
-  """
+  '''
   Get a list of LFNs, their BK metadata and print it out
-  """
+
+  :param dmScript: instance containing options (LFNs mandatory)
+  :type dmScript: DMScript class
+  '''
   full = False
   switches = Script.getUnprocessedSwitches()
   for switch in switches:
@@ -93,18 +96,21 @@ def executeFileMetadata( dmScript ):
 #==================================================================================
 
 def __buildPath( bkDict ):
-  """
+  '''
   Build a BK path from the BK dictionary
-  """
+  '''
   return os.path.join( '/' + bkDict['ConfigName'], bkDict['ConfigVersion'], bkDict['ConditionDescription'],
                        bkDict['ProcessingPass'][1:].replace( 'Real Data', 'RealData' ), str( bkDict['EventType'] ),
                        bkDict['FileType'] ) + ( ' (Invisible)' if bkDict['VisibilityFlag'] == 'N' else '' )
 
 def executeFilePath( dmScript ):
-  """
+  '''
   Gets a list of LFNs and extracts their BK paths or other metadata
   Then print the result or group LFNs by path or metadata
-  """
+
+  :param dmScript: instance containing options (LFNs mandatory)
+  :type dmScript: DMScript class
+  '''
   full = False
   groupBy = False
   summary = False
@@ -259,13 +265,13 @@ def executeFilePath( dmScript ):
 #==================================================================================
 
 def _updateFileLumi( fileDict, retries = 5 ):
-  """
+  '''
   Update the luminosity of a list of files in the BK
 
   :param dict fileDict: {lfn:luminosity}
 
   :return: bool reporting error
-  """
+  '''
   error = False
   progressBar = ProgressBar( len( fileDict ), title = 'Updating luminosity', step = 10 )
   for lfn in fileDict:
@@ -282,7 +288,7 @@ def _updateFileLumi( fileDict, retries = 5 ):
   return error
 
 def _updateDescendantsLumi( parentLumi, doIt = False, force = False ):
-  """
+  '''
   Get file descendants and update their luminosity if necessary (if doIt == True)
   This function does it recursively to all descendants
 
@@ -291,7 +297,7 @@ def _updateDescendantsLumi( parentLumi, doIt = False, force = False ):
   :param bool force: update lumi even if OK (useful if further descendants may not be OK)
 
   :return: bool indicating error
-  """
+  '''
   if not parentLumi:
     return None
   # Get descendants:
@@ -333,12 +339,12 @@ def _updateDescendantsLumi( parentLumi, doIt = False, force = False ):
   return error or bool( result )
 
 def _updateRunLumi( run, evtType, fileInfo, doIt = False, force = False ):
-  """
+  '''
   Updates the files luminosity from the run nformation and the files statistics
   run : run number (int)
   evtType: event type (int)
   fileInfo: list of tuples containing run files information for that event type [(lfn, nbevts, lumi), ...]
-  """
+  '''
   res = bkClient.getRunInformations( run )
   if not res['OK']:
     gLogger.error( 'Error from BK getting run information', res['Message'] )
@@ -370,10 +376,13 @@ def _updateRunLumi( run, evtType, fileInfo, doIt = False, force = False ):
   return error or result
 
 def executeFixLuminosity( dmScript ):
-  """
+  '''
   Checks the luminosity of files in a BK query against the run luminosity
   If requested, it fixes recursively the luminosity of the files and all descendants
-  """
+
+  :param dmScript: instance containing options (BKQuery mandatory)
+  :type dmScript: DMScript class
+  '''
   doIt = False
   force = False
   for switch in Script.getUnprocessedSwitches():
@@ -436,9 +445,14 @@ def executeFixLuminosity( dmScript ):
 #==================================================================================
 
 def executeFileAncestors( dmScript, level = 1 ):
-  """
+  '''
   Gets a list of LFNs and obtains from BK the list of ancestors at a certain depth and/or for a certain Production
-  """
+
+  :param dmScript: instance containing options (LFNs mandatory)
+  :type dmScript: DMScript class
+  :param level: level to which search for ancestors
+  :type level: int
+  '''
   full = False
   checkreplica = True
   for switch in Script.getUnprocessedSwitches():
@@ -472,6 +486,8 @@ def executeFileAncestors( dmScript, level = 1 ):
     result = bkClient.getFileAncestors( lfnChunk, level, replica = checkreplica )
 
     if result['OK']:
+      for lfn in set( lfnChunk ) - set( result['Value']['Successful'] ) - set( result['Value']['Failed'] ):
+        fullResult['Value'].setdefault( 'Failed', {} )[lfn] = "No ancestor found"
       if full:
         fullResult['Value'].setdefault( 'WithMetadata', {} ).update( result['Value']['WithMetadata'] )
       else:
@@ -490,9 +506,14 @@ def executeFileAncestors( dmScript, level = 1 ):
 #==================================================================================
 
 def executeFileDescendants( dmScript, level = 1 ):
-  """
+  '''
   Gets a list of LFNs and obtains from BK the list of descendants at a certain depth and/or for a certain Production
-  """
+
+  :param dmScript: instance containing options (LFNs mandatory)
+  :type dmScript: DMScript class
+  :param level: level to which search for descendants
+  :type level: int
+  '''
   checkreplica = True
   prod = 0
   full = False
@@ -555,9 +576,14 @@ def executeFileDescendants( dmScript, level = 1 ):
 #==================================================================================
 
 def executeGetFiles( dmScript, maxFiles = 20 ):
-  """
+  '''
   Get files given a BK query
-  """
+
+  :param dmScript: instance containing options (BKQuery mandatory)
+  :type dmScript: DMScript class
+  :param maxFiles: maximum number of files to get
+  :type maxFiles: int
+  '''
   output = None
   nMax = None
   bkFile = None
@@ -656,9 +682,14 @@ def executeGetFiles( dmScript, maxFiles = 20 ):
 #==================================================================================
 
 def executeFileSisters( dmScript, level = 1 ):
-  """
+  '''
   Gets a list of files and extract from BK the sisters (i.e. files with same parent in the same production
-  """
+
+  :param dmScript: instance containing options (LFNs mandatory)
+  :type dmScript: DMScript class
+  :param level: level to which search for common ancestors
+  :type level: int
+  '''
   checkreplica = True
   prod = 0
   full = False
@@ -787,14 +818,14 @@ def executeFileSisters( dmScript, level = 1 ):
 #==================================================================================
 
 def _intWithQuotes( val, quote = "'" ):
-  """
+  '''
   Print numbers with a character separating each thousand
 
   :param int,long val: integer value to printout
   :param character quote: character to use as a separator
 
   :return: string to print out
-  """
+  '''
   chunks = []
   if not val:
     return 'None'
@@ -808,14 +839,14 @@ def _intWithQuotes( val, quote = "'" ):
   return quote.join( chunks )
 
 def _scaleValue( val, units ):
-  """
+  '''
   Scale a value by thousands, return value and unit
 
   :param float val: value to scale
   :param iterable units: list of unit names (increasing order)
 
   :return: tuple (scaledValue, unitName)
-  """
+  '''
   if val:
     for unit in units:
       if val < 1000.:
@@ -827,25 +858,25 @@ def _scaleValue( val, units ):
   return val, unit
 
 def _scaleLumi( lumi ):
-  """
+  '''
   Return lumi in the appropriate unit
-  """
+  '''
   return _scaleValue( lumi, ( '/microBarn', '/nb', '/pb', '/fb', '/ab' ) )
 
 def scaleSize( size ):
-  """
+  '''
   Return size in appropriate unit
-  """
+  '''
   return _scaleValue( size, ( 'Bytes', 'kB', 'MB', 'GB', 'TB', 'PB' ) )
 
 def _getCollidingBunches( fills ):
-  """
+  '''
   Get the number of colliding bunches for all fills and average
 
   :param iterable fills: list of fill numbers
 
   :return: dictionary {fill:nbCollisingBunches}
-  """
+  '''
   import urllib2
   import json
   result = {}
@@ -862,9 +893,12 @@ def _getCollidingBunches( fills ):
   return result
 
 def executeGetStats( dmScript ):
-  """
-  Extract statistics for a BK query
-  """
+  '''
+  Extract statistics for a BK query or a set of LFNs
+
+  :param dmScript: instance containing options (LFNs or BKQuery mandatory)
+  :type dmScript: DMScript class
+  '''
   triggerRate = False
   listRuns = False
   listFills = False
@@ -1153,9 +1187,13 @@ def executeGetStats( dmScript ):
     gLogger.notice( "" )
 
 def executeRunInfo( item ):
-  """
-  Get the TCK for a range of runs, and then prints each TCK with run ranges
-  """
+  '''
+  Get some run information for a range of runs, either print out by item value or by run range
+  It can also define run ranges according to a run number gap or a time gap
+
+  :param item: name of a run item
+  :type item: string
+  '''
   runsDict = {}
   if item not in ( 'Tck', 'DataTakingDescription', 'ProcessingPass', 'Ranges' ):
     gLogger.fatal( "Incorrect run information item" )
@@ -1195,6 +1233,10 @@ def executeRunInfo( item ):
 
   getRanges = ( item == 'Ranges' )
   byRange = byRange or getRanges
+  if not getRanges:
+    # Avoid creating gaps if explicit run ranges are not requested
+    runGap = 100000000
+    timeGap = 365
   if activity:
     progressBar = ProgressBar( 1, title = "Getting run list for activity %s" % activity, step = 20 )
     runsList = BKQuery( "/LHCb/%s//Real Data//RAW" % activity ).getBKRuns()
@@ -1251,7 +1293,9 @@ def executeRunInfo( item ):
       res = bkClient.getRunInformations( run )
       if res['OK']:
         streams = res['Value'].get( 'Stream', [] )
-        runTime[run] = ( res['Value'].get( 'RunStart' ), res['Value'].get( 'RunEnd' ), res['Value']['DataTakingDescription'] )
+        runTime[run] = ( res['Value'].get( 'RunStart' ),
+                         res['Value'].get( 'RunEnd' ),
+                         res['Value']['DataTakingDescription'] )
         if getRanges:
           files = res['Value'].get( 'Number of file', [] )
           itemValue = dict( zip( streams, files ) ).get( 90000000, 0 )
@@ -1269,49 +1313,62 @@ def executeRunInfo( item ):
         itemList.append( runDict[run] )
   itemDict = {}
   rangesDict = {}
+  runList = sorted( runDict )
   for itemValue in itemList:
     firstRun = None
     lastRun = None
     runStart = None
-    runEnd = None
-    lastDesc = None
+    lastRunEnd = None
+    lastRunDesc = None
+    lastRunValue = None
     count = 0
     # Add a fake run (None) in order to print out the last range
-    for run in sorted( runDict ) + [None]:
+    if itemValue == itemList[-1]:
+      runList.append( None )
+    for run in runList:
       runValue = 1 if getRanges and run else runDict.get( run )
-      runStart = runTime.get( run, ( None, None ) )[0]
-      runDesc = runTime.get( run, ( None, None, None ) )[2]
+      if runValue == lastRunValue and runValue != itemValue:
+        # We are outside a range that is interesting for that itemValue, skip
+        continue
+      runTimeAndDesc = runTime.get( run, ( None, None, None ) )
+      runStart = runTimeAndDesc[0]
+      runDesc = runTimeAndDesc[2]
       # Determine if there is a need to change the run range
       # Can be a change of conditions, a runGap in time or a runGap in #of runs
       gap = False
-      if lastDesc:
-        gap = ( runDesc != lastDesc )
-      if not gap and runStart and runEnd:
-        runDiff = runStart - runEnd
+      if lastRunDesc:
+        gap = ( runDesc != lastRunDesc )
+      if not gap and runStart and lastRunEnd:
+        runDiff = runStart - lastRunEnd
         gap = ( runDiff > datetime.timedelta( days = timeGap ) )
       if not gap and lastRun and run:
         gap = ( abs( lastRun - run ) > runGap )
 
       if runValue == itemValue and firstRun is None:
+        # First run encountered
         firstRun = run
+        # Initialize count of files
+        if getRanges:
+          count = runDict[run]
       elif ( runValue != itemValue or gap ) and firstRun is not None:
+        # We are now in a new range, print out the previous range
         if lastRun != firstRun:
           rangeStr = '%d:%d' % ( firstRun, lastRun )
         else:
           rangeStr = '%d' % firstRun
-        if lastDesc:
-          rangeStr += ' (%s)' % lastDesc
+        if lastRunDesc:
+          rangeStr += ' (%s)' % lastRunDesc
         rangesDict[rangeStr] = '%d %s' % ( count, counted ) if getRanges else itemValue
         itemDict.setdefault( itemValue, [] ).append( rangeStr )
-        firstRun = run
+        # If still same value, start a new range
+        firstRun = run if runValue == itemValue else None
       elif getRanges and run:
           count += runDict[run]
       # Update parameters with this run's information
       lastRun = run
-      lastDesc = runDesc
-      runEnd = runTime.get( run, ( None, None, None ) )[1]
-      if run == firstRun and getRanges and run:
-        count = runDict[run]
+      lastRunDesc = runDesc
+      lastRunEnd = runTimeAndDesc[1]
+      lastRunValue = runValue
 
 
   if byRange:
@@ -1324,9 +1381,12 @@ def executeRunInfo( item ):
       gLogger.notice( '%s :' % itemValue, ', '.join( itemDict[itemValue] ) )
 
 def executeRejectionStats( dmScript ):
-  """
-  Extract statistics for a BK query
-  """
+  '''
+  Get rejection rate for stripping streams
+
+  :param dmScript: instance containing options (LFNs or BKQuery mandatory)
+  :type dmScript: DMScript class
+  '''
   byStream = False
   for switch in Script.getUnprocessedSwitches():
     if switch[0] == 'ByStream':
