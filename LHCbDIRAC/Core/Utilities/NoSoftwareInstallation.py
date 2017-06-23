@@ -51,20 +51,20 @@ class NoSoftwareInstallation( object ):
         self.log.error( "The platform request is different from the local one... something is very wrong!" )
         return S_ERROR( "The platform request is different from the local one... something is very wrong!" )
 
-    compatibleCMTConfigs = self._getSupportedCMTConfigs( localArch )
-    self.log.info( "This node supports the following CMT configs: %s" % ', '.join( compatibleCMTConfigs ) )
+    compatibleConfigs = self._getSupportedConfigs( localArch )
+    self.log.info( "This node supports the following configs: %s" % ', '.join( compatibleConfigs ) )
 
     return S_OK()
 
 
-  def _getSupportedCMTConfigs( self, platform ):
-    """ returns getCMTConfigsCompatibleWithPlatforms
+  def _getSupportedConfigs( self, platform ):
+    """ returns getConfigsCompatibleWithPlatforms
     """
     self.log.info( "Node supported platform is: %s" % platform )
-    compatibleCMTConfigs = ProductionEnvironment.getCMTConfigsCompatibleWithPlatforms( platform )
-    if not compatibleCMTConfigs['OK']:
-      raise RuntimeError( compatibleCMTConfigs['Message'] )
-    if not compatibleCMTConfigs['Value']:
-      raise RuntimeError( "No CMT configs can be run here. Something is wrong in our configuration" )
+    compatibleConfigs = ProductionEnvironment.getConfigsCompatibleWithPlatforms( platform )
+    if not compatibleConfigs['OK']:
+      raise RuntimeError( compatibleConfigs['Message'] )
+    if not compatibleConfigs['Value']:
+      raise RuntimeError( "No configs can be run here. Something is wrong in our configuration" )
 
-    return compatibleCMTConfigs['Value']
+    return compatibleConfigs['Value']

@@ -77,7 +77,7 @@
 
 import os
 import re
-from distutils.version import LooseVersion #pylint: disable=import-error,no-name-in-module
+from distutils.version import LooseVersion  # pylint: disable=import-error,no-name-in-module
 
 from DIRAC                                                import S_OK, S_ERROR, gConfig
 from DIRAC.Interfaces.API.Job                             import Job
@@ -598,7 +598,7 @@ class LHCbJob( Job ):
     # now we have to tell DIRAC to install the necessary software
     appRoot = '%s/%s' % ( self.rootSection, rootVersion )
     currentApp = self.opsHelper.getValue( appRoot, '' )
-    if not currentApp: #FIXME: this is an old location, the whole /Operations/SoftwareDistribution section should be removed
+    if not currentApp:  # FIXME: this is an old location, the whole /Operations/SoftwareDistribution section should be removed
       currentApp = gConfig.getValue( 'Operations/' + appRoot )
     if not currentApp:
       return self._reportError( 'Could not get value from DIRAC Configuration Service for option %s' % appRoot,
@@ -722,7 +722,7 @@ class LHCbJob( Job ):
        :type OutputSE: string or list
        :type OutputPath: string
     """
-    #FIXME: the output data as specified here will be treated by the UserJobFinalization module
+    # FIXME: the output data as specified here will be treated by the UserJobFinalization module
     # If we remove this method (which is totally similar to the Job() one, the output data will be
     # treated by the JobWrapper. So, can and maybe should be done, but have to pay attention
     kwargs = {'lfns':lfns, 'OutputSE':OutputSE, 'OutputPath':OutputPath}
@@ -848,31 +848,45 @@ class LHCbJob( Job ):
     return S_OK()
 
   #############################################################################
+  def setPlatform( self, platform ):
+    """Developer function: sets the target platform, e.g. x86_64-slc5
+       This platform is in the form of what it is returned by the dirac-architecture script)
+    """
+    kwargs = {'platform':platform}
+
+    if not isinstance( platform, basestring ):
+      return self._reportError( "Expected string for platform", **kwargs )
+
+    if platform and platform.lower() != 'any':
+      self._addParameter( self.workflow, 'Platform', 'JDL', platform, 'Platform ( Operating System )' )
+    return S_OK()
+
 
   def setDIRACPlatform( self ):
-    """ Looks inside the steps definition to find list of CMTConfigs, then translates it in a DIRAC platform
+    """ Looks inside the steps definition to find list of Configs, then translates it in a DIRAC platform
     """
-    listOfCMTConfigs = []
+    listOfConfigs = []
     for step_instance in self.workflow.step_instances:
       for parameter in step_instance.parameters:
         if parameter.name.lower() == 'systemconfig':
-          if not parameter.value or parameter.value.lower() == 'any':
-            listOfCMTConfigs.append( 'zzz' )  # just for comparison... yes, it's a hack! due to this damn "ANY"
-          else:
-            listOfCMTConfigs.append( parameter.value )
+          if parameter.value:
+            listOfConfigs.append( parameter.value )
 
-    listOfCMTConfigs = uniqueElements( listOfCMTConfigs )
-    listOfCMTConfigs.sort( key = LooseVersion )
+    listOfConfigs = uniqueElements( listOfConfigs )
+    listOfConfigs.sort( key = LooseVersion )
 
-    if listOfCMTConfigs[0] == 'zzz':
-      return super( LHCbJob, self ).setPlatform( 'ANY' )
+    if not listOfConfigs or listOfConfigs[0].lower() == 'any':
+      # It was calling the base class setPlatfor('ANY') which just returns S_OK()
+      return S_OK()
 
     try:
-      platform = getPlatformFromConfig( listOfCMTConfigs[0] )[0]
+      platform = getPlatformFromConfig( listOfConfigs[0] )
     except ValueError as error:
-      self.log.warn( error )
-      platform = 'ANY'
-    return super( LHCbJob, self ).setPlatform( platform )
+      self.log.exception( "Exception while getting platform, don't set it", lException = error )
+      return S_OK()
+    # At this stage this is never "AANY", so set it... although it is not clear it is of any use anywhere!
+    self._addParameter( self.workflow, 'Platform', 'JDL', platform, 'Platform ( Operating System )' )
+    return S_OK()
 
   #############################################################################
 
@@ -962,6 +976,31 @@ class LHCbJob( Job ):
       diracLHCb = diracLHCb
     else:
       diracLHCb = DiracLHCb()
+
+    if self.workflow.parameters.find( 'AncestorDepth' ):
+
+      ancestorsDepth = int( self.workflow.parameters.find( 'AncestorDepth' ).getValue() )
+
+      if ancestorsDepth:
+        if bkkClientIn is not None:
+          bkClient = bkkClientIn
+        else:
+          bkClient = BookkeepingClient()
+
+        lfnsString = self.workflow.parameters.find( 'InputData' ).getValue()
+        lfns = [x.replace( 'LFN:', '' ) for x in lfnsString.split( ';' )]
+        ancestors = bkClient.getFileAncestors( lfns, ancestorsDepth )
+        if not ancestors['OK']:
+          return S_ERROR( "Can't get ancestors: %s" % ancestors['Message'] )
+        ancestorsLFNs = []
+        for ancestorsLFN in ancestors['Value']['Successful'].values():
+          ancestorsLFNs += [ i['FileName'] for i in ancestorsLFN]
+
+        ancestorsLFNsString = ""
+        for ancestorsLFN in ancestorsLFNs:
+          ancestorsLFNsString += 'LFN:' + ancestorsLFN + ';'
+
+        self.workflow.setValue( 'InputData', ancestorsLFNsString + lfnsString )
 
     return diracLHCb.submitJob( self, mode = 'local' )
 

@@ -10,31 +10,18 @@ from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine( ignoreErrors = True )
 
 from DIRAC import exit as dExit
-from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getDIRACPlatform
+from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getPlatform
 
 if __name__ == "__main__" :
-  dist = platform.linux_distribution()
-  if not dist[0]:
-    # is it mac?
-    dist = platform.mac_ver()
-    if not dist[0]:
-      # windows, really?
-      dist = platform.win32_ver()
+  try:
+    # Get the platform name. If an error occurs, an exception is thrown
+    platform = getPlatform()
+    print platform
+    dExit( 0 )
 
-  OS = '_'.join( dist ).replace( ' ', '' )
+  except Exception as e:
+    msg = "Exception getting platform: " + repr( e )
 
-  error = False
-  res = getDIRACPlatform( '_'.join( [platform.machine(), OS] ) )
-  if not res['OK']:
-    msg = "ERROR: %s" % res['Message']
-    error = True
-  elif not res['Value']:
-    msg = "ERROR, %s not found" % '_'.join( [platform.machine(), OS] )
-    error = True
-  else:
-    msg = res['Value'][0]
-
-  if error:
     from DIRAC import gConfig
     from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
     from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
@@ -49,9 +36,6 @@ if __name__ == "__main__" :
 
     for mA in mailAddress.replace( ' ', '' ).split( ',' ):
       NotificationClient().sendMail( mailAddress, "Problem with DIRAC architecture",
-                                     body, 'federico.stagni@cern.ch', localAttempt = False,
-                                     avoidSpam = True )
+                                     body, 'federico.stagni@cern.ch', localAttempt = False )
     print msg
     dExit( 1 )
-
-  print msg
