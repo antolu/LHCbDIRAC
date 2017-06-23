@@ -11,7 +11,7 @@ from DIRAC.Core.Utilities import Time
 from DIRAC.WorkloadManagementSystem.DB.JobDB import JobDB as DIRACJobDB
 
 # Overload the DIRACDfunction getDIRACPlatform with LHCb one
-from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getPlatformsFromConfig as getDIRACPlatform  # pylint: disable=unused-import
+from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getPlatformsFromLHCbConfig as getDIRACPlatform  # pylint: disable=unused-import
 
 
 class JobDB( DIRACJobDB ):

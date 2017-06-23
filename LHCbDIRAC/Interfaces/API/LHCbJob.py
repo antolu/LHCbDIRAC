@@ -87,7 +87,7 @@ from DIRAC.ConfigurationSystem.Client.Helpers.Operations  import Operations
 from DIRAC.Workflow.Utilities.Utils                       import getStepDefinition, addStepToWorkflow
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-from LHCbDIRAC.Core.Utilities.ProductionEnvironment       import getPlatformFromConfig
+from LHCbDIRAC.Core.Utilities.ProductionEnvironment       import getPlatformFromLHCbConfig
 from LHCbDIRAC.Interfaces.API.DiracLHCb                   import DiracLHCb
 
 class LHCbJob( Job ):
@@ -880,7 +880,7 @@ class LHCbJob( Job ):
       return S_OK()
 
     try:
-      platform = getPlatformFromConfig( listOfConfigs[0] )
+      platform = getPlatformFromLHCbConfig( listOfConfigs[0] )
     except ValueError as error:
       self.log.exception( "Exception while getting platform, don't set it", lException = error )
       return S_OK()

@@ -13,7 +13,7 @@ opsH = Operations()
 global PlatformsConfigsDict
 PlatformsConfigsDict = None
 
-def _getPlatformsConfigsDict():
+def _getPlatformsDefinitions():
   """ Just utility function
   """
   global PlatformsConfigsDict
@@ -29,7 +29,7 @@ def _getPlatformsConfigsDict():
     PlatformsConfigsDict = configDict
   return PlatformsConfigsDict
 
-def getConfigsCompatibleWithPlatforms( originalPlatforms ):
+def getLHCbConfigsForPlatform( originalPlatforms ):
   """ Get a list of platforms compatible with the given list
       Looks into operation section PlatformsToConfigs
   """
@@ -37,7 +37,7 @@ def getConfigsCompatibleWithPlatforms( originalPlatforms ):
     platforms = [originalPlatforms]
   else:
     platforms = originalPlatforms
-  platformsDict = _getPlatformsConfigsDict()
+  platformsDict = _getPlatformsDefinitions()
   configsList = set( config for plat in platforms for config in platformsDict.get( plat, [] ) )
 
   return S_OK( list( configsList ) )
@@ -46,7 +46,7 @@ def _comparePlatforms( platform1, platform2 ):
   """ Function to be used for ordering the platforms
   Returns 0 if same configs, -1 if config1 in within config2, 1 else
   """
-  platformsDict = _getPlatformsConfigsDict()
+  platformsDict = _getPlatformsDefinitions()
   config1 = set( platformsDict[platform1] )
   config2 = set( platformsDict[platform2] )
   return 0 if ( config1 == config2 ) else -1 if not ( config1 - config2 ) else 1
@@ -56,10 +56,10 @@ def getPlatformsCompatibilities( platform1, platform2 ):
   """
   return bool( _comparePlatforms( platform1, platform2 ) <= 0 )
 
-def getPlatformsFromConfig( config ):
+def getPlatformsFromLHCbConfig( config ):
   """ Returns the DIRAC platforms compatible with the given config, sorted in increasing order
   """
-  platformsDict = _getPlatformsConfigsDict()
+  platformsDict = _getPlatformsDefinitions()
   platformsList = [plat for plat in platformsDict if config in platformsDict[plat]]
 
   if platformsList:
@@ -68,10 +68,10 @@ def getPlatformsFromConfig( config ):
   else:
     return None
 
-def getPlatformFromConfig( config ):
+def getPlatformFromLHCbConfig( config ):
   """ Returns the minimal DIRAC platform compatible with the given config
   """
-  platforms = getPlatformsFromConfig( config )
+  platforms = getPlatformsFromLHCbConfig( config )
   return platforms[0] if platforms else None
 
 def getPlatform():
@@ -82,7 +82,7 @@ def getPlatform():
   except ImportError:
     return S_ERROR( "Could not import LbPlatformUtils" )
 
-  platformsDict = _getPlatformsConfigsDict()
+  platformsDict = _getPlatformsDefinitions()
   architecture = dirac_platform()
 
   # This is the list of platforms in increasing order of capabilities

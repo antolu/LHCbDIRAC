@@ -58,10 +58,10 @@ class NoSoftwareInstallation( object ):
 
 
   def _getSupportedConfigs( self, platform ):
-    """ returns getConfigsCompatibleWithPlatforms
+    """ returns getLHCbConfigsForPlatform
     """
     self.log.info( "Node supported platform is: %s" % platform )
-    compatibleConfigs = ProductionEnvironment.getConfigsCompatibleWithPlatforms( platform )
+    compatibleConfigs = ProductionEnvironment.getLHCbConfigsForPlatform( platform )
     if not compatibleConfigs['OK']:
       raise RuntimeError( compatibleConfigs['Message'] )
     if not compatibleConfigs['Value']:
