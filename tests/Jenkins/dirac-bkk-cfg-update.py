@@ -19,10 +19,10 @@ for switch in Script.getUnprocessedSwitches():
     passwd = switch[1]
 
 if not passwd:
-    gLogger.error( "Error: No argument provided\n%s:" % Script.scriptName )
-    Script.showHelp()
-    exit( 1 )
-       
+  gLogger.error( "Error: No argument provided\n%s:" % Script.scriptName )
+  Script.showHelp()
+  exit( 1 )
+
 from DIRAC.ConfigurationSystem.Client.CSAPI import CSAPI
 csAPI = CSAPI()
 
