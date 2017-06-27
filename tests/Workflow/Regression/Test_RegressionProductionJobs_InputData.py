@@ -43,12 +43,12 @@ class MCReconstructionSuccess( RegressionTestCase ):
 
 class RecoSuccess( RegressionTestCase ):
   def test_Regression_Production( self ):
-    # Reco from Collision15em
-    location46146 = find_all( '46146.xml', '..', '/LHCbDIRAC/tests/Workflow/Regression' )[0]
-    j_reco_46146 = LHCbJob( location46146 )
-    j_reco_46146.setConfigArgs( 'pilot.cfg' )
+    # Reco from Reco17
+    location63284 = find_all( '63284.xml', '..', '/LHCbDIRAC/tests/Workflow/Regression' )[0]
+    j_reco_63284 = LHCbJob( location63284 )
+    j_reco_63284.setConfigArgs( 'pilot.cfg' )
 
-    res = j_reco_46146.runLocal( self.diracLHCb, self.bkkClient )
+    res = j_reco_63284.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
 
@@ -72,18 +72,6 @@ class MCMergeSuccess( RegressionTestCase ):
     res = j_MCmerge_51753.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
-
-# FIXME: to update
-class MergeMultStreamsSuccess( RegressionTestCase ):
-  def test_Regression_Production( self ):
-    location21211 = find_all( '21211.xml', '..', '/LHCbDIRAC/tests/Workflow/Regression' )[0]
-    j_merge_21211 = LHCbJob( location21211 )
-    j_merge_21211.setConfigArgs( 'pilot.cfg' )
-
-    res = j_merge_21211.runLocal( self.diracLHCb, self.bkkClient )
-    self.assertTrue( res['OK'] )
-
-
 class MergeMDFSuccess( RegressionTestCase ):
   def test_Regression_Production( self ):
     location20657 = find_all( '20657.xml', '..', '/LHCbDIRAC/tests/Workflow/Regression' )[0]
@@ -92,17 +80,6 @@ class MergeMDFSuccess( RegressionTestCase ):
 
     res = j_mergeMDF_20657.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
-
-# FIXME: to update
-class SwimmingSuccess( RegressionTestCase ):
-  def test_Regression_Production( self ):
-    location31057 = find_all( '31057.xml', '..', '/LHCbDIRAC/tests/Workflow/Regression' )[0]
-    j_swimming_31057 = LHCbJob( location31057 )
-    j_swimming_31057.setConfigArgs( 'pilot.cfg' )
-
-    res = j_swimming_31057.runLocal( self.diracLHCb, self.bkkClient )
-    self.assertTrue( res['OK'] )
-
 
 #############################################################################
 # Test Suite run
@@ -114,7 +91,5 @@ if __name__ == '__main__':
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RecoSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( StrippSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCMergeSuccess ) )
-#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMultStreamsSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMDFSuccess ) )
-#   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( SwimmingSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )

@@ -120,10 +120,10 @@ EOF
     return name
 
 
-  def _getPilotOptions( self, queue, pilotsToSubmit, processors = 1 ):
+  def _getPilotOptions( self, queue, pilotsToSubmit ):
     """ Adding LHCb specific options
     """
-    pilotOptions, newPilotsToSubmit = DIRACSiteDirector._getPilotOptions( self, queue, pilotsToSubmit, processors )
+    pilotOptions, newPilotsToSubmit = DIRACSiteDirector._getPilotOptions( self, queue, pilotsToSubmit )
 
     pilotOptions.append( '-E LHCbPilot' )
     pilotOptions.append( '-X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,CheckCECapabilities,CheckWNCapabilities,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements,LaunchAgent' )

@@ -201,7 +201,7 @@ function LHCbDIRACPilotInstall(){
     return
   fi
 
-  commandList="GetPilotVersion,CheckWorkerNode,InstallDIRAC,ConfigureBasics,CheckCECapabilities,CheckWNCapabilities,ConfigureSite,ConfigureArchitecture,ConfigureCPURequirements"
+  commandList="LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,CheckCECapabilities,CheckWNCapabilities,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements"
   options="-S $DIRACSETUP -l LHCb $installVersion -g $lcgVersion -C $CSURL -N $JENKINS_CE -Q $JENKINS_QUEUE -n $JENKINS_SITE --cert --certLocation=/home/dirac/certs/ -E LHCbPilot"
 
   if [ "$customCommands" ]
@@ -389,8 +389,8 @@ function sourcingEnv(){
 
 function setupBKKDB(){
   echo -e "==> Setting up the Bookkeeping Database"
-  python $TESTCODE/LHCbDIRAC/tests/Jenkins/dirac-bkk-cfg-update.py -p $VAR_ORACLEDB_Password $DEBUG 
+  python $TESTCODE/LHCbDIRAC/tests/Jenkins/dirac-bkk-cfg-update.py -p $ORACLEDB_PASSWORD $DEBUG
 }
-	
+
 #-------------------------------------------------------------------------------
 #EOF

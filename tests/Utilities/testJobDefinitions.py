@@ -142,7 +142,7 @@ def jobWithOutput():
   with open( os.path.join( wdir, timenow + "testFileUpload.txt" ), "w" ) as f:
     f.write( timenow )
   job = baseToAllJobs( 'jobWithOutput', jobClass )
-  job.setInputSandbox( [find_all( timenow + 'testFileUpload.txt', wdir, 'GridTestSubmission' )[0]] + \
+  job.setInputSandbox( [find_all( timenow + 'testFileUpload.txt', '.' )[0]] + \
                      [find_all( 'exe-script.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
   job.setExecutable( "exe-script.py", "", "helloWorld.log" )
   job.setOutputData( [timenow + 'testFileUpload.txt'] )
@@ -160,7 +160,7 @@ def jobWithOutputAndPrepend():
   with open( os.path.join( wdir, timenow + "testFileUploadNewPath.txt" ), "w" ) as f:
     f.write( timenow )
   job = baseToAllJobs( 'jobWithOutputAndPrepend', jobClass )
-  job.setInputSandbox( [find_all( timenow + 'testFileUploadNewPath.txt', wdir, 'GridTestSubmission' )[0]] + \
+  job.setInputSandbox( [find_all( timenow + 'testFileUploadNewPath.txt', '.' )[0]] + \
                      [find_all( 'exe-script.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
   job.setExecutable( "exe-script.py", "", "helloWorld.log" )
   job.setOutputData( [timenow + 'testFileUploadNewPath.txt'], filePrepend = 'testFilePrepend' )
@@ -178,7 +178,7 @@ def jobWithOutputAndPrependWithUnderscore():
   with open( os.path.join( wdir, timenow + "testFileUpload_NewPath.txt" ), "w" )  as f:
     f.write( timenow )
   job = baseToAllJobs( 'jobWithOutputAndPrependWithUnderscore', jobClass )
-  job.setInputSandbox( [find_all( timenow + 'testFileUpload_NewPath.txt', wdir, 'GridTestSubmission' )[0]] + \
+  job.setInputSandbox( [find_all( timenow + 'testFileUpload_NewPath.txt', '.' )[0]] + \
                      [find_all( 'exe-script.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
   job.setExecutable( "exe-script.py", "", "helloWorld.log" )
   res = job.setOutputData( [timenow + 'testFileUpload_NewPath.txt'], filePrepend = 'testFilePrepend' )
@@ -198,7 +198,7 @@ def jobWithOutputAndReplication():
   with open( os.path.join( wdir, timenow + "testFileReplication.txt" ), "w" ) as f:
     f.write( timenow )
   job = baseToAllJobs( 'jobWithOutputAndReplication', jobClass )
-  job.setInputSandbox( [find_all( timenow + 'testFileReplication.txt', wdir, 'GridTestSubmission' )[0]] + \
+  job.setInputSandbox( [find_all( timenow + 'testFileReplication.txt', '.' )[0]] + \
                      [find_all( 'exe-script.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
   job.setExecutable( "exe-script.py", "", "helloWorld.log" )
   job.setOutputData( [timenow + 'testFileReplication.txt'], replicate = 'True' )
@@ -218,8 +218,8 @@ def jobWith2OutputsToBannedSE():
   with open( os.path.join( wdir, timenow + "testFileUploadBanned-2.txt" ), "w" ) as f:
     f.write( timenow )
   job = baseToAllJobs( 'jobWith2OutputsToBannedSE', jobClass )
-  job.setInputSandbox( [find_all( timenow + 'testFileUploadBanned-1.txt', wdir, 'GridTestSubmission' )[0]] \
-                     + [find_all( timenow + 'testFileUploadBanned-2.txt', wdir, 'GridTestSubmission' )[0]] \
+  job.setInputSandbox( [find_all( timenow + 'testFileUploadBanned-1.txt', '.' )[0]] \
+                     + [find_all( timenow + 'testFileUploadBanned-2.txt', '.' )[0]] \
                      + [find_all( 'exe-script.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] \
                      + [find_all( 'partialConfig.cfg', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0] ] )
   job.setExecutable( "exe-script.py", "", "helloWorld.log" )

@@ -26,39 +26,38 @@ class ProductionJobTestCase( IntegrationTest ):
     self.pr = ProductionRequest()
     self.diracProduction = DiracProduction()
 
-#TODO (disabled now)
 class Reco17Success( ProductionJobTestCase ):
   def test_Integration_Production( self ):
-    lfns = ['']
-    # From request XXXXXX
-    stepsInProd = [{'StepId': '', 'StepName': 'Reco17', 'ApplicationName': 'Brunel', 'ApplicationVersion': '',
-                    'ExtraPackages': 'AppConfig.v3r149', 'ProcessingPass': 'Reco17', 'Visible': 'Y', 'Usable': 'Yes',
-                    'DDDB': 'dddb-20120831', 'CONDDB': 'cond-20120831', 'DQTag': '', 'OptionsFormat': '',
-                    'OptionFiles': '$APPCONFIGOPTS/Brunel/DataType-2012.py', 'mcTCK': '', 'ExtraOptions': '',
+    lfns = ['/lhcb/data/2017/RAW/FULL/LHCb/COLLISION17/192165/192165_0000000011.raw']
+    # From request 39597
+    stepsInProd = [{'StepId': '131333', 'StepName': 'Reco17a', 'ApplicationName': 'Brunel', 'ApplicationVersion': 'v52r4',
+                    'ExtraPackages': 'AppConfig.v3r323;SQLDDDB.v7r10', 'ProcessingPass': 'Reco17a', 'Visible': 'Y', 'Usable': 'Yes',
+                    'DDDB': 'dddb-20150724', 'CONDDB': 'cond-20170510', 'DQTag': '', 'OptionsFormat': '',
+                    'OptionFiles': '$APPCONFIGOPTS/Brunel/DataType-2017.py;$APPCONFIGOPTS/Brunel/rdst.py', 'mcTCK': '', 'ExtraOptions': '',
                     'isMulticore': 'N', 'SystemConfig': '',
                     'fileTypesIn':['RAW'],
-                    'fileTypesOut':['BRUNELHIST', 'FULL.DST'],
-                    'visibilityFlag':[{'Visible': 'N', 'FileType': 'FULL.DST'},
+                    'fileTypesOut':['BRUNELHIST', 'RDST'],
+                    'visibilityFlag':[{'Visible': 'N', 'FileType': 'RDST'},
                                       {'Visible': 'Y', 'FileType':'BRUNELHIST'}
                                      ]
                    },
-                   {'StepId': 38510, 'StepName': 'DataQuality-FULL', 'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v32r2',
-                    'ExtraPackages': 'AppConfig.v3r149', 'ProcessingPass': 'DataQuality-FULL', 'Visible': 'N', 'Usable': 'Yes',
-                    'DDDB': 'dddb-20120831', 'CONDDB': 'cond-20120831', 'DQTag': '', 'OptionsFormat': 'DQ',
-                    'OptionFiles': '$APPCONFIGOPTS/DaVinci/DVMonitor-RealData.py;$APPCONFIGOPTS/DaVinci/DataType-2012.py;$APPCONFIGOPTS/DaVinci/DaVinci-InputType-SDST.py',
+                   {'StepId': 131327, 'StepName': 'DataQuality-FULL', 'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v42r4',
+                    'ExtraPackages': 'AppConfig.v3r324;SQLDDDB.v7r10', 'ProcessingPass': 'DataQuality-FULL', 'Visible': 'N', 'Usable': 'Yes',
+                    'DDDB': 'dddb-20150724', 'CONDDB': 'cond-20170510', 'DQTag': '', 'OptionsFormat': 'DQ',
+                    'OptionFiles': '$APPCONFIGOPTS/DaVinci/DVMonitor-RealData.py;$APPCONFIGOPTS/DaVinci/DataType-2016.py;$APPCONFIGOPTS/DaVinci/DaVinci-InputType-SDST.py',
                     'isMulticore': 'N', 'SystemConfig': '', 'mcTCK': '', 'ExtraOptions': '',
-                    'fileTypesIn':['FULL.DST'],
+                    'fileTypesIn':['RDST'],
                     'fileTypesOut':['DAVINCIHIST'],
                     'visibilityFlag':[{'Visible': 'Y', 'FileType': 'DAVINCIHIST'}
                                      ]
                    }
                   ]
 
-    prod = self.pr._buildProduction( 'Reconstruction', stepsInProd, {'FULL.DST': 'Tier1-BUFFER'}, 0, 100,
+    prod = self.pr._buildProduction( 'Reconstruction', stepsInProd, {'RDST': 'Tier1-BUFFER'}, 0, 100,
                                      outputMode = 'Run', inputDataPolicy = 'protocol', inputDataList = lfns, events = 25 )
     prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
     prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
-    prod.LHCbJob._addParameter( prod.LHCbJob.workflow, 'runNumber', 'JDL', 154030, 'Input run number' )
+    prod.LHCbJob._addParameter( prod.LHCbJob.workflow, 'runNumber', 'JDL', 192165, 'Input run number' )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
@@ -159,56 +158,6 @@ class MCMergeSuccess( ProductionJobTestCase ):
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
-
-class MergeMultStreamsSuccess( ProductionJobTestCase ):
-  def test_Integration_Production( self ):
-    lfns = ['/lhcb/LHCb/Collision12/LEPTONIC.MDST/00021210/0000/00021210_00002481_1.Leptonic.mdst',
-            '/lhcb/LHCb/Collision12/LEPTONIC.MDST/00021210/0000/00021210_00002482_1.Leptonic.mdst']
-    # From request 9085
-    stepsInProd = [{'StepId': 54132, 'StepName': 'Merging', 'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v32r2p1',
-                    'ExtraPackages': 'AppConfig.v3r150', 'ProcessingPass': 'Merging', 'Visible': 'N', 'Usable': 'Yes',
-                    'DDDB': '', 'CONDDB': '', 'DQTag': '', 'OptionsFormat': 'Merge', 'mcTCK': '', 'ExtraOptions': '',
-                    'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping-Merging.py',
-                    'isMulticore': 'N', 'SystemConfig': '',
-                    'fileTypesIn':['BHADRON.MDST', 'BHADRONCOMPLETEEVENT.DST', 'CALIBRATION.DST', 'CHARM.MDST',
-                                   'CHARMCOMPLETEEVENT.DST', 'CHARMCONTROL.DST', 'DIMUON.DST', 'EW.DST',
-                                   'LEPTONIC.MDST', 'MINIBIAS.DST', 'PID.MDST', 'RADIATIVE.DST', 'SEMILEPTONIC.DST'],
-                    'fileTypesOut':['BHADRON.MDST', 'BHADRONCOMPLETEEVENT.DST', 'CALIBRATION.DST', 'CHARM.MDST',
-                                    'CHARMCOMPLETEEVENT.DST', 'CHARMCONTROL.DST', 'DIMUON.DST', 'EW.DST',
-                                    'LEPTONIC.MDST', 'MINIBIAS.DST', 'PID.MDST', 'RADIATIVE.DST', 'SEMILEPTONIC.DST'],
-                    'visibilityFlag':[{'Visible': 'N', 'FileType':'BHADRON.MDST'},
-                                      {'Visible': 'N', 'FileType':'BHADRONCOMPLETEEVENT.DST'},
-                                      {'Visible': 'N', 'FileType':'CALIBRATION.DST'},
-                                      {'Visible': 'N', 'FileType':'CHARM.MDST'},
-                                      {'Visible': 'N', 'FileType':'CHARMCONTROL.DST'},
-                                      {'Visible': 'N', 'FileType':'CHARMCOMPLETEEVENT.DST'},
-                                      {'Visible': 'N', 'FileType':'DIMUON.DST'},
-                                      {'Visible': 'N', 'FileType':'EW.DST'},
-                                      {'Visible': 'N', 'FileType':'MINIBIAS.DST'},
-                                      {'Visible': 'N', 'FileType':'PID.MDST'},
-                                      {'Visible': 'N', 'FileType':'RADIATIVE.DST'},
-                                      {'Visible': 'N', 'FileType':'SEMILEPTONIC.DST'}]}                                  ]
-
-    prod = self.pr._buildProduction( 'Merge', stepsInProd, {'BHADRON.MDST': 'Tier1-BUFFER',
-                                                            'BHADRONCOMPLETEEVENT.DST': 'Tier1-BUFFER',
-                                                            'CALIBRATION.DST': 'Tier1-BUFFER',
-                                                            'CHARM.MDST': 'Tier1-BUFFER',
-                                                            'CHARMCOMPLETEEVENT.DST': 'Tier1-BUFFER',
-                                                            'CHARMCONTROL.DST': 'Tier1-BUFFER',
-                                                            'DIMUON.DST': 'Tier1-BUFFER',
-                                                            'EW.DST': 'Tier1-BUFFER',
-                                                            'LEPTONIC.MDST': 'Tier1-BUFFER',
-                                                            'MINIBIAS.DST': 'Tier1-BUFFER',
-                                                            'PID.MDST':'Tier1-BUFFER',
-                                                            'RADIATIVE.DST': 'Tier1-BUFFER',
-                                                            'SEMILEPTONIC.DST': 'Tier1-BUFFER'},
-                                     0, 100, inputDataPolicy = 'protocol', inputDataList = lfns )
-    prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
-    prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
-    res = self.diracProduction.launchProduction( prod, False, True, 0 )
-    self.assertTrue( res['OK'] )
-
-
 class MergeMDFSuccess( ProductionJobTestCase ):
   def test_Integration_Production( self ):
     lfns = ['/lhcb/data/2011/RAW/EXPRESS/LHCb/COLLISION11/102360/102360_0000000031.raw',
@@ -225,39 +174,6 @@ class MergeMDFSuccess( ProductionJobTestCase ):
     self.pr.modulesList = ['MergeMDF', 'BookkeepingReport']
     prod = self.pr._buildProduction( 'Merge', stepsInProd, {'RAW':'Tier1-BUFFER'}, 0, 100,
                                      inputDataPolicy = 'download', inputDataList = lfns )
-    prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
-    prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
-    res = self.diracProduction.launchProduction( prod, False, True, 0 )
-    self.assertTrue( res['OK'] )
-
-class SwimmingSuccess( ProductionJobTestCase ):
-  def test_Integration_Production( self ):
-    lfns = ['/lhcb/LHCb/Collision11/CHARMCOMPLETEEVENT.DST/00022717/0000/00022717_00001252_1.CharmCompleteEvent.dst']
-    # From request 17492
-    stepsInProd = [{'StepId': 125693, 'StepName': 'WG-CharmConfig-Swimming-D02KSKK', 'ApplicationName': 'Moore',
-                    'ApplicationVersion': 'v12r9p5',
-                    'ExtraPackages': 'CharmConfig.v2r21', 'ProcessingPass': 'WG-CharmConfig-Swimming-D02KSKK',
-                    'Visible': 'N', 'Usable': 'Yes',
-                    'DDDB': '', 'CONDDB': '', 'DQTag': '', 'OptionsFormat': 'Swimming2011',
-                    'OptionFiles': '$APPCONFIGOPTS/EnableCustomMainLoop.py;$CHARMCONFIGROOT/scripts/SwimTriggerD2KSkk.py',
-                    'isMulticore': 'N', 'SystemConfig': 'x86_64-slc5-gcc43-opt', 'mcTCK': '', 'ExtraOptions': '',
-                    'fileTypesIn':['CHARMCOMPLETEEVENT.DST'],
-                    'fileTypesOut':['SWIMTRIGGERD02KSKK.DST'],
-                    'visibilityFlag':[{'Visible': 'Y', 'FileType': 'SWIMTRIGGERD02KSKK.DST'}]},
-                   {'StepId': 125694, 'StepName': 'WG-CharmConfig-Swimming-D02KSKK', 'ApplicationName': 'DaVinci',
-                    'ApplicationVersion': 'v29r2p6',
-                    'ExtraPackages': 'CharmConfig.v2r21', 'ProcessingPass': 'WG-CharmConfig-Swimming-D02KSKK',
-                    'Visible': 'N', 'Usable': 'Yes',
-                    'DDDB': '', 'CONDDB': '', 'DQTag': '', 'OptionsFormat': 'Swimming2011',
-                    'OptionFiles': '$APPCONFIGOPTS/EnableCustomMainLoop.py;$CHARMCONFIGROOT/scripts/SwimStrippingD2KSkk.py',
-                    'isMulticore': 'N', 'SystemConfig': 'x86_64-slc5-gcc43-opt', 'mcTCK': '', 'ExtraOptions': '',
-                    'fileTypesIn':['SWIMTRIGGERD02KSKK.DST'],
-                    'fileTypesOut':['SWIMSTRIPPINGD02KSKK.MDST'],
-                    'visibilityFlag':[{'Visible': 'Y', 'FileType': 'SWIMSTRIPPINGD02KSKK.MDST'}]}]
-    prod = self.pr._buildProduction( 'Swimming', stepsInProd, {'SWIMTRIGGERD02KSKK.DST':'Tier1-DST',
-                                                               'SWIMSTRIPPINGD02KSKK.MDST':'Tier1-DST'}, 0, 100,
-                                     inputDataPolicy = 'protocol', inputDataList = lfns, events = 10 )
-    prod.LHCbJob._addParameter( prod.LHCbJob.workflow, 'runNumber', 'JDL', 104262, 'Input Run number' )
     prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
     prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
@@ -295,12 +211,10 @@ class RootMergeSuccess( ProductionJobTestCase ):
 
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( ProductionJobTestCase )
-  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( Reco17Success ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( Reco17Success ) )
   #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RecoSuccessMultiProcessor ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( StrippSuccess ) )
   #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCMergeSuccess ) )
-  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMultStreamsSuccess ) )
-  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMDFSuccess ) )
-  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( SwimmingSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMDFSuccess ) )
   #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RootMergeSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )

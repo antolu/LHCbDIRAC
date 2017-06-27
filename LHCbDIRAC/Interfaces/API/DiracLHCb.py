@@ -10,7 +10,7 @@ import glob
 import fnmatch
 import time
 
-from DIRAC                                               import gLogger, S_OK, S_ERROR, gConfig
+from DIRAC                                               import S_OK, S_ERROR, gConfig
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.SiteSEMapping                  import getSEsForSite, getSitesForSE
 from DIRAC.Interfaces.API.Dirac                          import Dirac
@@ -116,6 +116,7 @@ class DiracLHCb( Dirac ):
                                              printOutput = printOutput )
 
   #############################################################################
+  #FIXME: Unused?
   def rootMergeRepository( self, outputFileName, inputFileMask = '*.root',
                            location = 'Sandbox', requestedStates = ['Done'] ):
     """ Create a merged ROOT file using root files retrived in the sandbox or output data
@@ -158,7 +159,7 @@ class DiracLHCb( Dirac ):
                 self.log.warn( "Repository output file does not exist locally", jobFile )
         elif location == 'Sandbox':
           globStr = "%s/%s" % ( jobDict[location], inputFileMask )
-          print glob.glob( globStr )
+          self.log.notice(glob.glob( globStr ))
           inputFiles.extend( glob.glob( globStr ) )
         else:
           return self._errorReport( "Location of .root should be 'Sandbox' or 'OutputFiles'." )
@@ -711,7 +712,7 @@ class DiracLHCb( Dirac ):
         self.log.warn( 'Could not find run number from BK for %s' % ( lfn ) )
 
     if printOutput:
-      print self.pPrint.pformat( runDict )
+      self.log.notice( self.pPrint.pformat( runDict ) )
 
     return S_OK( runDict )
 
@@ -750,7 +751,7 @@ class DiracLHCb( Dirac ):
       return result
 
     if printOutput:
-      print self.pPrint.pformat( result['Value'] )
+      self.log.notice(self.pPrint.pformat(result['Value']))
 
     return result
 
@@ -821,19 +822,18 @@ class DiracLHCb( Dirac ):
         tierInfo[site]['MaskStatus'] = 'Banned'
 
     if printOutput:
-      print '========> Tier-1 status in DIRAC site and SE masks'
+      self.log.notice('========> Tier-1 status in DIRAC site and SE masks')
       for site in sorted( self.tier1s ):
-        print '\n====> %s is %s in site mask\n' % ( site, tierInfo[site]['MaskStatus'] )
-        print '%s %s %s' % ( 'Storage Element'.ljust( 25 ),
-                             'Read Status'.rjust( 15 ),
-                             'Write Status'.rjust( 15 ) )
+        self.log.notice('\n====> %s is %s in site mask\n' % ( site, tierInfo[site]['MaskStatus'] ))
+        self.log.notice('%s %s %s' % ( 'Storage Element'.ljust( 25 ), 'Read Status'.rjust( 15 ), 'Write Status'.rjust( 15 ) ))
         for se in sorted( tierSEs[site] ):
           if se in tierInfo[site]:
-            print '%s %s %s' % ( se.ljust( 25 ),
-                                 tierInfo[site][se]['ReadStatus'].rjust( 15 ),
-                                 tierInfo[site][se]['WriteStatus'].rjust( 15 ) )
+            self.log.notice('%s %s %s' % ( se.ljust( 25 ),
+                            tierInfo[site][se]['ReadStatus'].rjust( 15 ),
+                            tierInfo[site][se]['WriteStatus'].rjust( 15 ) )
+                            )
 
-      print '\n========> Tier-2 status in DIRAC site mask\n'
+      self.log.notice('\n========> Tier-2 status in DIRAC site mask\n')
       allowedSites = siteInfo['AllowedSites']
       bannedSites = siteInfo['BannedSites']
       for site in self.tier1s:
@@ -841,7 +841,7 @@ class DiracLHCb( Dirac ):
           allowedSites.remove( site )
         if site in bannedSites:
           bannedSites.remove( site )
-      print ' %s sites are in the site mask, %s are banned.\n' % ( len( allowedSites ), len( bannedSites ) )
+      self.log.notice(' %s sites are in the site mask, %s are banned.\n' % ( len( allowedSites ), len( bannedSites ) ))
 
     summary = {'Sites':siteInfo, 'SEs':seInfo, 'Tier-1s':tierInfo}
     return S_OK( summary )
@@ -875,12 +875,12 @@ class DiracLHCb( Dirac ):
         bannedSites.append( site )
 
     if printOutput:
-      print '\n========> Allowed Sites\n'
-      print '\n'.join( sites )
-      print '\n========> Banned Sites\n'
-      print '\n'.join( bannedSites )
-      print '\nThere is a total of %s allowed sites and %s banned sites in the system.' % ( len( sites ),
-                                                                                            len( bannedSites ) )
+      self.log.notice('\n========> Allowed Sites\n')
+      self.log.notice('\n'.join( sites ))
+      self.log.notice('\n========> Banned Sites\n')
+      self.log.notice('\n'.join( bannedSites ))
+      self.log.notice('\nThere is a total of %s allowed sites and %s banned sites in the system.' % ( len( sites ),
+                                                                                                      len( bannedSites ) ))
 
     return S_OK( {'AllowedSites':sites, 'BannedSites':bannedSites} )
 
@@ -897,28 +897,27 @@ class DiracLHCb( Dirac ):
        @type printOutput: boolean
        @return: S_OK,S_ERROR
     """
-    res = getStorageElements()
+    res = gConfig.getSections( '/Resources/StorageElements', True )
 
     if not res['OK']:
       return S_ERROR( 'Failed to get storage element information' )
 
     if printOutput:
-      print '%s %s %s' % ( 'Storage Element'.ljust( 25 ), 'Read Status'.rjust( 15 ), 'Write Status'.rjust( 15 ) )
+      self.log.notice('%s %s %s' % ( 'Storage Element'.ljust( 25 ), 'Read Status'.rjust( 15 ), 'Write Status'.rjust( 15 ) ))
 
     seList = sorted( res['Value'] )
+    result = {}
+    rss = ResourceStatus()
     for se in seList:
-      res = ResourceStatus().getStorageElementStatus( se )
-      if not res[ 'OK' ]:
-        gLogger.error( "Failed to get StorageElement status for %s" % se )
-
-      result = {}
-      for k, val in res[ 'Value' ].iteritems():
-        readState = val.get( 'ReadAccess' , 'Active' )
-        writeState = val.get( 'WriteAccess', 'Active' )
-
-        result[ k ] = { 'ReadStatus' : readState, 'WriteStatus' : writeState }
+      res = rss.getElementStatus( se, 'StorageElement' )
+      if not res['OK']:
+        self.log.error( "Failed to get StorageElement status for %s" % se )
+      else:
+        readState = res['Value'].get( 'ReadAccess' , 'Active' )
+        writeState = res['Value'].get( 'WriteAccess', 'Active' )
+        result[se] = {'ReadStatus': readState, 'WriteStatus': writeState}
         if printOutput:
-          print '%s %s %s' % ( k.ljust( 25 ), readState.rjust( 15 ), writeState.rjust( 15 ) )
+          self.log.notice('%s %s %s' % ( se.ljust( 25 ), readState.rjust( 15 ), writeState.rjust( 15 ) ))
 
     return S_OK( result )
 
@@ -1002,7 +1001,7 @@ class DiracLHCb( Dirac ):
           lfnGroups.append( group )
 
     if printOutput:
-      print self.pPrint.pformat( lfnGroups )
+      self.log.notice(self.pPrint.pformat( lfnGroups ))
     return S_OK( lfnGroups )
 
     #############################################################################
