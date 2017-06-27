@@ -7,6 +7,8 @@ from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Resources.Storage.StorageBase import StorageBase
 
 from DIRAC.Resources.Storage.Utilities import checkArgumentFormat
+from DIRAC.Core.Utilities.List import breakListIntoChunks
+
 __RCSID__ = "$Id$"
 
 
@@ -74,27 +76,33 @@ class LHCbOnlineStorage(StorageBase):
     # Here we are sure of the unicity of the basename since it is for raw data only
     filesToUrls = dict((os.path.basename(f), f) for f in urls)
     filenames = filesToUrls.keys()
-    try:
-      success, errorOrFailed = self.server.endMigratingFileBulk(filenames)
-      if success:
-        # in case of success, errorOrFailed contains the files for which it failed
-        failedFiles = set(errorOrFailed)
-        for fn in filenames:
+
+    for filenameChunck in breakListIntoChunks(filenames, 100):
+
+      try:
+        success, errorOrFailed = self.server.endMigratingFileBulk(filenameChunck)
+        if success:
+          # in case of success, errorOrFailed contains the files for which it failed
+          failedFiles = set(errorOrFailed)
+          for fn in filenameChunck:
+            fullUrl = filesToUrls[fn]
+            if fn in failedFiles:
+              failed[fullUrl] = "Failed to remove, check datamover logs"
+            else:
+              successful[fullUrl] = True
+          gLogger.info("LHCbOnline.getFile: Successfully issued removal to RunDB for chuck.")
+        else:
+          errStr = "LHCbOnline.removeFile: Failed to issue removal for chunck to RunDB %s" % errorOrFailed
+          for fn in filenameChunck:
+            fullUrl = filesToUrls[fn]
+            failed[fullUrl] = errStr
+          gLogger.error(errStr, urls)
+      except Exception as x:  #pylint: disable=broad-except
+        errStr = "LHCbOnline.getFile: Exception for chunck while issuing removal to RunDB."
+        gLogger.exception(errStr, lException = x)
+        for fn in filenameChunck:
           fullUrl = filesToUrls[fn]
-          if fn in failedFiles:
-            failed[fullUrl] = "Failed to remove, check datamover logs"
-          else:
-            successful[fullUrl] = True
-        gLogger.info("LHCbOnline.getFile: Successfully issued removal to RunDB.")
-      else:
-        errStr = "LHCbOnline.removeFile: Failed to issue removal to RunDB %s" % errorOrFailed
-        for url in urls:
-          failed[url] = errStr
-        gLogger.error(errStr, urls)
-    except Exception as x:  #pylint: disable=broad-except
-      errStr = "LHCbOnline.getFile: Exception while issuing removal to RunDB."
-      gLogger.exception(errStr, lException = x)
-      for url in urls:
-        failed[url] = errStr
+          failed[fullUrl] = errStr
+
     resDict = {'Failed': failed, 'Successful': successful}
     return S_OK(resDict)

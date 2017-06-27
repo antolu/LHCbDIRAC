@@ -19,6 +19,7 @@ from DIRAC.FrameworkSystem.Client.MonitoringClient import gMonitor
 from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
 from DIRAC.Resources.Storage.StorageElement import StorageElement
 from LHCbDIRAC.DataManagementSystem.DB.RAWIntegrityDB import RAWIntegrityDB
+from DIRAC.Core.Utilities.List import breakListIntoChunks
 
 __RCSID__ = "$Id$"
 
@@ -227,17 +228,22 @@ class RAWIntegrityAgent(AgentModule):
     # Update copiedFiles to also contain the newly copied files
     copiedFiles.update(dict((lfn, allUnmigratedFilesMeta[lfn]) for lfn in filesNewlyCopied))
 
-    # Try to register them all
-    res = self.fileCatalog.addFile(copiedFiles)
-
     successfulRegister = {}
     failedRegister = {}
-    if not res['OK']:
-      self.log.error("Completely failed to register successfully copied file.", res['Message'])
-      failedRegister = dict((lfn, res['Message']) for lfn in copiedFiles)
-    else:
-      successfulRegister = res['Value']['Successful']
-      failedRegister = res['Value']['Failed']
+
+    # Try to register them by batch
+    for lfnChunk in breakListIntoChunks(copiedFiles, 100):
+      # Add the metadata
+      lfnDictChuck = dict((lfn, copiedFiles[lfn]) for lfn in lfnChunk)
+      res = self.fileCatalog.addFile(lfnDictChuck)
+
+      if not res['OK']:
+        self.log.error("Completely failed to register some successfully copied file.",
+                       res['Message'])
+        failedRegister.update(dict((lfn, res['Message']) for lfn in lfnDictChuck))
+      else:
+        successfulRegister.update(res['Value']['Successful'])
+        failedRegister.update(res['Value']['Failed'])
 
     gMonitor.addMark("ErrorRegister", len(failedRegister))
     for lfn, reason in failedRegister.iteritems():
