@@ -10,13 +10,13 @@ import glob
 import fnmatch
 import time
 
-from DIRAC                                               import S_OK, S_ERROR, gConfig
+from DIRAC                                               import S_OK, S_ERROR, gConfig, gLogger
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.SiteSEMapping                  import getSEsForSite, getSitesForSE
 from DIRAC.Interfaces.API.Dirac                          import Dirac
 from DIRAC.Interfaces.API.DiracAdmin                     import DiracAdmin
 from DIRAC.ResourceStatusSystem.Client.ResourceStatus    import ResourceStatus
-from DIRAC.ResourceStatusSystem.Utilities.CSHelpers      import getSites, getStorageElements
+from DIRAC.ResourceStatusSystem.Utilities.CSHelpers      import getSites
 
 from LHCbDIRAC.Core.Utilities.File                        import makeGuid
 from LHCbDIRAC.Core.Utilities.ClientTools                 import mergeRootFiles
