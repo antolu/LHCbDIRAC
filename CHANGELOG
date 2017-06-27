@@ -21,6 +21,12 @@ use DIRAC v6r18p1
 * Changed column order
 * Moved RMS db to sqlalchemy
 
+[v8r8p3]
+use DIRAC v6r17p23
+
+* fix scripts
+* RAWIntegrity: perform the removal by bulk
+
 [v8r8p2]
 use DIRAC v6r17p22
 
