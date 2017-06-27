@@ -1,3 +1,23 @@
+[v8r9-pre2]
+use DIRAC v6r18-pre14
+
+* var fix
+* updated Reco, removed outdated tests
+* removing old tests
+* fix scripts
+* added reco17
+* RAWIntegrity: perform the removal by bulk
+* fixed paths
+* adapting to v6r18
+* RAWIntegrity: addFile by bulk
+* RSS fixes
+* fix
+* just updating the reco17 step
+* fix finder
+* using the right commands list
+* fixing RSS unit tests
+* LHCbDIRAC can be released in all platform
+
 [v8r9-pre1]
 use DIRAC v6r18p1
 
