@@ -41,10 +41,12 @@ if __name__ == '__main__':
                                        '  %s [option|cfgfile] [values]' % Script.scriptName, ] ) )
   dmScript = DMScript()
   dmScript.registerDMSwitches()
+  maxFiles = 20
   Script.registerSwitch( '', 'FixIt', '   Take action to fix the catalogs and storage' )
   Script.registerSwitch( '', 'Replace', '   Replace bad or missing replicas (default=False)' )
   Script.registerSwitch( '', 'NoBK', '   Do not check with BK' )
   Script.registerSwitch( '', 'Verbose', '   Set logging mode to INFO' )
+  Script.registerSwitch( '', 'MaxFiles=', '   Set maximum number of files to be printed (default %d)' % maxFiles )
   Script.parseCommandLine( ignoreErrors = True )
 
   fixIt = False
@@ -60,6 +62,12 @@ if __name__ == '__main__':
       replace = True
     elif switch[0] == 'Verbose':
       verbose = True
+    elif switch[0] == 'MaxFiles':
+      try:
+        maxFiles = int( switch[1] )
+      except Exception as e:
+        gLogger.exception( "Invalid value for MaxFiles", lException = e )
+        pass
 
   # imports
   from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
@@ -77,7 +85,7 @@ if __name__ == '__main__':
   cc.seList = __getSEsFromOptions( dmScript )
   from LHCbDIRAC.DataManagementSystem.Client.CheckExecutors import doCheckFC2SE
   try:
-    doCheckFC2SE( cc, bkCheck = bkCheck, fixIt = fixIt, replace = replace )
+    doCheckFC2SE( cc, bkCheck = bkCheck, fixIt = fixIt, replace = replace, maxFiles = maxFiles )
   except RuntimeError as e:
     gLogger.fatal( str( e ) )
   except Exception as e:

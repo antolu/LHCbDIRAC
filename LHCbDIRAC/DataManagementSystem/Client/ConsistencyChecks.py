@@ -980,7 +980,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
     cachedLfns = setLfns & set( self.cachedReplicas )
     for lfn in cachedLfns:
       replicas[lfn] = self.cachedReplicas[lfn]
-    lfnsLeft = list( setLfns - cachedLfns )
+    lfnsLeft = setLfns - cachedLfns
     if lfnsLeft:
       progressBar = ProgressBar( len( lfnsLeft ),
                                  title = "Get replicas for %d files" % len( lfnsLeft ),
@@ -996,9 +996,16 @@ class ConsistencyChecks( DiracConsistencyChecks ):
         replicas.update( replicasRes['Successful'] )
       progressBar.endLoop()
 
+    # Reduce the set of files to those at requested SEs if specified
     if self._seList:
-      for lfn, ses in replicas.iteritems():
+      notAtSE = 0
+      for lfn, ses in replicas.items():
         replicas[lfn] = set( ses ) & self._seList
+        if not replicas[lfn]:
+          notAtSE += 1
+          del replicas[lfn]
+      if notAtSE:
+        gLogger.notice( "%d files are not at requested SEs, ignored..." % notAtSE )
     progressBar = ProgressBar( len( replicas ),
                                title = "Get FC metadata for %d files to be checked: " % len( replicas ),
                                chunk = chunkSize, interactive = self.interactive )

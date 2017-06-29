@@ -11,7 +11,6 @@ from PyQt4.QtCore                               import SIGNAL, Qt, QDir, QVarian
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.Ui_FileDialog           import Ui_FileDialog
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableModel
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.LogFileWidget           import LogFileWidget
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.AdvancedSave            import AdvancedSave
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerFileDialog  import ControlerFileDialog
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.HistoryDialog           import HistoryDialog
@@ -66,9 +65,6 @@ class FileDialog(QDialog, Ui_FileDialog):
 
     self.tableView.setContextMenuPolicy(Qt.CustomContextMenu)
     self.connect(self.tableView, SIGNAL('customContextMenuRequested(QPoint)'), self.popUpMenu)
-
-    self.__log = LogFileWidget(self)
-    self.__controler.addChild('LogFileWidget', self.__log.getControler())
 
     self.__advancedSave = AdvancedSave(self)
     self.__advancedSave.setFocus()

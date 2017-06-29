@@ -1611,6 +1611,7 @@ def executeListDirectory( dmScript, days = 0, months = 0, years = 0, wildcard = 
   """
   List a FC directory contents recursively
   """
+  onlyFiles = False
   emptyDirsFlag = False
   outputFlag = False
   if wildcard == None:
@@ -1632,8 +1633,16 @@ def executeListDirectory( dmScript, days = 0, months = 0, years = 0, wildcard = 
       depth = int( switch[1] )
     elif switch[0] in ( 'r', 'Recursive' ):
       depth = sys.maxint
+    elif switch[0] == 'NoDirectories':
+      onlyFiles = True
 
-
+  # Depth is the number of levels to explore starting from the required directory
+  # Therefore on must add 1 as the --Depth option defines the number of levels below the current directory
+  # If subdirectories are required one must go one step further to count the number of files in those
+  if onlyFiles:
+    depth += 1
+  elif depth != sys.maxint:
+    depth += 2
   verbose = False
   if days or months or years:
     verbose = True
@@ -1679,7 +1688,7 @@ def executeListDirectory( dmScript, days = 0, months = 0, years = 0, wildcard = 
           metadata = dirContents['SubDirs'][subdir]
           d = len( subdir.replace( baseDir, '' ).split( '/' ) )
           # print subdir, baseDir, subdir.replace( baseDir, '' ).split( '/' ), d
-          if ( d < depth + 2 ) and ( not verbose or __isOlderThan( metadata['CreationDate'], totalDays ) ):
+          if ( d < depth ) and ( not verbose or __isOlderThan( metadata['CreationDate'], totalDays ) ):
             activeDirs.append( subdir )
           empty = False
         for filename in sorted( dirContents['Files'] ):
@@ -1689,7 +1698,8 @@ def executeListDirectory( dmScript, days = 0, months = 0, years = 0, wildcard = 
             if fnmatch.fnmatch( filename, wildcard ):
               allFiles.add( filename )
           empty = False
-        gLogger.notice( "%s/: %d files, %d sub-directories" % ( currentDir, len( dirContents['Files'] ), len( dirContents['SubDirs'] ) ) )
+        if not onlyFiles:
+          gLogger.notice( "%s/: %d files, %d sub-directories" % ( currentDir, len( dirContents['Files'] ), len( dirContents['SubDirs'] ) ) )
         if empty:
           emptyDirs.add( currentDir )
 

@@ -128,7 +128,7 @@ create table productionoutputfiles(
   	eventtypeid number,
   	filetypeid number,
   	visible char(1) default 'Y',
-  CONSTRAINT PK_productionoutputfiles_p PRIMARY KEY (Production, filetypeid, eventtypeid, visible),
+  CONSTRAINT PK_productionoutputfiles_p PRIMARY KEY (Production, stepid, filetypeid, eventtypeid, visible),
   CONSTRAINT FK_productionoutputfiles_steps FOREIGN KEY (stepid) REFERENCES steps(stepid),
   CONSTRAINT FK_productionoutputfiles_evt FOREIGN KEY (eventtypeid) REFERENCES eventtypes(eventtypeid),
   CONSTRAINT FK_productionoutputfiles_ft FOREIGN KEY (filetypeid) REFERENCES filetypes(filetypeid),

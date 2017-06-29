@@ -963,31 +963,6 @@ class LHCbJob( Job ):
     else:
       diracLHCb = DiracLHCb()
 
-    if self.workflow.parameters.find( 'AncestorDepth' ):
-
-      ancestorsDepth = int( self.workflow.parameters.find( 'AncestorDepth' ).getValue() )
-
-      if ancestorsDepth:
-        if bkkClientIn is not None:
-          bkClient = bkkClientIn
-        else:
-          bkClient = BookkeepingClient()
-
-        lfnsString = self.workflow.parameters.find( 'InputData' ).getValue()
-        lfns = [x.replace( 'LFN:', '' ) for x in lfnsString.split( ';' )]
-        ancestors = bkClient.getFileAncestors( lfns, ancestorsDepth )
-        if not ancestors['OK']:
-          return S_ERROR( "Can't get ancestors: %s" % ancestors['Message'] )
-        ancestorsLFNs = []
-        for ancestorsLFN in ancestors['Value']['Successful'].values():
-          ancestorsLFNs += [ i['FileName'] for i in ancestorsLFN]
-
-        ancestorsLFNsString = ""
-        for ancestorsLFN in ancestorsLFNs:
-          ancestorsLFNsString += 'LFN:' + ancestorsLFN + ';'
-
-        self.workflow.setValue( 'InputData', ancestorsLFNsString + lfnsString )
-
     return diracLHCb.submitJob( self, mode = 'local' )
 
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

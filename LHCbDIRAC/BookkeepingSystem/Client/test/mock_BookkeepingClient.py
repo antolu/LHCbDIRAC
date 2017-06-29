@@ -104,7 +104,7 @@ class BookkeepingClientFake(object):
               'Value' : { 'TotalRecords': 1,
                           'ParameterNames' : ['StepId', 'OptionFiles', 'ExtraOptions', 'SystemConfig', 'mcTCK', 'isMulticore', 'StepName',
                                               'ApplicationName', 'ApplicationVersion', 'Visible', 'Usable', 'ProcessingPass', 'ExtraPackages', 'DDDB', 'CONDDB', 'DQTag'],
-                          'Records': [[ 999, '$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py', '', 'x86_64-slc6-gcc49-opt', '', 'N',
+                          'Records': [[ 999, '$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py', '', 'x86_64-slc5-gcc49-opt', '', 'N',
                                         'Stripping28', 'DaVinci', 'v41r3', 'Yes', 'Yes', 'Stripping28', 'AppConfig.v3r306', 'dddb-20150724', 'cond-20161011', '']]}}
     elif stepID == {'StepId':998}:
       return {'OK': True,
@@ -215,7 +215,7 @@ class BookkeepingClientFake(object):
 
 step125080 = {'StepId': 125080, 'StepName':'Sim08a',
               'ApplicationName':'Gauss', 'ApplicationVersion':'v45r3', 'ExtraOptions': '',
-              'OptionFiles':'$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.py;$DECFILESROOT/options/11102400.py;$LBPYTHIA8ROOT/options/Pythia8.py;$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py',
+              'OptionFiles':'$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.py;$DECFILESROOT/options/11102400.py;$LBPYTHIA8ROOT/options/Pythia8.py;$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;',
               'Usable': 'Yes','Visible':'Y', 'ExtraPackages':'AppConfig.v3r171',
               'ProcessingPass':'Sim08a', 'OptionsFormat':'',
               'prodStepID': "125080['']", 'SystemConfig':'x86_64-slc5-gcc43-opt',

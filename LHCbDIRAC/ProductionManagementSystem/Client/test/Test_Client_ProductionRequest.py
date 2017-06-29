@@ -230,7 +230,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['123']
     pr.outputVisFlag = [{'1':'N'}]
-    pr.compressionLvl = ['Compression-ZLIB-1']
+    pr.compressionLvl = ['LOW']
     pr.resolveSteps()
     expected = dict(step1Dict)
     expected['OptionFiles'] = 'optsFiles;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py'
@@ -246,7 +246,7 @@ class ProductionRequestSuccess( ClientTestCase ):
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['125080'] #this one already has a compression level
-    pr.compressionLvl = ['Compression-ZLIB-1']
+    pr.compressionLvl = ['LOW']
     pr.outputVisFlag = [{'1':'N'}]
     pr.resolveSteps()
     expected = dict(step125080)
@@ -254,16 +254,16 @@ class ProductionRequestSuccess( ClientTestCase ):
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['125080'] #this one already has a compression level
-    pr.compressionLvl = ['Compression-LZMA-4'] # this will replace it
+    pr.compressionLvl = ['HIGH'] # this will replace it
     pr.outputVisFlag = [{'1':'N'}]
     pr.resolveSteps()
     expected = dict(step125080)
-    expected['OptionFiles'] = '$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.py;$DECFILESROOT/options/11102400.py;$LBPYTHIA8ROOT/options/Pythia8.py;$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py'
+    expected['OptionFiles'] = '$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.py;$DECFILESROOT/options/11102400.py;$LBPYTHIA8ROOT/options/Pythia8.py;$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;'
     self.assertEqual( pr.stepsListDict, [expected] )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['123', '456']
-    pr.compressionLvl = ['Compression-ZLIB-1', 'Compression-LZMA-4']
+    pr.compressionLvl = ['LOW', 'HIGH']
     pr.outputVisFlag = [{'1':'N'}, {'2':'N'}]
     expected1 = dict(step1Dict)
     expected1['OptionFiles'] = 'optsFiles;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py'
@@ -274,7 +274,7 @@ class ProductionRequestSuccess( ClientTestCase ):
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['123', '456', '789']
-    pr.compressionLvl = ['Compression-ZLIB-1', 'Compression-LZMA-4', 'Compression-LZMA-4']
+    pr.compressionLvl = ['LOW', 'HIGH', 'HIGH']
     pr.outputVisFlag = [{'1':'N'}, {'2':'N'}, {'3':'Y'}]
     expected1 = dict(step1Dict)
     expected1['OptionFiles'] = 'optsFiles;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py'
@@ -288,7 +288,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['123', '456', '', '']
     pr.outputVisFlag = [{'1':'N'}, {'2':'N'}]
-    pr.compressionLvl = ['Compression-ZLIB-1', 'Compression-ZLIB-1', 'Compression-LZMA-4', 'Compression-LZMA-4']
+    pr.compressionLvl = ['LOW', 'LOW', 'HIGH', 'HIGH']
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [{'StepId': 123, 'StepName':'Stripping14-Stripping',
                                           'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2', 'ExtraOptions': '',
@@ -326,7 +326,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'fileTypesIn':['SDST'],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
-    pr.compressionLvl = ['Compression-LZMA-4']
+    pr.compressionLvl = ['HIGH']
     pr.stepsList = ['123']
     pr.outputVisFlag = [{'1':'N'}]
     pr.resolveSteps()
@@ -342,7 +342,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
-    pr.compressionLvl = ['Compression-LZMA-4']
+    pr.compressionLvl = ['HIGH']
     pr.outputVisFlag = [{'1':'Y'}]
     #pr.outputVisFlag = [{'Visibility':'N','FileType':'BHADRON.DST'},{'Visibility':'N','FileType':'CALIBRATION.DST'}]
     pr.stepsList = ['999']
@@ -350,15 +350,16 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.stepsListDict, [{'StepId': 999, 'StepName':'Stripping28',
                                           'ApplicationName':'DaVinci', 'ApplicationVersion':'v41r3', 'ExtraOptions': '',
                                           #'OptionFiles':'$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py',
-                                          'OptionFiles':'$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py',
-                                          'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
+                                          #'OptionFiles':'$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py',
+                                          'OptionFiles':'',
+                                          'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc5-gcc49-opt',
                                           'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"999['SDST']",
                                           'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
                                           'visibilityFlag': [{'Visible':'Y','FileType':'BHADRON.DST'},{'Visible':'Y','FileType':'CALIBRATION.DST'}],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
-    pr.compressionLvl = ['Compression-LZMA-4']
+    pr.compressionLvl = ['HIGH']
     pr.outputVisFlag = [{'1':'Y'}]
     pr.stepsList = ['998']
     pr.resolveSteps()
@@ -381,14 +382,14 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'ApplicationName':'DaVinci', 'ApplicationVersion':'v41r3', 'ExtraOptions': '',
                                           #'OptionFiles':'$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py',
                                           'OptionFiles':'',
-                                          'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
+                                          'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc5-gcc49-opt',
                                           'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"999['SDST']",
                                           'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
                                           'visibilityFlag':[{'Visible':'Y','FileType':'BHADRON.DST'},{'Visible':'Y','FileType':'CALIBRATION.DST'}],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
-    pr.compressionLvl = ['Compression-LZMA-4']
+    pr.compressionLvl = ['HIGH']
     pr.outputVisFlag = [{'1':'Y'}]
     pr.stepsList = ['997']
     pr.resolveSteps()
@@ -402,7 +403,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
-    pr.compressionLvl = ['Compression-LZMA-4']
+    pr.compressionLvl = ['HIGH']
     pr.outputVisFlag = [{'1':'Y'}]
     pr.stepsList = ['996']
     pr.resolveSteps()
@@ -430,7 +431,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
-    pr.compressionLvl = ['Compression-LZMA-4']
+    pr.compressionLvl = ['HIGH']
     pr.outputVisFlag = [{'1':'Y'}]
     pr.specialOutputVisFlag = [{'1': {'BHADRON.DST': 'Y'}}]
     pr.stepsList = ['1098']
@@ -460,7 +461,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
-    pr.compressionLvl = ['','Compression-LZMA-4','Compression-ZLIB-1']
+    pr.compressionLvl = ['','HIGH','LOW']
     pr.outputVisFlag = [{'1': 'N', '2': 'N', '3': 'N'}]
     pr.specialOutputVisFlag = [{'3': {'BHADRON.DST': 'Y'}}]
     pr.stepsList = ['1098','996','997']
@@ -492,7 +493,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                         ] )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
-    pr.compressionLvl = ['','Compression-LZMA-4']
+    pr.compressionLvl = ['','HIGH']
     pr.outputVisFlag = [{'1': 'N', '2': 'N', '3': 'N'}]
     pr.specialOutputVisFlag = [{'2': {'BHADRON.DST': 'Y'}}]
     pr.stepsList = ['1098','996','997']
@@ -527,7 +528,7 @@ class ProductionRequestSuccess( ClientTestCase ):
   def test__determineOutputSEs( self ):
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['123', '456']
-    pr.compressionLvl = ['Compression-ZLIB-1', 'Compression-LZMA-4']
+    pr.compressionLvl = ['LOW', 'HIGH']
     pr.outputVisFlag = [{'1':'N'},{'2':'N'}]
     pr.resolveSteps()
     pr.outputSEs = ['SE1', 'SE2']
@@ -539,7 +540,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.outputVisFlag = [{'1':'N'},{'2':'N'}]
     pr.stepsList = ['123', '456']
-    pr.compressionLvl = ['Compression-ZLIB-1', 'Compression-LZMA-4']
+    pr.compressionLvl = ['LOW', 'HIGH']
     pr.resolveSteps()
     pr.outputSEs = ['SE1', 'SE2']
     pr.specialOutputSEs = [{'CALIBRATION.DST': 'SE3'}, {}]
@@ -1560,7 +1561,7 @@ class ProductionRequestFullChain( ClientTestCase ):
     stepsList.append( '' )
     stepsList.append( '' )
     pr.stepsList = stepsList
-    pr.compressionLvl = ['Compression-ZLIB-1'] * 4
+    pr.compressionLvl = ['LOW'] * 4
     pr.outputVisFlag = [{'1':'N'}, {'2':'N'}]
     pr.resolveSteps()
 

@@ -16,6 +16,16 @@ The host should mount into the container:
 
 If running a service, it is necessary to expose a port.
 
+Some environment variables allow to specify alternative repositories in case it is necessary to run with a hotfix:
+* `DIRAC_REPO`: git repository from which to checkout DIRAC
+* `DIRAC_BRANCH`: branch to use. If unspecified, we use the default branch
+* `LHCB_DIRAC_REPO`: git repository from which to checkout LHCbDIRAC
+* `LHCB_DIRAC_BRANCH`: branch to use. If unspecified, we use the default branch
+
+These variables can be passed to the container using `--env` options in `docker-run`
+
+
+
 ## monitoring folder
 
 This contains all the necessary scripts to monitor the containers. They are deployed on all mesos slave with puppet. This should move to another repository eventually...

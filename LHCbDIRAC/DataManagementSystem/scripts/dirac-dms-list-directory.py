@@ -26,6 +26,7 @@ if __name__ == "__main__":
   Script.registerSwitch( "", "EmptyDirs", "Create a list of empty directories" )
   Script.registerSwitch( "", "Depth=", "Depth to which recursively browse (default = %d)" % depth )
   Script.registerSwitch( "r", "Recursive", "Set depth to infinite" )
+  Script.registerSwitch( '', 'NoDirectories', 'Only print out only files, not subdirectories' )
 
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',

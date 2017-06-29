@@ -348,15 +348,15 @@ class TransformationDebug( object ):
 
     if not requestID:
       if task['ExternalStatus'] == 'Submitted' and not taskCompleted:
-        prString = "\tTask %s is submitted but has no external ID" % taskName
+        prString = "\tTask %s is Submitted but has no external ID" % taskName
         if self.kickRequests:
-          res = self.transClient.setFileStatusForTransformation( self.transID, 'Unused', lfnsInTask )
+          res = self.transClient.setTaskStatus( self.transID, taskID, 'Created' )
           if res['OK']:
-            prString += " - %d files set Unused" % len( lfnsInTask )
+            prString += " - Task reset Created"
           else:
-            prString += " - Failed to set %d files Unused (%s)" % ( len( lfnsInTask ), res['Message'] )
+            prString += " - Failed to set task Created (%s)" % res['Message']
         else:
-            prString += " - To mark files Unused, use option --KickRequests"
+            prString += " - To reset task Created, use option --KickRequests"
         gLogger.notice( prString )
       return 0
     # This method updates self.listOfAssignedRequests
@@ -403,26 +403,29 @@ class TransformationDebug( object ):
         gLogger.notice( prString )
       # If some files are Scheduled, try and get information about the FTS jobs
       if statFiles.get( 'Scheduled', 0 ) and request:
-        from DIRAC.DataManagementSystem.Client.FTSClient                                  import FTSClient
-        ftsClient = FTSClient()
-        res = ftsClient.getAllFTSFilesForRequest( request.RequestID )
-        if res['OK']:
-          statusCount = {}
-          for ftsFile in res['Value']:
-            statusCount[ftsFile.Status] = statusCount.setdefault( ftsFile.Status, 0 ) + 1
-          prStr = []
-          for status in statusCount:
-            if statusCount[status]:
-              prStr.append( '%s:%d' % ( status, statusCount[status] ) )
-          gLogger.notice( '\tFTS files statuses: %s' % ', '.join( prStr ) )
-        res = ftsClient.getFTSJobsForRequest( request.RequestID )
-        if res['OK']:
-          ftsJobs = res['Value']
-          if ftsJobs:
-            for job in ftsJobs:
-              gLogger.notice( '\tFTS jobs associated:', '%s@%s (%s) from %s to %s' % ( job.FTSGUID, job.FTSServer, job.Status, job.SourceSE, job.TargetSE ) )
-          else:
-            gLogger.notice( '\tNo FTS jobs found for that request' )
+        try:
+          from DIRAC.DataManagementSystem.Client.FTSClient                                  import FTSClient
+          ftsClient = FTSClient()
+          res = ftsClient.getAllFTSFilesForRequest( request.RequestID )
+          if res['OK']:
+            statusCount = {}
+            for ftsFile in res['Value']:
+              statusCount[ftsFile.Status] = statusCount.setdefault( ftsFile.Status, 0 ) + 1
+            prStr = []
+            for status in statusCount:
+              if statusCount[status]:
+                prStr.append( '%s:%d' % ( status, statusCount[status] ) )
+            gLogger.notice( '\tFTS files statuses: %s' % ', '.join( prStr ) )
+          res = ftsClient.getFTSJobsForRequest( request.RequestID )
+          if res['OK']:
+            ftsJobs = res['Value']
+            if ftsJobs:
+              for job in ftsJobs:
+                gLogger.notice( '\tFTS jobs associated:', '%s@%s (%s) from %s to %s' % ( job.FTSGUID, job.FTSServer, job.Status, job.SourceSE, job.TargetSE ) )
+            else:
+              gLogger.notice( '\tNo FTS jobs found for that request' )
+        except ImportError:
+          gLogger.notice( "\tNo FTS information: import failed" )
 
     # Kicking stuck requests in status Assigned
     toBeKicked = 0

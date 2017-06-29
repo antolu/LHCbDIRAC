@@ -46,7 +46,6 @@ class ResourceManagementClient_Success( ResourceManagementClient_TestCase ):
     '''
 
     module = self.testClass( True )
-    self.assertEqual( True, module.gate )
 
   def test_selectMonitoringTest( self ):
     ''' tests the method selectMonitorintTest
@@ -64,8 +63,7 @@ class ResourceManagementClient_Success( ResourceManagementClient_TestCase ):
     res = module.selectMonitoringTest( metricName = 1, serviceURI = 2,
                                        siteName = 3, serviceFlavour = 4,
                                        metricStatus = 5, summaryData = 6,
-                                       timestamp = 7, lastCheckTime = 8,
-                                       meta = {} )
+                                       timestamp = 7, lastCheckTime = 8 )
     self.assertEquals( True, res[ 'OK' ] )
     self.assertEquals( 42, res[ 'Value' ] )
 
@@ -85,8 +83,7 @@ class ResourceManagementClient_Success( ResourceManagementClient_TestCase ):
     res = module.deleteMonitoringTest( metricName = 1, serviceURI = 2,
                                        siteName = 3, serviceFlavour = 4,
                                        metricStatus = 5, summaryData = 6,
-                                       timestamp = 7, lastCheckTime = 8,
-                                       meta = {} )
+                                       timestamp = 7, lastCheckTime = 8 )
     self.assertEquals( True, res[ 'OK' ] )
     self.assertEquals( 43, res[ 'Value' ] )
 
@@ -119,8 +116,7 @@ class ResourceManagementClient_Success( ResourceManagementClient_TestCase ):
 
     res = module.selectJobAccountingCache( name = 1, checking = 2, completed = 3,
                                            done = 4, failed = 5, killed = 6, matched = 7,
-                                           running = 8, stalled  = 9, lastCheckTime = 10,
-                                           meta = {} )
+                                           running = 8, stalled  = 9, lastCheckTime = 10 )
     self.assertEquals( True, res[ 'OK' ] )
     self.assertEquals( 42, res[ 'Value' ] )
 
@@ -139,8 +135,7 @@ class ResourceManagementClient_Success( ResourceManagementClient_TestCase ):
 
     res = module.deleteJobAccountingCache( name = 1, checking = 2, completed = 3,
                                            done = 4, failed = 5, killed = 6, matched = 7,
-                                           running = 8, stalled  = 9, lastCheckTime = 10,
-                                           meta = {} )
+                                           running = 8, stalled  = 9, lastCheckTime = 10 )
     self.assertEquals( True, res[ 'OK' ] )
     self.assertEquals( 43, res[ 'Value' ] )
 

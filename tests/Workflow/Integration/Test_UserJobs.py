@@ -27,8 +27,8 @@ class UserJobTestCase( IntegrationTest ):
     print "\n \n ********************************* \n   Running a new test \n *********************************"
 
     self.dLHCb = DiracLHCb()
-    self.exeScriptLocation = find_all( 'exe-script.py', 'LHCbDIRAC/tests', 'Integration' )[0]
-    self.exeScriptFromDIRACLocation = find_all( 'exe-script-fromDIRAC.py', 'LHCbDIRAC/tests', 'Integration' )[0]
+    self.exeScriptLocation = find_all( 'exe-script.py', '../..', '/LHCbDIRAC/tests/Workflow' )[0]
+    self.exeScriptFromDIRACLocation = find_all( 'exe-script-fromDIRAC.py', '../..', '/LHCbDIRAC/tests/Workflow' )[0]
     self.lhcbJobTemplate = LHCbJob()
     self.lhcbJobTemplate.setLogLevel( 'DEBUG' )
     self.lhcbJobTemplate.setInputSandbox( find_all( 'pilot.cfg', '..' )[0] )
@@ -121,7 +121,7 @@ class GaudirunSuccess( UserJobTestCase ):
 
     oJob = copy.deepcopy( self.lhcbJobTemplate )
     oJob.setName( "gaudirun-test" )
-    oJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '..', 'Integration' )[0],
+    oJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '../..', '/LHCbDIRAC/tests/Workflow/Integration' )[0],
                            find_all( 'pilot.cfg', '.' )[0]] )
 
     optGauss = "$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.py;"
@@ -149,7 +149,7 @@ class GaudirunSuccess( UserJobTestCase ):
 
     oJob = copy.deepcopy( self.lhcbJobTemplate )
     oJob.setName( "gaudirun-test-inputs" )
-    oJob.setInputSandbox( [find_all( 'prodConf_Boole_00012345_00067890_1.py', '..', 'Integration' )[0],
+    oJob.setInputSandbox( [find_all( 'prodConf_Boole_00012345_00067890_1.py', '../..', '/LHCbDIRAC/tests/Workflow/Integration' )[0],
                            find_all( 'pilot.cfg', '.' )[0]] )
 
     opts = "$APPCONFIGOPTS/Boole/Default.py;"
@@ -174,8 +174,8 @@ class GaudirunSuccess( UserJobTestCase ):
 #     lhcbJob = LHCbJob()
 #
 #     lhcbJob.setName( "gaudiScript-test" )
-#     script = find_all( 'gaudi-script.py', '.', 'Integration' )[0]
-#     pConfFile = find_all( 'prodConf_Gauss_00012345_00067890_1.py', '.', 'Integration' )[0]
+#     script = find_all( 'gaudi-script.py', '.', '/LHCbDIRAC/tests/WorkflowIntegration' )[0]
+#     pConfFile = find_all( 'prodConf_Gauss_00012345_00067890_1.py', '..', '/LHCbDIRAC/tests/Workflow/Integration' )[0]
 #     lhcbJob.setInputSandbox( [pConfFile, script] )
 #
 #     lhcbJob.setApplicationScript( 'Gauss', 'v45r3', script,
@@ -215,12 +215,15 @@ def createJob( local = True ):
 
   gaudirunJob.setName( "gaudirun-Gauss-test" )
   if local:
-    gaudirunJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '..', 'GridTestSubmission' )[0],
-                                  find_all( 'wrongConfig.cfg', '..', 'GridTestSubmission' )[0],
+    gaudirunJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '../..',
+                                            '/LHCbDIRAC/tests/System/GridTestSubmission' )[0],
+                                  find_all( 'wrongConfig.cfg', '../..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0],
                                   find_all( 'pilot.cfg', '.' )[0] ] )
   else:
-    gaudirunJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '..', 'GridTestSubmission' )[0],
-                                  find_all( 'wrongConfig.cfg', '..', 'GridTestSubmission' )[0] ] )
+    gaudirunJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '../..',
+                                            '/LHCbDIRAC/tests/System/GridTestSubmission' )[0],
+                                  find_all( 'wrongConfig.cfg', '../..',
+                                            '/LHCbDIRAC/tests/System/GridTestSubmission' )[0] ] )
 
   gaudirunJob.setOutputSandbox( '00012345_00067890_1.sim' )
 

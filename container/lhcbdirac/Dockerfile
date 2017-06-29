@@ -6,6 +6,8 @@ MAINTAINER Christophe HAEN <christophe.haen@cern.ch>
 
 RUN mkdir -p /opt/dirac/etc
 
+RUN yum install -y git && yum clean all
+
 # Copy the self pinging script
 COPY dirac_self_ping.py /opt/dirac/
 
@@ -16,7 +18,7 @@ RUN chmod 755 /opt/dirac/dockerEntrypoint.sh
 ENTRYPOINT [ "/opt/dirac/dockerEntrypoint.sh" ]
 
 # Specify the version
-ENV LHCB_DIRAC_VERSION v8r8-pre10
+ENV LHCB_DIRAC_VERSION v8r9-pre2
 
 RUN curl -L -o dirac-install https://raw.githubusercontent.com/DIRACGrid/DIRAC/integration/Core/scripts/dirac-install.py && chmod +x dirac-install && ./dirac-install -r $LHCB_DIRAC_VERSION -l LHCb -e LHCb -t server -i 27 && rm -rf /opt/dirac/.installCache
 

@@ -32,7 +32,7 @@ class GridSubmissionTestCase( unittest.TestCase ):
       print "GET A USER GROUP"
       exit( 1 )
 
-    result = ResourceStatus().getStorageElementStatus( 'PIC-USER', 'WriteAccess' )
+    result = ResourceStatus().getElementStatus( 'PIC-USER', 'StorageElement', 'WriteAccess' )
     if result['Value']['PIC-USER']['WriteAccess'].lower() != 'banned':
       print "BAN PIC-USER in writing! and then restart this test"
       exit( 1 )
