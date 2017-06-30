@@ -15,10 +15,7 @@
       [ "pygraphics", "2.0",
         [ "bin", "python", "lib" ]
       ],
-      [ "qt", "4.8.7",
-        [ "bin", "python", "lib" ]
-      ],
-      [ "gcc", "4.9.3",
+      [ "Qt", "4.8.7",
         [ "bin", "python", "lib" ]
       ],
       [ "jsonc", "0.12",

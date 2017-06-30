@@ -30,9 +30,6 @@
       [ "Qt", "4.8.7",
         [ "bin", "python", "lib" ]
       ],
-      [ "gcc", "4.9.3",
-        [ "bin", "python", "lib" ]
-      ],
       [ "mysql", "5.7.11",
         [ "bin", "python", "lib" ]
       ],
