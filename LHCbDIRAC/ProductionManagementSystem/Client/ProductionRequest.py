@@ -147,30 +147,30 @@ class ProductionRequest( object ):
           # or we overwrite the existing one inherited with the step
           #
           if len(self.compressionLvl) > count and self.compressionLvl[count] != '':
-            p = re.compile('Compression-[A-Z]{4}-[1-9]')
+            persist = re.compile('Compression-[A-Z]{4}-[1-9]')
             #self.compressionLvl[count] = self.appConfig + self.compressionLvl[count] + '.py'
             self.compressionLvl[count] = self.appConfig + self.compDict[self.compressionLvl[count].upper()] + '.py'
-            if not p.search(value):
+            if not persist.search(value):
               if value == '':
                 value = self.compressionLvl[count]
               else:
                 value = ";".join((value, self.compressionLvl[count]))
             else:
-              value = p.sub(p.search(self.compressionLvl[count]).group(), value)
+              value = persist.sub(persist.search(self.compressionLvl[count]).group(), value)
           #
           # If instead the prod manager doesn't declare a compression level, e.g. for intermediate steps,
           # we check if there is one in the options and in case we delete it. This leaves the default zip level
           # defined inside Gaudi
           #
           elif len(self.compressionLvl) > count and self.compressionLvl[count] == '':
-            p = re.compile(r'\$\w+/Persistency/Compression-[A-Z]{4}-[1-9].py;?')
-            if p.search(value):
-              value = p.sub('', value)
+            persist = re.compile(r'\$\w+/Persistency/Compression-[A-Z]{4}-[1-9].py;?')
+            if persist.search(value):
+              value = persist.sub('', value)
 
         if parameter == 'SystemConfig' and re.search( 'slc5', value):
-	  p = re.compile(r'\$\w+/Persistency/Compression-[A-Z]{4}-[1-9].py;?')
-          if p.search(stepsListDictItem['OptionFiles']):
-            stepsListDictItem['OptionFiles'] = p.sub('', stepsListDictItem['OptionFiles'])
+          persist = re.compile(r'\$\w+/Persistency/Compression-[A-Z]{4}-[1-9].py;?')
+          if persist.search(stepsListDictItem['OptionFiles']):
+            stepsListDictItem['OptionFiles'] = persist.sub('', stepsListDictItem['OptionFiles'])
 
         stepsListDictItem[parameter] = value # Fixing what decided
 
