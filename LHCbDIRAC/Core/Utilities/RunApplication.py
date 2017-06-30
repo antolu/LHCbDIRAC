@@ -14,7 +14,7 @@ from DIRAC.Core.Utilities.Subprocess import systemCall
 __RCSID__ = "$Id$"
 
 class LbRunError(RuntimeError):
-  """ Exception for command errors
+  """ Exception for lb-run errors
   """
   pass
 
@@ -107,7 +107,11 @@ class RunApplication(object):
 
     if runResult['Value'][0]: # if exit status != 0
       self.log.error( "lb-run or its application exited with status %d" % runResult['Value'][0] )
-      raise LHCbApplicationError( "%s %s exited with status %d" % ( self.applicationName, self.applicationVersion, runResult['Value'][0] ) )
+      if runResult['Value'][0] & 0x40: # this is an lb-run specific error, available from LbScripts v9r1p8
+        raise LbRunError( "Problem setting the environment: lb-run exited with status %d" % runResult['Value'][0] )
+      raise LHCbApplicationError( "%s %s exited with status %d" % ( self.applicationName,
+                                                                    self.applicationVersion,
+                                                                    runResult['Value'][0] ) )
 
     self.log.info( "%s execution completed successfully" % self.applicationName )
 

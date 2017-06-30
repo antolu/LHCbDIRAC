@@ -146,7 +146,10 @@ class RootApplication( ModuleBase ):
       self.setApplicationStatus( '%s (Root) Successful' % self.applicationName )
       return S_OK()
 
-    except (LHCbApplicationError, LbRunError) as e: # This is the case for real application errors
+    except LbRunError as e: # This is the case for lb-run/environment errors
+      self.setApplicationStatus( repr(e) )
+      return S_ERROR( str(e) )
+    except LHCbApplicationError as e: # This is the case for real application errors
       self.setApplicationStatus( repr(e) )
       return S_ERROR( str(e) )
     except Exception as e: #pylint:disable=broad-except

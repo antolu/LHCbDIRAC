@@ -116,7 +116,10 @@ class GaudiApplicationScript( ModuleBase ):
       self.setApplicationStatus( '%s Successful' % os.path.basename( self.script ) )
       return S_OK( '%s Successful' % os.path.basename( self.script ) )
 
-    except (LHCbApplicationError, LbRunError) as e: # This is the case for real application errors
+    except LbRunError as e: # This is the case for lb-run/environment errors
+      self.setApplicationStatus( repr(e) )
+      return S_ERROR( str(e) )
+    except LHCbApplicationError as e: # This is the case for real application errors
       self.setApplicationStatus( repr(e) )
       return S_ERROR( str(e) )
     except Exception as e: #pylint:disable=broad-except
