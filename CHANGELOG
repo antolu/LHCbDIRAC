@@ -1,3 +1,12 @@
+[v8r9-pre3]
+use DIRAC v6r18-pre14
+
+* remove ref to gcc
+* just removing seemingly useless parts
+* test and pylint fixes
+* pylint
+* change qt in Qt
+
 [v8r9-pre2]
 use DIRAC v6r18-pre14
 
