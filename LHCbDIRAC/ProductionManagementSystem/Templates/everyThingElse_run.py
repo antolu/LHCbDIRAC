@@ -117,13 +117,13 @@ p1outputMode = '{{P1OutputMode#PROD-P1: output mode#Local}}'
 p1eventsRequested = '{{P1EventsRequested#PROD-P1: events requested (-1 = ALL)#-1}}'
 p1ancestorDepth = int( '{{P1AncestorDepth#PROD-P1: ancestor depth#0}}' )
 try:
-  p1compressionLvl = ast.literal_eval( '{{P1CompressionLevel#PROD-P1: Compression Level per step, e.g. ["LOW","HIGH"]#LOW}}' )
+  p1compressionLvl = '{{P1CompressionLevel#PROD-P1: Compression Level per step, e.g. LOW,HIGH]#LOW}}'
 except SyntaxError:
   p1compressionLvl = []
-p1OutputVisFlag = '{{P1OutputVisFlag#PROD-P1: Visibility flag of output files (a dict {"n step":flag})#{"1":"N"}}}'
-p1OutputVisFlag = fillVisList(p1OutputVisFlag, pr.stepsInProds[0])
+p1OutputVisFlag = ast.literal_eval( '{{P1OutputVisFlag#PROD-P1: Visibility flag of output files (a dict {"n step":"flag"})#{"1":"N"} }}' )
+p1OutputVisFlag = fillVisList(p1OutputVisFlag, len(pr.stepsInProds[0]))
 try:
-  p1OutputVisFlagSpecial = ast.literal_eval( '{{P1OutputVisFlagSpecial#PROD-P1: Special Visibility flag of output files (a dict {"n step":{"FType":flag}})#}}' )
+  p1OutputVisFlagSpecial = ast.literal_eval( '{{P1OutputVisFlagSpecial#PROD-P1: Special Visibility flag of output files (a dict {"n step":{"FType":"flag" } })#}}' )
 except SyntaxError:
   p1OutputVisFlagSpecial = {}
 
@@ -146,13 +146,13 @@ p2outputMode = '{{P2OutputMode#PROD-P2: output mode#Local}}'
 p2eventsRequested = '{{P2EventsRequested#PROD-P2: events requested (-1 = ALL)#-1}}'
 p2ancestorDepth = int( '{{P2AncestorDepth#PROD-P2: ancestor depth#0}}' )
 try:
-  p2compressionLvl = ast.literal_eval( '{{P2CompressionLevel#PROD-P2: Compression Level per step, e.g. ["LOW","HIGH"]#LOW}}' )
+  p2compressionLvl = '{{P2CompressionLevel#PROD-P2: Compression Level per step, e.g. LOW,HIGH#LOW}}' 
 except SyntaxError:
   p2compressionLvl = []
-p2OutputVisFlag = '{{P2OutputVisFlag#PROD-P2: Visibility flag of output files (a dict {"n step":flag})#{"1":False}}}'
-p2OutputVisFlag = fillVisList(p2OutputVisFlag, pr.stepsInProds[1])
+p2OutputVisFlag = ast.literal_eval( '{{P2OutputVisFlag#PROD-P2: Visibility flag of output files (a dict {"n step":"flag"})#{"2":"Y"} }}' )
+p2OutputVisFlag = fillVisList(p2OutputVisFlag, len(pr.stepsInProds[1]))
 try:
-  p2OutputVisFlagSpecial = ast.literal_eval( '{{P2OutputVisFlagSpecial#PROD-P2: Special Visibility flag of output files (a dict {"n step":{"FType":flag}})#}}' )
+  p2OutputVisFlagSpecial = ast.literal_eval( '{{P2OutputVisFlagSpecial#PROD-P2: Special Visibility flag of output files (a dict {"n step":{"FType":"flag" } })#}}' )
 except SyntaxError:
   p2OutputVisFlagSpecial = {}
 
@@ -175,13 +175,13 @@ p3outputMode = '{{P3OutputMode#PROD-P3: output mode#Any}}'
 p3eventsRequested = '{{P3EventsRequested#PROD-P3: events requested (-1 = ALL)#-1}}'
 p3ancestorDepth = int( '{{P3AncestorDepth#PROD-P3: ancestor depth#0}}' )
 try:
-  p3compressionLvl = ast.literal_eval( '{{P3CompressionLevel#PROD-P3: Compression Level per step, e.g. ["LOW","HIGH"]#HIGH}}' )
+  p3compressionLvl = '{{P3CompressionLevel#PROD-P3: Compression Level per step, e.g. ["LOW","HIGH"]#HIGH}}' 
 except SyntaxError:
   p3compressionLvl = []
-p3OutputVisFlag = '{{P3OutputVisFlag#PROD-P3: Visibility flag of output files (a dict {"n step":flag})#{"1":False}}}'
-p3OutputVisFlag = fillVisList(p3OutputVisFlag, pr.stepsInProds[2])
+p3OutputVisFlag = ast.literal_eval( '{{P3OutputVisFlag#PROD-P3: Visibility flag of output files (a dict {"n step":"flag"})#{"3":"Y"} }}' )
+p3OutputVisFlag = fillVisList(p3OutputVisFlag, len(pr.stepsInProds[2]))
 try:
-  p3OutputVisFlagSpecial = ast.literal_eval( '{{P3OutputVisFlagSpecial#PROD-P3: Special Visibility flag of output files (a dict {"n step":{"FType":flag}})#}}' )
+  p3OutputVisFlagSpecial = ast.literal_eval( '{{P3OutputVisFlagSpecial#PROD-P3: Special Visibility flag of output files (a dict {"n step":{"FType":"flag" } })#}}' )
 except SyntaxError:
   p3OutputVisFlagSpecial = {}
 
