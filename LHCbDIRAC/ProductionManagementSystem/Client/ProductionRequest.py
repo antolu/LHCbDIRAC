@@ -167,10 +167,10 @@ class ProductionRequest( object ):
             if persist.search(value):
               value = persist.sub('', value)
 
-        if parameter == 'SystemConfig' and re.search( 'slc5', value):
-          persist = re.compile(r'\$\w+/Persistency/Compression-[A-Z]{4}-[1-9].py;?')
-          if persist.search(stepsListDictItem['OptionFiles']):
-            stepsListDictItem['OptionFiles'] = persist.sub('', stepsListDictItem['OptionFiles'])
+        if parameter == 'SystemConfig' and value is not None and re.search( 'slc5', value):
+	  p = re.compile(r'\$\w+/Persistency/Compression-[A-Z]{4}-[1-9].py;?')
+          if p.search(stepsListDictItem['OptionFiles']):
+            stepsListDictItem['OptionFiles'] = p.sub('', stepsListDictItem['OptionFiles'])
 
         stepsListDictItem[parameter] = value # Fixing what decided
 
