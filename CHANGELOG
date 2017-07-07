@@ -50,6 +50,12 @@ use DIRAC v6r18p1
 * Changed column order
 * Moved RMS db to sqlalchemy
 
+[v8r8p6]
+use DIRAC v6r17p23
+
+* change qt in Qt and remove gcc
+* Update heptools_x86_64-slc6-gcc48-opt.json
+
 [v8r8p5]
 use DIRAC v6r17p24
 
