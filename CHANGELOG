@@ -50,6 +50,12 @@ use DIRAC v6r18p1
 * Changed column order
 * Moved RMS db to sqlalchemy
 
+[v8r8p5]
+use DIRAC v6r17p24
+
+* Link the documentation
+* Document data distribution
+
 [v8r8p4]
 use DIRAC v6r17p23
 
