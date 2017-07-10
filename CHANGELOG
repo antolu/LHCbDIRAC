@@ -50,6 +50,11 @@ use DIRAC v6r18p1
 * Changed column order
 * Moved RMS db to sqlalchemy
 
+[v8r8p7]
+use DIRAC v6r17p24
+
+* Fix conf.py of documentation
+
 [v8r8p6]
 use DIRAC v6r17p23
 
