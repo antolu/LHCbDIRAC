@@ -1,0 +1,18 @@
+[ req ]
+default_bits           = 4096
+encrypt_key            = yes
+distinguished_name     = req_dn
+prompt                 = no
+x509_extensions        = v3_ca
+
+# Generates the following subject
+# Subject: O=Volunteer Computing, O=CERN, CN=MrBoinc
+[ req_dn ]
+O                      = Volunteer Computing
+0.O                    = CERN
+CN                     = MrBoinc
+
+[ v3_ca ]
+subjectKeyIdentifier   = hash
+authorityKeyIdentifier = keyid:always
+basicConstraints       = CA:true
