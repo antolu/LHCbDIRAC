@@ -1,15 +1,13 @@
-[v8r9-pre3]
-use DIRAC v6r18-pre14
+[v9r0-pre1]
+use DIRAC v6r19-pre1
 
+* rescheduling when LbRunError
+* treating separately lb-run errors from application errors
 * remove ref to gcc
 * just removing seemingly useless parts
 * test and pylint fixes
 * pylint
 * change qt in Qt
-
-[v8r9-pre2]
-use DIRAC v6r18-pre14
-
 * var fix
 * updated Reco, removed outdated tests
 * removing old tests
@@ -26,10 +24,6 @@ use DIRAC v6r18-pre14
 * using the right commands list
 * fixing RSS unit tests
 * LHCbDIRAC can be released in all platform
-
-[v8r9-pre1]
-use DIRAC v6r18p1
-
 * gLogger instead of print
 * fixing location finder
 * add lbvobox110,201 and 27 hosts
@@ -49,21 +43,9 @@ use DIRAC v6r18p1
 * Removed spaces
 * Changed column order
 * Moved RMS db to sqlalchemy
-
-[v8r8p7]
-use DIRAC v6r17p24
-
 * Fix conf.py of documentation
-
-[v8r8p6]
-use DIRAC v6r17p23
-
 * change qt in Qt and remove gcc
 * Update heptools_x86_64-slc6-gcc48-opt.json
-
-[v8r8p5]
-use DIRAC v6r17p24
-
 * Link the documentation
 * Document data distribution
 
