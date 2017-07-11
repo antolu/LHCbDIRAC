@@ -125,8 +125,19 @@ EOF
     """
     pilotOptions, newPilotsToSubmit = DIRACSiteDirector._getPilotOptions( self, queue, pilotsToSubmit )
 
+    lhcbPilotCommands = ['LHCbGetPilotVersion',
+                         'CheckWorkerNode',
+                         'LHCbInstallDIRAC',
+                         'LHCbConfigureBasics',
+                         'CheckCECapabilities',
+                         'CheckWNCapabilities',
+                         'LHCbConfigureSite',
+                         'LHCbConfigureArchitecture',
+                         'LHCbConfigureCPURequirements',
+                         'LaunchAgent']
+
     pilotOptions.append( '-E LHCbPilot' )
-    pilotOptions.append( '-X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,CheckCECapabilities,CheckWNCapabilities,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements,LaunchAgent' )
+    pilotOptions.append( '-X %s' % ','.join(lhcbPilotCommands) )
     if self.devLbLogin or self.lbRunOnly:
       opt = ''
       if self.devLbLogin:

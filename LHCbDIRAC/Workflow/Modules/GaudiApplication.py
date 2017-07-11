@@ -8,7 +8,8 @@ import re
 import os
 import subprocess
 
-from DIRAC import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC import S_OK, S_ERROR, gLogger
+from DIRAC.Core.Utilities import DErrno
 
 from LHCbDIRAC.Core.Utilities.ProductionOptions import getDataOptions, getModuleOptions
 from LHCbDIRAC.Core.Utilities.RunApplication import RunApplication, LbRunError, LHCbApplicationError
@@ -183,13 +184,16 @@ class GaudiApplication( ModuleBase ):
 
       return S_OK( "%s %s Successful" % ( self.applicationName, self.applicationVersion ) )
 
-    except (LHCbApplicationError, LbRunError) as e: # This is the case for real application errors
-      self.setApplicationStatus( repr(e) )
-      return S_ERROR( str(e) )
-    except Exception as e: #pylint:disable=broad-except
-      self.log.exception( "Failure in GaudiApplication execute module", lException = e, lExcInfo = True )
+    except LbRunError as lbre: # This is the case for lb-run/environment errors
+      self.setApplicationStatus( repr(lbre) )
+      return S_ERROR( DErrno.EWMSRESC, str(lbre) )
+    except LHCbApplicationError as lbae: # This is the case for real application errors
+      self.setApplicationStatus( repr(lbae) )
+      return S_ERROR( str(lbae) )
+    except Exception as exc: #pylint:disable=broad-except
+      self.log.exception( "Failure in GaudiApplication execute module", lException = exc, lExcInfo = True )
       self.setApplicationStatus( "Error in GaudiApplication module" )
-      return S_ERROR( str(e) )
+      return S_ERROR( str(exc) )
     finally:
       super( GaudiApplication, self ).finalize( __RCSID__ )
 

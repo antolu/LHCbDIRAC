@@ -14,3 +14,4 @@ This page is the work in progress. See more material here soon !
    Installation/certificate.rst
    Online.rst
    bookkeeping/adminisrate_oracle.rst
+   dataDistribution.rst
