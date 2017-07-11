@@ -12,7 +12,9 @@
 import re
 import os
 
-from DIRAC import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC import S_OK, S_ERROR, gLogger
+from DIRAC.Core.Utilities import DErrno
+
 from LHCbDIRAC.Core.Utilities.RunApplication import RunApplication, LbRunError, LHCbApplicationError
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
@@ -116,9 +118,12 @@ class GaudiApplicationScript( ModuleBase ):
       self.setApplicationStatus( '%s Successful' % os.path.basename( self.script ) )
       return S_OK( '%s Successful' % os.path.basename( self.script ) )
 
-    except (LHCbApplicationError, LbRunError) as e: # This is the case for real application errors
-      self.setApplicationStatus( repr(e) )
-      return S_ERROR( str(e) )
+    except LbRunError as lbre: # This is the case for lb-run/environment errors
+      self.setApplicationStatus( repr(lbre) )
+      return S_ERROR( DErrno.EWMSRESC, str(lbre) )
+    except LHCbApplicationError as lbae: # This is the case for real application errors
+      self.setApplicationStatus( repr(lbae) )
+      return S_ERROR( str(lbae) )
     except Exception as e: #pylint:disable=broad-except
       self.log.exception( "Failure in GaudiApplicationScript execute module", lException = e )
       self.setApplicationStatus( "Error in GaudiApplicationScript module" )
