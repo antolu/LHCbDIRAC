@@ -243,6 +243,13 @@ take note of the build id (you can use the direct link icon) and make the reques
     * DIRAC is released, then the message in the JIRA task: Summary:LHCbDirac v8r2p50;  Description: Please release  LHCbDirac based on build 1526; 
 
 
+Changing the prod version for Pilot
+```````````````````````````````````
+
+ask the CVMFS librarians to change the prod version for the pilot on cvmfs.
+cd /cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC
+rm LHCBDIRAC_prod; ln -s LHCBDIRAC_vArBpC LHCBDIRAC_prod
+
 Server
 ``````
 
