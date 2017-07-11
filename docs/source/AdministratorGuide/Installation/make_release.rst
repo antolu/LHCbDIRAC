@@ -248,7 +248,7 @@ Changing the prod version for Pilot
 
 ask the CVMFS librarians to change the prod version for the pilot on cvmfs.
 cd /cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC
-rm LHCBDIRAC_prod; ln -s LHCBDIRAC_v8r8p7 LHCBDIRAC_prod
+rm LHCBDIRAC_prod; ln -s LHCBDIRAC_vArBpC LHCBDIRAC_prod
 
 Server
 ``````
