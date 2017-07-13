@@ -242,7 +242,8 @@ take note of the build id (you can use the direct link icon) and make the reques
 * NOTE: If some package is already released, please do not indicate in the Jira task. For example: a Jira task when:
     * DIRAC is not released, then the message in the JIRA task: Summary:Dirac v6r14p37 and LHCbDirac v8r2p50; Description: Please release  Dirac and  LHCbDirac in  this order  based on build 1526; 
     * DIRAC is released, then the message in the JIRA task: Summary:LHCbDirac v8r2p50;  Description: Please release  LHCbDirac based on build 1526; 
-
+	* Dependency is not fulfilled for the platform: x86_64-slc6-gcc48-opt please ask to force the release using --no-strict option
+	 
 Changing the prod version for Pilot
 ```````````````````````````````````
 
