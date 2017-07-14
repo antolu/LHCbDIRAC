@@ -85,6 +85,8 @@ Then, from the LHCbDIRAC local fork you need to update some files::
   vim LHCbDIRAC/__init__.py
   # Update the version in the releases.cfg file:
   vim LHCbDIRAC/releases.cfg
+  # Update the version in the Dockerfile file:
+  vim container/lhcbdirac/Dockerfile
   # For updating the CHANGELOG, get what's changed since the last tag
   #please use the proper LHCbDIRAC tag; replace v8r2p46
   git log --pretty=oneline ${t}..HEAD | grep -Ev "($(git log --pretty=oneline  ${t}..v8r2p46 | awk {'print $1'} | tr '\n' '|')BOOM)"
