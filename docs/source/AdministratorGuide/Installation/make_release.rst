@@ -108,6 +108,9 @@ Time to tag and push::
   # before change your branch use git checkout "existing branch name"
   git branch -d newMaster
 
+Note: After when you pushed the tag to the master, a gitlab job will create the tar files. This job will fail and usually you receive a mail: LHCbDIRAC | Pipeline #160464 has failed for v8r8p8 | 51233249.
+Please continue the next section 'Propagate to the devel branch' and when this is ready retry the pipeline. You can found the pipeline in your mail or https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/pipelines 
+
 
 Remember: you can use "git status" at any point in time to make sure what's the current status.
 
@@ -241,6 +244,15 @@ take note of the build id (you can use the direct link icon) and make the reques
 * NOTE: If some package is already released, please do not indicate in the Jira task. For example: a Jira task when:
     * DIRAC is not released, then the message in the JIRA task: Summary:Dirac v6r14p37 and LHCbDirac v8r2p50; Description: Please release  Dirac and  LHCbDirac in  this order  based on build 1526; 
     * DIRAC is released, then the message in the JIRA task: Summary:LHCbDirac v8r2p50;  Description: Please release  LHCbDirac based on build 1526; 
+	* Dependency is not fulfilled for the platform: x86_64-slc6-gcc48-opt please ask to force the release using --no-strict option
+	 
+Changing the prod version for Pilot
+```````````````````````````````````
+
+ask the CVMFS librarians to change the prod version for the pilot on cvmfs. The commands for changing the prod::
+
+  cd /cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC
+  rm LHCBDIRAC_prod; ln -s LHCBDIRAC_vArBpC LHCBDIRAC_prod
 
 
 Changing the prod version for Pilot
@@ -341,8 +353,11 @@ Use the following script (from, e.g., lxplus after having run `lb-run LHCbDIRAC 
 
   dirac-pilot-version -S v8r2p42
 
+NOTE: YOU HAVE TO KEEP TWO PILOT VERSION. AFTER YOU EXECUTED THIS COMMAND PLEASE MODIFY THE CS! for example:/Operation/LHCb-Production/Pilot/Version to v8r2p42, v8r241 
+
 for checking and updating the pilot version. Note that you'll need a proxy that can write in the CS (i.e. lhcb-admin).
 This script will make sure that the pilot version is update BOTH in the CS and in the json file used by pilots started in the vacuum.
+
 
 
 Basic instruction how to merging the devel branch into master (NOT for PATCH release)
