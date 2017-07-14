@@ -183,14 +183,9 @@ def executeFilePath( dmScript ):
       dirName = os.path.dirname( lfn )
       if not dirName:
         continue
-      if '/RAW/' in dirName:
-        # For RAW files, eliminate the tail (run number)
-        while True:
-          if os.path.basename( dirName ).isdigit():
-            dirName = os.path.dirname( dirName )
-          else:
-            break
-      else:
+      if '/RAW/' not in dirName: 
+        #If it is is RAW, we already had the correct path. 
+        #for example: os.path.dirname('/lhcb/data/2016/RAW/TURBO/LHCb/COLLISION16/176059/176059_0000003101.raw') returns /lhcb/data/2016/RAW/TURBO/LHCb/COLLISION16/176059
         tail = os.path.basename( dirName )
         # Eliminate the tailing '/0000'
         if len( tail ) == 4 and tail.isdigit():
