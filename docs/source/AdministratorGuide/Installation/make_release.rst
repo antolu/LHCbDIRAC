@@ -108,7 +108,9 @@ Time to tag and push::
   # before change your branch use git checkout "existing branch name"
   git branch -d newMaster
 
-Note: You have to propagate master to devel (next section) after you have to retry the failed pipeline.
+Note: After when you pushed the tag to the master, a gitlab job will create the tar files. This job will fail and usually you receive a mail: LHCbDIRAC | Pipeline #160464 has failed for v8r8p8 | 51233249.
+Please continue the next section 'Propagate to the devel branch' and when this is ready retry the pipeline. You can found the pipeline in your mail or https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/pipelines 
+
 
 Remember: you can use "git status" at any point in time to make sure what's the current status.
 
