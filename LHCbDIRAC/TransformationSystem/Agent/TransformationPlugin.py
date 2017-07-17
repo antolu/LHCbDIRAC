@@ -907,7 +907,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
         # Now assign the individual files to their targets
         targetSEs = stringTargetSEs.split( ',' )
-        if 'CNAF-DST' in targetSEs and 'CNAF_M-DST' in targetSEs:
+        if 'CNAF-DST' in targetSEs and 'CNAF_M-DST' in targetSEs: #FIXME: why?
           targetSEs.remove( 'CNAF-DST' )
           stringTargetSEs = ','.join( targetSEs )
         ( runFileTargetSEs, runCompleted ) = self.util.assignTargetToLfns( runLfns, self.transReplicas, stringTargetSEs )

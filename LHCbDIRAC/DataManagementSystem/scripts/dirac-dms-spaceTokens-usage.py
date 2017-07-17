@@ -60,7 +60,7 @@ for lcgSite in sites:
     SitesSEs[ site ][ st ] = {}
     SitesSEs[ site ][ st ]['SEs'] = []
   SitesSEs[ site ]['LHCb-Tape']['SEs'] = [site + '-RAW', site + '-RDST', site + '-ARCHIVE']
-  SitesSEs[ site ]['LHCb-Disk']['SEs'] = [site + '-BUFFER', site + '-DST', site + '_M-DST', site + '_MC_M-DST', site + '_MC-DST', site + '-FAILOVER']
+  SitesSEs[ site ]['LHCb-Disk']['SEs'] = [site + '-BUFFER', site + '-DST', site + '_MC-DST', site + '-FAILOVER']
   SitesSEs[ site ]['LHCb_USER']['SEs'] = [ site + '-USER']
   SitesSEs[ site ]['LHCb-Tape']['type'] = 't1d0'
   SitesSEs[ site ]['LHCb-Disk']['type'] = 't0d1'
