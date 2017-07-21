@@ -530,7 +530,7 @@ class SEUsageAgent( AgentModule ):
         self.log.info( "Opening file %s in w mode" % fileP3DirSummary )
         fP3DirSummary = open( fileP3DirSummary, "w" )
         outputFileMerged[ st ]['pointerToDirSummaryFile' ] = fP3DirSummary
-    if st == 'LHCb-Disk':
+    if st in ['LHCb-Disk', 'LHCb-EOS', 'LHCb_USER']:
       try:
         outputFileMerged[ st ] = outputFileMerged[ 'LHCb-Disk' ]
       except KeyError:
