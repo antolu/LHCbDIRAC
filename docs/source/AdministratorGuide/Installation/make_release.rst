@@ -363,7 +363,9 @@ Use the following script (from, e.g., lxplus after having run `lb-run LHCbDIRAC 
 
   dirac-pilot-version -S v8r2p42
 
-NOTE: YOU HAVE TO KEEP TWO PILOT VERSION. AFTER YOU EXECUTED THIS COMMAND PLEASE MODIFY THE CS! for example:/Operation/LHCb-Production/Pilot/Version to v8r2p42, v8r241
+NOTE: YOU HAVE TO KEEP TWO PILOT VERSION. AFTER YOU EXECUTED THIS COMMAND PLEASE MODIFY THE CS!
+for example:/Operation/LHCb-Production/Pilot/Version to v8r2p42, v8r241
+The newer version should be the first in the list
 
 for checking and updating the pilot version. Note that you'll need a proxy that can write in the CS (i.e. lhcb-admin).
 This script will make sure that the pilot version is update BOTH in the CS and in the json file used by pilots started in the vacuum.
