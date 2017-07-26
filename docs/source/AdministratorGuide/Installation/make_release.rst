@@ -109,7 +109,7 @@ Time to tag and push::
   git branch -d newMaster
 
 Note: After when you pushed the tag to the master, a gitlab job will create the tar files. This job will fail and usually you receive a mail: LHCbDIRAC | Pipeline #160464 has failed for v8r8p8 | 51233249.
-Please continue the next section 'Propagate to the devel branch' and when this is ready retry the pipeline. You can found the pipeline in your mail or https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/pipelines 
+Please continue the next section 'Propagate to the devel branch' and when this is ready retry the pipeline. You can found the pipeline in your mail or https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/pipelines
 
 
 Remember: you can use "git status" at any point in time to make sure what's the current status.
@@ -151,7 +151,11 @@ Creating the release tarball, add uploading it to the LHCb web service
 ``````````````````````````````````````````````````````````````````````
 Automatic procedure
 ^^^^^^^^^^^^^^^^^^^
-When a new git tag is pushed to the repository, a gitlab-ci job takes care of (soon testing), creating the tarball, uploading it to the web service, and to build the docker image. You can check it in the pipeline page of the repository (https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/pipelines)
+When a new git tag is pushed to the repository, a gitlab-ci job takes care of (soon testing), creating the tarball, uploading it to the web service, and to build the docker image. You can check it in the pipeline page of the repository (https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/pipelines).
+
+It may happen that the pipeline fails. There are various reasons for that, but normally, it is just a timeout on the runner side, so just restart the job from the pipeline web interface. If it repeatedly fails building the tarball, try the manual procedure described bellow to understand.
+
+Note: for the moment, the releases.cfg used is the one from the devel branch. This means that if you tag a production version, and the pipeline is ran before you propagate the change to the devel branches, the pipeline will not find your tag in the releases.cfg. A pull request is pending to correct that.
 
 
 Manual procedure
@@ -236,16 +240,22 @@ Then click on the "BUILD" button
 
 * within 10-15 min the build should start to appear in the nightlies page https://lhcb-nightlies.cern.ch/release/
 * if there is a problem in the build, it can be re-started via the dedicated button (it will not restart by itself after a retag)
+* The build for gcc48 is known to have missing dependencies, but must be released anyway.
 
 
 If it is the production release, and only in this case, once satisfied by the build,
 take note of the build id (you can use the direct link icon) and make the request via https://sft.its.cern.ch/jira/browse/LHCBDEP.
 
 * NOTE: If some package is already released, please do not indicate in the Jira task. For example: a Jira task when:
-    * DIRAC is not released, then the message in the JIRA task: Summary:Dirac v6r14p37 and LHCbDirac v8r2p50; Description: Please release  Dirac and  LHCbDirac in  this order  based on build 1526; 
-    * DIRAC is released, then the message in the JIRA task: Summary:LHCbDirac v8r2p50;  Description: Please release  LHCbDirac based on build 1526; 
+    * DIRAC is not released, then the message in the JIRA task: Summary:Dirac v6r14p37 and LHCbDirac v8r2p50; Description: Please release  Dirac and  LHCbDirac in  this order  based on build 1526;
+    * DIRAC is released, then the message in the JIRA task: Summary:LHCbDirac v8r2p50;  Description: Please release  LHCbDirac based on build 1526;
 	* Dependency is not fulfilled for the platform: x86_64-slc6-gcc48-opt please ask to force the release using --no-strict option
-	 
+
+
+Once the client has been deployed, you should setup the correct environment (lb-run LHCbDIRAC/<version> bash --norc), preferably on a CERNVM, on lxplus otherwise, and run the following two scripts:
+  * Minimal test: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/blob/master/tests/System/Client/basic-imports.py
+  * Bigger (certification like) test: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/blob/master/tests/System/Client/client_test.sh
+
 Changing the prod version for Pilot
 ```````````````````````````````````
 
@@ -266,6 +276,8 @@ To install it on the VOBOXes from lxplus::
   >restart *
 
 The (better) alternative is using the web portal or using the following script: LHCbDIRAC/LHCbDiracPolicy/scripts/create_vobox_update.
+
+CAUTION: THESE SCRIPTS DO NOT EXIST ANYMORE !! What replaced them ?
 
 The recommended way is the following::
 
@@ -311,6 +323,11 @@ Specify that this error can be ignored (but should be fixed ! )::
 
       2016-05-17 12:00:00 UTC dirac-install [ERROR] Requirements installation script /opt/dirac/versions/v8r2p42_1463486162/scripts/dirac-externals-requirements failed. Check /opt/dirac/versions/v8r2p42_1463486162/scripts/dirac-externals-requirements.err
 
+Using the web portal:
+  * You cannot do all the machines at once. Select a bunch of them (between 5 and 10). Fill in the version number and click update.
+  * Repeate until you have them all.
+  * Start again selecting them by block, but this time, click on "restart" to restart the components.
+
 
 WebPortal
 `````````
@@ -346,7 +363,9 @@ Use the following script (from, e.g., lxplus after having run `lb-run LHCbDIRAC 
 
   dirac-pilot-version -S v8r2p42
 
-NOTE: YOU HAVE TO KEEP TWO PILOT VERSION. AFTER YOU EXECUTED THIS COMMAND PLEASE MODIFY THE CS! for example:/Operation/LHCb-Production/Pilot/Version to v8r2p42, v8r241 
+NOTE: YOU HAVE TO KEEP TWO PILOT VERSION. AFTER YOU EXECUTED THIS COMMAND PLEASE MODIFY THE CS!
+for example:/Operation/LHCb-Production/Pilot/Version to v8r2p42, v8r241
+The newer version should be the first in the list
 
 for checking and updating the pilot version. Note that you'll need a proxy that can write in the CS (i.e. lhcb-admin).
 This script will make sure that the pilot version is update BOTH in the CS and in the json file used by pilots started in the vacuum.
@@ -410,6 +429,3 @@ The next steps are the following::
     # The services and number of instances running
     # will be preserved
     dirac-docker-mgmt.py -v v8r5 --deploy
-
-
-
