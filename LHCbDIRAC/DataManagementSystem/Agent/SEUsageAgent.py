@@ -352,20 +352,15 @@ class SEUsageAgent( AgentModule ):
                                                                                site + '-RDST',
                                                                                site + '-ARCHIVE']},
                                  'LHCb-Disk' : { 'year': '2011', 'DiracSEs': [ site + '-DST',
-                                                                               site + '_M-DST',
-                                                                               site + '_MC_M-DST',
                                                                                site + '_MC-DST',
                                                                                site + '-FAILOVER',
                                                                                site + '-BUFFER']},
                                  'LHCb_USER' : { 'year': '2011', 'DiracSEs': [ site + '-USER']},
                                  'LHCb_RAW' : { 'year': '2010', 'DiracSEs': [ site + '-RAW']},
                                  'LHCb_RDST' : { 'year': '2010', 'DiracSEs': [ site + '-RDST']},
-                                 'LHCb_M-DST': { 'year': '2010', 'DiracSEs': [ site + '_M-DST']},
                                  'LHCb_DST'  : { 'year': '2010', 'DiracSEs': [ site + '-DST']},
-                                 'LHCb_MC_M-DST': { 'year': '2010', 'DiracSEs': [ site + '_MC_M-DST']},
                                  'LHCb_MC_DST'  : { 'year': '2010', 'DiracSEs': [ site + '_MC-DST']},
-                                 'LHCb_FAILOVER' : { 'year': '2010', 'DiracSEs': [ site + '-FAILOVER']}
-                                }
+                                 'LHCb_FAILOVER' : { 'year': '2010', 'DiracSEs': [ site + '-FAILOVER']}}
     # for CERN: two more SEs: FREEZER AND HISTO
 
     for st in self.spaceTokens[ site ]:
@@ -518,8 +513,6 @@ class SEUsageAgent( AgentModule ):
     # every input file corresponds to one space token
     # whereas for the output, there is one file per NEW space token, so a merging is done
 
-    diskST = ['LHCb-Disk', 'LHCb_M-DST', 'LHCb_DST', 'LHCb_MC_M-DST', 'LHCb_MC_DST', 'LHCb_FAILOVER']
-    tapeST = ['LHCb-Tape', 'LHCb_RAW', 'LHCb_RDST']
     outputFileMerged = {}
     for st in self.spaceTokens[ site ]:
       outputFileMerged[ st ] = {}
@@ -537,12 +530,12 @@ class SEUsageAgent( AgentModule ):
         self.log.info( "Opening file %s in w mode" % fileP3DirSummary )
         fP3DirSummary = open( fileP3DirSummary, "w" )
         outputFileMerged[ st ]['pointerToDirSummaryFile' ] = fP3DirSummary
-    for st in diskST:
+    if st in ['LHCb-Disk', 'LHCb-EOS', 'LHCb_USER']:
       try:
         outputFileMerged[ st ] = outputFileMerged[ 'LHCb-Disk' ]
       except KeyError:
         self.log.error( "no pointer to file for st=%s " % st )
-    for st in tapeST:
+    if st == 'LHCb-Tape':
       try:
         outputFileMerged[ st ] = outputFileMerged['LHCb-Tape']
       except KeyError:
