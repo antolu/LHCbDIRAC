@@ -6,6 +6,16 @@
 
 import os, re, sys
 
+skel_commands = """
+#
+set host LHCB_MACHINE_NAME
+show info
+update LHCB_VERSION
+exec lhcb-restart-agent-service
+restart Framework SystemAdministrator
+#
+"""
+
 if len( sys.argv ) != 2:
   print 'usage: ' + sys.argv[0] + '  LHCbDirac_version'
   sys.exit( 1 )
@@ -25,21 +35,13 @@ D_list = ['lbvobox06.cern.ch', 'lbvobox104.cern.ch','lbvobox105.cern.ch','lbvobo
 file_E = os.path.join( HOME_DIR, 'vobox_update_E' )
 E_list = ['lbvobox43.cern.ch', 'lbvobox46.cern.ch', 'lbvobox47.cern.ch', 'volhcb04.cern.ch', 'volhcb05.cern.ch']
 
-def generateTemplate(hosts, filename):
-  fdr = open( file_skel )
-  lines = fdr.readlines()
-  fdr.close()
+def generateTemplate( hosts, filename ):
   fdw = open( filename, 'w' )
   for machine in hosts:
     print machine
-    for line in lines:
-      if 'LHCB_MACHINE_NAME' in line:
-         newline = line.replace( 'LHCB_MACHINE_NAME', machine )
-      elif 'LHCB_VERSION' in line:
-         newline = line.replace( 'LHCB_VERSION', lhcbver )
-      else:
-         newline = line
-      fdw.write( newline )
+    command = skel_commands.replace( 'LHCB_MACHINE_NAME', machine )
+    command = command.replace( 'LHCB_VERSION', lhcbver )
+    fdw.write( command )
   fdw.close()
 
 
