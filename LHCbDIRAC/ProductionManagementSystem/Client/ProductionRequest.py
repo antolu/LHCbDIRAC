@@ -168,7 +168,7 @@ class ProductionRequest( object ):
               value = persist.sub('', value)
 
         if parameter == 'SystemConfig' and value is not None and re.search( 'slc5', value):
-	  p = re.compile(r'\$\w+/Persistency/Compression-[A-Z]{4}-[1-9].py;?')
+          p = re.compile(r'\$\w+/Persistency/Compression-[A-Z]{4}-[1-9].py;?')
           if p.search(stepsListDictItem['OptionFiles']):
             stepsListDictItem['OptionFiles'] = p.sub('', stepsListDictItem['OptionFiles'])
 

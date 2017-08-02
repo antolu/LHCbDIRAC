@@ -431,7 +431,7 @@ class ModuleBase( object ):
           stepOutTypes.append( ft.lower() )
 
     # corrections for Merge productions
-    if self.jobType.lower() == 'merge':
+    if self.jobType.lower() in ('merge', 'histomerge'):
       if len(stepOutTypes) == 1 and stepOutTypes[0] in [hts.lower() for hts in histoTypes] + ['root']:
         # If it is root/histo/ntuple merging job, we treat it almost as a stripping job
         pass
