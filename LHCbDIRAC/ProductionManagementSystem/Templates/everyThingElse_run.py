@@ -29,7 +29,7 @@ currentSetup = gConfig.getValue( 'DIRAC/Setup' )
 
 pr = ProductionRequest()
 
-stepsList = [ '123456', '654321' ]
+stepsList = [ '{{p1Step}}' ]
 stepsList.append( '{{p2Step}}' )
 stepsList.append( '{{p3Step}}' )
 stepsList.append( '{{p4Step}}' )
@@ -58,8 +58,9 @@ pr.stepsList = stepsList
 pr.appendName = '{{WorkflowAppendName#GENERAL: Workflow string to append to production name#1}}'
 
 w = '{{w#----->WORKFLOW: choose what to do#}}'
-pr.prodsTypeList = 'DataReconstruction'
-p1 = '1,2'
+pr.prodsTypeList = '{{r#---List here which prods you want to create#DataSwimming,DataStripping,Merge}}'.split( ',' )
+p = '{{p#--now map steps to productions#}}'
+p1 = '{{p1#-Production 1 steps (e.g. 1,2,3 = first, second, third)#1,2,3}}'
 if p1:
   p1 = p1.split( ',' )
   p1 = [int( x ) for x in p1]
@@ -115,10 +116,10 @@ p1outputMode = '{{P1OutputMode#PROD-P1: output mode#Local}}'
 p1eventsRequested = '{{P1EventsRequested#PROD-P1: events requested (-1 = ALL)#-1}}'
 p1ancestorDepth = int( '{{P1AncestorDepth#PROD-P1: ancestor depth#0}}' )
 try:
-  p1compressionLvl = 'LOW,HIGH'
+  p1compressionLvl = '{{P1CompressionLevel#PROD-P1: Compression Level per step, e.g. LOW,HIGH]#LOW}}'
 except SyntaxError:
   p1compressionLvl = []
-p1OutputVisFlag = ast.literal_eval( '{"1":"N", "2":"Y"} ' )
+p1OutputVisFlag = ast.literal_eval( '{{P1OutputVisFlag#PROD-P1: Visibility flag of output files (a dict {"n step":"flag"})#{"1":"N"} }}' )
 p1OutputVisFlag = fillVisList(p1OutputVisFlag, len(pr.stepsInProds[0]))
 try:
   p1OutputVisFlagSpecial = ast.literal_eval( '{{P1OutputVisFlagSpecial#PROD-P1: Special Visibility flag of output files (a dict {"n step":{"FType":"flag" } })#}}' )
