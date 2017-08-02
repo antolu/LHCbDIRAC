@@ -15,9 +15,8 @@ def fillVisList(vdict, num):
 
   # Assuming that, if there's only one element in the list of output visibility flags, every step will catch that flag
   if len( vdict ) == 1:
-    # '1' key is given by default by the template
-    val = vdict['1']
-    vdict = dict( [(str(i), val) for i in range(num)] )
+    val = vdict[vdict.keys()[0]]
+    vdict = dict( [(str(i), val) for i in range(int(vdict.keys()[0]), int(vdict.keys()[0])+num)] )
   # Another assumption: if the number of steps is bigger than that of vis flags, then extend the list with the last flag available
   # to fill the "holes"
   #if len(vlist) < len(slist):
@@ -30,7 +29,7 @@ currentSetup = gConfig.getValue( 'DIRAC/Setup' )
 
 pr = ProductionRequest()
 
-stepsList = [ '{{p1Step}}' ]
+stepsList = [ '123456', '654321' ]
 stepsList.append( '{{p2Step}}' )
 stepsList.append( '{{p3Step}}' )
 stepsList.append( '{{p4Step}}' )
@@ -59,9 +58,8 @@ pr.stepsList = stepsList
 pr.appendName = '{{WorkflowAppendName#GENERAL: Workflow string to append to production name#1}}'
 
 w = '{{w#----->WORKFLOW: choose what to do#}}'
-pr.prodsTypeList = '{{r#---List here which prods you want to create#DataSwimming,DataStripping,Merge}}'.split( ',' )
-p = '{{p#--now map steps to productions#}}'
-p1 = '{{p1#-Production 1 steps (e.g. 1,2,3 = first, second, third)#1,2,3}}'
+pr.prodsTypeList = 'DataReconstruction'
+p1 = '1,2'
 if p1:
   p1 = p1.split( ',' )
   p1 = [int( x ) for x in p1]
@@ -117,10 +115,10 @@ p1outputMode = '{{P1OutputMode#PROD-P1: output mode#Local}}'
 p1eventsRequested = '{{P1EventsRequested#PROD-P1: events requested (-1 = ALL)#-1}}'
 p1ancestorDepth = int( '{{P1AncestorDepth#PROD-P1: ancestor depth#0}}' )
 try:
-  p1compressionLvl = '{{P1CompressionLevel#PROD-P1: Compression Level per step, e.g. LOW,HIGH]#LOW}}'
+  p1compressionLvl = 'LOW,HIGH'
 except SyntaxError:
   p1compressionLvl = []
-p1OutputVisFlag = ast.literal_eval( '{{P1OutputVisFlag#PROD-P1: Visibility flag of output files (a dict {"n step":"flag"})#{"1":"N"} }}' )
+p1OutputVisFlag = ast.literal_eval( '{"1":"N", "2":"Y"} ' )
 p1OutputVisFlag = fillVisList(p1OutputVisFlag, len(pr.stepsInProds[0]))
 try:
   p1OutputVisFlagSpecial = ast.literal_eval( '{{P1OutputVisFlagSpecial#PROD-P1: Special Visibility flag of output files (a dict {"n step":{"FType":"flag" } })#}}' )
@@ -284,7 +282,8 @@ pr.ancestorDepths = [p1ancestorDepth, p2ancestorDepth, p3ancestorDepth]
 #pr.compressionLvl = [p1compressionLvl] * len( pr.stepsInProds[0] ) +\
 #                    [p2compressionLvl] * len( pr.stepsInProds[1] ) +\
 #                    [p3compressionLvl] * len( pr.stepsInProds[2] )
-pr.compressionLvl = [p1compressionLvl, p2compressionLvl, p3compressionLvl]
+pr.compressionLvl = [lvl for lvl in p1compressionLvl.split(',')] + [lvl for lvl in p2compressionLvl.split(',')] +\
+                    [lvl for lvl in p3compressionLvl.split(',')]
 pr.outputVisFlag = [p1OutputVisFlag, p2OutputVisFlag, p3OutputVisFlag]
 pr.specialOutputVisFlag = [p1OutputVisFlagSpecial, p2OutputVisFlagSpecial, p3OutputVisFlagSpecial]
 
