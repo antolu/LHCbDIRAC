@@ -1983,3 +1983,12 @@ class LHCbBookkeepingManager( BaseESManager ):
     It is a wrapper to the bookkeeping client
     """
     return self.db_.getStepsMetadata( bkDict )
+  
+  #############################################################################
+  def getFilesWithMetadata( self, dataset ):
+    """it sets the file types
+    :param dict dataset: it is a bookkeeping dictionary, which contains the conditions used to retreive the lfns 
+    :return: S_OK lfns with metadata
+    """
+    return self.db_.getFilesWithMetadata( dataset )
+      
