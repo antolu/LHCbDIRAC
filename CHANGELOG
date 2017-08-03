@@ -1,3 +1,20 @@
+[v9r0-pre6]
+use DIRAC v6r19-pre4
+
+* use the latest verdsion of pyGSI (0.6.5)
+* just fixed list of ST
+* removing M_DST
+* change one line comment
+* remove heptools for gcc48
+* rescheduling when LbRunError
+* treating separately lb-run errors from application errors
+* remove ref to gcc
+* just removing seemingly useless parts
+* test and pylint fixes
+* updated Reco, removed outdated tests
+* removing old tests
+* added reco17
+
 [v8r8p12]
 use DIRAC v6r17p26
 
