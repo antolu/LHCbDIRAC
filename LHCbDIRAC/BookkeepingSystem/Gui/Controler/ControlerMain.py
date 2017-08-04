@@ -193,7 +193,10 @@ class ControlerMain(ControlerAbstract):
 
     elif message.action() == "detailedProcessingPassDescription":
       result = self.__getDetailedProcessingPass(message)
-
+    
+    elif message.action() == 'SaveToCSV':
+      result = self.__saveToCSVformat( message )
+    
     else:
       message = "Unknown message sent by %s. Message:%s" % (str(sender.__class__), str(message))
       gLogger.error(message)
@@ -545,4 +548,33 @@ class ControlerMain(ControlerAbstract):
   def dataQualityFlagChecked(self, flag, value):
     """handles the actions of the data quality check boxes"""
     self.__qualityFlags[flag] = value
+    
+  def __saveToCSVformat(self, message):
+    """
+    This method is used to save a list of selected lfns and their metadata
+    """
+    dataset = message['dataset']
+    if self.__fileName != '':
+      fileName = self.__fileName
+    else:
+      fileName = message['fileName']
 
+    lfns = message['lfns']
+    retVal = self.__bkClient.getFilesWithMetadata( dataset )
+    if not retVal['OK']:
+      QMessageBox.information( self.getWidget(), "Error", retVal['Message'], QMessageBox.Ok )
+      return False
+    else:
+      with open( fileName, 'w' ) as fd:
+        fd.write( ','.join( retVal['Value']['ParameterNames'] ) )
+        fd.write( '\n' )
+        if len( lfns ) != retVal['Value']['TotalRecords']:
+          for record in retVal['Value']['Records']:
+            if record[0] in lfns:
+              fd.write( ','.join( str(metadata) for metadata in record ) )
+              fd.write( '\n' )
+        else:
+          for record in retVal['Value']['Records']:
+            fd.write( ','.join( str(metadata) for metadata in record ) )
+            fd.write( '\n' )
+    return True
