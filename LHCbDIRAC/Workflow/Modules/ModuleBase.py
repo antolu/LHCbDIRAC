@@ -463,10 +463,12 @@ class ModuleBase( object ):
 
     histogram = False
 
-    if self.jobType.lower() == 'merge' and len(stepOutTypes) == 1 and stepOutTypes[0] in [hts.lower() for hts in histoTypes] + ['root']:
-      # first here treating the special case of root/histo/ntuple merging jobs
+    # first here treating the special case of root/histo/ntuple merging jobs
+    if self.jobType.lower() in ('merge', 'histomerge') \
+            and len(stepOutTypes) == 1 \
+            and stepOutTypes[0] in [hts.lower() for hts in histoTypes] + ['root']:
       pass
-    else:
+    else: # This is not a histogram merging production, so we remove the histograms from the step outputs
       for hist in histoTypes:
         try:
           stepOutTypes.remove( hist )
