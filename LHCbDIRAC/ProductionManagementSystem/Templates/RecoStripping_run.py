@@ -58,17 +58,11 @@ validationFlag = '{{validationFlag#GENERAL: Set True for validation prod#False}}
 # workflow params for all productions
 pr.startRun = '{{startRun#GENERAL: run start, to set the start run#0}}'
 pr.endRun = '{{endRun#GENERAL: run end, to set the end of the range#0}}'
-pr.runsList = '{{runsList#GENERAL: discrete list of run numbers (do not mix with start/endrun)#}}'
-targetSite = '{{WorkflowDestination#GENERAL: Workflow destination site e.g. LCG.CERN.cern#ALL}}'
-extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepNumber:options#}}'
 pr.derivedProduction = '{{AncestorProd#GENERAL: ancestor prod to be derived#0}}'
-pr.previousProdID = int( '{{previousProdID#GENERAL: previous prod ID (for BK query)#0}}' )
-pr.fractionToProcess = int( '{{fractionToProcess#GENERAL: fraction to process, per run#0}}' )
-pr.minFilesToProcess = int( '{{minFilesToProcess#GENERAL: minimum number of files to process, per run#0}}' )
 
 # reco params
 recoPriority = int( '{{RecoPriority#PROD-1:RECO(Stripp): priority#2}}' )
-recoCPU = '{{RecoMaxCPUTime#PROD-1:RECO(Stripp): Max CPU time in secs#1000000}}'
+recoCPU = '{{RecoMaxCPUTime#PROD-1:RECO(Stripp): Max CPU time in secs#1500000}}'
 recoPlugin = '{{RecoPluginType#PROD-1:RECO(Stripp): production plugin name#RAWProcessing}}'
 recoFilesPerJob = '{{RecoFilesPerJob#PROD-1:RECO(Stripp): Group size or number of files per job#1}}'
 recoDataSE = '{{RecoDataSE#PROD-1:RECO(Stripp): Output Data Storage Element#Tier1-BUFFER}}'
@@ -76,9 +70,6 @@ try:
   recoDataSESpecial = ast.literal_eval( '{{RecoDataSESpecial#PROD-1:RECO(Stripp): Special SE (a dictionary Type:SE)#}}' )
 except SyntaxError:
   recoDataSESpecial = {}
-recoType = '{{RecoType#PROD-1:RECO(Stripp): DataReconstruction or DataReprocessing#DataReconstruction}}'
-recoIDPolicy = '{{recoIDPolicy#PROD-1:RECO(Stripp): policy for input data access (download or protocol)#download}}'
-recoMulticoreFlag = '{{recoMulticoreFLag#PROD-1: multicore flag#True}}'
 recoAncestorDepth = int( '{{recoAncestorDepth#PROD-1: Ancestor Depth#0}}' )
 recoCompressionLvl = '{{recoCompressionLvl#PROD-1: compression level#LOW}}'
 recoOutputVisFlag = '{{recoOutputVisFlag#PROD-1: Visibility flag of output files #Y}}'
@@ -97,8 +88,6 @@ try:
   strippDataSESpecial = ast.literal_eval( '{{StrippDataSESpecial#PROD-2:Stripping: Special SE (a dictionary Type:SE)#}}' )
 except SyntaxError:
   strippDataSESpecial = {}
-strippIDPolicy = '{{strippIDPolicy#PROD-2:Stripping: policy for input data access (download or protocol)#download}}'
-strippMulticoreFlag = '{{strippMulticoreFLag#PROD-2: multicore flag#True}}'
 strippAncestorDepth = int( '{{strippAncestorDepth#PROD-2: Ancestor Depth#0}}' )
 strippCompressionLvl = '{{strippCompressionLvl#PROD-2: compression level#LOW}}'
 strippOutputVisFlag = '{{strippOutputVisFlag#PROD-2: Visibility flag of output files#N}}'
@@ -117,9 +106,7 @@ try:
   mergingDataSESpecial = ast.literal_eval( '{{MergingDataSESpecial#PROD-3:Merging: Special SE (a dictionary Type:SE)#}}' )
 except SyntaxError:
   mergingDataSESpecial = {}
-mergingIDPolicy = '{{MergeIDPolicy#PROD-3:Merging: policy for input data access (download or protocol)#download}}'
 mergingRemoveInputsFlag = '{{MergeRemoveFlag#PROD-3:Merging: remove input data flag True/False#True}}'
-mergeMulticoreFlag = '{{mergeMulticoreFLag#PROD-3: multicore flag#True}}'
 mergeCompressionLvl = '{{mergeCompressionLvl#PROD-3: compression level#HIGH}}'
 mergeOutputVisFlag = '{{mergeOutputVisFlag#PROD-3: Visibility flag of output files#Y}}'
 try:
@@ -133,7 +120,6 @@ indexingCPU = '{{IndexingMaxCPUTime#PROD-4:indexing: Max CPU time in secs#50000}
 indexingPlugin = '{{IndexingPlugin#PROD-4:indexing: plugin#ByRunFileTypeSizeWithFlush}}'
 indexingGroupSize = '{{IndexingFileSize#PROD-4:indexing: Size (in GB) of the Indexed files#50}}'
 indexingDataSE = '{{IndexingStreamSE#PROD-4:indexing: output data SE (Indexed streams)#IndexerSE}}'
-indexingIDPolicy = '{{IndexingIDPolicy#PROD-4:indexing: policy for input data access (download or protocol)#protocol}}'
 
 pr.requestID = '{{ID}}'
 pr.prodGroup = '{{inProPass}}' + '/' + '{{pDsc}}'
@@ -147,6 +133,11 @@ pr.processingPass = '{{inProPass}}'
 pr.bkFileType = '{{inFileType}}'
 pr.eventType = '{{eventType}}'
 pr.visibility = 'Yes'
+recoType = 'DataReconstruction'
+targetSite = 'ALL'
+recoMulticoreFlag = strippMulticoreFlag = mergeMulticoreFlag = 'True'
+recoIDPolicy = strippIDPolicy = mergingIDPolicy = indexingIDPolicy = 'download'
+
 
 w1 = ast.literal_eval( w1 )
 w2 = ast.literal_eval( w2 )
@@ -157,8 +148,6 @@ w5 = ast.literal_eval( w5 )
 localTestFlag = ast.literal_eval( localTestFlag )
 validationFlag = ast.literal_eval( validationFlag )
 
-if extraOptions:
-  pr.extraOptions = ast.literal_eval( extraOptions )
 mergeRemoveInputsFlag = ast.literal_eval( mergingRemoveInputsFlag )
 
 if not w1 and not w2 and not w3 and not w4:
