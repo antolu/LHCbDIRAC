@@ -280,7 +280,7 @@ class ProductionRequestDB( DB ):
     rQuery += " GROUP BY t.RequestID, t.bkSrTotal) as t"
     rQuery += " LEFT JOIN RequestHistory as rh ON rh.RequestID=t.RequestID "
     rQuery += " GROUP BY t.RequestID, t.bkSrTotal"
-
+    
     return rQuery + order
 
   def getProductionRequest( self, requestIDList, subrequestsFor = 0,
