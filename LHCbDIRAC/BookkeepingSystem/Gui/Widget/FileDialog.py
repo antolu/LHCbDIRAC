@@ -268,7 +268,7 @@ class FileDialog(QDialog, Ui_FileDialog):
     """saves the selected files"""
     saveDialog = QFileDialog (self, 'Feicim Save file(s) dialog',
                               QDir.currentPath(),
-                              'Python option(*.py);;Option file (*.opts);;Text file (*.txt)')
+                              'Python option(*.py);;Option file (*.opts);;Text file (*.txt);;CSV (*.csv)')
     saveDialog.setAcceptMode(QFileDialog.AcceptSave)
 
     saveDialog.selectFile(filename)
@@ -282,24 +282,27 @@ class FileDialog(QDialog, Ui_FileDialog):
     #saveDialog.setViewMode(QFileDialog.Detail)
 
     ext = ''
-    if (saveDialog.exec_()):
-      filename = str(saveDialog.selectedFiles()[0])
+    if saveDialog.exec_():
+      filename = str( saveDialog.selectedFiles()[0] )
       ext = saveDialog.selectedFilter()
       if 'Text file (*.txt)' in ext:
-        if filename.find('.') < 0:
+        if not filename.endswith( '.txt' ):
           filename += '.txt'
       elif 'Option file (*.opts)' in ext:
-        if filename.find('.') < 0:
+        if not filename.endswith( '.opts' ):
           filename += '.opts'
       elif 'Python option(*.py)' in ext:
-        if filename.find('.') < 0:
+        if not filename.endswith( '.py' ):
           filename += '.py'
+      elif 'CSV (*.csv)' in ext:
+        if not filename.endswith( '.csv' ):
+          filename += '.csv'
       try:
-        open(filename)
+        open( filename )
       except IOError:
         pass
       else:
-        response = QMessageBox.warning(self, "File dialog", "File exists, overwrite?", QMessageBox.Ok, QMessageBox.No)
+        response = QMessageBox.warning( self, "File dialog", "File exists, overwrite?", QMessageBox.Ok, QMessageBox.No )
         if response == QMessageBox.No:
           filename = ''
     if filename == '':

@@ -188,26 +188,34 @@ class ControlerFileDialog(ControlerAbstract):
       fileName, ext = self.getWidget().saveAs(fileName)
 
       if '.opts' in ext:
-        if fileName.find('.opts') < 0:
+        if not fileName.endswith( '.opts' ):
           fileName += '.opts'
-        message = Message({'action':'SaveAs', 'fileName':fileName, 'lfns':lfns, 'dataset':self.getDataSet()})
-        feedback = self.getParent().messageFromChild(self, message)
+        message = Message( {'action':'SaveAs', 'fileName':fileName, 'lfns':lfns, 'dataset':self.getDataSet()} )
+        feedback = self.getParent().messageFromChild( self, message )
         if feedback:
-          QMessageBox.information(self.getWidget(), "Save As...", "This file has been saved!", QMessageBox.Ok)
+          QMessageBox.information( self.getWidget(), "Save As...", "This file has been saved!", QMessageBox.Ok )
       elif '.txt' in ext:
-        if fileName.find('.txt') < 0:
+        if not fileName.endswith( '.txt' ):
           fileName += '.txt'
-        message = Message({'action':'SaveToTxt', 'fileName':fileName, 'lfns':lfns})
-        feedback = self.getParent().messageFromChild(self, message)
+        message = Message( {'action':'SaveToTxt', 'fileName':fileName, 'lfns':lfns} )
+        feedback = self.getParent().messageFromChild( self, message )
         if feedback:
-          QMessageBox.information(self.getWidget(), "Save As...", "This file has been saved!", QMessageBox.Ok)
+          QMessageBox.information( self.getWidget(), "Save As...", "This file has been saved!", QMessageBox.Ok )
       elif '.py' in ext:
-        if fileName.find('.py') < 0:
+        if not fileName.endswith( '.py' ):
           fileName += '.py'
-        message = Message({'action':'SaveAs', 'fileName':fileName, 'lfns':lfns, 'dataset':self.getDataSet()})
-        feedback = self.getParent().messageFromChild(self, message)
+        message = Message( {'action':'SaveAs', 'fileName':fileName, 'lfns':lfns, 'dataset':self.getDataSet()} )
+        feedback = self.getParent().messageFromChild( self, message )
         if feedback:
-          QMessageBox.information(self.getWidget(), "Save As...", "This file has been saved!", QMessageBox.Ok)
+          QMessageBox.information( self.getWidget(), "Save As...", "This file has been saved!", QMessageBox.Ok )
+      
+      elif '.csv' in ext:
+        if not fileName.endswith( '.csv' ):
+          fileName += '.csv'
+        message = Message( {'action':'SaveToCSV', 'fileName':fileName, 'lfns':lfns, 'dataset':self.getDataSet()} )
+        feedback = self.getParent().messageFromChild( self, message )
+        if feedback:
+          QMessageBox.information( self.getWidget(), "Save As...", "This file has been saved!", QMessageBox.Ok )
 
   ############################################################################
   def selection(self, selected, deselected):

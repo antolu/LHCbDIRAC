@@ -150,5 +150,12 @@ class LHCB_BKKDBClient( BaseESClient ):
     """it sets the file types"""
     return self.getManager().setFileTypes( fileTypeList )
   
+  #############################################################################
+  def getFilesWithMetadata( self, dataset ):
+    """it sets the file types
+    :param dict dataset: it is a bookkeeping dictionary, which contains the conditions used to retreive the lfns 
+    :return: S_OK lfns with metadata
+    """
+    return self.getManager().getFilesWithMetadata( dataset )
   
   
