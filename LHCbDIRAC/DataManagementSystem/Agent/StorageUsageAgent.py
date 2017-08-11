@@ -61,6 +61,7 @@ class StorageUsageAgent( AgentModule ):
   dataLock = None  # threading.Lock()
   replicaListLock = None  # threading.Lock()
   proxyCache = None  # DictCache()
+  enableStartupSleep = True # Enable a random sleep so not all the user agents start together
 
   def __init__( self, *args, **kwargs ):
     ''' c'tor
@@ -91,14 +92,17 @@ class StorageUsageAgent( AgentModule ):
     self.__noProxy = set()
     self.__catalogType = None
     self.__recalculateUsage = Operations().getValue( 'DataManagement/RecalculateDirSize', False )
+    self.enableStartupSleep = self.am_getOption('EnableStartupSleep', self.enableStartupSleep)
 
   def initialize( self ):
     ''' agent initialisation '''
 
     self.am_setOption( "PollingTime", self.pollingTime )
-    rndSleep = random.randint( 1, self.pollingTime )
-    self.log.info( "Sleeping for %s seconds" % rndSleep )
-    time.sleep( rndSleep )
+
+    if self.enableStartupSleep:
+      rndSleep = random.randint( 1, self.pollingTime )
+      self.log.info( "Sleeping for %s seconds" % rndSleep )
+      time.sleep( rndSleep )
 
     # This sets the Default Proxy to used as that defined under
     # /Operations/Shifter/DataManager
