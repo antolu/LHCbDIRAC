@@ -1,3 +1,8 @@
+[v8r8p14]
+use DIRAC v6r17p28
+
+* StorageUsageAgent: allow to disable the random sleep at startup
+
 [v8r8p13]
 use DIRAC v6r17p27
 
