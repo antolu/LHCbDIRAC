@@ -18,9 +18,6 @@ from DIRAC import gLogger
 from DIRAC.RequestManagementSystem.Client.Request import Request
 from DIRAC.RequestManagementSystem.Client.Operation import Operation
 from DIRAC.RequestManagementSystem.Client.File import File
-from DIRAC.TransformationSystem.Client.FileReport import FileReport
-from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummary
-
 
 # mocks
 from LHCbDIRAC.Workflow.Modules.test.mock_Commons import prod_id, prod_job_id, wms_job_id, \
@@ -29,11 +26,7 @@ from LHCbDIRAC.Workflow.Modules.test.mock_Commons import prod_id, prod_job_id, w
                                                          rc_mock
 from LHCbDIRAC.BookkeepingSystem.Client.test.mock_BookkeepingClient import bkc_mock
 
-
-
 # sut
-from LHCbDIRAC.Workflow.Modules.AnalyseXMLSummary import AnalyseXMLSummary
-from LHCbDIRAC.Workflow.Modules.BookkeepingReport import BookkeepingReport
 from LHCbDIRAC.Workflow.Modules.FailoverRequest import FailoverRequest
 from LHCbDIRAC.Workflow.Modules.RemoveInputData import RemoveInputData
 from LHCbDIRAC.Workflow.Modules.SendBookkeeping import SendBookkeeping
@@ -105,143 +98,6 @@ class ModulesTestCase( unittest.TestCase ):
       except:
         continue
 
-
-#############################################################################
-# AnalyseXMLSummary.py
-#############################################################################
-
-@patch( "LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect = MagicMock() )
-class AnalyseXMLSummarySuccess( ModulesTestCase ):
-
-  #################################################
-
-  def test_execute( self, _patch ):
-
-    axlf = AnalyseXMLSummary( bkClient = bkc_mock, dm = dm_mock )
-    axlf.stepInputData = ['some.sdst', '00012345_00006789_1.sdst']
-    axlf.jobType = 'merge'
-
-    logAnalyser = MagicMock()
-
-    logAnalyser.return_value = True
-    axlf.logAnalyser = logAnalyser
-    axlf.XMLSummary_o = self.xf_o_mock
-    axlf.nc = self.nc_mock
-    axlf.XMLSummary = 'XMLSummaryFile'
-    with open( axlf.XMLSummary, 'w' ) as f:
-      f.write( """<?xml version="1.0" encoding="UTF-8"?>
-
-  <summary version="1.0" xsi:noNamespaceSchemaLocation="$XMLSUMMARYBASEROOT/xml/XMLSummary.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-          <success>True</success>
-          <step>finalize</step>
-          <usage>
-                  <stat unit="KB" useOf="MemoryMaximum">866104.0</stat>
-          </usage>
-          <input>
-                  <file GUID="CCE96707-4BE9-E011-81CD-003048F35252" name="LFN:00012478_00000532_1.sim" status="full">200</file>
-          </input>
-          <output>
-                  <file GUID="229BBEF1-66E9-E011-BBD0-003048F35252" name="PFN:00012478_00000532_2.xdigi" status="full">200</file>
-          </output>
-  </summary>
-  """ )
-
-    # no errors, all ok
-    for wf_cs in copy.deepcopy( wf_commons ):
-      for s_cs in step_commons:
-        self.assertTrue( axlf.execute( prod_id, prod_job_id, wms_job_id,
-                                       workflowStatus, stepStatus,
-                                       wf_cs, s_cs,
-                                       step_number, step_id )['OK'] )
-
-    # logAnalyser gives errors
-    axlf.jobType = 'reco'
-
-    logAnalyser.return_value = False
-    axlf.logAnalyser = logAnalyser
-
-    for wf_cs in copy.deepcopy( wf_commons ):
-      for s_cs in step_commons:
-        self.assertTrue( axlf.execute( prod_id, prod_job_id, wms_job_id,
-                                       workflowStatus, stepStatus,
-                                       wf_cs, s_cs,
-                                       step_number, step_id )['OK'] )
-
-  def test__basicSuccess( self, _patch ):
-
-    axlf = AnalyseXMLSummary( bkClient = bkc_mock, dm = dm_mock )
-
-    f = open( 'XMLSummaryFile', 'w' )
-    f.write( """<?xml version="1.0" encoding="UTF-8"?>
-
-<summary version="1.0" xsi:noNamespaceSchemaLocation="$XMLSUMMARYBASEROOT/xml/XMLSummary.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-        <success>True</success>
-        <step>finalize</step>
-        <usage>
-                <stat unit="KB" useOf="MemoryMaximum">866104.0</stat>
-        </usage>
-        <input>
-                <file GUID="CCE96707-4BE9-E011-81CD-003048F35252" name="LFN:00012478_00000532_1.sim" status="full">200</file>
-        </input>
-        <output>
-                <file GUID="229BBEF1-66E9-E011-BBD0-003048F35252" name="PFN:00012478_00000532_2.xdigi" status="full">200</file>
-        </output>
-</summary>
-""" )
-    f.close()
-    axlf.XMLSummary_o = XMLSummary( 'XMLSummaryFile' )
-    res = axlf._basicSuccess()
-    self.assertFalse( res )
-
-    axlf.XMLSummary_o.inputFileStats = {'full':2, 'part':1, 'fail':0, 'other':0}
-    axlf.XMLSummary_o.inputStatus = [( 'aa/1.txt', 'full' ), ( 'aa/2.txt', 'part' )]
-    axlf.inputDataList = ['aa/1.txt', 'aa/2.txt']
-    axlf.numberOfEvents = -1
-    axlf.fileReport = FileReport()
-    axlf.production_id = '123'
-    res = axlf._basicSuccess()
-    self.assertTrue( res )
-    self.assertEqual( axlf.fileReport.statusDict, {'aa/2.txt': 'Problematic'} )
-
-    axlf.XMLSummary_o.inputFileStats = {'full':2, 'part':0, 'fail':1, 'other':0}
-    axlf.XMLSummary_o.inputStatus = [( 'aa/1.txt', 'fail' ), ( 'aa/2.txt', 'full' )]
-    axlf.inputDataList = ['aa/1.txt', 'aa/2.txt']
-    axlf.numberOfEvents = -1
-    axlf.fileReport = FileReport()
-    axlf.production_id = '123'
-    res = axlf._basicSuccess()
-    self.assertTrue( res )
-    self.assertEqual( axlf.fileReport.statusDict, {'aa/1.txt': 'Problematic'} )
-
-    axlf.XMLSummary_o.inputFileStats = {'full':2, 'part':0, 'fail':1, 'other':0}
-    axlf.XMLSummary_o.inputStatus = [( 'aa/1.txt', 'fail' ), ( 'aa/2.txt', 'full' )]
-    axlf.inputDataList = ['aa/3.txt']
-    axlf.numberOfEvents = -1
-    axlf.fileReport = FileReport()
-    axlf.production_id = '123'
-    res = axlf._basicSuccess()
-    self.assertFalse( res )
-    self.assertEqual( axlf.fileReport.statusDict, {} )
-
-    axlf.XMLSummary_o.inputFileStats = {'full':2, 'part':1, 'fail':1, 'other':0}
-    axlf.XMLSummary_o.inputStatus = [( 'aa/1.txt', 'fail' ), ( 'aa/2.txt', 'part' )]
-    axlf.inputDataList = ['aa/1.txt', 'aa/2.txt']
-    axlf.numberOfEvents = -1
-    axlf.fileReport = FileReport()
-    axlf.production_id = '123'
-    res = axlf._basicSuccess()
-    self.assertTrue( res )
-    self.assertEqual( axlf.fileReport.statusDict, {'aa/1.txt': 'Problematic', 'aa/2.txt': 'Problematic'} )
-
-    axlf.XMLSummary_o.inputFileStats = {'full':2, 'part':1, 'fail':1, 'other':0}
-    axlf.XMLSummary_o.inputStatus = [( 'aa/1.txt', 'fail' ), ( 'aa/2.txt', 'part' )]
-    axlf.inputDataList = ['aa/1.txt', 'aa/2.txt']
-    axlf.numberOfEvents = '10'
-    axlf.fileReport = FileReport()
-    axlf.production_id = '123'
-    res = axlf._basicSuccess()
-    self.assertTrue( res )
-    self.assertEqual( axlf.fileReport.statusDict, {'aa/1.txt': 'Problematic'} )
 
 #############################################################################
 # FailoverRequest.py
