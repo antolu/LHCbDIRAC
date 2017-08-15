@@ -20,7 +20,7 @@ def seSvcClass( se ):
       if se.endswith( 'HIST' ):
         seSvcClass[se] = 'Hist'
       else:
-        seSvcClassDict[se] = 'Tape' if StorageElement( se ).getStatus()['Value']['TapeSE'] else 'Disk'
+        seSvcClassDict[se] = 'Tape' if StorageElement( se ).getStatus()['TapeSE'] else 'Disk'
     except:
       seSvcClassDict[se] = 'LFN'
   return seSvcClassDict[se]
@@ -421,7 +421,7 @@ def execute( unit, minimum, depth ):
       storageElement = StorageElement( se )
       files = totalUsage[se]['Files']
       size = totalUsage[se]['Size']
-      seStatus = storageElement.getStatus()['Value']
+      seStatus = storageElement.getStatus()
       if seStatus['TapeSE']:
         tapeTotalFiles += files
         tapeTotalSize += size
