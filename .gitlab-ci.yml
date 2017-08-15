@@ -10,6 +10,31 @@ stages:
   - release_docker
 
 
+# This runs py.test
+run_pytest:
+  image:  gitlab-registry.cern.ch/ci-tools/ci-worker:cc7
+  before_script:
+    # If we are in a pre release branch we use integration of DIRAC, otherwise master
+    - diracBranch=$(grep -E ' *v' LHCbDIRAC/releases.cfg | head -n 1 | grep -q pre; if [ $? -eq 0 ]; then echo "integration"; else echo "master"; fi)
+    - echo "Using DIRAC branch $diracBranch"
+    - git clone https://github.com/DIRACGrid/DIRAC.git
+    - cd DIRAC
+    - git checkout $diracBranch
+    - cd ..
+    - yum install -y mysql mysql-libs mysql-devel make ncurses-devel
+    - pip install --upgrade setuptools
+    - pip install --upgrade pip
+    - pip install -r DIRAC/requirements.txt
+  stage: test
+  only:
+    - branches
+  script:
+    - cd LHCbDIRAC
+    - py.test . --cov=. --cov-report term-missing --cov-report xml --junitxml=pytests.xml
+
+
+
+
 # This creates and deploy the tarball on AFS
 # It is triggered with a tag only
 create_tarball:
