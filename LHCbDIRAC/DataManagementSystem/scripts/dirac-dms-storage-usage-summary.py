@@ -21,9 +21,9 @@ def seSvcClass( se ):
         seSvcClass[se] = 'Hist'
       else:
         status = StorageElement( se ).getStatus()
-        # FIXME: temporary until DIRAC is released
-        status = status.get( 'Value', status )
-        seSvcClassDict[se] = 'Tape' if status['TapeSE'] else 'Disk'
+        if status['OK']:
+          status = status['Value']
+          seSvcClassDict[se] = 'Tape' if status['TapeSE'] else 'Disk' if status['Disk'] else 'Unknown'
     except:
       seSvcClassDict[se] = 'LFN'
   return seSvcClassDict[se]
@@ -425,14 +425,14 @@ def execute( unit, minimum, depth ):
       files = totalUsage[se]['Files']
       size = totalUsage[se]['Size']
       seStatus = storageElement.getStatus()
-      # FIXME: Temporary in case DIRAC is not fixed yet
-      seStatus = seStatus.get( 'Value', seStatus )
-      if seStatus['TapeSE']:
-        tapeTotalFiles += files
-        tapeTotalSize += size
-      if seStatus['DiskSE']:
-        diskTotalFiles += files
-        diskTotalSize += size
+      if seStatus['OK']:
+        seStatus = seStatus['Value']
+        if seStatus['TapeSE']:
+          tapeTotalFiles += files
+          tapeTotalSize += size
+        if seStatus['DiskSE']:
+          diskTotalFiles += files
+          diskTotalSize += size
     print '%s %s %s' % ( 'Storage Type'.ljust( 20 ),
                          ( 'Size (%s)' % unit ).ljust( 20 ),
                          'Files'.ljust( 20 ) )
