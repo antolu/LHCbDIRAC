@@ -270,7 +270,7 @@ class TransformationDB( DIRACTransformationDB ):
       return S_ERROR( "RunList invalid: %s" % repr( e ) )
     if len( runsInQuery ) > 999:
       return S_ERROR( "RunList bigger the 1000 not allowed because of Oracle limitations!!!" )
-    value = ';;;'.join( [str( x ) for x in sorted( runsInQuery )] )
+    value = ';;;'.join( str( x ) for x in sorted( runsInQuery ) )
     req = "UPDATE BkQueriesNew SET ParameterValue='%s' WHERE TransformationID = %d AND ParameterName='RunNumbers'" % ( value, transID )
     self._update( req, connection )
     return S_OK()
@@ -281,7 +281,7 @@ class TransformationDB( DIRACTransformationDB ):
     connection = self.__getConnection( connection )
     values = []
     for field in self.queryFields:
-      if not field in queryDict.keys():
+      if field not in queryDict:
         if field in ['StartRun', 'EndRun']:
           value = 0
         else:
@@ -314,7 +314,7 @@ class TransformationDB( DIRACTransformationDB ):
     connection = self.__getConnection( connection )
     req = "SELECT DISTINCT TransformationID FROM BkQueriesNew"
     if transIDs:
-      req = req + " WHERE TransformationID IN (%s)" % ( ', '.join( [str( t ) for t in transIDs] ) )
+      req = req + " WHERE TransformationID IN (%s)" % ( ', '.join( str( t ) for t in transIDs ) )
     res = self._query( req, connection )
     if res['OK']:
       res = S_OK( [tID[0] for tID in res['Value']] )
@@ -477,9 +477,9 @@ class TransformationDB( DIRACTransformationDB ):
     connection = self.__getConnection( connection )
     selectDict = {}
     if condDict:
-      for key in condDict.keys():
+      for key, val in condDict.iteritems():
         if key in self.transRunParams:
-          selectDict[key] = condDict[key]
+          selectDict[key] = val
     req = "SELECT %s FROM TransformationRuns %s" % ( intListToString( self.transRunParams ),
                                                      self.buildCondition( selectDict,
                                                                           older = older,
@@ -537,19 +537,13 @@ class TransformationDB( DIRACTransformationDB ):
     res = self._getConnectionTransID( connection, transID )
     if not res['OK']:
       return res
-    lfnsDict = dict( ( item, {'RunNumber': runID} ) for item in lfns )
+    lfnsDict = dict.fromkeys( lfns, {'RunNumber': runID} )
     res = self.setParameterToTransformationFiles( transID, lfnsDict )
     if not res['OK']:
       return res
     fileIDs = res ['Value']
-    successful = {}
-    failed = {}
-    for fileID in fileIDs.keys():
-      lfn = fileIDs[fileID]
-      successful[lfn] = "Added"
-    for lfn in lfns:
-      if not lfn in successful.keys():
-        failed[lfn] = "Missing"
+    successful = dict.fromkeys( fileIDs.values(), 'Added' )
+    failed = dict.fromkeys( set( lfns ) - set( successful ), 'Missing' )
     # Now update the TransformationRuns to include the newly updated files
     req = "UPDATE TransformationRuns SET LastUpdate = UTC_TIMESTAMP() \
     WHERE TransformationID = %d and RunNumber = %d" % ( transID, runID )
@@ -573,12 +567,12 @@ class TransformationDB( DIRACTransformationDB ):
       return res
     fileIDs, _lfnFilesIDs = res['Value']
     rDict = {}
-    for fileID, lfn in fileIDs.items():
+    for fileID, lfn in fileIDs.iteritems():
       rDict[fileID] = lfnsDict[lfn]
-    for fID, param in rDict.items():
+    for fID, param in rDict.iteritems():
       req = "UPDATE TransformationFiles SET %s \
        WHERE TransformationID = %d AND FileID = %d" % \
-       ( ','.join( ["`%s` = '%s'" % ( key, str( val ) ) for key, val in param.items()] ), transID, fID )
+       ( ','.join( "`%s` = '%s'" % keyVal for keyVal in param.iteritems() ), transID, fID )
       res = self._update( req, connection )
       if not res['OK']:
         gLogger.error( "Failed to update TransformationFiles table", res['Message'] )
@@ -653,7 +647,7 @@ class TransformationDB( DIRACTransformationDB ):
     """ Add the metadataDict to runID (if already present, does nothing)
     """
     connection = self.__getConnection( connection )
-    for name, value in metadataDict.items():
+    for name, value in metadataDict.iteritems():
       res = self.__insertRunMetadata( runID, name, value, connection )
       if not res['OK']:
         return res
@@ -663,7 +657,7 @@ class TransformationDB( DIRACTransformationDB ):
     """ Add the metadataDict to runID (if already present, does nothing)
     """
     connection = self.__getConnection( connection )
-    for name, value in metadataDict.items():
+    for name, value in metadataDict.iteritems():
       res = self.__updateRunMetadata( runID, name, value, connection )
       if not res['OK']:
         return res
@@ -702,7 +696,7 @@ class TransformationDB( DIRACTransformationDB ):
     connection = self.__getConnection( connection )
     try:
       if isinstance( runIDs, ( list, dict, set, tuple ) ):
-        runIDs = ','.join( [str( int( x ) ) for x in runIDs] )
+        runIDs = ','.join( str( int( x ) ) for x in runIDs )
       else:
         runIDs = str( int( runIDs ) )
     except ValueError as e:
@@ -753,7 +747,7 @@ class TransformationDB( DIRACTransformationDB ):
     """ get destination of a run or a list of runs.
     """
     connection = self.__getConnection( connection )
-    req = "SELECT * FROM RunDestination WHERE RunNumber IN (%s)" % ( ', '.join( [str( runID ) for runID in runIDs] ) )
+    req = "SELECT * FROM RunDestination WHERE RunNumber IN (%s)" % ( ', '.join( str( runID ) for runID in runIDs ) )
     res = self._query( req, connection )
     if not res['OK']:
       gLogger.error( "Failure executing %s" % str( req ) )
