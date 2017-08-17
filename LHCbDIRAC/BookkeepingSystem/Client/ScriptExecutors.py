@@ -183,9 +183,9 @@ def executeFilePath( dmScript ):
       dirName = os.path.dirname( lfn )
       if not dirName:
         continue
-      if '/RAW/' not in dirName: 
-        #If it is is RAW, we already had the correct path. 
-        #for example: os.path.dirname('/lhcb/data/2016/RAW/TURBO/LHCb/COLLISION16/176059/176059_0000003101.raw') returns /lhcb/data/2016/RAW/TURBO/LHCb/COLLISION16/176059
+      if '/RAW/' not in dirName:
+        # If it is is RAW, we already had the correct path.
+        # for example: os.path.dirname('/lhcb/data/2016/RAW/TURBO/LHCb/COLLISION16/176059/176059_0000003101.raw') returns /lhcb/data/2016/RAW/TURBO/LHCb/COLLISION16/176059
         tail = os.path.basename( dirName )
         # Eliminate the tailing '/0000'
         if len( tail ) == 4 and tail.isdigit():
@@ -1397,6 +1397,8 @@ def executeRejectionStats( dmScript ):
   if bkQuery:
     bkQuery.setOption( 'ReplicaFlag', bkQuery.isVisible() )
     fileTypes = bkQuery.getFileTypeList()
+    if not fileTypes:
+      fileTypes = bkQuery.getBKFileTypes()
     gLogger.notice( "Using BK query", str( bkQuery ) )
     if byStream:
       streams = sorted( fileTypes )
@@ -1436,7 +1438,7 @@ def executeRejectionStats( dmScript ):
       if not res['OK']:
         gLogger.fatal( "Error getting files metadata", res['Message'] )
         diracExit( 1 )
-      eventStat += sum( meta['EventStat'] for meta in res['Value']['Successful'].itervalues() )
+      eventStat += sum( meta['EventStat'] for meta in res['Value']['Successful'].itervalues() if meta['EventStat'] )
     progressBar.endLoop()
     eventStatByStream[stream] = eventStat
 
