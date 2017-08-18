@@ -81,11 +81,11 @@ class TransformationClient( DIRACTransformationClient ):
     newStatuses = dict()
     for lfn, newStatus in dictOfProposedLFNsStatus.iteritems():
       if lfn in tsFilesAsDict:
+        currentStatus = tsFilesAsDict[lfn][0]
         if force:
           # We do whatever is requested
           newStatus = dictOfProposedLFNsStatus[lfn]
         else:
-          currentStatus = tsFilesAsDict[lfn][0]
           # Special case for Assigned -> Unused
           if currentStatus.lower() == 'assigned' and newStatus.lower() == 'unused':
             errorCount = tsFilesAsDict[lfn][1]
