@@ -79,24 +79,25 @@ class TransformationClient( DIRACTransformationClient ):
     """ Apply LHCb state machine for transformation files
     """
     newStatuses = dict()
-    for lfn, status in dictOfProposedLFNsStatus.iteritems():
+    for lfn, newStatus in dictOfProposedLFNsStatus.iteritems():
       if lfn in tsFilesAsDict:
         if force:
-          newStatuses[lfn] = dictOfProposedLFNsStatus[lfn]
+          # We do whatever is requested
+          newStatus = dictOfProposedLFNsStatus[lfn]
         else:
-          tfsm = TransformationFilesStateMachine( tsFilesAsDict[lfn][0] )
-
+          currentStatus = tsFilesAsDict[lfn][0]
           # Special case for Assigned -> Unused
-          if tfsm.state.lower() == 'assigned' and status.lower() == 'unused':
-            if tsFilesAsDict[lfn][1] and ( ( tsFilesAsDict[lfn][1] % self.maxResetCounter ) == 0 ):
-              status = 'MaxReset'
+          if currentStatus.lower() == 'assigned' and newStatus.lower() == 'unused':
+            errorCount = tsFilesAsDict[lfn][1]
+            if errorCount and ( ( errorCount % self.maxResetCounter ) == 0 ):
+              newStatus = 'MaxReset'
 
-          stateChange = tfsm.setState( status )
-          if not stateChange['OK']:
-            if tsFilesAsDict[lfn][0] != status:
-              newStatuses[lfn] = status
-          else:
-            if tsFilesAsDict[lfn][0] != stateChange['Value']:
-              newStatuses[lfn] = stateChange['Value']
+          tfsm = TransformationFilesStateMachine( currentStatus )
+          stateChange = tfsm.setState( newStatus )
+          if stateChange['OK']:
+            newStatus = stateChange['Value']
+        # Only worth setting the status if different from current one
+        if newStatus.lower() != currentStatus.lower():
+          newStatuses[lfn] = newStatus
 
     return newStatuses
