@@ -375,7 +375,6 @@ class ConsistencyChecks( DiracConsistencyChecks ):
     self.descForNonPrcdLFNs = res[3]
     self.inFCNotInBK += res[4]
     self.inBKNotInFC += res[5]
-    self.removedFiles += res[6]
     self.inFailover += res[7]
 
     if self.prcdWithoutDesc:
