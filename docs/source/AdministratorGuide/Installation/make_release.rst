@@ -92,7 +92,7 @@ Then, from the LHCbDIRAC local fork you need to update some files::
   t=$(git describe --abbrev=0 --tags); git --no-pager log ${t}..HEAD --no-merges --pretty=format:'* %s';
   # copy the output, add it to the CHANGELOG (please also add the DIRAC version)
   vim CHANGELOG # please, remove comments like "fix" or "pylint" or "typo"...
-  #If needed, change the versions of the packages
+  # Change the versions of the packages
   vim dist-tools/projectConfig.json
   git add -A && git commit -av -m "<YourNewTag>"
 
@@ -107,9 +107,6 @@ Time to tag and push::
   # delete your local newMaster
   # before change your branch use git checkout "existing branch name"
   git branch -d newMaster
-
-Note: After when you pushed the tag to the master, a gitlab job will create the tar files. This job will fail and usually you receive a mail: LHCbDIRAC | Pipeline #160464 has failed for v8r8p8 | 51233249.
-Please continue the next section 'Propagate to the devel branch' and when this is ready retry the pipeline. You can found the pipeline in your mail or https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/pipelines
 
 
 Remember: you can use "git status" at any point in time to make sure what's the current status.
@@ -154,8 +151,6 @@ Automatic procedure
 When a new git tag is pushed to the repository, a gitlab-ci job takes care of (soon testing), creating the tarball, uploading it to the web service, and to build the docker image. You can check it in the pipeline page of the repository (https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/pipelines).
 
 It may happen that the pipeline fails. There are various reasons for that, but normally, it is just a timeout on the runner side, so just restart the job from the pipeline web interface. If it repeatedly fails building the tarball, try the manual procedure described bellow to understand.
-
-Note: for the moment, the releases.cfg used is the one from the devel branch. This means that if you tag a production version, and the pipeline is ran before you propagate the change to the devel branches, the pipeline will not find your tag in the releases.cfg. A pull request is pending to correct that.
 
 
 Manual procedure
@@ -282,7 +277,7 @@ The recommended way is the following::
 
       ssh lxplus
       mkdir DiracInstall; cd  DiracInstall
-      wget https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/blob/devel/dist-tools/create_vobox_update.py
+      wget https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/raw/devel/dist-tools/create_vobox_update.py
       python create_vobox_update.py vArBpC
 
 This command will create 6 files called "vobox_update_MyLetter" then you can run in 6 windows the recipe for one single machine like that::
@@ -334,7 +329,8 @@ When the web portal machine is updated then you have to compile the WebApp::
 
     ssh lhcb-portal-dirac.cern.ch
     sudo su - dirac
-    dirac-install -r VERSIONTOBEINSTALLED -t server -l LHCb -e LHCb,LHCbWeb,WebAppDIRAC /opt/dirac/etc/dirac.cfg (for example: dirac-install -r v8r4p2 -t server -l LHCb -e LHCb,LHCbWeb,WebAppDIRAC /opt/dirac/etc/dirac.cfg)
+    #  (for example: dirac-install -r v8r4p2 -t server -l LHCb -e LHCb,LHCbWeb,WebAppDIRAC /opt/dirac/etc/dirac.cfg)
+    dirac-install -r VERSIONTOBEINSTALLED -t server -l LHCb -e LHCb,LHCbWeb,WebAppDIRAC /opt/dirac/etc/dirac.cfg
     dirac-webapp-compile
 
 
@@ -352,7 +348,7 @@ When the machines are updated, then you have to go through all the components an
 
    2. Command line::
 
-    for h in $(grep 'set host' vobox_update_* | awk {'print $NF'}); do echo "show errors" | dirac-admin-sysadmin-cli -H $h; done | less
+       for h in $(grep 'set host' vobox_update_* | awk {'print $NF'}); do echo "show errors" | dirac-admin-sysadmin-cli -H $h; done | less
 
 Pilot
 `````
