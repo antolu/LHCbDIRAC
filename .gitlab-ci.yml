@@ -4,13 +4,16 @@
 stages:
    # Run all the tests
   - test
+  # deploy the coverage results
+  - coverage
+  - coverageDfs
   # Release the software on AFS
   - release
   # Build the docker
   - release_docker
 
 
-# This runs py.test
+# This runs py.test and generates the coverage report
 run_pytest:
   image:  gitlab-registry.cern.ch/ci-tools/ci-worker:cc7
   before_script:
@@ -30,8 +33,48 @@ run_pytest:
     - branches
   script:
     - cd LHCbDIRAC
-    - py.test . --cov=. --cov-report term-missing --cov-report xml --junitxml=pytests.xml
+    - py.test . --cov=. --cov-report term-missing --cov-report html --junitxml=pytests.xml
+  coverage: '/\d+\%\s*$/'
+  artifacts:
+    paths:
+      - LHCbDIRAC/htmlcov/
 
+# This job MUST be call pages as per https://docs.gitlab.com/ce/ci/yaml/README.html#pages
+pages:
+  stage: coverage
+  dependencies:
+    - run_pytest
+  script:
+    - TARGET_DIR="public/${CI_COMMIT_REF_NAME}"
+    - if [ ! -d "$TARGET_DIR" ]; then mkdir -p $TARGET_DIR; fi
+    - echo "Copying into $TARGET_DIR"
+    - mv LHCbDIRAC/htmlcov/* $TARGET_DIR
+  artifacts:
+    paths:
+      - public
+    expire_in: 30 days
+  only:
+    - master
+    - devel
+
+# Deploy the pages generated to DFS
+dfsdeploy:
+  # Executed during the deploy stage
+  stage: coverageDfs
+  # # Only when the master branch is pushed
+  only:
+    - master
+    - devel
+  # Custom docker image providing the needed tools to deploy in DFS
+  image: gitlab-registry.cern.ch/ci-tools/ci-web-deployer:latest
+  script:
+  # Script that performs the deploy to DFS. Makes use of the variables defined in the project
+  # It will not sync the generated content with the folder in DFS (risk of deleting DFS management files)
+  # It will just override the contents of DFS or copy new files
+  - deploy-dfs
+  # do not run any globally defined before_script or after_script for this step
+  before_script: []
+  after_script: []
 
 
 
