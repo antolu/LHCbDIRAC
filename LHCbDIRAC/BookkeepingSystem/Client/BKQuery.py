@@ -677,24 +677,20 @@ class BKQuery():
       for lfn in lfns:
         directory = os.path.join( os.path.dirname( lfn ), '' )
         dirs[directory] = dirs.setdefault( directory, 0 ) + 1
-      dirSorted = dirs.keys()
-      dirSorted.sort()
+      dirSorted = sorted( dirs )
       for directory in dirSorted:
         print directory, dirs[directory], "files"
       if printSEUsage:
         rpc = RPCClient( 'DataManagement/StorageUsage' )
         totalUsage = {}
         totalSize = 0
-        for directory in dirs.keys():
+        for directory in dirs:
           res = rpc.getStorageSummary( directory, '', '', [] )
           if res['OK']:
-            for se in [se for se in res['Value'].keys() if not se.endswith( "-ARCHIVE" )]:
-              if not totalUsage.has_key( se ):
-                totalUsage[se] = 0
-              totalUsage[se] += res['Value'][se]['Size']
+            for se in [se for se in res['Value'] if not se.endswith( "-ARCHIVE" )]:
+              totalUsage[se] = totalUsage.setdefault( se, 0 ) + res['Value'][se]['Size']
               totalSize += res['Value'][se]['Size']
-        ses = totalUsage.keys()
-        ses.sort()
+        ses = sorted( totalUsage )
         totalUsage['Total'] = totalSize
         ses.append( 'Total' )
         print "\n%s %s" % ( "SE".ljust( 20 ), "Size (TB)" )
@@ -761,8 +757,8 @@ class BKQuery():
         return []
       if self.getProcessingPass().replace( '/', '' ) != 'Real Data':
         fileTypes = self.getFileTypeList()
-        prodList = set( prod for p in res['Value']['Records'] for prod in p
-                       if self.__getProdStatus( prod ) != 'Deleted' )
+        prodList = set( prod for prods in res['Value']['Records'] for prod in prods
+                        if self.__getProdStatus( prod ) != 'Deleted' )
         # print '\n', self.__bkQueryDict, res['Value']['Records'], '\nVisible:', visible, prodList
         pList = set()
         if fileTypes:
@@ -790,16 +786,16 @@ class BKQuery():
       if not isinstance( conditions, list ):
         conditions = [conditions]
       return conditions
-    res = self.__bkClient.getConditions( self.__bkQueryDict )
-    if res['OK']:
-      res = res['Value']
+    result = self.__bkClient.getConditions( self.__bkQueryDict )
+    if result['OK']:
+      resList = result['Value']
     else:
       return []
     conditions = []
-    for i in res:
-      ind = i['ParameterNames'].index( 'Description' )
-      if i['Records']:
-        conditions += [p[ind] for p in i['Records']]
+    for res in resList:
+      ind = res['ParameterNames'].index( 'Description' )
+      if res['Records']:
+        conditions += [par[ind] for par in res['Records']]
         break
     return sorted( conditions )
 
@@ -898,7 +894,6 @@ class BKQuery():
     """
     It builds the bookkeeping dictionary
     """
-    from fnmatch import fnmatch
     configuration = self.getConfiguration()
     conditions = self.getBKConditions()
     # print conditions
@@ -910,9 +905,9 @@ class BKQuery():
     if '...' in requestedPP:
       pp = requestedPP.split( '/' )
       initialPP = '/'
-      for p in pp[1:]:
-        if '...' not in p:
-          initialPP = os.path.join( initialPP, p )
+      for node in pp[1:]:
+        if '...' not in node:
+          initialPP = os.path.join( initialPP, node )
         else:
           break
       self.setProcessingPass( initialPP )

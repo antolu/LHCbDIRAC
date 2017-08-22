@@ -100,10 +100,10 @@ class DataRecoveryAgent( AgentModule ):
 
       transformationDict.update( result['Value'] )
 
-    self.log.info( 'Selected %s transformations of types %s' % ( len( transformationDict.keys() ),
+    self.log.info( 'Selected %d transformations of types %s' % ( len( transformationDict ),
                                                                  ', '.join( self.transformationTypes ) ) )
     self.log.verbose( 'Transformations selected %s:\n%s' % ( ', '.join( self.transformationTypes ),
-                                                             ', '.join( transformationDict.keys() ) ) )
+                                                             ', '.join( transformationDict ) ) )
 
 
     for transformation, typeName in transformationDict.iteritems():
@@ -127,7 +127,7 @@ class DataRecoveryAgent( AgentModule ):
         continue
 
       if not result['Value']:
-        self.log.info( 'No eligible WMS jobIDs found for %s files in list:\n%s ...' % ( len( fileDict.keys() ),
+        self.log.info( 'No eligible WMS jobIDs found for %s files in list:\n%s ...' % ( len( fileDict ),
                                                                                         fileDict.keys()[0] ) )
         continue
 
@@ -208,7 +208,7 @@ class DataRecoveryAgent( AgentModule ):
       return res
     resDict = {}
     for fileDict in res['Value']:
-      if not fileDict.has_key( 'LFN' ) or not fileDict.has_key( 'TaskID' ) or not fileDict.has_key( 'LastUpdate' ):
+      if 'LFN' not in fileDict or 'TaskID' not in fileDict or 'LastUpdate' not in fileDict:
         self.log.verbose( 'LFN, %s and LastUpdate are mandatory, >=1 are missing for:\n%s' % ( 'TaskID', fileDict ) )
         continue
       lfn = fileDict['LFN']
@@ -216,7 +216,7 @@ class DataRecoveryAgent( AgentModule ):
 #      lastUpdate = fileDict['LastUpdate']
       resDict[lfn] = jobID
     if resDict:
-      self.log.info( 'Selected %s files overall for transformation %s' % ( len( resDict.keys() ), transformation ) )
+      self.log.info( 'Selected %s files overall for transformation %s' % ( len( resDict ), transformation ) )
     return S_OK( resDict )
 
   #############################################################################
@@ -249,8 +249,8 @@ class DataRecoveryAgent( AgentModule ):
 
     for jobDict in res['Value']:
       missingKey = False
-      for key in ['TaskID', 'ExternalID', 'LastUpdateTime', 'ExternalStatus', 'InputVector']:
-        if not jobDict.has_key( key ):
+      for key in ( 'TaskID', 'ExternalID', 'LastUpdateTime', 'ExternalStatus', 'InputVector' ):
+        if key not in jobDict:
           self.log.info( 'Missing key %s for job dictionary, the following is available:\n%s' % ( key, jobDict ) )
           missingKey = True
           continue
