@@ -28,9 +28,9 @@ class TransformationDebug( object ):
     self.transClient = TransformationClient()
     self.reqClient = ReqClient()
     self.bkClient = BookkeepingClient()
-    self.dm = DataManager()
-    self.fc = FileCatalog()
-    self.dmTransTypes = ( "Replication", "Removal" )
+    self.dataManager = DataManager()
+    self.fileCatalog = FileCatalog()
+    self.dataManagerTransTypes = ( "Replication", "Removal" )
     self.transID = None
     self.transType = None
     self.fixIt = False
@@ -39,6 +39,21 @@ class TransformationDebug( object ):
     self.listOfAssignedRequests = {}
 
   def __getFilesForRun( self, runID = None, status = None, lfnList = None, seList = None, taskList = None ):
+    """
+    Get a lit of TS files fulfilling criteria
+    :param runList: list of run numbers
+    :type runList: list
+    :param seList: list of UsedSE
+    :type seList: list
+    :param status: file TS status
+    :type status: string or list
+    :param taskList: list of task IDs
+    :type taskList: list
+    :param lfnList: list of LFNs
+    :type lfnList: list
+
+    :return list of TS files (i.e. dictionaries) fulfilling the criteria
+    """
     # print transID, runID, status, lfnList
     selectDict = {'TransformationID': self.transID}
     if runID is not None:
@@ -69,12 +84,33 @@ class TransformationDebug( object ):
       return []
 
   def __filesProcessed( self, runID ):
+    """
+    Get the number of files and number of processed files in a run
+    :param runID: run number
+    :type runID: int, long
+    :return tuple (nb of files, nb of files Processed)
+    """
     transFilesList = self.__getFilesForRun( runID, None )
     files = len( transFilesList )
     processed = sum( fileDict['Status'] == "Processed" for fileDict in transFilesList )
     return ( files, processed )
 
   def __getRuns( self, runList = None, byRuns = True, seList = None, status = None, taskList = None ):
+    """
+    Get a list of TS runs fulfilling criteria
+    :param runList: list of run numbers
+    :type runList: list
+    :param byRuns: if True, get a list of runs, else just None
+    :type byRuns: boolean
+    :param seList: list of UsedSE
+    :type seList: list
+    :param status: file TS status
+    :type status: string or list
+    :param taskList: list of task IDs
+    :type taskList: list
+
+    :return list of dictionaries (one per run) fulfilling the criteria
+    """
     runs = []
     if status and byRuns and not runList:
       files = self.__getFilesForRun( status = status, taskList = taskList )
@@ -119,10 +155,19 @@ class TransformationDebug( object ):
     return runs
 
   def __justStats( self, status, seList ):
+    """
+    Print out statistics per usedSE about TS files in a given status targeting some sites
+    :param status: (list of) status
+    :type status: list or string
+    :param seList: list of usedSE
+    :type seList: list or string
+
+    :return list of jobIDs that are not in a proper status w.r.t. status
+    """
     improperJobs = []
     if not status:
       status = "Assigned"
-    transFilesList = self.__getFilesForRun( None, status, [], seList )
+    transFilesList = self.__getFilesForRun( status = status, seList = seList )
     if not transFilesList:
       return improperJobs
     statsPerSE = {}
@@ -159,6 +204,13 @@ class TransformationDebug( object ):
     return improperJobs
 
   def __getTransformationInfo( self, transSep ):
+    """
+    Print out information about a given transformation
+    :param transSep: separator to print out before info
+    :type transSep: string
+
+    :return tuple ("Job"|"Request", file type in BK query)
+    """
     res = self.transClient.getTransformation( self.transID, extraParams = False )
     if not res['OK']:
       gLogger.notice( "Couldn't find transformation", self.transID )
@@ -171,7 +223,7 @@ class TransformationDebug( object ):
       strPlugin = self.transPlugin
       if self.transType in ( 'Merge', 'MCMerge', 'DataStripping', 'MCStripping' ):
         strPlugin += ', GroupSize: %s' % str( res['Value']['GroupSize'] )
-      if self.transType in self.dmTransTypes:
+      if self.transType in self.dataManagerTransTypes:
         taskType = "Request"
       else:
         taskType = "Job"
@@ -190,6 +242,15 @@ class TransformationDebug( object ):
     return taskType, queryFileTypes
 
   def __fixRunNumber( self, filesToFix, fixRun, noTable = False ):
+    """
+    Fix run information in TS
+    :param filesToFix: list of TS files to get fixed
+    :type filesToFix: list
+    :param fixRun: if set, fix run, else print out number of files
+    :type fixRun: boolean
+    :param noTable: if True, the run is absent, else it is 0
+    :type noTable: boolean
+    """
     if not fixRun:
       if noTable:
         gLogger.notice( '%d files have run number not in run table, use --FixRun to get this fixed' % len( filesToFix ) )
@@ -220,6 +281,13 @@ class TransformationDebug( object ):
         gLogger.notice( "***ERROR*** getting metadata for %d files:" % len( filesToFix ), res['Message'] )
 
   def __getTransformations( self, args ):
+    """
+    Parse command arguments to get a list of transformations
+    :param args: arguments
+    :type args: list of args, first is transIDs
+
+    :return list of integer transformation IDs
+    """
     if not len( args ):
       gLogger.notice( "Specify transformation number..." )
       Script.showHelp()
@@ -236,9 +304,16 @@ class TransformationDebug( object ):
     return transList
 
   def __checkFilesMissingInFC( self, transFilesList, status ):
+    """
+    Check a list of files that are missing in FC and print information
+    :param transFilesList: list of TS files
+    :type transFilesList: list
+    :param status: (list of) status
+    :type status: list or string
+    """
     if 'MissingLFC' in status or 'MissingInFC' in status:
       lfns = [fileDict['LFN'] for fileDict in transFilesList]
-      res = self.dm.getReplicas( lfns )
+      res = self.dataManager.getReplicas( lfns )
       if res['OK']:
         replicas = res['Value']['Successful']
         notMissing = len( replicas )
@@ -272,9 +347,14 @@ class TransformationDebug( object ):
               gLogger.notice( "All files are really missing in FC and BK" )
 
   def __getReplicas( self, lfns ):
+    """
+    Get replicas of a list of LFNs
+    :param lfns: list of LFNs
+    :type lfns: list
+    """
     replicas = {}
     for lfnChunk in breakListIntoChunks( lfns, 200 ):
-      res = self.dm.getReplicas( lfnChunk )
+      res = self.dataManager.getReplicas( lfnChunk )
       if res['OK']:
         replicas.update( res['Value']['Successful'] )
       else:
@@ -282,12 +362,27 @@ class TransformationDebug( object ):
     return replicas
 
   def __getTask( self, taskID ):
+    """
+    Get a TS task
+    :param taskID: task ID
+    :type taskID: int
+    """
     res = self.transClient.getTransformationTasks( {'TransformationID':self.transID, "TaskID":taskID} )
     if not res['OK'] or not res['Value']:
       return None
     return res['Value'][0]
 
   def __fillStatsPerSE( self, SEStat, rep, listSEs ):
+    """
+    Fill statistics per SE for a set of replicas and a list of SEs
+    Depending whether the transformation is replication or removal, give the stat of missing or still present SEs
+    :param SEStat: returned dictionary (number per SE)
+    :type SEStat: dictionary
+    :param rep: list of replicas
+    :type rep: list or dict
+    :param listSEs: list of SEs to give statistics about
+    :type listSEs: list
+    """
     SEStat["Total"] += 1
     completed = True
     if not rep:
@@ -309,6 +404,11 @@ class TransformationDebug( object ):
     return completed
 
   def __getRequestName( self, requestID ):
+    """
+    Return request name from ID
+    :param requestID: request ID
+    :type requestID: int
+    """
     level = gLogger.getLevel()
     gLogger.setLevel( 'FATAL' )
     try:
@@ -325,12 +425,28 @@ class TransformationDebug( object ):
       gLogger.setLevel( level )
 
   def __getAssignedRequests( self ):
+    """
+    Set member variable to the list of Assigned requests
+    """
     if not self.listOfAssignedRequests:
       res = self.reqClient.getRequestIDsList( ['Assigned'], limit = 10000 )
       if res['OK']:
         self.listOfAssignedRequests = [reqID for reqID , _x, _y in res['Value']]
 
   def __printRequestInfo( self, task, lfnsInTask, taskCompleted, status, dmFileStatusComment ):
+    """
+    Print information about a request for a given task
+    :param task: TS task
+    :type task: dictionary
+    :param lfnsInTask: List of LFNs in that task
+    :type lfnsInTask: list
+    :param taskCompleted: flag telling whether task is supposed to be completed or not
+    :type taskCompleted: boolean
+    :param status: status of TS files
+    :type status: string
+    :param dmFileStatusComment: comment
+    :type dmFileStatusComment: string
+    """
     requestID = int( task['ExternalID'] )
     taskID = task['TaskID']
     taskName = '%08d_%08d' % ( self.transID, taskID )
@@ -467,6 +583,15 @@ class TransformationDebug( object ):
     return toBeKicked
 
   def __checkProblematicFiles( self, nbReplicasProblematic, problematicReplicas, failedFiles ):
+    """
+    Check files found Problematic in TS
+    :param nbReplicasProblematic: dict of frequency of nb of replicas
+    :type nbReplicasProblematic: dict
+    :param problematicReplicas: problematic replicas by SE
+    :type problematicReplicas: dict {SE:list of LFNs}
+    :param failedFiles: list of files in Failed status
+    :type failedFiles: list
+    """
     from DIRAC.Core.Utilities.Adler import compareAdler
     gLogger.notice( "\nStatistics for Problematic files in FC:" )
     existingReplicas = {}
@@ -482,11 +607,11 @@ class TransformationDebug( object ):
       lfns.update( problematicReplicas[se] )
       if se:
         lfnsInFC.update( problematicReplicas[se] )
-        res = self.fc.getFileMetadata( [lfn for lfn in problematicReplicas[se] if lfn not in lfnCheckSum] )
+        res = self.fileCatalog.getFileMetadata( [lfn for lfn in problematicReplicas[se] if lfn not in lfnCheckSum] )
         if res['OK']:
           success = res['Value']['Successful']
           lfnCheckSum.update( dict( ( lfn, success[lfn]['Checksum'] ) for lfn in success ) )
-        res = self.dm.getReplicaMetadata( problematicReplicas[se], se )
+        res = self.dataManager.getReplicaMetadata( problematicReplicas[se], se )
         if res['OK']:
           for lfn in res['Value']['Successful']:
             existingReplicas.setdefault( lfn, [] ).append( se )
@@ -526,7 +651,7 @@ class TransformationDebug( object ):
         if se:
           gLogger.notice( "   %s : %d replicas of problematic files in FC, %s physically missing.%s" % ( str( se ).ljust( 15 ), len( problematicReplicas[se] ), strMsg, str2Msg ) )
         else:
-          gLogger.notice( "   %s : %d files are not in self.fc." % ( ''.ljust( 15 ), len( problematicReplicas[se] ) ) )
+          gLogger.notice( "   %s : %d files are not in self.fileCatalog." % ( ''.ljust( 15 ), len( problematicReplicas[se] ) ) )
       lfns = [lfn for lfn in existingReplicas if lfn in failedFiles]
       if lfns:
         prString = "Failed transfers but existing replicas"
@@ -542,7 +667,7 @@ class TransformationDebug( object ):
     if filesInFCNotExisting:
       prString = '%d files are in the FC but are not physically existing. ' % len( filesInFCNotExisting )
       if self.fixIt:
-        prString += 'Removing them now from self.fc...'
+        prString += 'Removing them now from self.fileCatalog...'
       else:
         prString += 'Use --FixIt to remove them'
       gLogger.notice( prString )
@@ -575,7 +700,7 @@ class TransformationDebug( object ):
             for se in replicasToRemove[lfn]:
               seFiles.setdefault( se, [] ).append( lfn )
           for se in seFiles:
-            res = self.dm.removeReplica( se, seFiles[se] )
+            res = self.dataManager.removeReplica( se, seFiles[se] )
             if not res['OK']:
               gLogger.notice( 'ERROR: error removing replicas', res['Message'] )
             else:
@@ -594,7 +719,7 @@ class TransformationDebug( object ):
           gLogger.notice( 'Successfully removed %d files from transformations %s' % ( nRemoved, ','.join( transRemoved ) ) )
       for se in nonExistingReplicas:
         lfns = [lfn for lfn in nonExistingReplicas[se] if lfn not in filesInFCNotExisting]
-        res = self.dm.removeReplica( se, lfns )
+        res = self.dataManager.removeReplica( se, lfns )
         if not res['OK']:
           gLogger.notice( "ERROR when removing replicas from FC at %s" % se, res['Message'] )
         else:
@@ -614,6 +739,13 @@ class TransformationDebug( object ):
     gLogger.notice( "" )
 
   def __removeFilesFromTS( self, lfns ):
+    """
+    Set a list of files in status Removed
+    :param lfns: list of LFNs
+    :type lfns: list
+
+    :return (nb of removed files, list of removed LFNs)
+    """
     res = self.transClient.getTransformationFiles( {'LFN':lfns} )
     if not res['OK']:
       gLogger.notice( "Error getting %d files in the TS" % len( lfns ), res['Message'] )
@@ -631,7 +763,12 @@ class TransformationDebug( object ):
     return removed, [str( tr ) for tr in transFiles]
 
   def __removeFiles( self, lfns ):
-    res = self.dm.removeFile( lfns )
+    """
+    Remove files from FC and TS
+    :param lfns: list of LFNs
+    :type lfns: list
+    """
+    res = self.dataManager.removeFile( lfns )
     if res['OK']:
       gLogger.notice( "Successfully removed %d files from FC" % len( lfns ) )
       nRemoved, transRemoved = self.__removeFilesFromTS( lfns )
@@ -641,6 +778,17 @@ class TransformationDebug( object ):
       gLogger.notice( "ERROR when removing files from FC:", res['Message'] )
 
   def __checkReplicasForProblematic( self, lfns, replicas, nbReplicasProblematic, problematicReplicas ):
+    """
+    Check replicas of Problematic files
+    :param lfns: list of LFNs
+    :type lfns: list
+    :param replicas: replica dict
+    :type replicas:dict
+    :param nbReplicasProblematic: dict to be filled with stat per number of SE
+    :type nbReplicasProblematic: dict
+    :param problematicReplicas: dict of LFNs per SE
+    :type problematicReplicas: dict
+    """
     for lfn in lfns:
       # Problematic files, let's see why
       realSEs = [se for se in replicas.get( lfn, [] ) if not se.endswith( '-ARCHIVE' )]
@@ -652,6 +800,9 @@ class TransformationDebug( object ):
         problematicReplicas.setdefault( se, [] ).append( lfn )
 
   def __getLog( self, urlBase, logFile, debug = False ):
+    """
+    Get a logfile
+    """
     import gzip, urllib, tarfile, fnmatch
     # if logFile == "" it is assumed the file is directly the urlBase
     # Otherwise it can either be referenced within urlBase or contained (.tar.gz)
@@ -824,6 +975,15 @@ class TransformationDebug( object ):
     return lfn
 
   def __checkJobs( self, jobsForLfn, byFiles = False, checkLogs = False ):
+    """
+    Extract all information about jobs referring to list of LFNs
+    :param jobsForLfn: dict { lfnString : [jobs] }
+    :type jobsForLfn: dict
+    :param byFiles: print file information
+    :type byFiles: boolean
+    :param checkLogs: check also logfiles of jobs
+    :type checkLogs: boolean
+    """
     from DIRAC.Core.DISET.RPCClient                          import RPCClient
     monitoring = RPCClient( 'WorkloadManagement/JobMonitoring' )
     failedLfns = {}
@@ -875,7 +1035,8 @@ class TransformationDebug( object ):
           prStr += ' in status:'
         gLogger.notice( prStr, prevStatus )
         majorStatus, minorStatus, applicationStatus = prevStatus.split( '; ' )
-        if majorStatus == 'Failed' and ( 'exited with status' in applicationStatus.lower() or 'problem executing application' in applicationStatus.lower() ):
+        if majorStatus == 'Failed' and ( 'exited with status' in applicationStatus.lower() or
+                                         'problem executing application' in applicationStatus.lower() ):
           exitedJobs += jobs
         if majorStatus == 'Failed' and minorStatus == 'Job stalled: pilot not running':
           lastLine = ''
@@ -887,7 +1048,8 @@ class TransformationDebug( object ):
             if job1:
               res = monitoring.getJobParameter( int( job1 ), 'StandardOutput' )
               if res['OK']:
-                line = '(%s) ' % jobSites.get( job1, {} ).get( 'Site', 'Unknown' ) + res['Value'].get( 'StandardOutput', 'stdout not available\n' ).splitlines()[-1].split( 'UTC ' )[-1]
+                line = '(%s) ' % jobSites.get( job1, {} ).get( 'Site', 'Unknown' ) + \
+                       res['Value'].get( 'StandardOutput', 'stdout not available\n' ).splitlines()[-1].split( 'UTC ' )[-1]
             else:
               line = ''
             if not lastLine:
@@ -964,6 +1126,16 @@ class TransformationDebug( object ):
   def __checkRunsToFlush( self, runID, transFilesList, runStatus, evtType = 90000000, fileTypes = None ):
     """
     Check whether the run is flushed and if not, why it was not
+    :param runID: run number
+    :type runID: int
+    :param transFilesList: list of TS files
+    :type transFilesList: list
+    :param runStatus: current status of run
+    :type runStatus: string
+    :param evtType: event type
+    :type evtType: int
+    :param fileTypes: file types
+    :type fileTypes: list
     """
     if not runID:
       gLogger.notice( "Cannot check flush status for run", runID )
@@ -1120,6 +1292,15 @@ class TransformationDebug( object ):
 
 
   def debugTransformation( self, dmScript, infoList, statusList ):
+    """
+    Actual script execution code: parses arguments and implements the checking logic
+    :param dmScript: DMScript object to be parsed
+    :type dmScript: DMScript
+    :param infoList: list of possible information
+    :type infoList: tuple
+    :param statusList: list of possible statuses
+    :type statusList: tuple
+    """
 
     verbose = False
     byFiles = False
@@ -1248,7 +1429,7 @@ class TransformationDebug( object ):
         self.__checkWaitingTasks()
         continue
 
-      self.pluginUtil = PluginUtilities( self.transPlugin, transClient = self.transClient, dataManager = self.dm,
+      self.pluginUtil = PluginUtilities( self.transPlugin, transClient = self.transClient, dataManager = self.dataManager,
                                     bkClient = self.bkClient, debug = verbose, transID = transID )  ################
       # Select runs, or all
       runsDictList = self.__getRuns( runList, byRuns, seList, status )
@@ -1419,7 +1600,7 @@ class TransformationDebug( object ):
               continue
           nfiles = len( lfnsInTask )
           allFiles += lfnsInTask
-          if self.transType in self.dmTransTypes:
+          if self.transType in self.dataManagerTransTypes:
             replicas = self.__getReplicas( lfnsInTask )
           else:
             replicas = {}
@@ -1466,7 +1647,7 @@ class TransformationDebug( object ):
 
       ###########
       # Print out statistics of SEs if relevant (DMS)
-      if SEStat["Total"] and self.transType in self.dmTransTypes:
+      if SEStat["Total"] and self.transType in self.dataManagerTransTypes:
         gLogger.notice( "%d files found in tasks" % SEStat["Total"] )
         SEStat.pop( "Total" )
         if None in SEStat:
