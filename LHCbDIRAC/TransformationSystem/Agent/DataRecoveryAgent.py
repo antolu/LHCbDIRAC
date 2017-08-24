@@ -45,7 +45,7 @@ class DataRecoveryAgent( AgentModule ):
 
     self.transClient = None
     self.reqClient = None
-    self.cc = None
+    self.consChecks = None
 
     self.enableFlag = True
     self.transformationTypes = []
@@ -59,14 +59,9 @@ class DataRecoveryAgent( AgentModule ):
 
     self.transClient = TransformationClient()
     self.reqClient = ReqClient()
-    self.cc = ConsistencyChecks( interactive = False, transClient = self.transClient )
+    self.consChecks = ConsistencyChecks( interactive = False, transClient = self.transClient )
 
-    self.transformationTypes = Operations().getValue( 'Transformations/DataProcessing', ['MCSimulation', 'MCStripping',
-                                                                                         'MCReconstruction', 'MCReprocessing',
-                                                                                         'DataReconstruction', 'DataReprocessing',
-                                                                                         'DataStripping', 'DataSwimming',
-                                                                                         'Merge', 'WGProduction', 'MCMerge', 'Turbo'] )
-    self.transformationTypes = list( set( self.transformationTypes ) - set( ['MCSimulation', 'Simulation'] ) )
+    self.transformationTypes = Operations().getValue( 'Transformations/DataProcessing', [] )
 
     return S_OK()
 
@@ -88,7 +83,7 @@ class DataRecoveryAgent( AgentModule ):
 
     transformationDict = {}
     for transStatus in transformationStatus:
-      result = self._getEligibleTransformations( transStatus, self.transformationTypes )
+      result = self.__getEligibleTransformations( transStatus, self.transformationTypes )
       if not result['OK']:
         self.log.error( "Could not obtain eligible transformations", "Status '%s': %s" % ( transStatus, result['Message'] ) )
         return result
@@ -102,125 +97,122 @@ class DataRecoveryAgent( AgentModule ):
 
     self.log.info( 'Selected %d transformations of types %s' % ( len( transformationDict ),
                                                                  ', '.join( self.transformationTypes ) ) )
-    self.log.verbose( 'Transformations selected %s:\n%s' % ( ', '.join( self.transformationTypes ),
-                                                             ', '.join( transformationDict ) ) )
+    self.log.verbose( 'Transformations selected:\n%s' % ( ', '.join( transformationDict ) ) )
 
 
     for transformation, typeName in transformationDict.iteritems():
-
       self.log.info( '=' * len( 'Looking at transformation %s type %s:' % ( transformation, typeName ) ) )
 
-      result = self._selectTransformationFiles( transformation, fileSelectionStatus )
+      result = self.__selectTransformationFiles( transformation, fileSelectionStatus )
       if not result['OK']:
         self.log.error( 'Could not select files for transformation', '%s: %s' % ( transformation, result['Message'] ) )
         continue
-
-      if not result['Value']:
+      fileDict = result['Value']
+      if not fileDict:
         self.log.info( 'No files in status %s selected for transformation %s' % ( ', '.join( fileSelectionStatus ),
                                                                                   transformation ) )
         continue
 
-      fileDict = result['Value']
-      result = self._obtainWMSJobIDs( transformation, fileDict, selectDelay, wmsStatusList )
+      result = self.__obtainWMSJobIDs( transformation, fileDict, selectDelay, wmsStatusList )
       if not result['OK']:
         self.log.error( "Could not obtain WMS jobIDs for files of transformation" "%s: %s" % ( transformation, result['Message'] ) )
         continue
-
       if not result['Value']:
         self.log.info( 'No eligible WMS jobIDs found for %s files in list:\n%s ...' % ( len( fileDict ),
                                                                                         fileDict.keys()[0] ) )
         continue
 
       jobFileDict = result['Value']
-      self.log.verbose( "Looking at WMS jobs %s" % str( jobFileDict ) )
-      fileCount = sum( len( lfnList ) for lfnList in jobFileDict.itervalues() )
+      self.log.verbose( "Looking at WMS jobs %s" % ','.join( str( jobID ) for jobID in jobFileDict ) )
 
+      fileCount = sum( len( lfnList ) for lfnList in jobFileDict.itervalues() )
       if not fileCount:
         self.log.verbose( 'No files were selected for transformation %s after examining WMS jobs.' % transformation )
         continue
-
       self.log.info( '%s files are selected after examining related WMS jobs' % ( fileCount ) )
 
-      result = self._checkOutstandingRequests( jobFileDict )
+      result = self.__removePendingRequestsJobs( jobFileDict )
       if not result['OK']:
         self.log.error( result )
         continue
-
-      if not result['Value']:
+      # This method modifies the input dictionary
+      if not jobFileDict:
         self.log.info( 'No WMS jobs without pending requests to process.' )
         continue
 
-      jobFileNoRequestsDict = result['Value']
-      fileCount = sum( len( lfnList ) for lfnList in jobFileNoRequestsDict.itervalues() )
+      fileCount = sum( len( lfnList ) for lfnList in jobFileDict.itervalues() )
+      if not fileCount:
+        self.log.verbose( 'No files were selected for transformation %s after examining WMS jobs.' % transformation )
+        continue
+      self.log.info( '%s files are selected after removing any job with pending requests' % ( fileCount ) )
 
-      self.log.info( '%s files are selected after removing any relating to jobs with pending requests' % ( fileCount ) )
-      jobsThatDidntProduceOutputs, jobsThatProducedOutputs = self._checkdescendants( transformation,
-                                                                                     jobFileNoRequestsDict )
+      jobsThatDidntProduceOutputs, jobsThatProducedOutputs = self.__checkdescendants( transformation,
+                                                                                     jobFileDict )
 
       self.log.info( '====> Transformation %s total jobs that can be updated now: %s' % ( transformation,
                                                                                           len( jobsThatDidntProduceOutputs ) ) )
-      self.log.info( '====> Transformation %s total jobs with descendants: %s' % ( transformation,
-                                                                                   len( jobsThatProducedOutputs ) ) )
+      if jobsThatProducedOutputs:
+        self.log.info( '====> Transformation %s: %d jobs have descendants' %
+                       ( transformation, len( jobsThatProducedOutputs ) ) )
+      else:
+        self.log.info( '====> Transformation %s: no jobs have descendants' % transformation )
 
       filesToUpdate = []
       filesWithDescendants = []
-      for job, fileList in jobFileNoRequestsDict.iteritems():
+      for job, fileList in jobFileDict.iteritems():
         if job in jobsThatDidntProduceOutputs:
           filesToUpdate += fileList
         elif job in jobsThatProducedOutputs:
           filesWithDescendants += fileList
 
       if filesToUpdate:
-        result = self._updateFileStatus( transformation, filesToUpdate, updateStatus )
+        result = self.__updateFileStatus( transformation, filesToUpdate, updateStatus )
         if not result['OK']:
           self.log.error( 'Recoverable files were not updated with result:\n%s' % ( result['Message'] ) )
           continue
 
       if filesWithDescendants:
-        self.log.warn( '!!!!!!!! Note that transformation %s has descendants for files that are not marked as processed !!!!!!!!' % ( transformation ) )
+        self.log.warn( '!!!!!!!! Note that transformation %s has descendants for files that are not marked as processed !!!!!!!!' %
+                       ( transformation ) )
         self.log.warn( 'Files: %s' % ';'.join( filesWithDescendants ) )
 
     return S_OK()
 
   #############################################################################
-  def _getEligibleTransformations( self, status, typeList ):
+  def __getEligibleTransformations( self, status, typeList ):
     """ Select transformations of given status and type.
     """
     res = self.transClient.getTransformations( condDict = {'Status':status, 'Type':typeList} )
     self.log.debug( res )
     if not res['OK']:
       return res
-    transformations = {}
-    for prod in res['Value']:
-      prodID = prod['TransformationID']
-      transformations[str( prodID )] = prod['Type']
+    transformations = dict( ( str( prod['TransformationID'] ), prod['Type'] ) for prod in res['Value'] )
     return S_OK( transformations )
 
   #############################################################################
-  def _selectTransformationFiles( self, transformation, statusList ):
+  def __selectTransformationFiles( self, transformation, statusList ):
     """ Select files, production jobIDs in specified file status for a given transformation.
     """
     # Until a query for files with timestamp can be obtained must rely on the
     # WMS job last update
     res = self.transClient.getTransformationFiles( condDict = {'TransformationID':transformation, 'Status':statusList} )
-    self.log.debug( res )
     if not res['OK']:
       return res
     resDict = {}
+    mandatoryKeys = {'LFN', 'TaskID', 'LastUpdate'}
     for fileDict in res['Value']:
-      if 'LFN' not in fileDict or 'TaskID' not in fileDict or 'LastUpdate' not in fileDict:
-        self.log.verbose( 'LFN, %s and LastUpdate are mandatory, >=1 are missing for:\n%s' % ( 'TaskID', fileDict ) )
-        continue
-      lfn = fileDict['LFN']
-      jobID = fileDict['TaskID']
-#      lastUpdate = fileDict['LastUpdate']
-      resDict[lfn] = jobID
+      missingKeys = mandatoryKeys - set( fileDict )
+      if missingKeys:
+        for key in missingKeys:
+          self.log.verbose( '%s is mandatory, but missing for:\n\t%s' % ( key, str( fileDict ) ) )
+      else:
+        resDict[fileDict['LFN']] = fileDict['TaskID']
     if resDict:
       self.log.info( 'Selected %s files overall for transformation %s' % ( len( resDict ), transformation ) )
     return S_OK( resDict )
 
   #############################################################################
-  def _obtainWMSJobIDs( self, transformation, fileDict, selectDelay, wmsStatusList ):
+  def __obtainWMSJobIDs( self, transformation, fileDict, selectDelay, wmsStatusList ):
     """ Group files by the corresponding WMS jobIDs, check the corresponding
         jobs have not been updated for the delay time.  Can't get into any
         mess because we start from files only in MaxReset / Assigned and check
@@ -228,69 +220,55 @@ class DataRecoveryAgent( AgentModule ):
         statuses only possibly include some files in Unused status (not Processed
         for example) that will not be touched.
     """
-    prodJobIDs = list( set( fileDict.values() ) )
-    self.log.verbose( "The following %s production jobIDs apply to the selected files:\n%s" % ( len( prodJobIDs ),
-                                                                                                prodJobIDs ) )
+    taskIDList = sorted( set( fileDict.values() ) )
+    self.log.verbose( "The following %d task IDs correspond to the selected files:\n%s" %
+                      ( len( taskIDList ), ', '.join( str( taskID ) for taskID in taskIDList ) ) )
 
     jobFileDict = {}
-    condDict = {'TransformationID':transformation, 'TaskID':prodJobIDs}
-    delta = datetime.timedelta( hours = selectDelay )
-    now = dateTime()
-    olderThan = now - delta
+    olderThan = dateTime() - datetime.timedelta( hours = selectDelay )
 
-    res = self.transClient.getTransformationTasks( condDict = condDict,
+    res = self.transClient.getTransformationTasks( condDict = {'TransformationID':transformation, 'TaskID':taskIDList},
                                                    older = olderThan,
-                                                   timeStamp = 'LastUpdateTime',
-                                                   inputVector = True )
-    self.log.debug( res )
+                                                   timeStamp = 'LastUpdateTime' )
     if not res['OK']:
       self.log.error( "getTransformationTasks returned an error", '%s' % res['Message'] )
       return res
 
-    for jobDict in res['Value']:
-      missingKey = False
-      for key in ( 'TaskID', 'ExternalID', 'LastUpdateTime', 'ExternalStatus', 'InputVector' ):
-        if key not in jobDict:
-          self.log.info( 'Missing key %s for job dictionary, the following is available:\n%s' % ( key, jobDict ) )
-          missingKey = True
-          continue
-
+    mandatoryKeys = {'TaskID', 'ExternalID', 'LastUpdateTime', 'ExternalStatus', 'InputVector' }
+    for taskDict in res['Value']:
+      missingKey = mandatoryKeys - set( taskDict )
       if missingKey:
+        for key in missingKey:
+          self.log.info( 'Missing key %s for job dictionary:\n\t%s' % ( key, str( taskDict ) ) )
         continue
 
-      job = jobDict['TaskID']
-      wmsID = jobDict['ExternalID']
-      lastUpdate = jobDict['LastUpdateTime']
-      wmsStatus = jobDict['ExternalStatus']
-      jobInputData = jobDict['InputVector']
-      jobInputData = [lfn.replace( 'LFN:', '' ) for lfn in jobInputData.split( ';' )]
+      taskID = taskDict['TaskID']
+      wmsID = taskDict['ExternalID']
+      wmsStatus = taskDict['ExternalStatus']
 
       if not int( wmsID ):
-        self.log.verbose( 'Prod job %s status is %s (ID = %s) so will not recheck with WMS' % ( job,
-                                                                                                wmsStatus, wmsID ) )
+        self.log.verbose( 'TaskID %s: status is %s (jobID = %s) so will not recheck with WMS' %
+                          ( taskID, wmsStatus, wmsID ) )
         continue
 
-      self.log.info( 'Job %s, prod job %s last update %s, production management system status %s' % ( wmsID,
-                                                                                                      job,
-                                                                                                      lastUpdate,
-                                                                                                      wmsStatus ) )
       # Exclude jobs not having appropriate WMS status - have to trust that production management status is correct
-      if not wmsStatus in wmsStatusList:
-        self.log.verbose( 'Job %s is in status %s, not %s so will be ignored' % ( wmsID, wmsStatus,
-                                                                                  ', '.join( wmsStatusList ) ) )
+      if wmsStatus not in wmsStatusList:
+        self.log.verbose( 'Job %s is in status %s, not in %s so will be ignored' %
+                          ( wmsID, wmsStatus, ', '.join( wmsStatusList ) ) )
         continue
+      self.log.info( 'Job %s, taskID %s, last update %s, WMS status %s' %
+                     ( wmsID, taskID, taskDict['LastUpdateTime'], wmsStatus ) )
 
       # Must map unique files -> jobs in expected state
-      finalJobData = [lfn for lfn, prodID in fileDict.iteritems() if int( prodID ) == int( job )]
+      jobFileDict[wmsID] = [lfn for lfn, tID in fileDict.iteritems() if int( tID ) == int( taskID )]
 
-      self.log.info( 'Found %s files for job %s' % ( len( finalJobData ), job ) )
-      jobFileDict[wmsID] = finalJobData
+      self.log.info( 'Found %d files for taskID %s, jobID %s' % ( len( jobFileDict[wmsID] ), taskID, wmsID ) )
 
     return S_OK( jobFileDict )
 
   #############################################################################
 
-  def _checkOutstandingRequests( self, jobFileDict ):
+  def __removePendingRequestsJobs( self, jobFileDict ):
     """ Before doing anything check that no outstanding requests are pending for the set of WMS jobIDs.
     """
     jobs = jobFileDict.keys()
@@ -301,24 +279,21 @@ class DataRecoveryAgent( AgentModule ):
 
     if not result['Value']['Successful']:
       self.log.verbose( 'None of the jobs have pending requests' )
-      return S_OK( jobFileDict )
+      return S_OK()
 
     for jobID, requestID in result['Value']['Successful'].iteritems():
       res = self.reqClient.getRequestStatus( requestID )
       if not res['OK']:
         self.log.error( 'Failed to get Status for Request', '%s:%s' % ( requestID, res['Message'] ) )
-      else:
-        if res['Value'] == 'Done':
-          continue
+      elif res['Value'] != 'Done':
+        # If we fail to get the Status or it is not Done, we must wait, so remove the job from the list.
+        del jobFileDict[str( jobID )]
+        self.log.verbose( 'Removing jobID %s from consideration until requests are completed' % ( jobID ) )
 
-      # If we fail to get the Status or it is not Done, we must wait, so remove the job from the list.
-      del jobFileDict[str( jobID )]
-      self.log.verbose( 'Removing jobID %s from consideration until requests are completed' % ( jobID ) )
-
-    return S_OK( jobFileDict )
+    return S_OK()
 
   #############################################################################
-  def _checkdescendants( self, transformation, jobFileDict ):
+  def __checkdescendants( self, transformation, jobFileDict ):
     """ Check BK descendants for input files, prepare list of actions to be
         taken for recovery.
     """
@@ -326,9 +301,9 @@ class DataRecoveryAgent( AgentModule ):
     jobsThatDidntProduceOutputs = []
     jobsThatProducedOutputs = []
 
-    self.cc.prod = transformation
+    self.consChecks.prod = transformation
     for job, fileList in jobFileDict.iteritems():
-      result = self.cc.getDescendants( fileList )
+      result = self.consChecks.getDescendants( fileList )
       filesWithDesc = result[0]
       filesWithMultipleDesc = result[2]
       if filesWithDesc or filesWithMultipleDesc:
@@ -339,11 +314,11 @@ class DataRecoveryAgent( AgentModule ):
     return jobsThatDidntProduceOutputs, jobsThatProducedOutputs
 
   ############################################################################
-  def _updateFileStatus( self, transformation, fileList, fileStatus ):
+  def __updateFileStatus( self, transformation, fileList, fileStatus ):
     """ Update file list to specified status.
     """
     if not self.enableFlag:
-      self.log.verbose( "Enable flag is False, would have updated %d files to '%s' status for %s" % ( len( fileList ),
+      self.log.info( "Enable flag is False, would have updated %d files to '%s' status for %s" % ( len( fileList ),
                                                                                                       fileStatus,
                                                                                                       transformation ) )
       return S_OK()
@@ -351,9 +326,7 @@ class DataRecoveryAgent( AgentModule ):
     self.log.info( "Updating %s files to '%s' status for %s" % ( len( fileList ),
                                                                  fileStatus,
                                                                  transformation ) )
-    result = self.transClient.setFileStatusForTransformation( int( transformation ),
+    return self.transClient.setFileStatusForTransformation( int( transformation ),
                                                               fileStatus,
                                                               fileList,
                                                               force = False )
-    self.log.debug( result )
-    return result
