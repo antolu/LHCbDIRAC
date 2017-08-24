@@ -677,8 +677,7 @@ class BKQuery():
       for lfn in lfns:
         directory = os.path.join( os.path.dirname( lfn ), '' )
         dirs[directory] = dirs.setdefault( directory, 0 ) + 1
-      dirSorted = sorted( dirs )
-      for directory in dirSorted:
+      for directory in sorted( dirs ):
         print directory, dirs[directory], "files"
       if printSEUsage:
         rpc = RPCClient( 'DataManagement/StorageUsage' )
@@ -890,58 +889,3 @@ class BKQuery():
     # print "End", initialPP, [( key, processingPasses[key] ) for key in sorted( processingPasses.keys() )]
     return processingPasses
 
-  def browseBK( self ):
-    """
-    It builds the bookkeeping dictionary
-    """
-    configuration = self.getConfiguration()
-    conditions = self.getBKConditions()
-    # print conditions
-    bkTree = {configuration : {}}
-    requestedEventTypes = self.getEventTypeList()
-    # requestedFileTypes = self.getFileTypeList()
-    requestedPP = self.getProcessingPass()
-    matchLength = 0
-    if '...' in requestedPP:
-      pp = requestedPP.split( '/' )
-      initialPP = '/'
-      for node in pp[1:]:
-        if '...' not in node:
-          initialPP = os.path.join( initialPP, node )
-        else:
-          break
-      self.setProcessingPass( initialPP )
-      requestedPP = requestedPP.replace( '...', '*' )
-      if requestedPP.endswith( '*' ) and not requestedPP.endswith( '/*' ):
-        matchLength = len( requestedPP.split( '/' ) )
-    else:
-      initialPP = requestedPP
-    requestedConditions = self.getConditions()
-    # print initialPP, requestedPP, matchLength
-    for cond in conditions:
-      self.setConditions( cond )
-      processingPasses = self.getBKProcessingPasses()
-      # print processingPasses
-      for processingPass in [pp for pp in processingPasses if processingPasses[pp]]:
-        # print processingPass
-        if initialPP != requestedPP and not fnmatch( processingPass, requestedPP ):
-          continue
-        if matchLength and len( processingPass.split( '/' ) ) != matchLength:
-          continue
-        # print 'Matched!'
-        if requestedEventTypes:
-          eventTypes = [t for t in requestedEventTypes if t in processingPasses[processingPass]]
-          if not eventTypes:
-            continue
-        else:
-          eventTypes = processingPasses[processingPass]
-        self.setProcessingPass( processingPass )
-        # print eventTypes
-        for eventType in eventTypes:
-          self.setEventType( eventType )
-          fileTypes = self.getBKFileTypes()
-          bkTree[configuration].setdefault( cond, {} ).setdefault( processingPass, {} )[int( eventType )] = fileTypes
-        self.setEventType( requestedEventTypes )
-      self.setProcessingPass( initialPP )
-    self.setConditions( requestedConditions )
-    return bkTree
