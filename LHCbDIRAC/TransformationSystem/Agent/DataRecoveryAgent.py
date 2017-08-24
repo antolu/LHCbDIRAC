@@ -107,7 +107,8 @@ class DataRecoveryAgent( AgentModule ):
 
       result = self.__selectTransformationFiles( transformation, fileSelectionStatus )
       if not result['OK']:
-        self.log.error( 'Could not select files for transformation', '%s: %s' % ( transformation, result['Message'] ) )
+        self.log.error( 'Could not select files for transformation',
+                        '%s: %s' % ( transformation, result['Message'] ) )
         continue
       fileDict = result['Value']
       if not fileDict:
@@ -117,7 +118,8 @@ class DataRecoveryAgent( AgentModule ):
 
       result = self.__obtainWMSJobIDs( transformation, fileDict, selectDelay, wmsStatusList )
       if not result['OK']:
-        self.log.error( "Could not obtain WMS jobIDs for files of transformation" "%s: %s" % ( transformation, result['Message'] ) )
+        self.log.error( "Could not obtain WMS jobIDs for files of transformation",
+                        "%s: %s" % ( transformation, result['Message'] ) )
         continue
       if not result['Value']:
         self.log.info( 'No eligible WMS jobIDs found for %s files in list:\n%s ...' % ( len( fileDict ),
@@ -135,7 +137,8 @@ class DataRecoveryAgent( AgentModule ):
 
       result = self.__removePendingRequestsJobs( jobFileDict )
       if not result['OK']:
-        self.log.error( result )
+        self.log.error( "Error while removing jobs with pending requests",
+                        '%s: %s' % ( transformation, result['Message'] ) )
         continue
       # This method modifies the input dictionary
       if not jobFileDict:
@@ -170,13 +173,16 @@ class DataRecoveryAgent( AgentModule ):
       if filesToUpdate:
         result = self.__updateFileStatus( transformation, filesToUpdate, updateStatus )
         if not result['OK']:
-          self.log.error( 'Recoverable files were not updated with result:\n%s' % ( result['Message'] ) )
-          continue
+          self.log.error( 'Recoverable files were not updated',
+                          '%s: %s' % ( transformation, result['Message'] ) )
 
       if filesWithDescendants:
+        # FIXME: we should mark these files with another status such that they are not considered again and again
+        # In addition a notification should be sent to the production managers
         self.log.warn( '!!!!!!!! Note that transformation %s has descendants for files that are not marked as processed !!!!!!!!' %
                        ( transformation ) )
-        self.log.warn( 'Files: %s' % ';'.join( filesWithDescendants ) )
+        self.log.warn( 'Files with descendants:',
+                       '\n\t%s' % '\n\t'.join( filesWithDescendants ) )
 
     return S_OK()
 
