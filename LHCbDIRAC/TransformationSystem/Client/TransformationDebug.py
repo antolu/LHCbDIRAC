@@ -41,6 +41,7 @@ class TransformationDebug( object ):
   def __getFilesForRun( self, runID = None, status = None, lfnList = None, seList = None, taskList = None ):
     """
     Get a lit of TS files fulfilling criteria
+
     :param runList: list of run numbers
     :type runList: list
     :param seList: list of UsedSE
@@ -52,7 +53,7 @@ class TransformationDebug( object ):
     :param lfnList: list of LFNs
     :type lfnList: list
 
-    :return list of TS files (i.e. dictionaries) fulfilling the criteria
+    :return : list of TS files (i.e. dictionaries) fulfilling the criteria
     """
     # print transID, runID, status, lfnList
     selectDict = {'TransformationID': self.transID}
@@ -86,9 +87,10 @@ class TransformationDebug( object ):
   def __filesProcessed( self, runID ):
     """
     Get the number of files and number of processed files in a run
+
     :param runID: run number
     :type runID: int, long
-    :return tuple (nb of files, nb of files Processed)
+    :return : tuple (nb of files, nb of files Processed)
     """
     transFilesList = self.__getFilesForRun( runID, None )
     files = len( transFilesList )
@@ -98,6 +100,7 @@ class TransformationDebug( object ):
   def __getRuns( self, runList = None, byRuns = True, seList = None, status = None, taskList = None ):
     """
     Get a list of TS runs fulfilling criteria
+
     :param runList: list of run numbers
     :type runList: list
     :param byRuns: if True, get a list of runs, else just None
@@ -109,7 +112,7 @@ class TransformationDebug( object ):
     :param taskList: list of task IDs
     :type taskList: list
 
-    :return list of dictionaries (one per run) fulfilling the criteria
+    :return : list of dictionaries (one per run) fulfilling the criteria
     """
     runs = []
     if status and byRuns and not runList:
@@ -157,12 +160,13 @@ class TransformationDebug( object ):
   def __justStats( self, status, seList ):
     """
     Print out statistics per usedSE about TS files in a given status targeting some sites
+
     :param status: (list of) status
     :type status: list or string
     :param seList: list of usedSE
     :type seList: list or string
 
-    :return list of jobIDs that are not in a proper status w.r.t. status
+    :return : list of jobIDs that are not in a proper status w.r.t. status
     """
     improperJobs = []
     if not status:
@@ -206,10 +210,11 @@ class TransformationDebug( object ):
   def __getTransformationInfo( self, transSep ):
     """
     Print out information about a given transformation
+
     :param transSep: separator to print out before info
     :type transSep: string
 
-    :return tuple ("Job"|"Request", file type in BK query)
+    :return : tuple ("Job"|"Request", file type in BK query)
     """
     res = self.transClient.getTransformation( self.transID, extraParams = False )
     if not res['OK']:
@@ -244,6 +249,7 @@ class TransformationDebug( object ):
   def __fixRunNumber( self, filesToFix, fixRun, noTable = False ):
     """
     Fix run information in TS
+
     :param filesToFix: list of TS files to get fixed
     :type filesToFix: list
     :param fixRun: if set, fix run, else print out number of files
@@ -283,10 +289,11 @@ class TransformationDebug( object ):
   def __getTransformations( self, args ):
     """
     Parse command arguments to get a list of transformations
+
     :param args: arguments
     :type args: list of args, first is transIDs
 
-    :return list of integer transformation IDs
+    :return : list of integer transformation IDs
     """
     if not len( args ):
       gLogger.notice( "Specify transformation number..." )
@@ -306,6 +313,7 @@ class TransformationDebug( object ):
   def __checkFilesMissingInFC( self, transFilesList, status ):
     """
     Check a list of files that are missing in FC and print information
+
     :param transFilesList: list of TS files
     :type transFilesList: list
     :param status: (list of) status
@@ -349,6 +357,7 @@ class TransformationDebug( object ):
   def __getReplicas( self, lfns ):
     """
     Get replicas of a list of LFNs
+
     :param lfns: list of LFNs
     :type lfns: list
     """
@@ -364,6 +373,7 @@ class TransformationDebug( object ):
   def __getTask( self, taskID ):
     """
     Get a TS task
+
     :param taskID: task ID
     :type taskID: int
     """
@@ -376,6 +386,7 @@ class TransformationDebug( object ):
     """
     Fill statistics per SE for a set of replicas and a list of SEs
     Depending whether the transformation is replication or removal, give the stat of missing or still present SEs
+
     :param SEStat: returned dictionary (number per SE)
     :type SEStat: dictionary
     :param rep: list of replicas
@@ -406,6 +417,7 @@ class TransformationDebug( object ):
   def __getRequestName( self, requestID ):
     """
     Return request name from ID
+
     :param requestID: request ID
     :type requestID: int
     """
@@ -436,6 +448,7 @@ class TransformationDebug( object ):
   def __printRequestInfo( self, task, lfnsInTask, taskCompleted, status, dmFileStatusComment ):
     """
     Print information about a request for a given task
+
     :param task: TS task
     :type task: dictionary
     :param lfnsInTask: List of LFNs in that task
@@ -585,6 +598,7 @@ class TransformationDebug( object ):
   def __checkProblematicFiles( self, nbReplicasProblematic, problematicReplicas, failedFiles ):
     """
     Check files found Problematic in TS
+
     :param nbReplicasProblematic: dict of frequency of nb of replicas
     :type nbReplicasProblematic: dict
     :param problematicReplicas: problematic replicas by SE
@@ -741,15 +755,16 @@ class TransformationDebug( object ):
   def __removeFilesFromTS( self, lfns ):
     """
     Set a list of files in status Removed
+
     :param lfns: list of LFNs
     :type lfns: list
 
-    :return (nb of removed files, list of removed LFNs)
+    :return : (nb of removed files, list of removed LFNs)
     """
     res = self.transClient.getTransformationFiles( {'LFN':lfns} )
     if not res['OK']:
       gLogger.notice( "Error getting %d files in the TS" % len( lfns ), res['Message'] )
-      return
+      return ( None, None )
     transFiles = {}
     removed = 0
     for fd in res['Value']:
@@ -765,6 +780,7 @@ class TransformationDebug( object ):
   def __removeFiles( self, lfns ):
     """
     Remove files from FC and TS
+
     :param lfns: list of LFNs
     :type lfns: list
     """
@@ -780,6 +796,7 @@ class TransformationDebug( object ):
   def __checkReplicasForProblematic( self, lfns, replicas, nbReplicasProblematic, problematicReplicas ):
     """
     Check replicas of Problematic files
+
     :param lfns: list of LFNs
     :type lfns: list
     :param replicas: replica dict
@@ -977,6 +994,7 @@ class TransformationDebug( object ):
   def __checkJobs( self, jobsForLfn, byFiles = False, checkLogs = False ):
     """
     Extract all information about jobs referring to list of LFNs
+
     :param jobsForLfn: dict { lfnString : [jobs] }
     :type jobsForLfn: dict
     :param byFiles: print file information
@@ -1126,6 +1144,7 @@ class TransformationDebug( object ):
   def __checkRunsToFlush( self, runID, transFilesList, runStatus, evtType = 90000000, fileTypes = None ):
     """
     Check whether the run is flushed and if not, why it was not
+
     :param runID: run number
     :type runID: int
     :param transFilesList: list of TS files
@@ -1294,6 +1313,7 @@ class TransformationDebug( object ):
   def debugTransformation( self, dmScript, infoList, statusList ):
     """
     Actual script execution code: parses arguments and implements the checking logic
+
     :param dmScript: DMScript object to be parsed
     :type dmScript: DMScript
     :param infoList: list of possible information
