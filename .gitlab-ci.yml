@@ -18,7 +18,8 @@ run_pytest:
   image:  gitlab-registry.cern.ch/ci-tools/ci-worker:cc7
   before_script:
     # If we are in a pre release branch we use integration of DIRAC, otherwise master
-    - diracBranch=$(grep -E ' *v' LHCbDIRAC/releases.cfg | head -n 1 | grep -q pre; if [ $? -eq 0 ]; then echo "integration"; else echo "master"; fi)
+    # We do the head first because of limitations of grep when running in containers
+    - diracBranch=$(head -n 50 LHCbDIRAC/releases.cfg | grep -E ' *v' | head -n 1 | grep -q pre; if [ $? -eq 0 ]; then echo "integration"; else echo "master"; fi)
     - echo "Using DIRAC branch $diracBranch"
     - git clone https://github.com/DIRACGrid/DIRAC.git
     - cd DIRAC
