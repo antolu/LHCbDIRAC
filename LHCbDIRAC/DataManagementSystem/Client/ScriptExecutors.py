@@ -196,7 +196,7 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
   #########################
   # Normal removal using FC
   #########################
-  archiveSEs = set( resolveSEGroup( 'Tier1-ARCHIVE' ) )
+  archiveSEs = set( resolveSEGroup( 'Tier1-Archive' ) )
   errorReasons = {}
   successfullyRemoved = {}
   fullyRemoved = set()
