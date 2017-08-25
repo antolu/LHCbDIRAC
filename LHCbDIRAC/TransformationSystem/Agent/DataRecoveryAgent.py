@@ -124,15 +124,15 @@ class DataRecoveryAgent( AgentModule ):
       self.transLogger.info( 'Selected %d files with status %s' % ( len( fileDict ), ','.join( fileSelectionStatus ) ) )
       result = self.__obtainWMSJobIDs( transformation, fileDict, selectDelay, wmsStatusList )
       if not result['OK']:
-        self.transLogger.error( "Could not obtain WMS jobIDs for files of transformation",
+        self.transLogger.error( "Could not obtain jobs for files of transformation",
                                 result['Message'] )
         continue
-      if not result['Value']:
-        self.transLogger.info( 'No %s WMS jobIDs found for %d selected files' %
-                               ( ' or '.join( wmsStatusList ), len( fileDict ) ) )
+      jobFileDict = result['Value']
+      if not jobFileDict:
+        self.transLogger.info( 'No %s jobs found for selected files' %
+                               ' or '.join( wmsStatusList ) )
         continue
 
-      jobFileDict = result['Value']
       self.transLogger.verbose( "Looking at WMS jobs %s" %
                                 ','.join( str( jobID ) for jobID in jobFileDict ) )
 
@@ -153,8 +153,8 @@ class DataRecoveryAgent( AgentModule ):
         continue
 
       fileCount = sum( len( lfnList ) for lfnList in jobFileDict.itervalues() )
-      self.transLogger.info( '%s files are selected after removing any job with pending requests' %
-                             ( str( fileCount ) if fileCount else 'No' ) )
+      self.transLogger.info( '%s files are selected in %d jobs after removing any job with pending requests' %
+                             ( str( fileCount ) if fileCount else 'No', len( jobFileDict ) ) )
       if not fileCount:
         continue
 
