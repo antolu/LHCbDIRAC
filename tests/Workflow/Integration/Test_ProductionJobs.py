@@ -2,7 +2,7 @@
 """ "Integration" production jobs. StepIDs are taken from REAL productions that ran "recently"
 """
 
-#pylint: disable=line-too-long,protected-access,missing-docstring,invalid-name,wrong-import-position
+# pylint: disable=line-too-long,protected-access,missing-docstring,invalid-name,wrong-import-position
 
 import unittest
 
@@ -212,7 +212,7 @@ class RecoSuccess( ProductionJobTestCase ):
                     'fileTypesOut':['DAVINCIHIST'],
                     'visibilityFlag':[{'Visible': 'Y', 'FileType': 'DAVINCIHIST'}]}]
 
-    prod = self.pr._buildProduction( 'Reconstruction', stepsInProd, {'FULL.DST': 'Tier1-BUFFER'}, 0, 100,
+    prod = self.pr._buildProduction( 'Reconstruction', stepsInProd, {'FULL.DST': 'Tier1-Buffer'}, 0, 100,
                                      outputMode = 'Run', inputDataPolicy = 'protocol', inputDataList = lfns, events = 25 )
     prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
     prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
@@ -238,7 +238,7 @@ class RecoSuccessMultiProcessor( ProductionJobTestCase ):
                     'visibilityFlag':[{'Visible': 'N', 'FileType': 'FULL.DST'},
                                       {'Visible': 'Y', 'FileType':'BRUNELHIST'}]}]
 
-    prod = self.pr._buildProduction( 'Reconstruction', stepsInProd, {'FULL.DST': 'Tier1-BUFFER'}, 0, 100,
+    prod = self.pr._buildProduction( 'Reconstruction', stepsInProd, {'FULL.DST': 'Tier1-Buffer'}, 0, 100,
                                      outputMode = 'Run', inputDataPolicy = 'protocol', inputDataList = lfns, events = 25 )
     prod.LHCbJob._addParameter( prod.LHCbJob.workflow, 'runNumber', 'JDL', 154030, 'Input run number' )
     prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
@@ -273,15 +273,15 @@ class StrippSuccess( ProductionJobTestCase ):
                                       {'Visible': 'N', 'FileType':'LEPTONIC.MDST'},
                                       {'Visible': 'N', 'FileType':'SEMILEPTONIC.DST'}]}]
 
-    prod = self.pr._buildProduction( 'Stripping', stepsInProd, {'BHADRON.MDST': 'Tier1-BUFFER',
-                                                                'BHADRONCOMPLETEEVENT.DST': 'Tier1-BUFFER',
-                                                                'CALIBRATION.DST': 'Tier1-BUFFER',
-                                                                'CHARM.MDST': 'Tier1-BUFFER',
-                                                                'CHARMCOMPLETEEVENT.DST': 'Tier1-BUFFER',
-                                                                'DIMUON.DST': 'Tier1-BUFFER',
-                                                                'EW.DST': 'Tier1-BUFFER',
-                                                                'LEPTONIC.MDST': 'Tier1-BUFFER',
-                                                                'SEMILEPTONIC.DST': 'Tier1-BUFFER'},
+    prod = self.pr._buildProduction( 'Stripping', stepsInProd, {'BHADRON.MDST': 'Tier1-Buffer',
+                                                                'BHADRONCOMPLETEEVENT.DST': 'Tier1-Buffer',
+                                                                'CALIBRATION.DST': 'Tier1-Buffer',
+                                                                'CHARM.MDST': 'Tier1-Buffer',
+                                                                'CHARMCOMPLETEEVENT.DST': 'Tier1-Buffer',
+                                                                'DIMUON.DST': 'Tier1-Buffer',
+                                                                'EW.DST': 'Tier1-Buffer',
+                                                                'LEPTONIC.MDST': 'Tier1-Buffer',
+                                                                'SEMILEPTONIC.DST': 'Tier1-Buffer'},
                                      0, 100,
                                      outputMode = 'Run', inputDataPolicy = 'protocol', inputDataList = lfns, events = 500 )
     prod.LHCbJob._addParameter( prod.LHCbJob.workflow, 'runNumber', 'JDL', 154030, 'Input run number' )
@@ -349,19 +349,19 @@ class MergeMultStreamsSuccess( ProductionJobTestCase ):
                                       {'Visible': 'N', 'FileType':'RADIATIVE.DST'},
                                       {'Visible': 'N', 'FileType':'SEMILEPTONIC.DST'}]}                                  ]
 
-    prod = self.pr._buildProduction( 'Merge', stepsInProd, {'BHADRON.MDST': 'Tier1-BUFFER',
-                                                            'BHADRONCOMPLETEEVENT.DST': 'Tier1-BUFFER',
-                                                            'CALIBRATION.DST': 'Tier1-BUFFER',
-                                                            'CHARM.MDST': 'Tier1-BUFFER',
-                                                            'CHARMCOMPLETEEVENT.DST': 'Tier1-BUFFER',
-                                                            'CHARMCONTROL.DST': 'Tier1-BUFFER',
-                                                            'DIMUON.DST': 'Tier1-BUFFER',
-                                                            'EW.DST': 'Tier1-BUFFER',
-                                                            'LEPTONIC.MDST': 'Tier1-BUFFER',
-                                                            'MINIBIAS.DST': 'Tier1-BUFFER',
-                                                            'PID.MDST':'Tier1-BUFFER',
-                                                            'RADIATIVE.DST': 'Tier1-BUFFER',
-                                                            'SEMILEPTONIC.DST': 'Tier1-BUFFER'},
+    prod = self.pr._buildProduction( 'Merge', stepsInProd, {'BHADRON.MDST': 'Tier1-Buffer',
+                                                            'BHADRONCOMPLETEEVENT.DST': 'Tier1-Buffer',
+                                                            'CALIBRATION.DST': 'Tier1-Buffer',
+                                                            'CHARM.MDST': 'Tier1-Buffer',
+                                                            'CHARMCOMPLETEEVENT.DST': 'Tier1-Buffer',
+                                                            'CHARMCONTROL.DST': 'Tier1-Buffer',
+                                                            'DIMUON.DST': 'Tier1-Buffer',
+                                                            'EW.DST': 'Tier1-Buffer',
+                                                            'LEPTONIC.MDST': 'Tier1-Buffer',
+                                                            'MINIBIAS.DST': 'Tier1-Buffer',
+                                                            'PID.MDST':'Tier1-Buffer',
+                                                            'RADIATIVE.DST': 'Tier1-Buffer',
+                                                            'SEMILEPTONIC.DST': 'Tier1-Buffer'},
                                      0, 100, inputDataPolicy = 'protocol', inputDataList = lfns )
     prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
     prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
@@ -385,7 +385,7 @@ class MergeMDFSuccess( ProductionJobTestCase ):
                     'fileTypesOut':['RAW'],
                     'visibilityFlag':[{'Visible': 'Y', 'FileType': 'RAW'}]}]
     self.pr.modulesList = ['MergeMDF', 'BookkeepingReport']
-    prod = self.pr._buildProduction( 'Merge', stepsInProd, {'RAW':'Tier1-BUFFER'}, 0, 100,
+    prod = self.pr._buildProduction( 'Merge', stepsInProd, {'RAW':'Tier1-Buffer'}, 0, 100,
                                      inputDataPolicy = 'download', inputDataList = lfns )
     prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
     prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
@@ -425,7 +425,7 @@ class SwimmingSuccess( ProductionJobTestCase ):
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
-#FIXME: not ready, now disabled - should also add DAVINCIHIST in input, plus ntuples and other combinations
+# FIXME: not ready, now disabled - should also add DAVINCIHIST in input, plus ntuples and other combinations
 class RootMergeSuccess( ProductionJobTestCase ):
   def test_Integration_Production( self ):
 
@@ -461,11 +461,11 @@ if __name__ == '__main__':
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCSuccessMultiProcessor ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCSuccess_new ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RecoSuccess ) )
-  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RecoSuccessMultiProcessor ) )
+  # suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RecoSuccessMultiProcessor ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( StrippSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCMergeSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMultStreamsSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMDFSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( SwimmingSuccess ) )
-  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RootMergeSuccess ) )
+  # suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RootMergeSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
