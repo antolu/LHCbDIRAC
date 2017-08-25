@@ -105,16 +105,16 @@ class DataRecoveryAgent( AgentModule ):
 
 
     for transformation, typeName in transformationDict.iteritems():
-      self.transLogger = self.log.getSubLogger( '%s' % transformation )
+      self.transLogger = self.log.getSubLogger( 'Trans-%s' % transformation )
       result = self.__selectTransformationFiles( transformation, fileSelectionStatus )
       if not result['OK']:
         self.transLogger.error( 'Could not select files for transformation',
-                        '%s: %s' % ( transformation, result['Message'] ) )
+                                '%s: %s' % ( transformation, result['Message'] ) )
         continue
       fileDict = result['Value']
       if not fileDict:
-        self.transLogger.verbose( 'No files in status %s selected for transformation %s' % ( ', '.join( fileSelectionStatus ),
-                                                                                  transformation ) )
+        self.transLogger.verbose( 'No files in status %s selected for transformation %s' %
+                                  ( ', '.join( fileSelectionStatus ), transformation ) )
         continue
 
       title = 'Looking at transformation %s, type %s ' % ( transformation, typeName )
@@ -125,26 +125,27 @@ class DataRecoveryAgent( AgentModule ):
       result = self.__obtainWMSJobIDs( transformation, fileDict, selectDelay, wmsStatusList )
       if not result['OK']:
         self.transLogger.error( "Could not obtain WMS jobIDs for files of transformation",
-                        result['Message'] )
+                                result['Message'] )
         continue
       if not result['Value']:
-        self.transLogger.info( 'No eligible WMS jobIDs found for %s files in list:\n%s ...' % ( len( fileDict ),
-                                                                                        fileDict.keys()[0] ) )
+        self.transLogger.info( 'No eligible WMS jobIDs found for %s files in list:\n%s ...' %
+                               ( len( fileDict ), fileDict.keys()[0] ) )
         continue
 
       jobFileDict = result['Value']
-      self.transLogger.verbose( "Looking at WMS jobs %s" % ','.join( str( jobID ) for jobID in jobFileDict ) )
+      self.transLogger.verbose( "Looking at WMS jobs %s" %
+                                ','.join( str( jobID ) for jobID in jobFileDict ) )
 
       fileCount = sum( len( lfnList ) for lfnList in jobFileDict.itervalues() )
-      self.transLogger.info( '%s files are selected after examining WMS jobs' %
-                     ( str( fileCount ) if fileCount else 'No' ) )
+      self.transLogger.verbose( '%s files are selected after examining WMS jobs' %
+                                ( str( fileCount ) if fileCount else 'No' ) )
       if not fileCount:
         continue
 
       result = self.__removePendingRequestsJobs( jobFileDict )
       if not result['OK']:
         self.transLogger.error( "Error while removing jobs with pending requests",
-                        result['Message'] )
+                                result['Message'] )
         continue
       # This method modifies the input dictionary
       if not jobFileDict:
@@ -153,7 +154,7 @@ class DataRecoveryAgent( AgentModule ):
 
       fileCount = sum( len( lfnList ) for lfnList in jobFileDict.itervalues() )
       self.transLogger.info( '%s files are selected after removing any job with pending requests' %
-                     ( str( fileCount ) if fileCount else 'No' ) )
+                             ( str( fileCount ) if fileCount else 'No' ) )
       if not fileCount:
         continue
 
@@ -180,22 +181,22 @@ class DataRecoveryAgent( AgentModule ):
 
       if filesToUpdate:
         self.transLogger.info( "\tUpdating %d files to '%s'" %
-                       ( len( filesToUpdate ), updateStatus ) )
+                               ( len( filesToUpdate ), updateStatus ) )
         result = self.__updateFileStatus( transformation, filesToUpdate, updateStatus )
         if not result['OK']:
           self.transLogger.error( '\tRecoverable files were not updated',
-                          result['Message'] )
+                                  result['Message'] )
 
       if filesMaxReset:
         self.transLogger.info( '\t%d files are in %s status and have no descendants' %
-                       ( len( filesMaxReset ), ','.join( unrecoverableStatus ) ) )
+                               ( len( filesMaxReset ), ','.join( unrecoverableStatus ) ) )
 
       if filesWithDescendants:
         # FIXME: we should mark these files with another status such that they are not considered again and again
         # In addition a notification should be sent to the production managers
         self.transLogger.warn( '\t!!!!!!!! Transformation has descendants for files that are not marked as processed !!!!!!!!' )
         self.transLogger.warn( '\tFiles with descendants:',
-                       ','.join( filesWithDescendants ) )
+                               ','.join( filesWithDescendants ) )
 
     return S_OK()
 
