@@ -128,8 +128,8 @@ class DataRecoveryAgent( AgentModule ):
                                 result['Message'] )
         continue
       if not result['Value']:
-        self.transLogger.info( 'No eligible WMS jobIDs found for %s files in list:\n%s ...' %
-                               ( len( fileDict ), fileDict.keys()[0] ) )
+        self.transLogger.info( 'No %s WMS jobIDs found for %d selected files' %
+                               ( ' or '.join( wmsStatusList ), len( fileDict ) ) )
         continue
 
       jobFileDict = result['Value']
