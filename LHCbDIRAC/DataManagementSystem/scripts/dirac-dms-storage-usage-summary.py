@@ -24,6 +24,8 @@ def seSvcClass( se ):
         if status['OK']:
           status = status['Value']
           seSvcClassDict[se] = 'Tape' if status['TapeSE'] else 'Disk' if status['Disk'] else 'Unknown'
+        else:
+          seSvcClassDict[se] = 'Unknown'
     except:
       seSvcClassDict[se] = 'LFN'
   return seSvcClassDict[se]
