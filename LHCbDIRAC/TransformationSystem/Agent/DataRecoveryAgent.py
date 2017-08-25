@@ -16,7 +16,7 @@
     - Check that none of the job input data has BK descendants for the current production
       o if the data has a replica flag it means all was uploaded successfully - should be investigated by hand
       o if there is no replica flag can proceed with file removal from LFC / storage (can be disabled by flag)
-    - Mark the recovered input file status as 'Unused' in the ProductionDB
+    - Mark the recovered input file status as 'Unused' in the ProductionDB if they were not in MaxReset
 """
 
 __RCSID__ = "$Id$"
@@ -77,6 +77,7 @@ class DataRecoveryAgent( AgentModule ):
 
     transformationStatus = self.am_getOption( 'TransformationStatus', ['Active', 'Completing'] )
     fileSelectionStatus = self.am_getOption( 'FileSelectionStatus', ['Assigned', 'MaxReset'] )
+    unrecoverableStatus = self.am_getOption( 'UnrecoverableStatus', ['MaxReset'] )
     updateStatus = self.am_getOption( 'FileUpdateStatus', 'Unused' )
     wmsStatusList = self.am_getOption( 'WMSStatus', ['Failed'] )
 
@@ -163,10 +164,13 @@ class DataRecoveryAgent( AgentModule ):
         self.log.info( '====> Transformation %s: no jobs have descendants' % transformation )
 
       filesToUpdate = []
+      filesMaxReset = []
       filesWithDescendants = []
       for job, fileList in jobFileDict.iteritems():
         if job in jobsThatDidntProduceOutputs:
-          filesToUpdate += fileList
+          recoverableFiles = set( lfn for lfn in fileList if fileDict[lfn][1] not in unrecoverableStatus )
+          filesToUpdate += list( recoverableFiles )
+          filesMaxReset += list( set( fileList ) - recoverableFiles )
         elif job in jobsThatProducedOutputs:
           filesWithDescendants += fileList
 
@@ -176,12 +180,16 @@ class DataRecoveryAgent( AgentModule ):
           self.log.error( 'Recoverable files were not updated',
                           '%s: %s' % ( transformation, result['Message'] ) )
 
+      if filesMaxReset:
+        self.log.info( '====> Transformation %s: %d files are in %s status and have no descendants' %
+                       ( transformation, len( filesMaxReset ), ','.join( unrecoverableStatus ) ) )
+
       if filesWithDescendants:
         # FIXME: we should mark these files with another status such that they are not considered again and again
         # In addition a notification should be sent to the production managers
         self.log.warn( '!!!!!!!! Note that transformation %s has descendants for files that are not marked as processed !!!!!!!!' %
                        ( transformation ) )
-        self.log.warn( 'Files with descendants:',
+        self.log.warn( '====> Transformation %s: Files with descendants:' % transformation,
                        '\n\t%s' % '\n\t'.join( filesWithDescendants ) )
 
     return S_OK()
@@ -214,7 +222,7 @@ class DataRecoveryAgent( AgentModule ):
         for key in missingKeys:
           self.log.verbose( '%s is mandatory, but missing for:\n\t%s' % ( key, str( fileDict ) ) )
       else:
-        resDict[fileDict['LFN']] = fileDict['TaskID']
+        resDict[fileDict['LFN']] = ( fileDict['TaskID'], fileDict['Status'] )
     if resDict:
       self.log.info( 'Selected %s files overall for transformation %s' % ( len( resDict ), transformation ) )
     return S_OK( resDict )
@@ -228,7 +236,7 @@ class DataRecoveryAgent( AgentModule ):
         statuses only possibly include some files in Unused status (not Processed
         for example) that will not be touched.
     """
-    taskIDList = sorted( set( fileDict.values() ) )
+    taskIDList = sorted( set( taskID for taskID, _status in fileDict.values() ) )
     self.log.verbose( "The following %d task IDs correspond to the selected files:\n%s" %
                       ( len( taskIDList ), ', '.join( str( taskID ) for taskID in taskIDList ) ) )
 
@@ -242,7 +250,7 @@ class DataRecoveryAgent( AgentModule ):
       self.log.error( "getTransformationTasks returned an error", '%s' % res['Message'] )
       return res
 
-    mandatoryKeys = {'TaskID', 'ExternalID', 'LastUpdateTime', 'ExternalStatus', 'InputVector' }
+    mandatoryKeys = {'TaskID', 'ExternalID', 'LastUpdateTime', 'ExternalStatus' }
     for taskDict in res['Value']:
       missingKey = mandatoryKeys - set( taskDict )
       if missingKey:
@@ -268,7 +276,7 @@ class DataRecoveryAgent( AgentModule ):
                      ( wmsID, taskID, taskDict['LastUpdateTime'], wmsStatus ) )
 
       # Must map unique files -> jobs in expected state
-      jobFileDict[wmsID] = [lfn for lfn, tID in fileDict.iteritems() if int( tID ) == int( taskID )]
+      jobFileDict[wmsID] = [lfn for lfn, ( tID, _st ) in fileDict.iteritems() if int( tID ) == int( taskID )]
 
       self.log.info( 'Found %d files for taskID %s, jobID %s' % ( len( jobFileDict[wmsID] ), taskID, wmsID ) )
 
@@ -331,9 +339,10 @@ class DataRecoveryAgent( AgentModule ):
                                                                                                       transformation ) )
       return S_OK()
 
-    self.log.info( "Updating %s files to '%s' status for %s" % ( len( fileList ),
-                                                                 fileStatus,
-                                                                 transformation ) )
+    self.log.info( "====> Transformation %s: Updating %s files to '%s'" %
+                   ( transformation,
+                     len( fileList ),
+                     fileStatus ) )
     return self.transClient.setFileStatusForTransformation( int( transformation ),
                                                               fileStatus,
                                                               fileList,
