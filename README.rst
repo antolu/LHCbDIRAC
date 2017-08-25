@@ -6,9 +6,21 @@ Master
   .. image:: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/badges/master/build.svg
       :target: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/commits/master
 
+Master coverage
+  .. image:: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/badges/master/coverage.svg
+      :target: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/commits/master
+
 Devel
   .. image:: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/badges/devel/build.svg
           :target: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/commits/devel
+
+Devel coverage
+  .. image:: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/badges/devel/coverage.svg
+          :target: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/commits/devel
+
+See the full `coverage output`_.
+  .. _`coverage output`: https://lhcbdirac-cov.web.cern.ch/
+
 
 LHCbDIRAC is the LHCb extension of [DIRAC](https://github.com/DIRACGrid/DIRAC).
 
