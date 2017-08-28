@@ -368,6 +368,8 @@ if __name__ == "__main__":
     trial = 0
     errMsg = ''
     while True:
+      for key, val in transformation.paramValues.iteritems():
+        print key, ":", val
       result = transformation.addTransformation()
       if not result['OK']:
         if not unique and result['Message'].find( "already exists" ) >= 0:
