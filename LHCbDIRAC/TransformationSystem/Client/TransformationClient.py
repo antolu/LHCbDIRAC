@@ -37,7 +37,7 @@ class TransformationClient( DIRACTransformationClient ):
                          addFiles = True,
                          bkQuery = None,
                          timeout = 1800 ):
-    res = super( TransformationClient, self ).addTransformation( self, transName, description, longDescription,
+    res = super( TransformationClient, self ).addTransformation( transName, description, longDescription,
                                                                  transfType, plugin, agentType, fileMask,
                                                                  transformationGroup = transformationGroup,
                                                                  groupSize = groupSize,
