@@ -69,7 +69,7 @@ class UserStorageQuotaAgent( AgentModule ):
     managerMsg = ""
     errorMsg = ""
     self.log.info( "Determining quota usage for %s users." % len( usageDict ) )
-    for userName in sorted( usageDict.keys() ):
+    for userName in sorted( usageDict ):
       usageGB = usageDict[userName] / byteToGB
       res = gConfig.getOptionsDict( '/Registry/Users/%s' % userName )
       if not res['OK']:
@@ -77,7 +77,7 @@ class UserStorageQuotaAgent( AgentModule ):
         errorMsg += msg + '\n'
         self.log.error( msg )
         continue
-      elif not res['Value'].has_key( 'Email' ):
+      elif 'Email' not in res['Value']:
         msg = "CS does not contain email information for user %s" % userName
         errorMsg += msg + '\n'
         self.log.error( msg )

@@ -197,9 +197,7 @@ class TransformationManagerHandler( TManagerBase ):
         continue
       # Update the status counters
       status = transRunDict['Status']
-      if not statusDict.has_key( status ):
-        statusDict[status] = 0
-      statusDict[status] += 1
+      statusDict[status] = statusDict.setdefault( status, 0 ) + 1
 
       # Populate the run file statistics
       fileDict = transRunStatusDict[transID][runID]
