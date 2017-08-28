@@ -13,6 +13,7 @@ from LHCbDIRAC.DataManagementSystem.Client.DMScript import printDMResult, Progre
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery, parseRuns, BadRunRange, getProcessingPasses
 
 bkClient = BookkeepingClient()
+jobEventInputStat = {}
 
 __RCSID__ = "$Id$"
 
@@ -185,7 +186,8 @@ def executeFilePath( dmScript ):
         continue
       if '/RAW/' not in dirName:
         # If it is is RAW, we already had the correct path.
-        # for example: os.path.dirname('/lhcb/data/2016/RAW/TURBO/LHCb/COLLISION16/176059/176059_0000003101.raw') returns /lhcb/data/2016/RAW/TURBO/LHCb/COLLISION16/176059
+        # for example: os.path.dirname('/lhcb/data/2016/RAW/TURBO/LHCb/COLLISION16/176059/176059_0000003101.raw')
+        #    returns /lhcb/data/2016/RAW/TURBO/LHCb/COLLISION16/176059
         tail = os.path.basename( dirName )
         # Eliminate the tailing '/0000'
         if len( tail ) == 4 and tail.isdigit():
@@ -323,9 +325,11 @@ def _updateDescendantsLumi( parentLumi, doIt = False, force = False ):
     if abs( fileLumi[lfn] - descLumi[lfn] ) < 1:
       descLumi.pop( lfn, None )
   if descLumi:
-    gLogger.notice( '%s lumi of %d descendants out of %d (file types: %s) of %d files' % ( prStr, len( descLumi ), nDesc, ','.join( sorted( set( fileTypes.values() ) ) ), len( parentLumi ) ) )
+    gLogger.notice( '%s lumi of %d descendants out of %d (file types: %s) of %d files' %
+                    ( prStr, len( descLumi ), nDesc, ','.join( sorted( set( fileTypes.values() ) ) ), len( parentLumi ) ) )
   else:
-    gLogger.notice( 'All %d descendants (file types: %s) of %d files are OK' % ( nDesc, ','.join( sorted( set( fileTypes.values() ) ) ), len( parentLumi ) ) )
+    gLogger.notice( 'All %d descendants (file types: %s) of %d files are OK' %
+                    ( nDesc, ','.join( sorted( set( fileTypes.values() ) ) ), len( parentLumi ) ) )
     if not force:
       return None
   if doIt:
@@ -354,7 +358,8 @@ def _updateRunLumi( run, evtType, fileInfo, doIt = False, force = False ):
     gLogger.notice( "Event number is zero for run %d, cannot update" % run )
   elif abs( runLumi - filesLumi ) > 1:
     prStr = 'Updating' if doIt else 'Would update'
-    gLogger.notice( "%s %d files as run %d and files lumi don't match: runLumi %.1f, filesLumi %.1f" % ( prStr, len( fileInfo ), run, runLumi, filesLumi ) )
+    gLogger.notice( "%s %d files as run %d and files lumi don't match: runLumi %.1f, filesLumi %.1f" %
+                    ( prStr, len( fileInfo ), run, runLumi, filesLumi ) )
     fileDict = {}
     for info in fileInfo:
       # Split the luminosity according to nb of events
@@ -385,7 +390,6 @@ def executeFixLuminosity( dmScript ):
       doIt = True
     elif switch[0] == 'Force':
       force = True
-    pass
 
   bkQuery = dmScript.getBKQuery()
   if not bkQuery:
@@ -474,7 +478,8 @@ def executeFileAncestors( dmScript, level = 1 ):
   lfnList = dmScript.getOption( 'LFNs', [] )
 
   chunkSize = 50
-  progressBar = ProgressBar( len( lfnList ), chunk = chunkSize, title = 'Getting ancestors for %d files (depth %d)' % ( len( lfnList ), level ) )
+  progressBar = ProgressBar( len( lfnList ), chunk = chunkSize,
+                             title = 'Getting ancestors for %d files (depth %d)' % ( len( lfnList ), level ) )
   fullResult = S_OK( {} )
   for lfnChunk in breakListIntoChunks( lfnList, 50 ):
     progressBar.loop()
@@ -542,7 +547,9 @@ def executeFileDescendants( dmScript, level = 1 ):
   lfnList = dmScript.getOption( 'LFNs', [] )
 
   chunkSize = int( 20 / level )
-  progressBar = ProgressBar( len( lfnList ), chunk = chunkSize, title = 'Getting descendants for %d files (depth %d)' % ( len( lfnList ), level ) + ( ' for production %d' % prod if prod else '' ) )
+  progressBar = ProgressBar( len( lfnList ), chunk = chunkSize,
+                             title = 'Getting descendants for %d files (depth %d)' %
+                             ( len( lfnList ), level ) + ( ' for production %d' % prod if prod else '' ) )
   fullResult = S_OK( {} )
   for lfnChunk in breakListIntoChunks( lfnList, 50 ):
     progressBar.loop()
@@ -599,8 +606,8 @@ def executeGetFiles( dmScript, maxFiles = 20 ):
   bkQuery = dmScript.getBKQuery()
   bkQueries = [bkQuery] if bkQuery else []
   if bkFile and os.path.exists( bkFile ):
-    with open( bkFile, 'r' ) as f:
-      bkQueries += [BKQuery( ll.strip().split()[0] ) for ll in f.readlines()]
+    with open( bkFile, 'r' ) as fd:
+      bkQueries += [BKQuery( ll.strip().split()[0] ) for ll in fd.readlines()]
 
   if not bkQueries:
     gLogger.notice( "No BK query given, use --BK <bkPath> or --BKFile <localFile>" )
@@ -639,7 +646,7 @@ def executeGetFiles( dmScript, maxFiles = 20 ):
   # Now print out
   nFiles = len( fileDict )
   if output:
-    f = open( output, 'w' )
+    fd = open( output, 'w' )
     if not nMax:
       nMax = maxFiles
   else:
@@ -665,13 +672,13 @@ def executeGetFiles( dmScript, maxFiles = 20 ):
                                      str( hasReplica ).ljust( 8 ),
                                      str( visible ).ljust( 8 ) )
     if output:
-      f.write( outputStr + '\n' )
+      fd.write( outputStr + '\n' )
     if nFiles < nMax:
       nFiles += 1
       gLogger.notice( outputStr )
 
   if output:
-    f.close()
+    fd.close()
     gLogger.notice( '\nList of %d files saved in' % len( fileDict ), output )
 
 #==================================================================================
@@ -882,7 +889,6 @@ def _getCollidingBunches( fills ):
       result[fill] = int( fillInfo['nCollidingBunches'] )
     except ( KeyError, ValueError ) as e:
       gLogger.exception( "Exception getting info for fill", str( fill ), lException = e )
-      pass
     except urllib2.HTTPError as e:
       pass
   return result
@@ -966,7 +972,10 @@ def executeGetStats( dmScript ):
       if isinstance( eventTypes, list ):
         nDatasets *= len( eventTypes )
       nPasses = len( processingPasses )
-      progressBar = ProgressBar( nPasses, title = 'Getting info from filesSummary' + ( ' for %d processing passes...' % nPasses if nPasses > 1 else '...' ), step = 1 )
+      progressBar = ProgressBar( nPasses,
+                                 title = 'Getting info from filesSummary' + ( ' for %d processing passes...' %
+                                                                              nPasses if nPasses > 1 else '...' ),
+                                 step = 1 )
       for processingPass in processingPasses:
         # Loop on all processing passes if needed
         if processingPass:
@@ -1012,7 +1021,8 @@ def executeGetStats( dmScript ):
       runList = {}
       if not lfns:
         nPasses = len( processingPasses )
-        progressBar = ProgressBar( nPasses, title = 'Getting info from files' + ( ' for %d processing passes...' % nPasses if nPasses > 1 else '...' ), step = 1 )
+        progressBar = ProgressBar( nPasses, title = 'Getting info from files' + \
+                                   ( ' for %d processing passes...' % nPasses if nPasses > 1 else '...' ), step = 1 )
         for processingPass in processingPasses:
           if processingPass:
             queryDict['ProcessingPass'] = processingPass
@@ -1032,14 +1042,16 @@ def executeGetStats( dmScript ):
             info = res['Value']['Records']
           else:
             if 'Value' in res:
-              gLogger.error( 'ParameterNames not present:', str( res['Value'].keys() ) if isinstance( res['Value'], dict ) else str( res['Value'] ) )
+              gLogger.error( 'ParameterNames not present:',
+                             str( res['Value'].keys() ) if isinstance( res['Value'], dict ) else str( res['Value'] ) )
             info = []
             res = bkClient.getFiles( queryDict )
             if res['OK']:
               lfns = res['Value']
           for item in info:
             metadata = dict( zip( parameterNames, item ) )
-            datasets.add( ( metadata.get( 'EventType', metadata['FileName'].split( '/' )[5] ), metadata.get( 'FileType', metadata.get( 'Name' ) ) ) )
+            datasets.add( ( metadata.get( 'EventType', metadata['FileName'].split( '/' )[5] ),
+                            metadata.get( 'FileType', metadata.get( 'Name' ) ) ) )
             try:
               fileSize += metadata['FileSize']
               lumi += metadata['Luminosity']
@@ -1123,7 +1135,8 @@ def executeGetStats( dmScript ):
         runs = [run for run in success if success[run].get( 'Finished' ) == 'Y']
       notFinished = set( runList ) - set( runs )
       if notFinished:
-        gLogger.notice( '%d runs not Finished (ignored), %s runs Finished (used for trigger rate)' % ( len( notFinished ), str( len( runs ) if len( runs ) else 'no' ) ) )
+        gLogger.notice( '%d runs not Finished (ignored), %s runs Finished (used for trigger rate)' %
+                        ( len( notFinished ), str( len( runs ) if len( runs ) else 'no' ) ) )
         gLogger.notice( 'These runs are not Finished: %s' % ','.join( str( run ) for run in sorted( notFinished ) ) )
       if runs:
         nevts = 0
@@ -1147,7 +1160,8 @@ def executeGetStats( dmScript ):
             fullDuration += runDuration
             lumi = info['TotalLuminosity']
             if abs( lumi - runList[run][0] / nDatasets ) > 1:
-              gLogger.notice( 'Run and files luminosity mismatch (ignored): run %d, runLumi %d, filesLumi %d' % ( run, lumi, int( runList[run][0] / nDatasets ) ) )
+              gLogger.notice( 'Run and files luminosity mismatch (ignored): run %d, runLumi %d, filesLumi %d' %
+                              ( run, lumi, int( runList[run][0] / nDatasets ) ) )
             else:
               totalLumi += lumi
         if fullDuration:
@@ -1175,10 +1189,13 @@ def executeGetStats( dmScript ):
           if collBunches:
             gLogger.notice( '%s: %.2f events/s/bunch' % ( 'Trigger per bunch'.ljust( tab ), triggerRate / collBunches ) )
         if listFills:
-          gLogger.notice( 'List of fills: ', ','.join( "%d (%d runs, %.1f hours)" % ( fill, len( fills[fill] ), fillDuration[fill] ) for fill in sorted( fills ) ) )
+          gLogger.notice( 'List of fills: ', ','.join( "%d (%d runs, %.1f hours)" %
+                                                       ( fill, len( fills[fill] ), fillDuration[fill] ) for fill in sorted( fills ) ) )
         if listRuns:
           for fill in sorted( fills ):
-            gLogger.notice( 'Fill %d (%s, %.1f hours):' % ( fill, '%4d bunches' % result[fill] if fill in result else 'Unknown bunches', fillDuration[fill] ), ','.join( fills[fill] ) )
+            gLogger.notice( 'Fill %d (%s, %.1f hours):' % ( fill, '%4d bunches' %
+                                                            result[fill] if fill in result else 'Unknown bunches',
+                                                            fillDuration[fill] ), ','.join( fills[fill] ) )
     gLogger.notice( "" )
 
 def executeRunInfo( item ):
@@ -1358,7 +1375,7 @@ def executeRunInfo( item ):
         # If still same value, start a new range
         firstRun = run if runValue == itemValue else None
       elif getRanges and run:
-          count += runDict[run]
+        count += runDict[run]
       # Update parameters with this run's information
       lastRun = run
       lastRunDesc = runDesc
@@ -1374,6 +1391,109 @@ def executeRunInfo( item ):
   else:
     for itemValue in sorted( itemDict ):
       gLogger.notice( '%s :' % itemValue, ', '.join( itemDict[itemValue] ) )
+
+def _jobFromLfn( lfn ):
+  """ Extract job unique name form LFN """
+  return os.path.basename( lfn ).split( '.' )[0]
+
+def _getJobsEISFromAncestors( lfnList ):
+  """
+  Get EventInputStat of all jobs in a recursive way
+  The EventInputStat of all jobs is set in the global dictionary jobEventInputStat
+  :param lfnList: list of LFNs
+  """
+  # Get one output file per unknown job
+  jobDict = {}
+  for lfn in lfnList:
+    job = _jobFromLfn( lfn )
+    if job not in jobEventInputStat:
+      jobDict.setdefault( job, lfn )
+  lfnList = jobDict.values()
+  # Get ancestors of these files
+  res = bkClient.getFileAncestors( lfnList, depth = 1, replica = False )
+  if not res['OK']:
+    return res
+  ancWithMetadata = res['Value']['WithMetadata']
+  ancToCheck = set()
+  for lfn, ancDict in ancWithMetadata.iteritems():
+    job = _jobFromLfn( lfn )
+    for anc, meta in ancDict.iteritems():
+      ancJob = _jobFromLfn( anc )
+      if ancJob in jobEventInputStat:
+        # This ancestor job is  already known
+        jobEventInputStat[job] = jobEventInputStat.setdefault( job, 0 ) + jobEventInputStat[ancJob]
+      else:
+        top = meta['FileType'] in ( 'SIM', 'RAW' )
+        if top:
+          # We are at the top, the EventInputStat is the sum of EventStat of input files
+          jobEventInputStat[job] = jobEventInputStat.setdefault( job, 0 ) + meta['EventStat']
+        else:
+          ancToCheck.add( anc )
+
+  if ancToCheck:
+    # Let's go one step further
+    res = _getJobsEISFromAncestors( list( ancToCheck ) )
+    if not res['OK']:
+      return res
+    # Update the table for jobs still unknown
+    for lfn, ancDict in ancWithMetadata.iteritems():
+      job = _jobFromLfn( lfn )
+      if job not in jobEventInputStat:
+        for anc, meta in ancDict.iteritems():
+          ancJob = _jobFromLfn( anc )
+          if ancJob in jobEventInputStat:
+            # This ancestor job is  already known
+            jobEventInputStat[job] = jobEventInputStat.setdefault( job, 0 ) + jobEventInputStat[ancJob]
+          else:
+            gLogger.notice( "Job not found in table", "%s for LFN %s" % ( ancJob, anc ) )
+
+  return S_OK()
+
+def _getEventInputStat( lfns ):
+  """
+  Get EventInputStat of all ancestor jobs of a list of files
+  """
+  # Sort events by job
+  jobLfns = {}
+  for lfn in lfns:
+    jobName = _jobFromLfn( lfn )
+    if jobName not in jobEventInputStat:
+      jobLfns.setdefault( jobName, [] ).append( lfn )
+  # These are the final LFNs, but we must get to the top ancestors to get it right
+  # Let's do it job by job
+  if jobLfns:
+    progressBar = ProgressBar( len( jobLfns ), title = "Getting ancestors for %d jobs" % len( jobLfns ), chunk = 1 )
+    for lfns in jobLfns.itervalues():
+      progressBar.loop()
+      res = _getJobsEISFromAncestors( lfns )
+      if not res['OK']:
+        return res
+    progressBar.endLoop()
+  return S_OK()
+
+def _checkEventInputStat( lfn ):
+  """
+  Check if EventInputStat is correct
+  """
+  progressBar = ProgressBar( 1, title = "Checking if BK EventInputStat is reliable :", chunk = 1 )
+  # Get EventInputStat from ancestors
+  res = _getJobsEISFromAncestors( [lfn] )
+  if not res['OK']:
+    return res
+  # Get EventInputStat for one file and keep the information in case it is useful
+  topInputStat = jobEventInputStat[ _jobFromLfn( lfn ) ]
+  # Get EventInputStat from the parent job
+  res = bkClient.getJobInfo( lfn )
+  if not res['OK']:
+    return res
+  eventInputStat = res['Value'][0][2]
+  if eventInputStat != topInputStat:
+    gLogger.info( 'EventInputStat mismatch: %d in file, %d in ancestors' % ( eventInputStat, topInputStat ) )
+    result = False
+  else:
+    result = True
+  progressBar.endLoop( message = "OK" if result else "not OK, get info from ancestors" )
+  return S_OK( result )
 
 def executeRejectionStats( dmScript ):
   '''
@@ -1412,7 +1532,6 @@ def executeRejectionStats( dmScript ):
   eventStatByStream = {}
   eventInputStatByStream = {}
   uniqueJobs = {}
-  jobInputStat = {}
   lfnsByStream = {}
   jobs = {}
   for stream in streams:
@@ -1427,13 +1546,23 @@ def executeRejectionStats( dmScript ):
         diracExit( 0 )
       continue
 
+    # Make a quick check that EventInputStat is correct
+    res = _checkEventInputStat( sorted( lfns )[0] )
+    if not res['OK']:
+      gLogger.fatal( "Error checking EventInputStat", res['Message'] )
+      diracExit( 1 )
+    evtInputStatOK = res['Value']
+
     lfnsByStream[stream] = lfns
-    progressBar = ProgressBar( len( lfns ), title = "Getting metadata for %d files %s" % ( len( lfns ), ( "(stream %s)" % stream ) if byStream else "" ), chunk = chunkSize )
+    progressBar = ProgressBar( len( lfns ), title = "Getting metadata for %d files %s" %
+                               ( len( lfns ), ( "(stream %s)" % stream ) if byStream else "" ), chunk = chunkSize )
     eventStat = 0
     for lfnChunk in breakListIntoChunks( lfns, chunkSize ):
       progressBar.loop()
       for lfn in lfnChunk:
-        uniqueJobs.setdefault( os.path.basename( lfn ).split( '.' )[0], lfn )
+        job = _jobFromLfn( lfn )
+        if job not in jobEventInputStat:
+          uniqueJobs.setdefault( job, lfn )
       res = bkClient.getFileMetadata( lfnChunk )
       if not res['OK']:
         gLogger.fatal( "Error getting files metadata", res['Message'] )
@@ -1444,28 +1573,36 @@ def executeRejectionStats( dmScript ):
 
     jobLfns = set( uniqueJobs.values() ) & set( lfns )
     if jobLfns:
-      progressBar = ProgressBar( len( lfns ), title = "Getting metadata for %d jobs" % len( jobLfns ), chunk = chunkSize )
-      for lfnChunk in breakListIntoChunks( jobLfns, chunkSize ):
-        res = bkClient.bulkJobInfo( lfnChunk )
+      if not evtInputStatOK:
+        gLogger.info( "EventInputStat cannot be trusted, it will take a bit more time..." )
+        res = _getEventInputStat( jobLfns )
         if not res['OK']:
-          gLogger.fatal( "Error getting job information", res['Message'] )
+          gLogger.fatal( "Error getting ancestors EventStat", res['Message'] )
           diracExit( 1 )
-        success = res['Value']['Successful']
-        for lfn in success:
-          if isinstance( success[lfn], list ) and len( success[lfn] ) == 1:
-            success[lfn] = success[lfn][0]
-          jobName = os.path.basename( lfn ).split( '.' )[0]
-          jobInputStat[jobName] = success[lfn]['EventInputStat']
-      progressBar.endLoop()
+      else:
+        progressBar = ProgressBar( len( lfns ), title = "Getting metadata for %d jobs" % len( jobLfns ), chunk = chunkSize )
+        for lfnChunk in breakListIntoChunks( jobLfns, chunkSize ):
+          res = bkClient.bulkJobInfo( lfnChunk )
+          if not res['OK']:
+            gLogger.fatal( "Error getting job information", res['Message'] )
+            diracExit( 1 )
+          success = res['Value']['Successful']
+          for lfn in success:
+            if isinstance( success[lfn], list ) and len( success[lfn] ) == 1:
+              success[lfn] = success[lfn][0]
+            jobName = _jobFromLfn( lfn )
+            jobEventInputStat[jobName] = success[lfn]['EventInputStat']
+        progressBar.endLoop()
+
     if byStream:
       eventInputStat = 0
       for lfn in lfns:
-        jobName = os.path.basename( lfn ).split( '.' )[0]
+        jobName = _jobFromLfn( lfn )
         jobs.setdefault( stream, set() ).add( jobName )
-        eventInputStat += jobInputStat[jobName]
+        eventInputStat += jobEventInputStat[jobName]
     else:
-      jobs[stream] = set( jobInputStat )
-      eventInputStat = sum( jobInputStat.values() )
+      jobs[stream] = set( jobEventInputStat )
+      eventInputStat = sum( jobEventInputStat.values() )
     eventInputStatByStream[stream] = eventInputStat
 
   tab = '\t' if byStream else ''
@@ -1485,5 +1622,6 @@ def executeRejectionStats( dmScript ):
       gLogger.notice( 'For %s stream%s:' % ( stream, '' if byStream else 's' ) )
     gLogger.notice( tab + "Event stat: %d on %d files" % ( eventStat, len( lfnsByStream[stream] ) ) )
     if prInput:
-      gLogger.notice( tab + "EventInputStat: %d" % eventInputStat, ( "from %d jobs" % len( jobs[stream] ) ) if jobs[stream] != lfnsByStream[stream] else '' )
+      gLogger.notice( tab + "EventInputStat: %d" % eventInputStat,
+                      ( "from %d jobs" % len( jobs[stream] ) ) if jobs[stream] != lfnsByStream[stream] else '' )
     gLogger.notice( tab + "Retention: %.2f %%" % ( 100.* eventStat / eventInputStat ) )
