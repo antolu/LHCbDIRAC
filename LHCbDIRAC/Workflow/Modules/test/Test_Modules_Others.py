@@ -318,7 +318,7 @@ class UploadOutputDataSuccess( ModulesTestCase ):
     for wf_cs in copy.deepcopy( wf_commons ):
       if wf_cs.has_key( 'InputData' ):
         continue
-      for s_cs in copy.deepcopy( step_commons ):
+      for s_cs in step_commons:
         fileDescendants = {}
         self.assertTrue( uod.execute( prod_id, prod_job_id, wms_job_id,
                                       workflowStatus, stepStatus,
