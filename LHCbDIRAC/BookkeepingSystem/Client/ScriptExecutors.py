@@ -1410,42 +1410,48 @@ def _getJobsEISFromAncestors( lfnList ):
       jobDict.setdefault( job, lfn )
   lfnList = jobDict.values()
   # Get ancestors of these files
-  res = bkClient.getFileAncestors( lfnList, depth = 1, replica = False )
-  if not res['OK']:
-    return res
-  ancWithMetadata = res['Value']['WithMetadata']
+  gLogger.verbose( "\nGet EIS for %d jobs like %s" % ( len( jobDict ), str( jobDict.items()[0] ) ) )
+  gLogger.verbose( "\t%d unique files" % len( set( lfnList ) ) )
   ancToCheck = set()
-  for lfn, ancDict in ancWithMetadata.iteritems():
-    job = _jobFromLfn( lfn )
-    for anc, meta in ancDict.iteritems():
-      ancJob = _jobFromLfn( anc )
-      if ancJob in jobEventInputStat:
-        # This ancestor job is  already known
-        jobEventInputStat[job] = jobEventInputStat.setdefault( job, 0 ) + jobEventInputStat[ancJob]
-      else:
-        top = meta['FileType'] in ( 'SIM', 'RAW' )
-        if top:
-          # We are at the top, the EventInputStat is the sum of EventStat of input files
-          jobEventInputStat[job] = jobEventInputStat.setdefault( job, 0 ) + meta['EventStat']
+  ancestors = {}
+  topFiles = 0
+  for lfnChunk in breakListIntoChunks( lfnList, 100 ):
+    res = bkClient.getFileAncestors( lfnChunk, depth = 1, replica = False )
+    if not res['OK']:
+      return res
+    ancWithMetadata = res['Value']['WithMetadata']
+    for lfn, ancDict in ancWithMetadata.iteritems():
+      job = _jobFromLfn( lfn )
+      for anc, meta in ancDict.iteritems():
+        ancJob = _jobFromLfn( anc )
+        ancestors.setdefault( job, [] ).append( ancJob )
+        if ancJob in jobEventInputStat:
+          # This ancestor job is  already known
+          jobEventInputStat[job] = jobEventInputStat.setdefault( job, 0 ) + jobEventInputStat[ancJob]
         else:
-          ancToCheck.add( anc )
+          top = meta['FileType'] in ( 'SIM', 'RAW' )
+          if top:
+            # We are at the top, the EventInputStat is the sum of EventStat of input files
+            topFiles += 1
+            jobEventInputStat[job] = jobEventInputStat.setdefault( job, 0 ) + meta['EventStat']
+          else:
+            ancToCheck.add( anc )
 
+  if topFiles:
+    gLogger.info( "Found %d top files" % topFiles )
   if ancToCheck:
     # Let's go one step further
     res = _getJobsEISFromAncestors( list( ancToCheck ) )
     if not res['OK']:
       return res
     # Update the table for jobs still unknown
-    for lfn, ancDict in ancWithMetadata.iteritems():
-      job = _jobFromLfn( lfn )
+    for job, ancJobs in ancestors.iteritems():
       if job not in jobEventInputStat:
-        for anc, meta in ancDict.iteritems():
-          ancJob = _jobFromLfn( anc )
-          if ancJob in jobEventInputStat:
-            # This ancestor job is  already known
-            jobEventInputStat[job] = jobEventInputStat.setdefault( job, 0 ) + jobEventInputStat[ancJob]
-          else:
-            gLogger.notice( "Job not found in table", "%s for LFN %s" % ( ancJob, anc ) )
+        try:
+          # This ancestor job is  already known
+          jobEventInputStat[job] = sum( jobEventInputStat[ancJob] for ancJob in ancJobs )
+        except KeyError as e:
+          gLogger.exception( "ERROR: ancestor job not found in table", lException = e )
 
   return S_OK()
 
@@ -1475,10 +1481,11 @@ def _checkEventInputStat( lfn ):
   """
   Check if EventInputStat is correct
   """
-  progressBar = ProgressBar( 1, title = "Checking if BK EventInputStat is reliable :", chunk = 1 )
+  progressBar = ProgressBar( 1, title = "Checking if BK EventInputStat is reliable...", chunk = 1 )
   # Get EventInputStat from ancestors
   res = _getJobsEISFromAncestors( [lfn] )
   if not res['OK']:
+    progressBar.endLoop( message = "*** Error in _getJobsEISFromAncestors: " + res['Message'] + "***" )
     return res
   # Get EventInputStat for one file and keep the information in case it is useful
   topInputStat = jobEventInputStat[ _jobFromLfn( lfn ) ]
@@ -1488,7 +1495,7 @@ def _checkEventInputStat( lfn ):
     return res
   eventInputStat = res['Value'][0][2]
   if eventInputStat != topInputStat:
-    gLogger.info( 'EventInputStat mismatch: %d in file, %d in ancestors' % ( eventInputStat, topInputStat ) )
+    gLogger.info( 'EventInputStat mismatch: %d in job, %d from ancestors' % ( eventInputStat, topInputStat ) )
     result = False
   else:
     result = True
@@ -1574,7 +1581,7 @@ def executeRejectionStats( dmScript ):
     jobLfns = set( uniqueJobs.values() ) & set( lfns )
     if jobLfns:
       if not evtInputStatOK:
-        gLogger.info( "EventInputStat cannot be trusted, it will take a bit more time..." )
+        gLogger.notice( "EventInputStat cannot be trusted, it will take a bit more time..." )
         res = _getEventInputStat( jobLfns )
         if not res['OK']:
           gLogger.fatal( "Error getting ancestors EventStat", res['Message'] )
@@ -1594,16 +1601,9 @@ def executeRejectionStats( dmScript ):
             jobEventInputStat[jobName] = success[lfn]['EventInputStat']
         progressBar.endLoop()
 
-    if byStream:
-      eventInputStat = 0
-      for lfn in lfns:
-        jobName = _jobFromLfn( lfn )
-        jobs.setdefault( stream, set() ).add( jobName )
-        eventInputStat += jobEventInputStat[jobName]
-    else:
-      jobs[stream] = set( jobEventInputStat )
-      eventInputStat = sum( jobEventInputStat.values() )
-    eventInputStatByStream[stream] = eventInputStat
+    eventInputStatByStream[stream] = sum( jobEventInputStat[_jobFromLfn( lfn )] for lfn in lfns )
+    jobs[stream] = set( _jobFromLfn( lfn ) for lfn in lfns )
+  # End of loop on streams
 
   tab = '\t' if byStream else ''
   eventInputStat = 0
