@@ -23,8 +23,9 @@ __RCSID__ = "$Id$"
 AGENT_NAME = 'ResourceStatus/ShiftDBAgent'
 
 class ShiftDBAgent( AgentModule ):
-  """ This agent queries the LHCb ShiftDB and gets the emails of the Production
-      shifter. Then, populates the eGroup lhcb-grid-operations-alarms
+  """ This agent queries the LHCb ShiftDB and gets the emails of each piquet
+      Then, populates the eGroup associated
+      The e-groups admin should be : lhcb-grid-experiment-egroup-admins
   """
 
   # ShiftDB url where to find shifter emails
