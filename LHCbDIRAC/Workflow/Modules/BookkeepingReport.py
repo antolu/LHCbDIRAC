@@ -107,16 +107,16 @@ class BookkeepingReport( ModuleBase ):
 
     # # VARS FROM WORKFLOW_COMMONS ##
 
-    if self.workflow_commons.has_key( 'outputList' ):
+    if 'outputList' in self.workflow_commons:
       for outputItem in self.stepOutputs:
         if outputItem not in self.workflow_commons['outputList']:
           self.workflow_commons['outputList'].append( outputItem )
     else:
       self.workflow_commons['outputList'] = self.stepOutputs
 
-    if self.workflow_commons.has_key( 'BookkeepingLFNs' ) and \
-        self.workflow_commons.has_key( 'LogFilePath' )    and \
-        self.workflow_commons.has_key( 'ProductionOutputData' ):
+    if 'BookkeepingLFNs' in self.workflow_commons and \
+        'LogFilePath' in self.workflow_commons    and \
+        'ProductionOutputData' in self.workflow_commons:
 
       logFilePath = self.workflow_commons['LogFilePath']
       bkLFNs = self.workflow_commons['BookkeepingLFNs']
@@ -137,7 +137,7 @@ class BookkeepingReport( ModuleBase ):
     self.ldate = time.strftime( "%Y-%m-%d", time.localtime( time.time() ) )
     self.ltime = time.strftime( "%H:%M", time.localtime( time.time() ) )
 
-    if self.step_commons.has_key( 'StartTime' ):
+    if 'StartTime' in self.step_commons:
       startTime = self.step_commons['StartTime']
       self.ldatestart = time.strftime( "%Y-%m-%d", time.localtime( startTime ) )
       self.ltimestart = time.strftime( "%H:%M", time.localtime( startTime ) )
@@ -230,7 +230,7 @@ class BookkeepingReport( ModuleBase ):
     '''
 
     # Get the Config name from the environment if any
-    if self.workflow_commons.has_key( 'configName' ):
+    if 'configName' in self.workflow_commons:
       configName = self.workflow_commons[ 'configName' ]
       configVersion = self.workflow_commons[ 'configVersion' ]
     else:
@@ -316,7 +316,7 @@ class BookkeepingReport( ModuleBase ):
     typedParams.append( ( "Location", self.siteName ) )
     typedParams.append( ( "JobType", self.jobType ) )
 
-    if os.environ.has_key( 'XMLDDDB_VERSION' ):
+    if 'XMLDDDB_VERSION' in os.environ:
       typedParams.append( ( "GeometryVersion", os.environ[ "XMLDDDB_VERSION" ] ) )
 
     typedParams.append( ( "ProgramName", self.applicationName ) )
@@ -392,10 +392,10 @@ class BookkeepingReport( ModuleBase ):
     count = 0
     bkTypeDict = {}
     while count < len( self.stepOutputs ):
-      if self.stepOutputs[count].has_key( 'outputDataName' ):
+      if 'outputDataName' in self.stepOutputs[count]:
         outputs.append( ( ( self.stepOutputs[ count ][ 'outputDataName' ] ),
                           ( self.stepOutputs[ count ][ 'outputDataType' ] ) ) )
-      if self.stepOutputs[ count ].has_key( 'outputBKType' ):
+      if 'outputBKType' in self.stepOutputs[ count ]:
         bkTypeDict[ self.stepOutputs[ count ][ 'outputDataName' ]] = self.stepOutputs[ count ][ 'outputBKType' ]
       count = count + 1
     outputs.append( ( ( self.applicationLog ), ( 'LOG' ) ) )
@@ -408,7 +408,7 @@ class BookkeepingReport( ModuleBase ):
       typeName = outputtype.upper()
       typeVersion = '1'
       fileStats = '0'
-      if bkTypeDict.has_key( output ):
+      if output in bkTypeDict:
         typeVersion = getOutputType( output, self.stepInputData )[output]
         self.log.info( 'Setting POOL XML catalog type for %s to %s' % ( output, typeVersion ) )
         typeName = bkTypeDict[ output ].upper()
@@ -434,7 +434,7 @@ class BookkeepingReport( ModuleBase ):
         self.log.error( "Output file %s does not exist" % output )
         continue
       # Output file size
-      if not self.step_commons.has_key( 'size' ) or output not in self.step_commons[ 'size' ]:
+      if 'size' not in self.step_commons or output not in self.step_commons[ 'size' ]:
         try:
           outputsize = str( os.path.getsize( output ) )
         except OSError:
@@ -442,7 +442,7 @@ class BookkeepingReport( ModuleBase ):
       else:
         outputsize = self.step_commons[ 'size' ][ output ]
 
-      if not self.step_commons.has_key( 'md5' ) or output not in self.step_commons[ 'md5' ]:
+      if 'md5' not in self.step_commons or output not in self.step_commons[ 'md5' ]:
         comm = 'md5sum ' + str( output )
         resultTuple = systemCall( 0, shlex.split( comm ) )
         status = resultTuple[ 'Value' ][ 0 ]
@@ -458,7 +458,7 @@ class BookkeepingReport( ModuleBase ):
       else:
         md5sum = out.split()[ 0 ]
 
-      if not self.step_commons.has_key( 'guid' ) or output not in self.step_commons[ 'guid' ]:
+      if 'guid' not in self.step_commons or output not in self.step_commons[ 'guid' ]:
         guidResult = getGUID( output )
         guid = ''
         if not guidResult[ 'OK' ]:

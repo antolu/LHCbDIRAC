@@ -15,9 +15,8 @@ def fillVisList(vdict, num):
 
   # Assuming that, if there's only one element in the list of output visibility flags, every step will catch that flag
   if len( vdict ) == 1:
-    # '1' key is given by default by the template
-    val = vdict['1']
-    vdict = dict( [(str(i), val) for i in range(num)] )
+    val = vdict[vdict.keys()[0]]
+    vdict = dict( [(str(i), val) for i in range(int(vdict.keys()[0]), int(vdict.keys()[0])+num)] )
   # Another assumption: if the number of steps is bigger than that of vis flags, then extend the list with the last flag available
   # to fill the "holes"
   #if len(vlist) < len(slist):
@@ -284,7 +283,8 @@ pr.ancestorDepths = [p1ancestorDepth, p2ancestorDepth, p3ancestorDepth]
 #pr.compressionLvl = [p1compressionLvl] * len( pr.stepsInProds[0] ) +\
 #                    [p2compressionLvl] * len( pr.stepsInProds[1] ) +\
 #                    [p3compressionLvl] * len( pr.stepsInProds[2] )
-pr.compressionLvl = [p1compressionLvl, p2compressionLvl, p3compressionLvl]
+pr.compressionLvl = [lvl for lvl in p1compressionLvl.split(',')] + [lvl for lvl in p2compressionLvl.split(',')] +\
+                    [lvl for lvl in p3compressionLvl.split(',')]
 pr.outputVisFlag = [p1OutputVisFlag, p2OutputVisFlag, p3OutputVisFlag]
 pr.specialOutputVisFlag = [p1OutputVisFlagSpecial, p2OutputVisFlagSpecial, p3OutputVisFlagSpecial]
 

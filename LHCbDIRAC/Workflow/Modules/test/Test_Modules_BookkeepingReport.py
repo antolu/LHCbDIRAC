@@ -41,7 +41,6 @@ class ModulesTestCase( unittest.TestCase ):
     self.xf_o_mock.outputFileStats = {'a':1, 'b':2}
     self.xf_o_mock.analyse.return_value = True
 
-
   def tearDown( self ):
     for fileProd in ['appLog', 'foo.txt', 'aaa.Bhadron.dst', 'bbb.Calibration.dst', 'bar.py', 'aLongLog.log',
                      'bookkeeping_123_00000456_321.xml',

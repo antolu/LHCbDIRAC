@@ -1,3 +1,96 @@
+[v9r0-pre6]
+use DIRAC v6r19-pre4
+
+* use the latest verdsion of pyGSI (0.6.5)
+* just fixed list of ST
+* removing M_DST
+* change one line comment
+* remove heptools for gcc48
+* rescheduling when LbRunError
+* treating separately lb-run errors from application errors
+* remove ref to gcc
+* just removing seemingly useless parts
+* test and pylint fixes
+* updated Reco, removed outdated tests
+* removing old tests
+* added reco17
+
+[v8r8p16]
+use DIRAC v6r17p30
+
+* Tier1-ARCHIVE -> Tier1-Archive
+* Tier1-BUFFER -> Tier1-Buffer
+* tune logging
+* do not try and set Unused files in MaxReset
+* CI:Make sre grep returns less result and does not kill the container
+* for some reason MCSimulation is in DataProcessing types in the CS
+* Full review of code, make pylint as happy as possible
+* add docstrings
+* CI: Add coverage information
+* Docs: correct release doc
+* do not remove replica flag when setting problematic
+* get rid of has_key and use iterators
+
+[v8r8p15]
+use DIRAC v6r17p29
+
+* GitlabCI: unit test on merge request
+
+[v8r8p14]
+use DIRAC v6r17p28
+
+* StorageUsageAgent: allow to disable the random sleep at startup
+
+[v8r8p13]
+use DIRAC v6r17p27
+
+* simplified template
+* added test for steps
+* fix for histomerge production type
+* allow to save the files in CSV format
+* Remove wrongly hardtyped parameters
+* Fix a problem with the compression level
+
+[v8r8p12]
+use DIRAC v6r17p26
+
+* added jobType HistoMerge
+* remove the skeleton file and modify the script accordenly
+
+[v8r8p11]
+use DIRAC v6r17p25
+
+* Doc: More detail about updating pilot version
+* In gitlab-ci, take the releases.cfg in a different branch depending on the tag
+* PopularityAnalysisAgent: alow to specify a mail sender address
+* Correct documentation for making releases
+* remove CAs scripts
+* do not ignore the run directory
+* Document prod/run flushing
+
+[v8r8p10]
+use DIRAC v6r17p24
+
+Previous release had a wrong projectConfig.json
+
+
+[v8r8p9]
+use DIRAC v6r17p24
+
+Improve release documentation
+
+[v9r0-pre5]
+use DIRAC v6r19-pre2
+
+[v9r0-pre4]
+use DIRAC v6r19-pre2
+
+[v8r8p8]
+use DIRAC v6r17p24
+
+[v8r8p7]
+use DIRAC v6r17p24
+
 [v9r0-pre1]
 use DIRAC v6r19-pre1
 

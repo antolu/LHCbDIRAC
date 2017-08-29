@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 '''
-    Check if all files have a replica in a certain (set of) SE )Tier1-ARCHIVE default)
+    Check if all files have a replica in a certain (set of) SE )Tier1-Archive default)
     List the files that don't have a replica in the specified SE (group)
 '''
 __RCSID__ = "$Id$"
@@ -37,7 +37,7 @@ if __name__ == '__main__':
     cc.bkQuery = bkQuery
   seList = dmScript.getOption( 'SEs', [] )
   if not seList:
-    dmScript.setSEs( 'Tier1-ARCHIVE' )
+    dmScript.setSEs( 'Tier1-Archive' )
     seList = dmScript.getOption( 'SEs', [] )
 
   from LHCbDIRAC.DataManagementSystem.Client.CheckExecutors import doCheckSE

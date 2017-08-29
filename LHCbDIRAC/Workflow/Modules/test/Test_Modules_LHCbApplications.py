@@ -58,7 +58,7 @@ class GaudiApplicationSuccess( ModulesApplicationsTestCase ):
 
     #no errors, no input data
     for wf_cs in copy.deepcopy( wf_commons ):
-      for s_cs in copy.deepcopy( step_commons ):
+      for s_cs in step_commons:
         self.assertTrue( ga.execute( prod_id, prod_job_id, wms_job_id,
                                      workflowStatus, stepStatus,
                                      wf_cs, s_cs,
@@ -79,7 +79,7 @@ class GaudiApplicationScriptSuccess( ModulesApplicationsTestCase ):
 
     #no errors, no input data
     for wf_cs in copy.deepcopy( wf_commons ):
-      for s_cs in copy.deepcopy( step_commons ):
+      for s_cs in step_commons:
         s_cs['script'] = 'cat'
         self.assertTrue( gas.execute( prod_id, prod_job_id, wms_job_id,
                                       workflowStatus, stepStatus,
@@ -142,7 +142,7 @@ class LHCbScriptFailure( ModulesApplicationsTestCase ):
 
     # no errors, no input data
     for wf_cs in copy.deepcopy( wf_commons ):
-      for s_cs in copy.deepcopy( step_commons ):
+      for s_cs in step_commons:
         lhcbScript.workflow_commons = wf_cs
         lhcbScript.step_commons = s_cs
         res = lhcbScript.execute()
@@ -168,7 +168,7 @@ class RootApplicationSuccess( ModulesApplicationsTestCase ):
 
     #no errors, no input data
     for wf_cs in copy.deepcopy( wf_commons ):
-      for s_cs in copy.deepcopy( step_commons ):
+      for s_cs in step_commons:
         self.assertTrue( ra.execute( prod_id, prod_job_id, wms_job_id,
                                      workflowStatus, stepStatus,
                                      wf_cs, s_cs,
@@ -189,7 +189,7 @@ class ErrorLoggingSuccess( ModulesApplicationsTestCase ):
 
     #no errors, no input data
     for wf_cs in copy.deepcopy( wf_commons ):
-      for s_cs in copy.deepcopy( step_commons ):
+      for s_cs in step_commons:
         self.assertTrue( er.execute( prod_id, prod_job_id, wms_job_id,
                                      workflowStatus, stepStatus,
                                      wf_cs, s_cs,

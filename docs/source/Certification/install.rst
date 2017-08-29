@@ -85,6 +85,8 @@ Then, from the LHCbDIRAC local fork you need to update some files::
   vim LHCbDIRAC/__init__.py
   # Update the version in the releases.cfg file:
   vim LHCbDIRAC/releases.cfg
+  # Update the version in the Dockerfile file:
+  vim container/lhcbdirac/Dockerfile
   # For updating the CHANGELOG, get what's changed since the last tag
   #please use the proper LHCbDIRAC tag; replace v8r2p46
   git log --pretty=oneline ${t}..HEAD | grep -Ev "($(git log --pretty=oneline  ${t}..v8r2p46 | awk {'print $1'} | tr '\n' '|')BOOM)"
@@ -156,9 +158,7 @@ a quick test to validate the installation is to run the SHELL script $LHCBRELEAS
 go to https://jenkins-lhcb-nightlies.web.cern.ch/job/nightly-builds/job/release/build page for asking to install the client release in AFS and CVMFS:
 
 * in the field "Project list" put : "Dirac vNrMpK LHCbGrid vArB LHCbDirac vArBpC " (LHCbGrid version can be found: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/blob/devel/dist-tools/projectConfig.json)
-* in the field "platforms" put : "x86_64-slc6-gcc49-opt x86_64-slc6-gcc62-opt x86_64-centos7-gcc62-opt"
-* inthe field "build_tool" put : "CMake"
-* inthe field "scripts_version" put : "prepare-for-new-jenkins"
+* in the field "platforms" put : "x86_64-slc6-gcc48-opt x86_64-slc6-gcc49-opt x86_64-slc6-gcc62-opt x86_64-centos7-gcc62-opt"
 
 Then click on the "BUILD" button
 
@@ -166,8 +166,21 @@ Then click on the "BUILD" button
 * if there is a problem in the build, it can be re-started via the dedicated button (it will not restart by itself after a retag)
 
 
-When the release is finished https://lhcb-nightlies.cern.ch/release/, you can deploy to the client.
+When the release is finished https://lhcb-nightlies.cern.ch/release/, you can deploy to the client to afs dev area or prod. 
 
+prod area
+``````````
+
+If you want to deploy this release to production release area, you
+have to create a JIRA task and make the request via https://sft.its.cern.ch/jira/browse/LHCBDEP.
+
+* NOTE: If some package is already released, please do not indicate in the Jira task. For example: a Jira task when:
+    * DIRAC is not released, then the message in the JIRA task: Summary:Dirac v6r14p37 and LHCbDirac v8r2p50; Description: Please release  Dirac and  LHCbDirac in  this order  based on build 1526; 
+    * DIRAC is released, then the message in the JIRA task: Summary:LHCbDirac v8r2p50;  Description: Please release  LHCbDirac based on build 1526; 
+
+
+afs deve area
+`````````````
 Note: Please execute the following commands sequentially.
 
 The following commands used to prepare the RPMs::

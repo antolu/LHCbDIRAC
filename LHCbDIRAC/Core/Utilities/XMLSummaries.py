@@ -70,9 +70,8 @@ class XMLSummary( object ):
     if self.success == 'True' and self.step == 'finalize' and self._inputsOK( inputsOnPartOK ) and self._outputsOK():
       self.log.info( "XML Summary OK" )
       return True
-    else:
-      self.log.warn( "XML Summary reports errors" )
-      return False
+    self.log.warn( "XML Summary reports errors" )
+    return False
 
 ################################################################################
 
@@ -84,14 +83,10 @@ class XMLSummary( object ):
       if sum( self.inputFileStats.values() ) == self.inputFileStats['part'] or \
       sum( self.inputFileStats.values() ) == self.inputFileStats['full']:
         return True
-      else:
-        return False
+      return False
 
     else:
-      if sum( self.inputFileStats.values() ) == self.inputFileStats['full']:
-        return True
-      else:
-        return False
+      return bool(sum( self.inputFileStats.values() ) == self.inputFileStats['full'])
 
 ################################################################################
 
@@ -99,10 +94,7 @@ class XMLSummary( object ):
     """ check self.outputFileStats
     """
 
-    if sum( self.outputFileStats.values() ) == self.outputFileStats['full']:
-      return True
-    else:
-      return False
+    return bool(sum( self.outputFileStats.values() ) == self.outputFileStats['full'])
 
 ################################################################################
 

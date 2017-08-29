@@ -53,7 +53,7 @@ class Reco17Success( ProductionJobTestCase ):
                    }
                   ]
 
-    prod = self.pr._buildProduction( 'Reconstruction', stepsInProd, {'RDST': 'Tier1-BUFFER'}, 0, 100,
+    prod = self.pr._buildProduction( 'Reconstruction', stepsInProd, {'RDST': 'Tier1-Buffer'}, 0, 100,
                                      outputMode = 'Run', inputDataPolicy = 'protocol', inputDataList = lfns, events = 25 )
     prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
     prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
@@ -77,7 +77,7 @@ class RecoSuccessMultiProcessor( ProductionJobTestCase ):
                     'visibilityFlag':[{'Visible': 'N', 'FileType': 'FULL.DST'},
                                       {'Visible': 'Y', 'FileType':'BRUNELHIST'}]}]
 
-    prod = self.pr._buildProduction( 'Reconstruction', stepsInProd, {'FULL.DST': 'Tier1-BUFFER'}, 0, 100,
+    prod = self.pr._buildProduction( 'Reconstruction', stepsInProd, {'FULL.DST': 'Tier1-Buffer'}, 0, 100,
                                      outputMode = 'Run', inputDataPolicy = 'protocol', inputDataList = lfns, events = 25 )
     prod.LHCbJob._addParameter( prod.LHCbJob.workflow, 'runNumber', 'JDL', 154030, 'Input run number' )
     prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
@@ -113,17 +113,17 @@ class StrippSuccess( ProductionJobTestCase ):
                                       {'Visible': 'N', 'FileType':'RADIATIVE.DST'},
                                       {'Visible': 'N', 'FileType':'SEMILEPTONIC.DST'}]}]
 
-    prod = self.pr._buildProduction( 'Stripping', stepsInProd, {'BHADRON.MDST': 'Tier1-BUFFER',
-                                                                'BHADRONCOMPLETEEVENT.DST': 'Tier1-BUFFER',
-                                                                'CHARM.MDST': 'Tier1-BUFFER',
-                                                                'CHARMCOMPLETEEVENT.DST': 'Tier1-BUFFER',
-                                                                'DIMUON.DST': 'Tier1-BUFFER',
-                                                                'EW.DST': 'Tier1-BUFFER',
-                                                                'FTAG.DST': 'Tier1-BUFFER',
-                                                                'LEPTONIC.MDST': 'Tier1-BUFFER',
-                                                                'MINIBIAS.DST': 'Tier1-BUFFER',
-                                                                'RADIATIVE.DST': 'Tier1-BUFFER',
-                                                                'SEMILEPTONIC.DST': 'Tier1-BUFFER'},
+    prod = self.pr._buildProduction( 'Stripping', stepsInProd, {'BHADRON.MDST': 'Tier1-Buffer',
+                                                                'BHADRONCOMPLETEEVENT.DST': 'Tier1-Buffer',
+                                                                'CHARM.MDST': 'Tier1-Buffer',
+                                                                'CHARMCOMPLETEEVENT.DST': 'Tier1-Buffer',
+                                                                'DIMUON.DST': 'Tier1-Buffer',
+                                                                'EW.DST': 'Tier1-Buffer',
+                                                                'FTAG.DST': 'Tier1-Buffer',
+                                                                'LEPTONIC.MDST': 'Tier1-Buffer',
+                                                                'MINIBIAS.DST': 'Tier1-Buffer',
+                                                                'RADIATIVE.DST': 'Tier1-Buffer',
+                                                                'SEMILEPTONIC.DST': 'Tier1-Buffer'},
                                      0, 100,
                                      outputMode = 'Run', inputDataPolicy = 'protocol', inputDataList = lfns, events = 500,
                                      ancestorDepth = 1 )
@@ -172,7 +172,7 @@ class MergeMDFSuccess( ProductionJobTestCase ):
                     'fileTypesOut':['RAW'],
                     'visibilityFlag':[{'Visible': 'Y', 'FileType': 'RAW'}]}]
     self.pr.modulesList = ['MergeMDF', 'BookkeepingReport']
-    prod = self.pr._buildProduction( 'Merge', stepsInProd, {'RAW':'Tier1-BUFFER'}, 0, 100,
+    prod = self.pr._buildProduction( 'Merge', stepsInProd, {'RAW':'Tier1-Buffer'}, 0, 100,
                                      inputDataPolicy = 'download', inputDataList = lfns )
     prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
     prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
