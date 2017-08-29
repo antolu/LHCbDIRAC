@@ -15,6 +15,22 @@ use DIRAC v6r19-pre4
 * removing old tests
 * added reco17
 
+[v8r8p16]
+use DIRAC v6r17p30
+
+* Tier1-ARCHIVE -> Tier1-Archive
+* Tier1-BUFFER -> Tier1-Buffer
+* tune logging
+* do not try and set Unused files in MaxReset
+* CI:Make sre grep returns less result and does not kill the container
+* for some reason MCSimulation is in DataProcessing types in the CS
+* Full review of code, make pylint as happy as possible
+* add docstrings
+* CI: Add coverage information
+* Docs: correct release doc
+* do not remove replica flag when setting problematic
+* get rid of has_key and use iterators
+
 [v8r8p15]
 use DIRAC v6r17p29
 

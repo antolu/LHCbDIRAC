@@ -1,7 +1,7 @@
 """ Test of the ProductionRequest and Production modules
 """
 
-#pylint: disable=protected-access, missing-docstring, invalid-name, line-too-long
+# pylint: disable=protected-access, missing-docstring, invalid-name, line-too-long
 
 import unittest
 from mock import Mock, MagicMock
@@ -812,7 +812,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.outputFileSteps = ['', '', '']
     pr.stepsInProds = [[1, 2], [3], [4]]
     pr.bkQueries = ['Full', 'fromPreviousProd', 'fromPreviousProd']
-#     pr.outputSEs = ['Tier1-BUFFER', 'Tier1-DST', 'Tier1-DST']
+#     pr.outputSEs = ['Tier1-Buffer', 'Tier1-DST', 'Tier1-DST']
 #     pr.specialOutputSEs = [{}, {}, {}]
     pr.outputSEsPerFileType = [{'T1':'SE1'}, {'T1':'SE1'}, {'T1':'SE1'}]
     pr.priorities = [5, 8, 9]

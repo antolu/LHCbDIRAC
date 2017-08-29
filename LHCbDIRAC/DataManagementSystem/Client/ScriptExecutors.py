@@ -196,7 +196,7 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
   #########################
   # Normal removal using FC
   #########################
-  archiveSEs = set( resolveSEGroup( 'Tier1-ARCHIVE' ) )
+  archiveSEs = set( resolveSEGroup( 'Tier1-Archive' ) )
   errorReasons = {}
   successfullyRemoved = {}
   fullyRemoved = set()
@@ -1288,7 +1288,8 @@ def setProblematicFiles( lfnList, targetSEs, reset = False, fullInfo = False, ac
 
   if bkToggle:
     chunkSize = max( 10, min( 100, len( bkToggle ) / 10 ) )
-    transStatusOK = { True:( 'Problematic', 'MissingLFC', 'MissingInFC', 'ProbInFC', 'MaxReset' ), False:( 'Unused', 'MaxReset', 'Assigned' )}
+    transStatusOK = { True:( 'Problematic', 'MissingLFC', 'MissingInFC', 'ProbInFC', 'MaxReset' ),
+                     False:( 'Unused', 'MaxReset', 'Assigned' )}
     progressBar = ProgressBar( len( bkToggle ), title = 'Checking with Transformation system', chunk = chunkSize )
     for chunk in breakListIntoChunks( bkToggle, chunkSize ):
       progressBar.loop()
@@ -1340,7 +1341,9 @@ def setProblematicFiles( lfnList, targetSEs, reset = False, fullInfo = False, ac
     for error, nb in errors.iteritems():
       gLogger.error( "Error setting replica %s in FC for %d files" % ( status, nb ), error )
 
-  if bkToggle:
+  if bkToggle and reset:
+    # It was not a good idea to remove the replica flag when setting files Problematic
+    # This created data difficult to access... Keep just for resetting
     toSet = len( bkToggle )
     status = 'set' if reset else 'removed'
     chunkSize = max( 10, min( 100, toSet / 10 ) )
@@ -1366,9 +1369,9 @@ def setProblematicFiles( lfnList, targetSEs, reset = False, fullInfo = False, ac
       gLogger.error( "Replica flag not %s in BK for %d files:" % ( status, nb ), error )
 
   if transDict:
-    n = sum( len( lfns ) for lfns in transDict.itervalues() )
+    nb = sum( len( lfns ) for lfns in transDict.itervalues() )
     status = 'Unused' if reset else 'Problematic'
-    gLogger.notice( "\n%d files were set %s in the transformation system" % ( n, status ) )
+    gLogger.notice( "\n%d files were set %s in the transformation system" % ( nb, status ) )
     for transID in sorted( transDict ):
       lfns = sorted( transDict[transID] )
       res = tr.setFileStatusForTransformation( transID, status, lfns, force = True ) if action else {'OK':True}
@@ -1381,9 +1384,9 @@ def setProblematicFiles( lfnList, targetSEs, reset = False, fullInfo = False, ac
 
   gLogger.setLevel( savedLevel )
   if transNotSet:
-    n = sum( len( lfns ) for lfns in transNotSet.itervalues() )
+    nb = sum( len( lfns ) for lfns in transNotSet.itervalues() )
     status = "Unused" if reset else "Problematic"
-    gLogger.notice( "\n%d files could not be set %s a they were not in an acceptable status:" % ( n, status ) )
+    gLogger.notice( "\n%d files could not be set %s a they were not in an acceptable status:" % ( nb, status ) )
     for status in sorted( transNotSet ):
       transDict = {}
       for lfn, transID in transNotSet[status]:
