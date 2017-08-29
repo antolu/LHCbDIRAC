@@ -65,7 +65,7 @@ recoPriority = int( '{{RecoPriority#PROD-1:RECO(Stripp): priority#2}}' )
 recoCPU = '{{RecoMaxCPUTime#PROD-1:RECO(Stripp): Max CPU time in secs#1500000}}'
 recoPlugin = '{{RecoPluginType#PROD-1:RECO(Stripp): production plugin name#RAWProcessing}}'
 recoFilesPerJob = '{{RecoFilesPerJob#PROD-1:RECO(Stripp): Group size or number of files per job#1}}'
-recoDataSE = '{{RecoDataSE#PROD-1:RECO(Stripp): Output Data Storage Element#Tier1-BUFFER}}'
+recoDataSE = '{{RecoDataSE#PROD-1:RECO(Stripp): Output Data Storage Element#Tier1-Buffer}}'
 try:
   recoDataSESpecial = ast.literal_eval( '{{RecoDataSESpecial#PROD-1:RECO(Stripp): Special SE (a dictionary Type:SE)#}}' )
 except SyntaxError:
@@ -83,7 +83,7 @@ strippPriority = int( '{{priority#PROD-2:Stripping: priority#5}}' )
 strippCPU = '{{StrippMaxCPUTime#PROD-2:Stripping: Max CPU time in secs#1000000}}'
 strippPlugin = '{{StrippPluginType#PROD-2:Stripping: plugin name#ByRunWithFlush}}'
 strippFilesPerJob = '{{StrippFilesPerJob#PROD-2:Stripping: Group size or number of files per job#2}}'
-strippDataSE = '{{StrippStreamSE#PROD-2:Stripping: output data SE (un-merged streams)#Tier1-BUFFER}}'
+strippDataSE = '{{StrippStreamSE#PROD-2:Stripping: output data SE (un-merged streams)#Tier1-Buffer}}'
 try:
   strippDataSESpecial = ast.literal_eval( '{{StrippDataSESpecial#PROD-2:Stripping: Special SE (a dictionary Type:SE)#}}' )
 except SyntaxError:
@@ -222,7 +222,7 @@ if w1:
   pr.outputModes = ['Run']
   pr.ancestorDepths = [recoAncestorDepth]
   pr.compressionLvl = [recoCompressionLvl] * len( pr.stepsInProds[0] )
-  pr.outputVisFlag = [{str(i+1):recoOutputVisFlag} for i in xrange(len(pr.stepsInProds[0]))]
+  pr.outputVisFlag = [{str( i + 1 ):recoOutputVisFlag} for i in xrange( len( pr.stepsInProds[0] ) )]
   pr.specialOutputVisFlag = [{"1":recoOutputVisFlagSpecial}]
 
 elif w2:
@@ -243,7 +243,7 @@ elif w2:
   pr.multicore = [strippMulticoreFlag, mergeMulticoreFlag]
   pr.outputModes = ['Run', 'Run']
   pr.ancestorDepths = [strippAncestorDepth, 0]
-  pr.compressionLvl = [strippCompressionLvl] * len( pr.stepsInProds[0] ) +\
+  pr.compressionLvl = [strippCompressionLvl] * len( pr.stepsInProds[0] ) + \
                       [mergeCompressionLvl] * len( pr.stepsInProds[1] )
   pr.outputVisFlag = [{"1":strippOutputVisFlag}, {"2":mergeOutputVisFlag}]
   pr.specialOutputVisFlag = [{"1":strippOutputVisFlagSpecial}, {"2":mergeOutputVisFlagSpecial}]
@@ -266,7 +266,7 @@ elif w3:
   pr.multicore = [recoMulticoreFlag, mergeMulticoreFlag]
   pr.outputModes = ['Run', 'Run']
   pr.ancestorDepths = [recoAncestorDepth, 0]
-  pr.compressionLvl = [recoCompressionLvl] * len( pr.stepsInProds[0] ) +\
+  pr.compressionLvl = [recoCompressionLvl] * len( pr.stepsInProds[0] ) + \
                       [mergeCompressionLvl] * len( pr.stepsInProds[1] )
   pr.outputVisFlag = [{"1":recoOutputVisFlag}, {"2":mergeOutputVisFlag}]
   pr.specialOutputVisFlag = [{"1":recoOutputVisFlagSpecial}, {"2":mergeOutputVisFlagSpecial}]
@@ -290,8 +290,8 @@ elif w4:
   pr.multicore = [recoMulticoreFlag, strippMulticoreFlag, mergeMulticoreFlag]
   pr.outputModes = ['Run', 'Run', 'Run']
   pr.ancestorDepths = [recoAncestorDepth, strippAncestorDepth, 0]
-  pr.compressionLvl = [recoCompressionLvl] * len( pr.stepsInProds[0] ) +\
-                      [strippCompressionLvl] * len( pr.stepsInProds[1] ) +\
+  pr.compressionLvl = [recoCompressionLvl] * len( pr.stepsInProds[0] ) + \
+                      [strippCompressionLvl] * len( pr.stepsInProds[1] ) + \
                       [mergeCompressionLvl] * len( pr.stepsInProds[2] )
   pr.outputVisFlag = [{"1": recoOutputVisFlag}, {"2": strippOutputVisFlag}, {"3": mergeOutputVisFlag}]
   pr.specialOutputVisFlag = [{"1": recoOutputVisFlagSpecial}, {"2": strippOutputVisFlagSpecial}, {"3": mergeOutputVisFlagSpecial}]
@@ -315,8 +315,8 @@ elif w5:
   pr.multicore = [strippMulticoreFlag, mergeMulticoreFlag, False]
   pr.outputModes = ['Run', 'Run', 'Any']
   pr.ancestorDepths = [strippAncestorDepth, 0, 0]
-  pr.compressionLvl = [strippCompressionLvl] * len( pr.stepsInProds[0] ) +\
-                      [mergeCompressionLvl] * len( pr.stepsInProds[1] ) +\
+  pr.compressionLvl = [strippCompressionLvl] * len( pr.stepsInProds[0] ) + \
+                      [mergeCompressionLvl] * len( pr.stepsInProds[1] ) + \
                       [''] * len( pr.stepsInProds[2] )
   pr.outputVisFlag = [{"1": strippOutputVisFlag}, {"2": mergeOutputVisFlag}]
   pr.specialOutputVisFlag = [{"1": strippOutputVisFlagSpecial}, {"2": mergeOutputVisFlagSpecial}]
