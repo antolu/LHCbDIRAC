@@ -7,7 +7,24 @@
 __RCSID__ = "$Id$"
 
 def _getTransformationID( transName ):
-  return trClient.getTransformation( transName ).get( 'Value', {} ).get( 'TransformationID' )
+  testName = transName
+  # We can try out a long range of indices, as when the transformation is not found, it returns None
+  for ind in xrange( 1, 100 ):
+    result = trClient.getTransformation( testName )
+    if not result['OK']:
+      # Transformation doesn't exist
+      return None
+    status = result['Value']['Status']
+    # If the status is still compatible, accept
+    if status in ( 'Active', 'Idle', 'New', 'Stopped' ):
+      return result['Value']['TransformationID']
+    # If transformationID was given, return error
+    if isinstance( transName, ( long, int ) ) or transName.isdigit():
+      gLogger.error( "Transformation in incorrect status", "%s, status %s" % ( str( testName ), status ) )
+      return None
+    # Transformation name given, try out adding an index
+    testName = "%s-%d" % ( transName, ind )
+  return None
 
 def __getTransformations( args ):
   transList = []
