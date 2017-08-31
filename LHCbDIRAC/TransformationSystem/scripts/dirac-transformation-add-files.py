@@ -6,6 +6,9 @@
 
 __RCSID__ = "$Id$"
 
+def _getTransformationID( transName ):
+  return trClient.getTransformation( transName ).get( 'Value', {} ).get( 'TransformationID' )
+
 def __getTransformations( args ):
   transList = []
   if not len( args ):
@@ -18,9 +21,15 @@ def __getTransformations( args ):
         r = transID.split( ':' )
         if len( r ) > 1:
           for i in xrange( int( r[0] ), int( r[1] ) + 1 ):
-            transList.append( i )
+            id = _getTransformationID( i )
+            if id is not None:
+              transList.append( id )
         else:
-          transList.append( int( r[0] ) )
+          id = _getTransformationID( r[0] )
+          if id is not None:
+            transList.append( id )
+          else:
+            gLogger.error( "Transformation not found", r[0] )
     except Exception as e:
       gLogger.exception( "Invalid transformation", lException = e )
       transList = []
@@ -69,6 +78,10 @@ if __name__ == "__main__":
       gLogger.error( "You need to use a proxy from a group with FileCatalogManagement" )
       DIRAC.exit( 5 )
 
+  from LHCbDIRAC.DataManagementSystem.Utilities.FCUtilities import chown
+  from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities   import addFilesToTransformation
+  from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+  trClient = TransformationClient()
   transList = __getTransformations( Script.getPositionalArgs() )
   if not transList:
     DIRAC.exit( 1 )
@@ -78,8 +91,6 @@ if __name__ == "__main__":
     gLogger.always( 'No files to add' )
     DIRAC.exit( 1 )
 
-  from LHCbDIRAC.DataManagementSystem.Utilities.FCUtilities import chown
-  from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities   import addFilesToTransformation
   if userGroup:
     directories = set( [os.path.dirname( lfn ) for lfn in requestedLFNs] )
     res = chown( directories, user = userGroup[0], group = userGroup[1] )
