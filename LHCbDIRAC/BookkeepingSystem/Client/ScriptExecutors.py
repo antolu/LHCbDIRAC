@@ -1400,6 +1400,7 @@ def _getJobsEISFromAncestors( lfnList ):
   """
   Get EventInputStat of all jobs in a recursive way
   The EventInputStat of all jobs is set in the global dictionary jobEventInputStat
+
   :param lfnList: list of LFNs
   """
   # Get one output file per unknown job
