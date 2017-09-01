@@ -7,6 +7,14 @@
 __RCSID__ = "$Id$"
 
 def _getTransformationID( transName ):
+  """
+  Check that a transformation exists and return its ID or None if it doesn't exist
+
+  :param transName: name or ID of a transformation
+  :type transName: int,long or string
+
+  :return : transformation ID or None if it doesn't exist
+  """
   testName = transName
   # We can try out a long range of indices, as when the transformation is not found, it returns None
   for ind in xrange( 1, 100 ):
@@ -27,6 +35,9 @@ def _getTransformationID( transName ):
   return None
 
 def __getTransformations( args ):
+  """
+  Parse the arguments of hte script and generates a lit of transformations
+  """
   transList = []
   if not len( args ):
     print "Specify transformation number..."
@@ -38,13 +49,13 @@ def __getTransformations( args ):
         r = transID.split( ':' )
         if len( r ) > 1:
           for i in xrange( int( r[0] ), int( r[1] ) + 1 ):
-            id = _getTransformationID( i )
-            if id is not None:
-              transList.append( id )
+            tid = _getTransformationID( i )
+            if tid is not None:
+              transList.append( tid )
         else:
-          id = _getTransformationID( r[0] )
-          if id is not None:
-            transList.append( id )
+          tid = _getTransformationID( r[0] )
+          if tid is not None:
+            transList.append( tid )
           else:
             gLogger.error( "Transformation not found", r[0] )
     except Exception as e:
