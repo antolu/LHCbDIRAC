@@ -898,8 +898,11 @@ def executeReplicaStats( dmScript ):
     gLogger.notice( 'You cannot dump At and Not At SE!' )
     return 1
 
-  directories = dmScript.getOption( 'Directory' )
   lfnList, seList = parseArguments( dmScript )
+  if not lfnList:
+    directories = dmScript.getOption( 'Directory' )
+  else:
+    directories = []
   if dumpAtSE or dumpNotAtSE:
     prSEList = seList
 
