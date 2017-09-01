@@ -14,6 +14,7 @@ from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient, printOpera
 from DIRAC.DataManagementSystem.Client.DataManager import DataManager
 from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
 from DIRAC.Core.Utilities.List import breakListIntoChunks
+from DIRAC.Core.DISET.RPCClient                          import RPCClient
 
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
@@ -30,6 +31,7 @@ class TransformationDebug( object ):
     self.bkClient = BookkeepingClient()
     self.dataManager = DataManager()
     self.fileCatalog = FileCatalog()
+    self.monitoring = None
     self.dataManagerTransTypes = ( "Replication", "Removal" )
     self.transID = None
     self.transType = None
@@ -37,6 +39,7 @@ class TransformationDebug( object ):
     self.kickRequests = False
     self.pluginUtil = None
     self.listOfAssignedRequests = {}
+    self.transPlugin = None
 
   def __getFilesForRun( self, runID = None, status = None, lfnList = None, seList = None, taskList = None ):
     """
@@ -233,7 +236,8 @@ class TransformationDebug( object ):
       else:
         taskType = "Job"
       transGroup = res['Value']['TransformationGroup']
-    gLogger.notice( "%s Transformation %d (%s) of type %s (plugin %s) in %s" % ( transSep, self.transID, transStatus, self.transType, strPlugin, transGroup ) )
+    gLogger.notice( "%s Transformation %d (%s) of type %s (plugin %s) in %s" %
+                    ( transSep, self.transID, transStatus, self.transType, strPlugin, transGroup ) )
     if self.transType == 'Removal':
       gLogger.notice( "Transformation body:", transBody )
     res = self.transClient.getBookkeepingQuery( self.transID )
@@ -276,7 +280,8 @@ class TransformationDebug( object ):
           res = self.transClient.addTransformationRunFiles( self.transID, run, runFiles[run] )
           # print run, runFiles[run], res
           if not res['OK']:
-            gLogger.notice( "***ERROR*** setting %d files to run %d in transformation %d" % ( len( runFiles[run] ), run, self.transID ), res['Message'] )
+            gLogger.notice( "***ERROR*** setting %d files to run %d in transformation %d" %
+                            ( len( runFiles[run] ), run, self.transID ), res['Message'] )
           else:
             fixedFiles += len( runFiles[run] )
         if fixedFiles:
@@ -302,12 +307,12 @@ class TransformationDebug( object ):
       ids = args[0].split( "," )
       transList = []
       for transID in ids:
-        r = transID.split( ':' )
-        if len( r ) > 1:
-          for i in xrange( int( r[0] ), int( r[1] ) + 1 ):
+        tid = transID.split( ':' )
+        if len( tid ) > 1:
+          for i in xrange( int( tid[0] ), int( tid[1] ) + 1 ):
             transList.append( i )
         else:
-          transList.append( int( r[0] ) )
+          transList.append( int( tid[0] ) )
     return transList
 
   def __checkFilesMissingInFC( self, transFilesList, status ):
@@ -344,7 +349,8 @@ class TransformationDebug( object ):
             if lfnsWithReplicaFlag:
               gLogger.notice( "All files are really missing in FC" )
               if not self.fixIt:
-                gLogger.notice( '%d files are not in the FC but have a replica flag in BK, use --FixIt to fix' % len( lfnsWithReplicaFlag ) )
+                gLogger.notice( '%d files are not in the FC but have a replica flag in BK, use --FixIt to fix' %
+                                len( lfnsWithReplicaFlag ) )
               else:
                 res = self.bkClient.removeFiles( lfnsWithReplicaFlag )
                 if not res['OK']:
@@ -472,7 +478,7 @@ class TransformationDebug( object ):
         else:
           prString += " - Failed to set %d files Processed (%s)" % ( len( lfnsInTask ), res['Message'] )
       else:
-          prString += " - To mark files Processed, use option --KickRequests"
+        prString += " - To mark files Processed, use option --KickRequests"
       gLogger.notice( prString )
 
     if not requestID:
@@ -485,7 +491,7 @@ class TransformationDebug( object ):
           else:
             prString += " - Failed to set task Created (%s)" % res['Message']
         else:
-            prString += " - To reset task Created, use option --KickRequests"
+          prString += " - To reset task Created, use option --KickRequests"
         gLogger.notice( prString )
       return 0
     # This method updates self.listOfAssignedRequests
@@ -550,7 +556,8 @@ class TransformationDebug( object ):
             ftsJobs = res['Value']
             if ftsJobs:
               for job in ftsJobs:
-                gLogger.notice( '\tFTS jobs associated:', '%s@%s (%s) from %s to %s' % ( job.FTSGUID, job.FTSServer, job.Status, job.SourceSE, job.TargetSE ) )
+                gLogger.notice( '\tFTS jobs associated:', '%s@%s (%s) from %s to %s' %
+                                ( job.FTSGUID, job.FTSServer, job.Status, job.SourceSE, job.TargetSE ) )
             else:
               gLogger.notice( '\tNo FTS jobs found for that request' )
         except ImportError:
@@ -611,8 +618,8 @@ class TransformationDebug( object ):
     existingReplicas = {}
     lfns = set()
     lfnsInFC = set()
-    for n in sorted( nbReplicasProblematic ):
-      gLogger.notice( "   %d replicas in FC: %d files" % ( n, nbReplicasProblematic[n] ) )
+    for nb in sorted( nbReplicasProblematic ):
+      gLogger.notice( "   %d replicas in FC: %d files" % ( nb, nbReplicasProblematic[nb] ) )
     # level = gLogger.getLevel()
     # gLogger.setLevel( 'FATAL' )
     lfnCheckSum = {}
@@ -640,7 +647,7 @@ class TransformationDebug( object ):
       nbExistingReplicas[nbReplicas] = nbExistingReplicas.setdefault( nbReplicas, 0 ) + 1
     nonExistingReplicas = {}
     if nbProblematic == len( lfns ):
-        gLogger.notice( "None of the %d problematic files actually have an active replica" % len( lfns ) )
+      gLogger.notice( "None of the %d problematic files actually have an active replica" % len( lfns ) )
     else:
       strMsg = "Out of %d problematic files" % len( lfns )
       if nbProblematic:
@@ -648,8 +655,8 @@ class TransformationDebug( object ):
       else:
         strMsg += ", all have an active replica"
       gLogger.notice( strMsg )
-      for n in sorted( nbExistingReplicas ):
-        gLogger.notice( "   %d active replicas: %d files" % ( n, nbExistingReplicas[n] ) )
+      for nb in sorted( nbExistingReplicas ):
+        gLogger.notice( "   %d active replicas: %d files" % ( nb, nbExistingReplicas[nb] ) )
       for se in problematicReplicas:
         lfns = [lfn for lfn in problematicReplicas[se] if lfn not in existingReplicas or se not in existingReplicas[lfn]]
         str2Msg = ''
@@ -663,7 +670,8 @@ class TransformationDebug( object ):
         else:
           strMsg = 'none'
         if se:
-          gLogger.notice( "   %s : %d replicas of problematic files in FC, %s physically missing.%s" % ( str( se ).ljust( 15 ), len( problematicReplicas[se] ), strMsg, str2Msg ) )
+          gLogger.notice( "   %s : %d replicas of problematic files in FC, %s physically missing.%s" %
+                          ( str( se ).ljust( 15 ), len( problematicReplicas[se] ), strMsg, str2Msg ) )
         else:
           gLogger.notice( "   %s : %d files are not in self.fileCatalog." % ( ''.ljust( 15 ), len( problematicReplicas[se] ) ) )
       lfns = [lfn for lfn in existingReplicas if lfn in failedFiles]
@@ -827,32 +835,33 @@ class TransformationDebug( object ):
       print "Entering getLog", urlBase, logFile
     url = urlBase
     if logFile and ".tgz" not in url:
-      if debug: print "Opening URL ", url
-      f = urllib.urlopen( url )
-      c = f.read()
-      f.close()
-      if "was not found on this server." in c:
+      if debug:
+        print "Opening URL ", url
+      fd = urllib.urlopen( url )
+      cc = fd.read()
+      fd.close()
+      if "was not found on this server." in cc:
         return ""
-      c = c.split( "\n" )
+      cc = cc.split( "\n" )
       logURL = None
-      for l in c:
+      for ll in cc:
         # If the line matches the requested URL
-        if fnmatch.fnmatch( l, '*' + logFile + '*' ):
+        if fnmatch.fnmatch( ll, '*' + logFile + '*' ):
           if debug:
-            print "Match found:", l
+            print "Match found:", ll
           try:
-            logURL = l.split( '"' )[1]
+            logURL = ll.split( '"' )[1]
             break
           except:
             pass
-        elif fnmatch.fnmatch( l, '*.tgz*' ):
+        elif fnmatch.fnmatch( ll, '*.tgz*' ):
           # If a tgz file is found, it could help!
           try:
-            logURL = l.split( '"' )[1]
+            logURL = ll.split( '"' )[1]
           except:
             pass
       if not logURL:
-          return ''
+        return ''
       url += logURL
       if debug:
         print "URL found:", url
@@ -860,58 +869,64 @@ class TransformationDebug( object ):
     tmp1 = None
     tf = None
     if ".tgz" in url or '.gz' in url:
-      if debug: print "Opening tgz file ", url
+      if debug:
+        print "Opening tgz file ", url
       # retrieve the zipped file
       tmp = os.path.join( os.environ.get( "TMPDIR", "/tmp" ), "logFile.tmp" )
-      if debug: print "Retrieve the file in ", tmp
+      if debug:
+        print "Retrieve the file in ", tmp
       if os.path.exists( tmp ):
         os.remove( tmp )
       urllib.urlretrieve( url, tmp )
-      with open( tmp, "r" ) as f:
-        c = f.read()
-      if "404 Not Found" in c:
+      with open( tmp, "r" ) as fd:
+        cc = fd.read()
+      if "404 Not Found" in cc:
         return ""
         # unpack the tarfile
-      if debug: print "Open tarfile ", tmp
+      if debug:
+        print "Open tarfile ", tmp
       tf = tarfile.open( tmp, 'r:gz' )
       mn = tf.getnames()
-      f = None
-      if debug: print "Found those members", mn, ', looking for', logFile
+      fd = None
+      if debug:
+        print "Found those members", mn, ', looking for', logFile
       for fileName in mn:
         if fnmatch.fnmatch( fileName, logFile + '*' ):
-          if debug: print "Found ", logFile, " in tar object ", fileName
+          if debug:
+            print "Found ", logFile, " in tar object ", fileName
           if '.gz' in fileName:
             # file is again a gzip file!!
             tmp1 = os.path.join( os.environ.get( "TMPDIR", "/tmp" ), "logFile-1.tmp" )
-            if debug: print "Extract", fileName, "into", tmp1, "and open it"
+            if debug:
+              print "Extract", fileName, "into", tmp1, "and open it"
             tf.extract( fileName, tmp1 )
             tmp1 = os.path.join( tmp1, fileName )
-            f = gzip.GzipFile( tmp1, 'r' )
+            fd = gzip.GzipFile( tmp1, 'r' )
           else:
-            f = tf.extractfile( fileName )
+            fd = tf.extractfile( fileName )
           break
     else:
-      f = urllib.urlopen( url )
+      fd = urllib.urlopen( url )
     # read the actual file...
-    if not f:
+    if not fd:
       if debug: print "Couldn't open file..."
-      c = ''
+      cc = ''
     else:
       if debug: print "File successfully open"
-      c = f.read()
-      f.close()
-      if "was not found on this server." not in c:
-        c = c.split( "\n" )
-        if debug: print "Reading the file now... %d lines" % len( c )
+      cc = fd.read()
+      fd.close()
+      if "was not found on this server." not in cc:
+        cc = cc.split( "\n" )
+        if debug: print "Reading the file now... %d lines" % len( cc )
       else:
-        c = ''
+        cc = ''
     if tf:
       tf.close()
     if tmp:
       os.remove( tmp )
     if tmp1:
       os.remove( tmp1 )
-    return c
+    return cc
 
   def __getSandbox( self, job, logFile, debug = False ):
     from DIRAC.WorkloadManagementSystem.Client.SandboxStoreClient     import SandboxStoreClient
@@ -919,7 +934,7 @@ class TransformationDebug( object ):
     sbClient = SandboxStoreClient()
     tmpDir = os.path.join( os.environ.get( "TMPDIR", "/tmp" ), "sandBoxes/" )
     mkDir( tmpDir )
-    f = None
+    fd = None
     files = []
     try:
       res = sbClient.downloadSandboxForJob( job, 'Output', tmpDir )
@@ -930,15 +945,15 @@ class TransformationDebug( object ):
         for lf in files:
           if fnmatch.fnmatch( lf, logFile ):
             if debug: print file, 'matched', logFile
-            f = open( os.path.join( tmpDir, lf ), 'r' )
-            return f.readlines()
+            fd = open( os.path.join( tmpDir, lf ), 'r' )
+            return fd.readlines()
         return ''
     except Exception as e:
       gLogger.exception( 'Exception while getting sandbox', lException = e )
       return ''
     finally:
-      if f:
-        f.close()
+      if fd:
+        fd.close()
       for lf in files:
         os.remove( os.path.join( tmpDir, lf ) )
       os.rmdir( tmpDir )
@@ -991,6 +1006,31 @@ class TransformationDebug( object ):
       lfn = '_'.join( spl )
     return lfn
 
+  def __getJobStatus( self, job ):
+    if isinstance( job, basestring ):
+      jobs = [int( job )]
+    elif isinstance( job, ( long, int ) ):
+      jobs = [job]
+    else:
+      jobs = list( int( jid ) for jid in job )
+    if not self.monitoring:
+      self.monitoring = RPCClient( 'WorkloadManagement/JobMonitoring' )
+    res = self.monitoring.getJobsStatus( jobs )
+    if res['OK']:
+      jobStatus = res['Value']
+      res = self.monitoring.getJobsMinorStatus( jobs )
+      if res['OK']:
+        jobMinorStatus = res['Value']
+        res = self.monitoring.getJobsApplicationStatus( jobs )
+        if res['OK']:
+          jobApplicationStatus = res['Value']
+    if not res['OK']:
+      return res
+    return dict( ( job, '%s; %s; %s' %
+                   ( jobStatus[job]['Status'],
+                     jobMinorStatus[job]['MinorStatus'],
+                     jobApplicationStatus[job]['ApplicationStatus'] ) ) for job in jobs )
+
   def __checkJobs( self, jobsForLfn, byFiles = False, checkLogs = False ):
     """
     Extract all information about jobs referring to list of LFNs
@@ -1002,33 +1042,19 @@ class TransformationDebug( object ):
     :param checkLogs: check also logfiles of jobs
     :type checkLogs: boolean
     """
-    from DIRAC.Core.DISET.RPCClient                          import RPCClient
-    monitoring = RPCClient( 'WorkloadManagement/JobMonitoring' )
+    if not self.monitoring:
+      self.monitoring = RPCClient( 'WorkloadManagement/JobMonitoring' )
     failedLfns = {}
     jobLogURL = {}
     jobSites = {}
     for lfnStr, allJobs in jobsForLfn.iteritems():
       lfnList = lfnStr.split( ',' )
-      exitedJobs = []
+      exitedJobs = {}
       allJobs.sort()
-      res = monitoring.getJobsStatus( allJobs )
-      if res['OK']:
-        jobStatus = res['Value']
-        res = monitoring.getJobsMinorStatus( allJobs )
-        if res['OK']:
-          jobMinorStatus = res['Value']
-          res = monitoring.getJobsApplicationStatus( allJobs )
-          if res['OK']:
-            jobApplicationStatus = res['Value']
-      if not res['OK']:
-        gLogger.notice( 'Error getting jobs statuses:', res['Message'] )
+      allStatus = self.__getJobStatus( allJobs )
+      if 'Message' in allStatus:
+        gLogger.notice( 'Error getting jobs statuses:', allStatus['Message'] )
         return
-      allStatus = {}
-      for job in [int( j ) for j in allJobs]:
-        status = jobStatus.get( job, {} ).get( 'Status', 'Unknown' ) + '; ' + \
-                 jobMinorStatus.get( job, {} ).get( 'MinorStatus', 'Unknown' ) + '; ' + \
-                 jobApplicationStatus.get( job, {} ).get( 'ApplicationStatus', 'Unknown' )
-        allStatus[job] = status
       if byFiles or len( lfnList ) < 3:
         gLogger.notice( '\n %d LFNs: %s : Status of corresponding %d jobs (ordered):' % ( len( lfnList ), lfnList, len( allJobs ) ) )
       else:
@@ -1055,16 +1081,16 @@ class TransformationDebug( object ):
         majorStatus, minorStatus, applicationStatus = prevStatus.split( '; ' )
         if majorStatus == 'Failed' and ( 'exited with status' in applicationStatus.lower() or
                                          'problem executing application' in applicationStatus.lower() ):
-          exitedJobs += jobs
+          exitedJobs.update( dict.fromkeys( jobs, applicationStatus ) )
         if majorStatus == 'Failed' and minorStatus == 'Job stalled: pilot not running':
           lastLine = ''
           # Now get last lines
-          res = monitoring.getJobsSites( jobs )
+          res = self.monitoring.getJobsSites( jobs )
           if res['OK']:
             jobSites.update( res['Value'] )
           for job1 in sorted( jobs ) + [0]:
             if job1:
-              res = monitoring.getJobParameter( int( job1 ), 'StandardOutput' )
+              res = self.monitoring.getJobParameter( int( job1 ), 'StandardOutput' )
               if res['OK']:
                 line = '(%s) ' % jobSites.get( job1, {} ).get( 'Site', 'Unknown' ) + \
                        res['Value'].get( 'StandardOutput', 'stdout not available\n' ).splitlines()[-1].split( 'UTC ' )[-1]
@@ -1085,7 +1111,7 @@ class TransformationDebug( object ):
         if exitedJobs:
           badLfns = {}
           for lastJob in sorted( exitedJobs, reverse = True )[0:10]:
-            res = monitoring.getJobParameter( int( lastJob ), 'Log URL' )
+            res = self.monitoring.getJobParameter( int( lastJob ), 'Log URL' )
             if res['OK'] and 'Log URL' in res['Value']:
               logURL = res['Value']['Log URL'].split( '"' )[1] + '/'
               jobLogURL[lastJob] = logURL
@@ -1104,6 +1130,10 @@ class TransformationDebug( object ):
             if lfnsFound:
               for lfn, job, reason in [( lfn, job, badLfns[job][lfn] )
                                        for job, lfns in badLfns.iteritems() for lfn in set( lfns ) & lfnsFound]:
+                if job in exitedJobs:
+                  exitStatus = exitedJobs[job].split( 'status ' )
+                  if len( exitStatus ) == 2:
+                    reason += ' (exit code %s)' % exitStatus[1]
                 failedLfns.setdefault( ( lfn, reason ), [] ).append( job )
             else:
               gLogger.notice( "No common error was found in all XML summary files" )
@@ -1126,10 +1156,11 @@ class TransformationDebug( object ):
 
       for ( lfn, reason ), jobs in failedLfns.iteritems():
         jobs = sorted( set( jobs ) )
-        res = monitoring.getJobsSites( jobs )
+        res = self.monitoring.getJobsSites( jobs )
         if res['OK']:
           sites = sorted( set( val['Site'] for val in res['Value'].itervalues() ) )
-        gLogger.notice( "ERROR ==> %s was %s during processing from jobs %s (sites %s): " % ( lfn, reason, ','.join( str( job ) for job in jobs ), ','.join( sites ) ) )
+        gLogger.notice( "ERROR ==> %s was %s during processing from jobs %s (sites %s): " %
+                        ( lfn, reason, ','.join( str( job ) for job in jobs ), ','.join( sites ) ) )
         # Get an example log if possible
         if checkLogs:
           logDump = self.__checkLog( jobLogURL[jobs[0]] )
@@ -1240,7 +1271,8 @@ class TransformationDebug( object ):
             rawFiles = len( runRAWFiles )
             toFlush = True
     if toFlush:
-      gLogger.notice( "Run %s flushed: %d RAW files and ancestors found" % ( 'correctly' if runStatus == 'Flush' else 'should be', rawFiles ) )
+      gLogger.notice( "Run %s flushed: %d RAW files and ancestors found" %
+                      ( 'correctly' if runStatus == 'Flush' else 'should be', rawFiles ) )
       if runStatus != 'Flush':
         if self.fixIt:
           res = self.transClient.setTransformationRunStatus( self.transID, runID, 'Flush' )
@@ -1460,7 +1492,8 @@ class TransformationDebug( object ):
         if not runsDictList:
           gLogger.notice( 'No runs found...' )
         else:
-          gLogger.notice( '%d runs found: %s' % ( len( runsDictList ), ','.join( str( runDict['RunNumber'] ) for runDict in runsDictList ) ) )
+          gLogger.notice( '%d runs found: %s' %
+                          ( len( runsDictList ), ','.join( str( runDict['RunNumber'] ) for runDict in runsDictList ) ) )
       SEStat = {"Total":0}
       allFiles = []
       toBeKicked = 0
@@ -1543,7 +1576,9 @@ class TransformationDebug( object ):
               problematicFiles.append( fileDict['LFN'] )
           else:
             # Get all tasks associated to that file
-            res = self.transClient.getTableDistinctAttributeValues( 'TransformationFileTasks', ['TaskID'], {'TransformationID': transID, 'FileID' : fileDict['FileID']} )
+            res = self.transClient.getTableDistinctAttributeValues( 'TransformationFileTasks',
+                                                                    ['TaskID'],
+                                                                    {'TransformationID': transID, 'FileID' : fileDict['FileID']} )
             if not res['OK']:
               gLogger.notice( "Error when getting tasks for file %s" % fileDict['LFN'] )
             else:
@@ -1552,7 +1587,8 @@ class TransformationDebug( object ):
           fileRun = fileDict['RunNumber']
           fileLfn = fileDict['LFN']
           if byFiles and not taskList:
-            gLogger.notice( "%s - Run: %s - Status: %s - UsedSE: %s - ErrorCount %s" % ( fileLfn, fileRun, fileDict['Status'], fileDict['UsedSE'], fileDict['ErrorCount'] ) )
+            gLogger.notice( "%s - Run: %s - Status: %s - UsedSE: %s - ErrorCount %s" %
+                            ( fileLfn, fileRun, fileDict['Status'], fileDict['UsedSE'], fileDict['ErrorCount'] ) )
           if not fileRun and '/MC' not in fileLfn:
             filesWithRunZero.append( fileLfn )
           if fileRun:
@@ -1575,7 +1611,10 @@ class TransformationDebug( object ):
 
         # Problematic files
         if problematicFiles and not byFiles:
-          self.__checkReplicasForProblematic( problematicFiles, self.__getReplicas( problematicFiles ), nbReplicasProblematic, problematicReplicas )
+          self.__checkReplicasForProblematic( problematicFiles,
+                                              self.__getReplicas( problematicFiles ),
+                                              nbReplicasProblematic,
+                                              problematicReplicas )
 
         # Check files with missing FC
         if status:
@@ -1653,6 +1692,11 @@ class TransformationDebug( object ):
             # More information from Request tasks
             if taskType == "Request":
               toBeKicked += self.__printRequestInfo( task, lfnsInTask, taskCompleted, status, dmFileStatusComment )
+            elif task['ExternalStatus'] == 'Failed':
+              # Get job statuses
+              jobID = int( task['ExternalID'] )
+              jobStatus = self.__getJobStatus( jobID )
+              gLogger.notice( "Job status:", jobStatus[jobID] )
             if not allTasks:
               gLogger.notice( "" )
         if byJobs and jobsForLfn:
