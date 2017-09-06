@@ -360,6 +360,12 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     # Choose the destination SE
     tasks = []
     for runID in runSet:
+      # Check that the run tick is present
+      runTick = self.util.checkCondDBRunTick( runID )
+      if runTick == False:
+        # If runTick is None it means the CondDB was not available in CVMFS, we ignore (but a warning is printed)
+        self.util.logInfo( "Run tick not present yet in OnlineCondDB for run %d" % runID )
+        continue
       runLfns = runFileDict[runID]
       assignedSE = runSEDict[runID]
       runSEs = set( assignedSE.split( ',' ) ) if assignedSE and isinstance( assignedSE, basestring ) else set()
