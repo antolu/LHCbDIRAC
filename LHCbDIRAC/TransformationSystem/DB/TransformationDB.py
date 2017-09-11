@@ -26,84 +26,15 @@ class TransformationDB( DIRACTransformationDB ):
     """
     DIRACTransformationDB.__init__( self, dbname, dbconfig, dbIn )
     self.lock = threading.Lock()
-    self.queryFields = ['SimulationConditions', 'DataTakingConditions', 'ProcessingPass', 'FileType',
+    self.queryFields = ( 'SimulationConditions', 'DataTakingConditions', 'ProcessingPass', 'FileType',
                         'EventType', 'ConfigName', 'ConfigVersion', 'ProductionID', 'DataQualityFlag',
-                        'StartRun', 'EndRun', 'Visible', 'RunNumbers', 'TCK']
-    self.intFields = ['EventType', 'ProductionID', 'StartRun', 'EndRun']
-    self.transRunParams = ['TransformationID', 'RunNumber', 'SelectedSite', 'Status', 'LastUpdate']
+                        'StartRun', 'EndRun', 'Visible', 'RunNumbers', 'TCK' )
+    self.intFields = ( 'EventType', 'ProductionID', 'StartRun', 'EndRun' )
+    self.transRunParams = ( 'TransformationID', 'RunNumber', 'SelectedSite', 'Status', 'LastUpdate' )
     self.allowedStatusForTasks = ( 'Unused', 'ProbInFC' )
     self.TRANSPARAMS.append( 'Hot' )
     self.TRANSFILEPARAMS.extend( ['RunNumber', 'Size', 'FileType', 'RAWAncestors'] )
     self.TASKSPARAMS.append( 'RunNumber' )
-
-# FIXME: not compatible with DIRAC v6r11, but will be compatible with DIRAC v7r0
-# TODO: re-check, also DIRAC part, for missing Foreign keys, plus re-check whole definition of everything
-#  def _generateTables( self ):
-#    """ _generateTables
-#
-#    Extension of TransformationDB ( DIRAC ) adding tables BkQueries, TransformationRuns
-#    and RunsMetadata. It is also modifying TransformationFiles and TransformationTasks.
-#    """
-#
-#    tables = DIRACTransformationDB._generateTables( self )
-#    if not tables[ 'OK' ]:
-#      return tables
-#    tables = tables[ 'Value' ]
-#
-#    # Add a column to TransformationFiles table
-#    if 'TransformationFiles' in tables:
-#      tables['TransformationFiles' ][ 'Fields' ][ 'RunNumber' ] = 'INT(11) DEFAULT 0'
-#
-#    # Add a column to TransformationTasks table
-#    if 'TransformationTasks' in tables:
-#      tables['TransformationTasks' ][ 'Fields' ][ 'RunNumber' ] = 'INT(11) DEFAULT 0'
-#
-#    # Creates new table BkQueriesNew
-#     if 'BkQueriesNew' not in tables:
-#       tables[ 'BkQueriesNew' ] = {'Fields': {'TransformationID': 'INTEGER NOT NULL',
-#                                              'ParameterName': 'VARCHAR(32) NOT NULL',
-#                                              'ParameterValue': 'LONGBLOB NOT NULL',
-#                                              },
-#                                            'PrimaryKey': ['TransformationID', 'ParameterName'],
-#                                            'Engine': 'InnoDB'
-#                                            }
-#
-#    # Creates new table TransformationRuns
-#    if 'TransformationRuns' not in tables:
-#      _transformationRuns = {
-#                             'Fields'     : {
-#                                             'TransformationID' : 'INTEGER NOT NULL',
-#                                             'RunNumber'        : 'INT(11) NOT NULL',
-#                                             'SelectedSite'     : 'VARCHAR(255) DEFAULT ""',
-#                                             'Status'           : 'CHAR(32) DEFAULT "Active"',
-#                                             'LastUpdate'       : 'DATETIME'
-#                                             },
-#                             'Indexes'    : {
-#                                             'RunNumber'       : [ 'RunNumber' ]
-#                                            },
-#                             'PrimaryKey' : [ 'TransformationID', 'RunNumber' ],
-#                             'Engine'     : 'InnoDB'
-#                            }
-# To be added: FOREIGN KEY (TransformationID) REFERENCES Transformations (TransformationID)
-#      tables[ 'TransformationRuns' ] = _transformationRuns
-#
-#    # Creates new table RunsMetadata
-#    if 'RunsMetadata' not in tables:
-#      _runsMetadata = {
-#                       'Fields'     : {
-#                                       'RunNumber' : 'INT(11) NOT NULL',
-#                                       'Name'      : 'VARCHAR(255) NOT NULL',
-#                                       'Value'     : 'VARCHAR(255) NOT NULL'
-#                                      },
-#                       'Indexes'    : {
-#  LT would drop this line, PK is enough 'RunNumber' : [ 'RunNumber' ]
-#                                      },
-#                       'PrimaryKey' : [ 'RunNumber', 'Name' ],
-#                       'Engine'     : 'InnoDB'
-#                      }
-#      tables[ 'RunsMetadata' ] = _runsMetadata
-#
-#    return S_OK( tables )
 
   def deleteTransformation( self, transID, author = '', connection = False ):
     """ Small extension to not forget to delete the BkQueries
@@ -224,7 +155,8 @@ class TransformationDB( DIRACTransformationDB ):
       return S_ERROR( "EndRun can not be reduced!" )
     if startRun and startRun > runNumber:
       return S_ERROR( "EndRun is before StartRun!" )
-    req = "INSERT INTO BkQueriesNew(TransformationID,ParameterName,ParameterValue) VALUES(%d,'EndRun',%d) ON DUPLICATE KEY UPDATE ParameterValue = %d" % ( transID, runNumber, runNumber )
+    req = "INSERT INTO BkQueriesNew(TransformationID,ParameterName,ParameterValue) VALUES(%d,'EndRun',%d) \
+    ON DUPLICATE KEY UPDATE ParameterValue = %d" % ( transID, runNumber, runNumber )
     return self._update( req, connection )
 
 
@@ -244,7 +176,8 @@ class TransformationDB( DIRACTransformationDB ):
       return S_ERROR( "StartRun can not be increased!" )
     if endRun and runNumber > endRun:
       return S_ERROR( "StartRun cannot be after EndRun!" )
-    req = "INSERT INTO BkQueriesNew(TransformationID,ParameterName,ParameterValue) VALUES(%d,'StartRun',%d) ON DUPLICATE KEY UPDATE ParameterValue = %d" % ( transID, runNumber, runNumber )
+    req = "INSERT INTO BkQueriesNew(TransformationID,ParameterName,ParameterValue) VALUES(%d,'StartRun',%d) \
+    ON DUPLICATE KEY UPDATE ParameterValue = %d" % ( transID, runNumber, runNumber )
     return self._update( req, connection )
 
 
@@ -270,7 +203,7 @@ class TransformationDB( DIRACTransformationDB ):
       return S_ERROR( "RunList invalid: %s" % repr( e ) )
     if len( runsInQuery ) > 999:
       return S_ERROR( "RunList bigger the 1000 not allowed because of Oracle limitations!!!" )
-    value = ';;;'.join( [str( x ) for x in sorted( runsInQuery )] )
+    value = ';;;'.join( str( x ) for x in sorted( runsInQuery ) )
     req = "UPDATE BkQueriesNew SET ParameterValue='%s' WHERE TransformationID = %d AND ParameterName='RunNumbers'" % ( value, transID )
     self._update( req, connection )
     return S_OK()
@@ -281,7 +214,7 @@ class TransformationDB( DIRACTransformationDB ):
     connection = self.__getConnection( connection )
     values = []
     for field in self.queryFields:
-      if not field in queryDict.keys():
+      if field not in queryDict:
         if field in ['StartRun', 'EndRun']:
           value = 0
         else:
@@ -292,15 +225,13 @@ class TransformationDB( DIRACTransformationDB ):
         if isinstance( value, ( int, long, float ) ):
           value = str( value )
         if isinstance( value, ( list, tuple ) ):
-          value = [str( x ) for x in value]
-          value = ';;;'.join( value )
+          value = ';;;'.join( str( x ) for x in value )
       values.append( value )
 
     # Insert the new bk query
-    values = ["'%s'" % x for x in values]
     req = "INSERT INTO BkQueriesNew (TransformationID, ParameterName,ParameterValue) VALUES "
-    for i in range ( len( self.queryFields ) ):
-      req = req + "(%d,'%s',%s), " % ( transID, self.queryFields[i], values[i] )
+    for field, value in zip( self.queryFields, values ):
+      req += "(%d,'%s','%s'), " % ( transID, field, value )
     req = req.strip().rstrip( ',' )
 
     res = self._update( req, connection )
@@ -308,13 +239,13 @@ class TransformationDB( DIRACTransformationDB ):
       return res
     return S_OK( transID )
 
-  def getTransformationsWithBkQueries( self, transIDs = [], connection = False ):
+  def getTransformationsWithBkQueries( self, transIDs = None, connection = False ):
     """ Get those Transformations that have a BkQuery
     """
     connection = self.__getConnection( connection )
     req = "SELECT DISTINCT TransformationID FROM BkQueriesNew"
     if transIDs:
-      req = req + " WHERE TransformationID IN (%s)" % ( ', '.join( [str( t ) for t in transIDs] ) )
+      req = req + " WHERE TransformationID IN (%s)" % ( ', '.join( str( t ) for t in transIDs ) )
     res = self._query( req, connection )
     if res['OK']:
       res = S_OK( [tID[0] for tID in res['Value']] )
@@ -357,11 +288,13 @@ class TransformationDB( DIRACTransformationDB ):
     for fileTuples in breakListIntoChunks( fileTuplesList, 10000 ):
       gLogger.verbose( "Adding first %d files in TransformationFiles (out of %d)" % ( len( fileTuples ),
                                                                                       len( fileTuplesList ) ) )
-      req = "INSERT INTO TransformationFiles (TransformationID,Status,TaskID,FileID,TargetSE,LastUpdate,RunNumber,Size,FileType,RAWAncestors) VALUES"
+      req = "INSERT INTO TransformationFiles (TransformationID,Status,TaskID,FileID, \
+      TargetSE,LastUpdate,RunNumber,Size,FileType,RAWAncestors) VALUES"
       candidates = False
 
       for ft in fileTuples:
-        _lfn, originalID, fileID, status, taskID, targetSE, _usedSE, _errorCount, _lastUpdate, _insertTime, runNumber, size, fileType, rawAncestors = ft[:14]
+        _lfn, originalID, fileID, status, taskID, targetSE, _usedSE, _errorCount, _lastUpdate, \
+        _insertTime, runNumber, size, fileType, rawAncestors = ft[:14]
         if status not in ( 'Removed', ):
           candidates = True
           if not re.search( '-', status ):
@@ -477,9 +410,9 @@ class TransformationDB( DIRACTransformationDB ):
     connection = self.__getConnection( connection )
     selectDict = {}
     if condDict:
-      for key in condDict.keys():
+      for key, val in condDict.iteritems():
         if key in self.transRunParams:
-          selectDict[key] = condDict[key]
+          selectDict[key] = val
     req = "SELECT %s FROM TransformationRuns %s" % ( intListToString( self.transRunParams ),
                                                      self.buildCondition( selectDict,
                                                                           older = older,
@@ -496,14 +429,9 @@ class TransformationDB( DIRACTransformationDB ):
       # Prepare the structure for the web
       rList = []
       transDict = {}
-      count = 0
-      for item in row:
-        transDict[self.transRunParams[count]] = item
-        count += 1
-        if not isinstance( item, ( int, long ) ):
-          rList.append( str( item ) )
-        else:
-          rList.append( item )
+      for param, item in zip( self.transRunParams, row ):
+        transDict[param] = item
+        rList.append( item if isinstance( item, ( int, long ) ) else str( item ) )
       webList.append( rList )
       resultList.append( transDict )
     result = S_OK( resultList )
@@ -537,19 +465,13 @@ class TransformationDB( DIRACTransformationDB ):
     res = self._getConnectionTransID( connection, transID )
     if not res['OK']:
       return res
-    lfnsDict = dict( ( item, {'RunNumber': runID} ) for item in lfns )
+    lfnsDict = dict.fromkeys( lfns, {'RunNumber': runID} )
     res = self.setParameterToTransformationFiles( transID, lfnsDict )
     if not res['OK']:
       return res
     fileIDs = res ['Value']
-    successful = {}
-    failed = {}
-    for fileID in fileIDs.keys():
-      lfn = fileIDs[fileID]
-      successful[lfn] = "Added"
-    for lfn in lfns:
-      if not lfn in successful.keys():
-        failed[lfn] = "Missing"
+    successful = dict.fromkeys( fileIDs.values(), 'Added' )
+    failed = dict.fromkeys( set( lfns ) - set( successful ), 'Missing' )
     # Now update the TransformationRuns to include the newly updated files
     req = "UPDATE TransformationRuns SET LastUpdate = UTC_TIMESTAMP() \
     WHERE TransformationID = %d and RunNumber = %d" % ( transID, runID )
@@ -571,14 +493,14 @@ class TransformationDB( DIRACTransformationDB ):
     res = self.__getFileIDsForLfns( lfnsDict.keys(), connection = connection )
     if not res['OK']:
       return res
-    fileIDs, _lfnFilesIDs = res['Value']
+    fileIDs = res['Value'][0]
     rDict = {}
-    for fileID, lfn in fileIDs.items():
+    for fileID, lfn in fileIDs.iteritems():
       rDict[fileID] = lfnsDict[lfn]
-    for fID, param in rDict.items():
+    for fID, param in rDict.iteritems():
       req = "UPDATE TransformationFiles SET %s \
        WHERE TransformationID = %d AND FileID = %d" % \
-       ( ','.join( ["`%s` = '%s'" % ( key, str( val ) ) for key, val in param.items()] ), transID, fID )
+       ( ','.join( "`%s` = '%s'" % keyVal for keyVal in param.iteritems() ), transID, fID )
       res = self._update( req, connection )
       if not res['OK']:
         gLogger.error( "Failed to update TransformationFiles table", res['Message'] )
@@ -653,7 +575,7 @@ class TransformationDB( DIRACTransformationDB ):
     """ Add the metadataDict to runID (if already present, does nothing)
     """
     connection = self.__getConnection( connection )
-    for name, value in metadataDict.items():
+    for name, value in metadataDict.iteritems():
       res = self.__insertRunMetadata( runID, name, value, connection )
       if not res['OK']:
         return res
@@ -663,7 +585,7 @@ class TransformationDB( DIRACTransformationDB ):
     """ Add the metadataDict to runID (if already present, does nothing)
     """
     connection = self.__getConnection( connection )
-    for name, value in metadataDict.items():
+    for name, value in metadataDict.iteritems():
       res = self.__updateRunMetadata( runID, name, value, connection )
       if not res['OK']:
         return res
@@ -702,7 +624,7 @@ class TransformationDB( DIRACTransformationDB ):
     connection = self.__getConnection( connection )
     try:
       if isinstance( runIDs, ( list, dict, set, tuple ) ):
-        runIDs = ','.join( [str( int( x ) ) for x in runIDs] )
+        runIDs = ','.join( str( int( x ) ) for x in runIDs )
       else:
         runIDs = str( int( runIDs ) )
     except ValueError as e:
@@ -714,10 +636,9 @@ class TransformationDB( DIRACTransformationDB ):
       gLogger.error( "Failure executing %s" % str( req ) )
       return res
     else:
-      res = res['Value']
       dictOfNameValue = {}
-      for t in res:
-        dictOfNameValue.setdefault( t[0], {} ).update( {t[1]:t[2]} )
+      for runID, name, val in res['Value']:
+        dictOfNameValue.setdefault( runID, {} ).update( {name:val} )
       return S_OK( dictOfNameValue )
 
   def deleteRunsMetadata( self, condDict = None, connection = False ):
@@ -753,14 +674,12 @@ class TransformationDB( DIRACTransformationDB ):
     """ get destination of a run or a list of runs.
     """
     connection = self.__getConnection( connection )
-    req = "SELECT * FROM RunDestination WHERE RunNumber IN (%s)" % ( ', '.join( [str( runID ) for runID in runIDs] ) )
+    req = "SELECT * FROM RunDestination WHERE RunNumber IN (%s)" % ( ', '.join( str( runID ) for runID in runIDs ) )
     res = self._query( req, connection )
     if not res['OK']:
       gLogger.error( "Failure executing %s" % str( req ) )
       return res
-    if not res['Value']:
-      return S_OK( {} )
-    return S_OK( dict( runDest for runDest in res['Value'] ) )
+    return S_OK( dict( res['Value'] ) if res['Value'] else {} )
 
   def setDestinationForRun( self, runID, destination, connection = False ):
     """ set destination of a run.
@@ -770,9 +689,7 @@ class TransformationDB( DIRACTransformationDB ):
     res = self._query( req, connection )
     if not res['OK']:
       gLogger.error( "Failure executing %s" % str( req ) )
-      return res
-    else:
-      return res
+    return res
 
 
   #############################################################################

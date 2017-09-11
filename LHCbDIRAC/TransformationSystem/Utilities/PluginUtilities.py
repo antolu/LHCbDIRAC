@@ -8,7 +8,7 @@ import time
 
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks
-from DIRAC.Core.Utilities.Time import timeThis
+# from DIRAC.Core.Utilities.Time import timeThis
 from DIRAC.Core.Utilities.File import mkDir
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
@@ -25,6 +25,9 @@ from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import Resou
 __RCSID__ = "$Id$"
 
 def _stripNumDirectory( dirName ):
+  """
+  Method to remove numeric directory form a directory path
+  """
   while True:
     subDir = os.path.basename( dirName )
     if subDir and not subDir.isdigit():
@@ -60,6 +63,8 @@ class PluginUtilities( DIRACPluginUtilities ):
                                              debug = debug, transInThread = transInThread, transID = transID )
 
     self.freeSpace = {}
+    self.transFiles = []
+    self.transReplicas = {}
     self.cachedLFNAncestors = {}
     self.cachedNbRAWFiles = {}
     self.usingRAWFiles = None
@@ -81,12 +86,16 @@ class PluginUtilities( DIRACPluginUtilities ):
     self.shareMetrics = None
     self.lastCall = None
     self.excludedStatuses = self.getPluginParam( 'IgnoreStatusForFlush', [ 'Removed', 'MissingInFC', 'Problematic' ] )
+    self.tsParams = ( 'FileSize', 'FileType', 'RunNumber' )
+    self.paramName = None
 
   def setDebug( self, val ):
     self.debug = val
 
   def updateSharesUsage( self, counters, se, count, runID ):
-    """ Update the usage counters if share is by files, and the run duration otherwise """
+    """
+    Update the usage counters if share is by files, and the run duration otherwise
+    """
     inc = 0
     if self.shareMetrics == 'Files':
       inc = count
@@ -190,11 +199,18 @@ class PluginUtilities( DIRACPluginUtilities ):
       return S_OK( ( existingCount, shares ) )
 
   def __getRunDuration( self, runID ):
+    """
+    Get the run duration
+    """
     # Get run metadata
     runMetadata = self.transClient.getRunsMetadata( [runID] ).get( 'Value', {} )
     return S_OK( self.__extractRunDuration( runMetadata, runID ) )
 
   def __extractRunDuration( self, runMetadata, runID ):
+    """
+    Obtain run duration from the TS run metadata table
+    If not available, get it from BK
+    """
     duration = runMetadata.get( runID, {} ).get( 'Duration' )
     if duration is None:
       self.logVerbose( 'Run duration not found in TS for run %d, get it from BK' % runID )
@@ -270,20 +286,62 @@ class PluginUtilities( DIRACPluginUtilities ):
       usageDict = normaliseShares( usageDict )
     return S_OK( usageDict )
 
-  def getBookkeepingMetadata( self, lfns, param ):
+  def getMetadataFromTSorBK( self, lfns, param ):
+    """
+    Get BK parameters from BK unless they are already present in the TS
+    """
+    if isinstance( lfns, basestring ):
+      lfns = [lfns]
     filesParam = {}
-    for chunk in breakListIntoChunks( lfns, 1000 ):
-      res = self.bkClient.getFileMetadata( chunk )
-      if res['OK']:
-        success = res['Value']['Successful']
-        filesParam.update( dict( ( lfn, success[lfn].get( param ) ) for lfn in success ) )
-        # Always cache the size, will be useful
-        self.cachedLFNSize.update( dict( ( lfn, success[lfn].get( 'FileSize' ) ) for lfn in success ) )
-      else:
-        return res
-    return S_OK( filesParam )
+    # For parameters that are in the TS files DB, no need to go to BK
+    if param in self.tsParams:
+      par = param if param != 'FileSize' else 'Size'
+      # We already have this information
+      for fileDict in self.transFiles:
+        lfn = fileDict['LFN']
+        if lfn in lfns:
+          value = fileDict.get( par )
+          if value:
+            filesParam[lfn] = value
+
+      lfnsLeft = set( lfns ) - set( filesParam )
+      self.logVerbose( "Found parameter %s in transFiles for %d files, %d left" % ( param, len( filesParam ), len( lfnsLeft ) ) )
+    else:
+      lfnsLeft = lfns
+
+    if lfnsLeft:
+      for chunk in breakListIntoChunks( lfnsLeft, 1000 ):
+        loggedError = False
+        # Let's loop forever as this MUST succeed
+        while True:
+          res = self.bkClient.getFileMetadata( chunk )
+          if res['OK']:
+            success = res['Value']['Successful']
+            filesParam.update( dict( ( lfn, success[lfn].get( param ) ) for lfn in success ) )
+            break
+          if not loggedError:
+            self.logError( "Error getting BK file metadata", res['Message'] )
+            loggedError = True
+          time.sleep( 1 )
+      # Check if all parameters are present in TS... If not, set them while we have them here
+      lfnDict = {}
+      for fileDict in self.transFiles:
+        lfn = fileDict['LFN']
+        if lfn in success:
+          for param in self.tsParams:
+            par = param if param != 'FileSize' else 'Size'
+            if fileDict.get( par ) is None:
+              lfnDict.setdefault( lfn, {} ).update( {par: success[lfn][param]} )
+      if lfnDict:
+        res = self.transClient.setParameterToTransformationFiles( self.transID, lfnDict )
+        self.logVerbose( "Updated files metadata in TS for %d files: %s" % ( len( lfnDict ), 'OK' if res['OK'] else 'Failed' ) )
+
+    return filesParam
 
   def getProductions( self, bkPathList, eventType, transStatus ):
+    """
+    Get the list of productions matching a given BK path
+    """
     now = datetime.datetime.utcnow()
     period = self.getPluginParam( 'Period', 6 )
     cacheLifeTime = self.getPluginParam( 'CacheLifeTime', 24 )
@@ -309,7 +367,7 @@ class PluginUtilities( DIRACPluginUtilities ):
           return None
         productions['List'][bkPath] = []
         self.logVerbose( "For bkPath %s, found productions %s" % \
-                              ( bkPath, ','.join( ['%s' % prod for prod in prods] ) ) )
+                              ( bkPath, ','.join( '%s' % prod for prod in prods ) ) )
         for prod in prods:
           res = self.transClient.getTransformation( prod )
           if not res['OK']:
@@ -318,7 +376,7 @@ class PluginUtilities( DIRACPluginUtilities ):
             if res['Value']['Status'] != "Cleaned":
               productions['List'][bkPath].append( int( prod ) )
         self.logInfo( "For bkPath %s, selected productions: %s" % \
-                           ( bkPath, ','.join( ['%s' % prod for prod in productions['List'][bkPath] ] ) ) )
+                           ( bkPath, ','.join( '%s' % prod for prod in productions['List'][bkPath] ) ) )
       productions['CacheTime'] = now
 
     productions['LastCall_%s' % self.transID] = now
@@ -327,6 +385,16 @@ class PluginUtilities( DIRACPluginUtilities ):
 
   # @timeThis
   def getFilesParam( self, lfns, param ):
+    """
+    Return for each LFN the value of a single parameter "param" that can be cached
+    """
+    # Make sure we request the same parameter
+    if self.paramName and self.paramName != param:
+      self.logWarn( "Requested parameter %s not compatible with previously used parameter %s, get from BK" % ( param, self.paramName ) )
+      return self.getMetadataFromTSorBK( lfns, param )
+
+    self.paramName = param
+    lfns = set( lfns )
     if not self.filesParam:
       nCached = 0
       for run in self.cachedRunLfns:
@@ -334,20 +402,20 @@ class PluginUtilities( DIRACPluginUtilities ):
           for lfn in self.cachedRunLfns[run][paramValue]:
             self.filesParam[lfn] = paramValue
             nCached += 1
-      self.logVerbose( 'Found %d files cached for param %s' % ( nCached, param ) )
-    filesParam = dict( ( lfn, self.filesParam.get( lfn ) ) for lfn in lfns )
-    newLFNs = [lfn for lfn in lfns if not filesParam[lfn]]
-    if newLFNs:
-      res = self.getBookkeepingMetadata( newLFNs, param )
-      if not res['OK']:
-        return res
-      filesParam.update( res['Value'] )
-      self.filesParam.update( res['Value'] )
-      self.logVerbose( "Obtained BK %s of %d files" % ( param, len( newLFNs ) ) )
-    return S_OK( filesParam )
+      self.logVerbose( 'Obtained %s of %d files from disk cache' % ( param, nCached ) )
+    filesParam = dict( ( lfn, self.filesParam[lfn] ) for lfn in lfns & set( self.filesParam ) )
+    # Get parameter for LFNs not cached yet
+    lfns = lfns - set( filesParam )
+    if lfns:
+      resDict = self.getMetadataFromTSorBK( list( lfns ), param )
+      filesParam.update( resDict )
+      self.filesParam.update( resDict )
+      self.logVerbose( "Obtained %s of %d files from TS or BK" % ( param, len( resDict ) ) )
+    return filesParam
 
   def getStorageFreeSpace( self, candSEs ):
-    """ Get free space in a list of SEs from the RSS
+    """
+    Get free space in a list of SEs from the RSS
     """
     weight = {}
     for se in candSEs:
@@ -356,7 +424,8 @@ class PluginUtilities( DIRACPluginUtilities ):
     return weight
 
   def getRMFreeSpace( self, se ):
-    """ Get free space in an SE from the RSS
+    """
+    Get free space in an SE from the RSS
     """
 
     cacheLimit = datetime.datetime.utcnow() - datetime.timedelta( hours = 12 )
@@ -381,7 +450,8 @@ class PluginUtilities( DIRACPluginUtilities ):
     return free
 
   def rankSEs( self, candSEs ):
-    """ Ranks the SEs according to their free space
+    """
+    Ranks the SEs according to their free space
     """
     if len( candSEs ) <= 1:
       return candSEs
@@ -413,7 +483,8 @@ class PluginUtilities( DIRACPluginUtilities ):
     return rankedSEs
 
   def setTargetSEs( self, numberOfCopies, archive1SEs, archive2SEs, mandatorySEs, secondarySEs, existingSEs, exclusiveSEs = False ):
-    """ Decide on which SEs to target from lists and current status of replication
+    """
+    Decide on which SEs to target from lists and current status of replication
         Policy is max one archive1, one archive 2, all mandatory SEs and required number of copies elsewhere
     """
     # Select active SEs
@@ -473,7 +544,8 @@ class PluginUtilities( DIRACPluginUtilities ):
     return ','.join( sorted( targetSEs ) )
 
   def selectSEs( self, candSEs, needToCopy, existingSEs ):
-    """ Select SEs from a list, preferably from existing SEs
+    """
+    Select SEs from a list, preferably from existing SEs
         in order to obtain the required number of replicas
     """
     targetSEs = []
@@ -492,7 +564,8 @@ class PluginUtilities( DIRACPluginUtilities ):
     return targetSEs
 
   def assignTargetToLfns( self, lfns, replicas, stringTargetSEs ):
-    """ Assign target SEs for each LFN, excluding the existing ones
+    """
+    Assign target SEs for each LFN, excluding the existing ones
         Returns a dictionary for files to be transferred and a list of files already in place
     """
     # Suppress duplicate SEs from list
@@ -543,11 +616,7 @@ class PluginUtilities( DIRACPluginUtilities ):
 
     # Restrict to files with the required parameter
     if param:
-      res = self.getFilesParam( lfns, param )
-      if not res['OK']:
-        self.logError( "Error getting BK param %s:" % param, res['Message'] )
-        return 0
-      paramValues = res['Value']
+      paramValues = self.getFilesParam( lfns, param )
       lfns = [f for f, v in paramValues.iteritems() if v == paramValue]
 
     if lfns:
@@ -558,11 +627,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     # If files are RAW files, no need to get the number of ancestors!
     #
     if self.usingRAWFiles is None:
-      res = self.getBookkeepingMetadata( lfnToCheck, 'FileType' )
-      if not res['OK']:
-        self.logError( "Error getting metadata", res['Message'] )
-        return 0
-      self.usingRAWFiles = res['Value'][lfnToCheck] == 'RAW'
+      self.usingRAWFiles = self.getMetadataFromTSorBK( lfnToCheck, 'FileType' )[lfnToCheck] == 'RAW'
     if self.usingRAWFiles:
       return len( lfns ) if not getFiles else lfns
     #
@@ -732,7 +797,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     if runs:
       missingRuns = set( runs ) - runsFound
       if missingRuns:
-        self.logInfo( 'Add missing runs in transformation runs table: %s' % ','.join( [str( run ) for run in sorted( missingRuns )] ) )
+        self.logInfo( 'Add missing runs in transformation runs table: %s' % ','.join( str( run ) for run in sorted( missingRuns ) ) )
         for runID in missingRuns:
           res = self.transClient.insertTransformationRun( transID, runID, '' )
           if not res['OK']:
@@ -741,34 +806,72 @@ class PluginUtilities( DIRACPluginUtilities ):
     return result
 
   # @timeThis
-  def groupByRunAndParam( self, lfns, files, param = '' ):
-    """ Group files by run and another BK parameter (e.g. file type or event type)
+  def getFilesGroupedByRunAndParam( self, lfns = None, param = '' ):
+    """
+    Group files by run and another BK parameter (e.g. file type or event type)
     """
     runDict = {}
     # no need to query the BK as we have the answer from files
-    lfns = [ fileDict for fileDict in files if fileDict['LFN'] in lfns]
-    self.logVerbose( "Starting groupByRunAndParam for %d files, %s" % ( len( lfns ), 'by %s' % param if param else 'no param' ) )
-    res = groupByRun( lfns )
-    runGroups = res['Value']
-    for runNumber in runGroups:
-      runLFNs = runGroups[runNumber]
+    if lfns is None:
+      files = self.transFiles
+    else:
+      files = [ fileDict for fileDict in self.transFiles if fileDict['LFN'] in lfns]
+    self.logVerbose( "Starting getFilesGroupedByRunAndParam for %d files, %s" % ( len( files ), 'by %s' % param if param else 'no param' ) )
+    runGroups = groupByRun( files )
+    for runNumber, runLFNs in runGroups.iteritems():
       if not param:
         runDict[runNumber] = {None:runLFNs}
       else:
         runDict[runNumber] = {}
-        res = self.getFilesParam( runLFNs, param )
-        if not res['OK']:
-          self.logError( 'Error getting %s for %d files of run %d' % ( param, len( runLFNs ), runNumber ), res['Message'] )
-        else:
-          for lfn in res['Value']:
-            runDict[runNumber].setdefault( res['Value'][lfn], [] ).append( lfn )
-    if param:
-      self.logVerbose( "Grouped %d files by run and %s" % ( len( lfns ), param ) )
-    return S_OK( runDict )
+        resDict = self.getFilesParam( runLFNs, param )
+        for lfn, paramValue in resDict.iteritems():
+          runDict[runNumber].setdefault( paramValue, [] ).append( lfn )
 
+    # If necessary fix files with run number 0
+    zeroRunDict = runDict.pop( 0, None )
+    if zeroRunDict:
+      nZero = 0
+      for paramValue, zeroRun in zeroRunDict.iteritems():
+        newRuns = self.setRunForFiles( zeroRun )
+        for newRun, runLFNs in newRuns.iteritems():
+          runDict.setdefault( newRun, {} ).setdefault( paramValue, [] ).extend( runLFNs )
+          nZero += len( runLFNs )
+      self.logInfo( "Set run number for %d files with run #0, which means it was not set yet" % nZero )
+
+    if param:
+      self.logVerbose( "Grouped %d files by run and %s" % ( len( files ), param ) )
+    return runDict
+
+  def getFilesGroupedByRun( self, lfns = None ):
+    """
+    Get files per run in a dictionary and set the run number if not done
+    """
+    # Split the files in run groups
+    if lfns is None:
+      files = self.transFiles
+    else:
+      files = [ fileDict for fileDict in self.transFiles if fileDict['LFN'] in lfns]
+    runGroups = groupByRun( files )
+    if not runGroups:
+      # No files, no tasks!
+      self.logVerbose( "No runs found!" )
+      return []
+
+    # If some files don't have a run number, get it and set it
+    zeroRun = runGroups.pop( 0, None )
+    if zeroRun:
+      nZero = 0
+      newRuns = self.setRunForFiles( zeroRun )
+      for newRun, runLFNs in newRuns.iteritems():
+        runGroups.setdefault( newRun, [] ).extend( runLFNs )
+        nZero += len( runLFNs )
+      self.logInfo( "Set run number for %d files with run #0, which means it was not set yet" % nZero )
+    self.logVerbose( 'Obtained %d runs' % len( runGroups ) )
+    return runGroups
 
   def createTasks( self, storageElementGroups, chunkSize = None ):
-    """ Create reasonable size tasks
+    """
+    Create reasonable size tasks
     """
     tasks = []
     if not chunkSize:
@@ -781,7 +884,8 @@ class PluginUtilities( DIRACPluginUtilities ):
     return tasks
 
   def readCacheFile( self, workDirectory ):
-    """ Utility function
+    """
+    Utility function
     """
     import pickle
     # Now try and get the cached information
@@ -804,7 +908,7 @@ class PluginUtilities( DIRACPluginUtilities ):
         self.cachedLFNAncestors = pickle.load( f )
         # Do not cache between cycles, only cache temporarily, but keep same structure in file, i.e. fake load
         _cachedNbRAWFiles = pickle.load( f )
-        self.cachedLFNSize = pickle.load( f )
+        _cachedLFNSize = pickle.load( f )
         self.cachedRunLfns = pickle.load( f )
         self.cachedProductions = pickle.load( f )
         self.cachedLastRun = pickle.load( f )
@@ -821,9 +925,15 @@ class PluginUtilities( DIRACPluginUtilities ):
         self.logVerbose( "Cache file %s could not be loaded" % cacheFile )
 
   def getCachedRunLFNs( self, runID, paramValue ):
+    """
+    Keep track of all files for a given parameter value
+    """
     return set( self.cachedRunLfns.get( runID, {} ).get( paramValue, [] ) )
 
   def setCachedRunLfns( self, runID, paramValue, lfnList ):
+    """
+    Cache the list of LFNs for a given parameter value
+    """
     self.cachedRunLfns.setdefault( runID, {} )[paramValue] = lfnList
 
   def getCachedProductions( self ):
@@ -845,7 +955,8 @@ class PluginUtilities( DIRACPluginUtilities ):
 
   # @timeThis
   def getNbRAWInRun( self, runID, evtType ):
-    """ Get the number of RAW files in a run
+    """
+    Get the number of RAW files in a run
     """
     # Every now and then refresh the cache
     rawFiles = self.cachedNbRAWFiles.get( runID, {} ).get( evtType )
@@ -864,7 +975,8 @@ class PluginUtilities( DIRACPluginUtilities ):
 
 
   def writeCacheFile( self ):
-    """ Utility function
+    """
+    Utility function
     """
     import pickle
     if self.cacheFile:
@@ -884,6 +996,9 @@ class PluginUtilities( DIRACPluginUtilities ):
         self.logError( "Could not write cache file %s" % self.cacheFile )
 
   def setRunForFiles( self, lfns ):
+    """
+    For files that are missing the run number, set it from BK
+    """
     res = self.bkClient.getFileMetadata( lfns )
     runFiles = {}
     if res['OK']:
@@ -891,20 +1006,22 @@ class PluginUtilities( DIRACPluginUtilities ):
         runFiles.setdefault( metadata['RunNumber'], [] ).append( lfn )
       for run in sorted( runFiles ):
         if not run:
-          self.logInfo( "%d files found for run '%s': %s" % ( len( runFiles[run] ), str( run ), str( runFiles[run] ) ) )
+          self.logInfo( "%d files found with void run '%s': \n%s" % ( len( runFiles[run] ), str( run ), '\n'.join( runFiles[run] ) ) )
           runFiles.pop( run )
           continue
         res = self.transClient.addTransformationRunFiles( self.transID, run, runFiles[run] )
         # print run, runFiles[run], res
         if not res['OK']:
-          self.logError( "Error setting %d files to run %d" % ( len( runFiles[run] ), run ), res['Message'] )
+          self.logError( "Error setting files to run", " - %d files to run %d: %s" % ( len( runFiles[run] ), run, res['Message'] ) )
           runFiles.pop( run )
     else:
       self.logError( "Error getting metadata for %d files" % len( lfns ), res['Message'] )
     return runFiles
 
   def getTransQuery( self, transReplicas ):
-    # Get BK query for this transformation as the BK path is relative to that one
+    """
+    Get BK query for the current transformation
+    """
     res = self.transClient.getBookkeepingQuery( self.transID )
     if not res['OK']:
       self.logError( "Failed to get BK query for transformation", res['Message'] )
@@ -944,6 +1061,9 @@ class PluginUtilities( DIRACPluginUtilities ):
         self.logInfo( 'Found %d files %s, status set to %s' % ( len( noReplicaFiles ), info, status ) )
 
   def __getRunDestinations( self, runIDList ):
+    """
+    Get the site destination for a set of runs and cache this information in memory
+    """
     runSet = set( runIDList ) - set( self.runDestinations )
     if runSet:
       # Try and get a run destination from TS
@@ -957,7 +1077,9 @@ class PluginUtilities( DIRACPluginUtilities ):
             self.runDestinations[runID] = dest[runID]
 
   def getSEForDestination( self, runID, targets ):
-    """ get the information on destination SE from within a list """
+    """
+    for a given run, get the information on destination SE from within a list of SEs
+    """
     self.__getRunDestinations( [runID] )
     site = self.runDestinations.get( runID )
     if site:
@@ -966,29 +1088,32 @@ class PluginUtilities( DIRACPluginUtilities ):
       return res.get( 'Value' )
     return None
 
-  def filterNotProcessedFiles( self, lfns, prodList ):
-    """ Select only the files that are Processed in a list of productions """
-    res = self.transClient.getTransformationFiles( {'LFN':list( lfns ), 'TransformationID':prodList} )
+  def selectProcessedFiles( self, lfns, prodList ):
+    """
+    Select only the files that are Processed in a list of productions
+    """
+    res = self.transClient.getTransformationFiles( {'LFN':list( lfns ), 'TransformationID':prodList, 'Status':'Processed'} )
     if not res['OK']:
       self.logError( "Error getting transformation files", res['Message'] )
       return []
-    notProcessed = set( fDict['LFN'] for fDict in res['Value'] if fDict['Status'] != 'Processed' )
-    lfnLeft = lfns - notProcessed
-    if len( lfnLeft ) != len( lfns ):
-      self.logVerbose( 'Reduce files from %d to %d (removing pending files)' % ( len( lfns ), len( lfnLeft ) ) )
-    return lfnLeft
+    processedLfns = set( fDict['LFN'] for fDict in res['Value'] )
+    if len( processedLfns ) != len( lfns ):
+      self.logVerbose( 'Reduce files from %d to %d (removing pending files)' % ( len( lfns ), len( processedLfns ) ) )
+    return processedLfns
 
-  def checkForDescendants( self, lfns, prodList, level = 0 ):
-    """ check the files if they have an existing descendant in the list of productions """
+  def checkForDescendants( self, lfns, prodList, depth = 0 ):
+    """
+    check the files if they have an existing descendant in the list of productions
+    """
     excludeTypes = ( 'LOG', 'BRUNELHIST', 'DAVINCIHIST', 'GAUSSHIST', 'HIST', 'INDEX.ROOT' )
     finalResult = set()
     if isinstance( lfns, basestring ):
       lfns = set( [lfns] )
     elif isinstance( lfns, list ):
       lfns = set( lfns )
-    if level:
-      lfns = self.filterNotProcessedFiles( lfns, prodList )
-    # Get daughters
+    if depth:
+      lfns = self.selectProcessedFiles( lfns, prodList )
+    # Get daughters of processed files
     res = self.bkClient.getFileDescendants( list( lfns ), depth = 1, checkreplica = False )
     if not res['OK']:
       return res
@@ -1020,7 +1145,7 @@ class PluginUtilities( DIRACPluginUtilities ):
         # Sort remaining descendants in productions
         prodDesc.setdefault( prod, set() ).add( desc )
     for prod in foundProds:
-      self.logVerbose( "Found %d files with descendants (out of %d) in production %d at level %d" % ( len( foundProds[prod] ), len( lfns ), prod, level + 1 ) )
+      self.logVerbose( "Found %d files with descendants (out of %d) in production %d at depth %d" % ( len( foundProds[prod] ), len( lfns ), prod, depth + 1 ) )
 
     # Check descendants in reverse order of productions
     for prod in sorted( prodDesc, reverse = True ):
@@ -1030,14 +1155,14 @@ class PluginUtilities( DIRACPluginUtilities ):
         if not descToCheck[desc] & finalResult:
           toCheckInProd.add( desc )
       if toCheckInProd:
-        res = self.checkForDescendants( toCheckInProd, prodList, level = level + 1 )
+        res = self.checkForDescendants( toCheckInProd, prodList, depth = depth + 1 )
         if not res['OK']:
           return res
         foundInProd = set()
         for desc in res['Value']:
           foundInProd.update( descToCheck[desc] )
         if foundInProd:
-          self.logVerbose( "Found descendants of %d files at depth %d" % ( len( foundInProd ), level + 2 ) )
+          self.logVerbose( "Found descendants of %d files at depth %d" % ( len( foundInProd ), depth + 2 ) )
           finalResult.update( foundInProd )
 
     return S_OK( finalResult )
@@ -1154,6 +1279,11 @@ class PluginUtilities( DIRACPluginUtilities ):
     self.printShares( "Maximum number of files per SE:", maxFilesAtSE, counters = [], log = self.logInfo )
     return S_OK( maxFilesAtSE )
 
+  def _getFileSize( self, lfns ):
+    """
+    Overwrite the DIRAC method and get the file size from the TS tables
+    """
+    return S_OK( self.getMetadataFromTSorBK( lfns, 'FileSize' ) )
 
 #=================================================================
 # Set of utility functions used by LHCbDirac transformation system
@@ -1215,9 +1345,13 @@ def groupByRun( files ):
     lfn = fileDict['LFN']
     if lfn:
       runDict.setdefault( runID if runID else 0, [] ).append( lfn )
-  return S_OK( runDict )
+  return runDict
 
 def addFilesToTransformation( transID, lfns, addRunInfo = True ):
+  """
+  Add files to a transformation, including the run number if required
+  As this is only used in the plugin to add ancestors, no need to add other metadata
+  """
   transClient = TransformationClient()
   bk = BookkeepingClient()
   gLogger.info( "Adding %d files to transformation %s" % ( len( lfns ), transID ) )
@@ -1260,9 +1394,3 @@ def addFilesToTransformation( transID, lfns, addRunInfo = True ):
       return res
   gLogger.info( "%d files successfully added to transformation" % len( addedLfns ) )
   return S_OK( addedLfns )
-
-def optimizeTasks( tasks ):
-  taskDict = {}
-  for ses, lfns in tasks:
-    taskDict.setdefault( ses, [] ).extend( lfns )
-  return taskDict.items()

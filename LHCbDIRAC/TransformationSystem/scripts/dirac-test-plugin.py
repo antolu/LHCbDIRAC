@@ -19,7 +19,7 @@ class fakeClient:
     self.dm = DataManager()
     self.asIfProd = asIfProd
 
-    ( self.files, self.replicas ) = self.prepareForPlugin( lfns )
+    ( self.transFiles, self.transReplicas ) = self.prepareForPlugin( lfns )
 
   def addFilesToTransformation( self, transID, lfns ):
     return S_OK( {'Failed':{}, 'Successful': dict( [( lfn, 'Added' ) for lfn in lfns] )} )
@@ -33,10 +33,10 @@ class fakeClient:
     return DIRAC.S_OK( {'Type':res['Value']} )
 
   def getReplicas( self ):
-    return self.replicas
+    return self.transReplicas
 
   def getFiles( self ):
-    return self.files
+    return self.transFiles
 
   def getCounters( self, table, attrList, condDict ):
     if condDict['TransformationID'] == self.transID and self.asIfProd:
@@ -63,8 +63,8 @@ class fakeClient:
     if condDict['TransformationID'] == self.transID:
       transRuns = []
       runs = condDict.get( 'RunNumber', [] )
-      if not runs and self.files:
-        res = self.bk.getFileMetadata( [fileDict['LFN'] for fileDict in self.files] )
+      if not runs and self.transFiles:
+        res = self.bk.getFileMetadata( [fileDict['LFN'] for fileDict in self.transFiles] )
         if not res['OK']:
           return res
         runs = list( set( meta['RunNumber'] for meta in res['Value']['Successful'].itervalues() ) )
@@ -86,12 +86,23 @@ class fakeClient:
         runs = condDict['RunNumber']
         if not isinstance( runs, list ):
           runs = [runs]
-      for fileDict in self.files:
+      for fileDict in self.transFiles:
         if not runs or fileDict['RunNumber'] in runs:
-          transFiles.append( {'LFN':fileDict['LFN'], 'Status':'Unused'} )
+          transFiles.append( {'LFN':fileDict['LFN'], 'Status':'Unused', 'RunNumber':fileDict['RunNumber']} )
       return DIRAC.S_OK( transFiles )
     else:
       return self.transClient.getTransformationFiles( condDict = condDict )
+
+  def setParameterToTransformationFiles( self, transID, lfnDict ):
+    """
+    Update the transFiles with some parameters
+    """
+    if transID == self.transID:
+      for fileDict in self.transFiles:
+        fileDict.update( lfnDict.get( fileDict['LFN'], {} ) )
+      return S_OK()
+    else:
+      return self.transClient.setParameterToTransformationFiles( transID, lfnDict )
 
   def getTransformationFilesCount( self, transID, field, selection = None ):
     if selection is None:
@@ -102,12 +113,12 @@ class fakeClient:
         runs = [runs]
       if field == 'Status':
         counters = {'Unused':0}
-        for fileDict in self.files:
+        for fileDict in self.transFiles:
           if not runs or fileDict['RunNumber'] in runs:
             counters['Unused'] += 1
       elif field == 'RunNumber':
         counters = {}
-        for fileDict in self.files:
+        for fileDict in self.transFiles:
           runID = fileDict['RunNumber']
           if not runs or runID in runs:
             counters.setdefault( runID, 0 )
@@ -123,7 +134,7 @@ class fakeClient:
     counters = {}
     for transID in transIDs:
       if transID == self.transID:
-        for fileDict in self.files:
+        for fileDict in self.transFiles:
           runID = fileDict['RunNumber']
           counters[transID][runID]['Unused'] = counters.setdefault( transID, {} ).setdefault( runID, {} ).setdefault( 'Unused', 0 ) + 1
         for runID in counters[transID]:
