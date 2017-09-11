@@ -81,6 +81,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     self.shareMetrics = None
     self.lastCall = None
     self.excludedStatuses = self.getPluginParam( 'IgnoreStatusForFlush', [ 'Removed', 'MissingInFC', 'Problematic' ] )
+    self.onlineCondDB = None
 
   def setDebug( self, val ):
     self.debug = val
@@ -1154,6 +1155,19 @@ class PluginUtilities( DIRACPluginUtilities ):
     self.printShares( "Maximum number of files per SE:", maxFilesAtSE, counters = [], log = self.logInfo )
     return S_OK( maxFilesAtSE )
 
+  def checkCondDBRunTick( self, runID ):
+    """
+    Check for the presence of the run tick in the ConDB
+    """
+    if not self.onlineCondDB:
+      self.onlineCondDB = self.getPluginParam( "OnlineCondDB", "/cvmfs/lhcb.cern.ch/lib/lhcb/git-conddb/ONLINE.git" )
+
+    if not os.path.exists( self.onlineCondDB ):
+      self.logWarn( "OnlineCondDB not found", self.onlineCondDB )
+      return None
+    cmd = "git --git-dir %s  grep -q '^%d$' HEAD -- Conditions/Online/valid_runs.txt" % ( self.onlineCondDB, int( runID ) )
+    retCode = os.system( cmd )
+    return not bool( retCode )
 
 #=================================================================
 # Set of utility functions used by LHCbDirac transformation system

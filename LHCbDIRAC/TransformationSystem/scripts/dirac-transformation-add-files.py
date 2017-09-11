@@ -6,7 +6,38 @@
 
 __RCSID__ = "$Id$"
 
+def _getTransformationID( transName ):
+  """
+  Check that a transformation exists and return its ID or None if it doesn't exist
+
+  :param transName: name or ID of a transformation
+  :type transName: int,long or string
+
+  :return : transformation ID or None if it doesn't exist
+  """
+  testName = transName
+  # We can try out a long range of indices, as when the transformation is not found, it returns None
+  for ind in xrange( 1, 100 ):
+    result = trClient.getTransformation( testName )
+    if not result['OK']:
+      # Transformation doesn't exist
+      return None
+    status = result['Value']['Status']
+    # If the status is still compatible, accept
+    if status in ( 'Active', 'Idle', 'New', 'Stopped' ):
+      return result['Value']['TransformationID']
+    # If transformationID was given, return error
+    if isinstance( transName, ( long, int ) ) or transName.isdigit():
+      gLogger.error( "Transformation in incorrect status", "%s, status %s" % ( str( testName ), status ) )
+      return None
+    # Transformation name given, try out adding an index
+    testName = "%s-%d" % ( transName, ind )
+  return None
+
 def __getTransformations( args ):
+  """
+  Parse the arguments of hte script and generates a lit of transformations
+  """
   transList = []
   if not len( args ):
     print "Specify transformation number..."
@@ -18,9 +49,15 @@ def __getTransformations( args ):
         r = transID.split( ':' )
         if len( r ) > 1:
           for i in xrange( int( r[0] ), int( r[1] ) + 1 ):
-            transList.append( i )
+            tid = _getTransformationID( i )
+            if tid is not None:
+              transList.append( tid )
         else:
-          transList.append( int( r[0] ) )
+          tid = _getTransformationID( r[0] )
+          if tid is not None:
+            transList.append( tid )
+          else:
+            gLogger.error( "Transformation not found", r[0] )
     except Exception as e:
       gLogger.exception( "Invalid transformation", lException = e )
       transList = []
@@ -69,6 +106,10 @@ if __name__ == "__main__":
       gLogger.error( "You need to use a proxy from a group with FileCatalogManagement" )
       DIRAC.exit( 5 )
 
+  from LHCbDIRAC.DataManagementSystem.Utilities.FCUtilities import chown
+  from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities   import addFilesToTransformation
+  from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+  trClient = TransformationClient()
   transList = __getTransformations( Script.getPositionalArgs() )
   if not transList:
     DIRAC.exit( 1 )
@@ -78,8 +119,6 @@ if __name__ == "__main__":
     gLogger.always( 'No files to add' )
     DIRAC.exit( 1 )
 
-  from LHCbDIRAC.DataManagementSystem.Utilities.FCUtilities import chown
-  from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities   import addFilesToTransformation
   if userGroup:
     directories = set( [os.path.dirname( lfn ) for lfn in requestedLFNs] )
     res = chown( directories, user = userGroup[0], group = userGroup[1] )

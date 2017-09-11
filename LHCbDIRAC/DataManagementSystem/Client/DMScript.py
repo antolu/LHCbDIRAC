@@ -335,7 +335,7 @@ class DMScript( object ):
   def setDirectory( self, arg ):
     if os.path.exists( arg ) and not os.path.isdir( arg ):
       f = open( arg, 'r' )
-      directories = [line.split()[0] for line in f.read().splitlines()]
+      directories = [line.split()[0] for line in f.read().splitlines() if line.strip()]
       if arg:
         f.close()
     else:
@@ -442,7 +442,7 @@ class DMScript( object ):
       if not value:
         if not sys.stdin.isatty():
           self.setLFNsFromTerm()
-          value = self.options.get( switch, default )
+          value = self.options.get( 'LFNs', default )
       if value:
         value = self.getLFNsFromList( value, directories = switch == 'Directory' )
       if value and self.setLastFile and switch == 'LFNs':
