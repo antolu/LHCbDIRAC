@@ -4,6 +4,7 @@ Set of functions used by the DMS checking scripts
 
 __RCSID__ = "$Id$"
 
+import os
 from DIRAC import gLogger
 from DIRAC.Core.Utilities.List import breakListIntoChunks
 
@@ -200,6 +201,15 @@ def doCheckFC2BK( cc, fixFC = False, fixBK = False, listAffectedRuns = False ):
   cc.checkFC2BK()
 
   maxFiles = 20
+  suffix = ''
+  nb = 0
+  while True:
+    fileName = 'CheckFC2BK%s.txt' % suffix
+    if not os.path.exists( fileName ):
+      break
+    nb += 1
+    suffix = '-%d' % nb
+  fp = None
   if cc.existLFNsBKRepNo:
     gLogger.notice( '>>>>' )
 
@@ -214,6 +224,9 @@ def doCheckFC2BK( cc, fixFC = False, fixBK = False, listAffectedRuns = False ):
                                   set( ccAux.existLFNsNotExisting ) - set( ccAux.existLFNsBadFiles ) )
     if cc.existLFNsBKRepNo:
       gLogger.notice( "====== Completed, %d files are in the FC and SE but have replica = NO in BK ======" % len( cc.existLFNsBKRepNo ) )
+      if fp is None:
+        fp = open( fileName, 'w' )
+      fp.write( '\nInFCButBKNo'.join( [''] + sorted( cc.existLFNsBKRepNo ) ) )
       res = bk.getFileMetadata( cc.existLFNsBKRepNo )
       if not res['OK']:
         gLogger.fatal( "Unable to get file metadata", res['Message'] )
@@ -234,6 +247,7 @@ def doCheckFC2BK( cc, fixFC = False, fixBK = False, listAffectedRuns = False ):
                                   for lfn in sorted( cc.existLFNsBKRepNo )[0:maxFiles] ) )
       if listAffectedRuns:
         gLogger.notice( 'Affected runs: %s' % ','.join( affectedRuns ) )
+      gLogger.notice( "Full list of files:    grep InFCButBKNo %s" % fileName )
       if fixBK:
         gLogger.notice( "Going to fix them, setting the replica flag" )
         res = bk.addFiles( list( success ) )
@@ -257,10 +271,14 @@ def doCheckFC2BK( cc, fixFC = False, fixBK = False, listAffectedRuns = False ):
     gLogger.notice( '>>>>' )
 
     gLogger.error( "%d files are in the FC but are NOT in BK:" % len( cc.existLFNsNotInBK ) )
+    if fp is None:
+      fp = open( fileName, 'w' )
+    fp.write( '\nInFCNotInBK'.join( [''] + sorted( cc.existLFNsNotInBK ) ) )
     if not gLogger.info( '\n'.join( sorted( cc.existLFNsNotInBK ) ) ):
       if len( cc.existLFNsNotInBK ) > maxFiles:
         gLogger.notice( 'First %d files:' % maxFiles )
       gLogger.error( '\n'.join( sorted( cc.existLFNsNotInBK[0:maxFiles] ) ) )
+    gLogger.notice( "Full list of files:    grep InFCNotInBK %s" % fileName )
     if fixFC:
       gLogger.notice( "Going to fix them, by removing from the FC and storage" )
       __removeFile( cc.existLFNsNotInBK )
@@ -270,6 +288,8 @@ def doCheckFC2BK( cc, fixFC = False, fixBK = False, listAffectedRuns = False ):
 
   else:
     gLogger.notice( "No files in FC not in BK -> OK!" )
+  if fp is not None:
+    fp.close()
 
 def doCheckBK2FC( cc, checkAll = False, fixIt = False ):
   """

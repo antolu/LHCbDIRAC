@@ -153,7 +153,7 @@ if __name__ == '__main__':
     fp = None
     if cc.inFCNotInBK:
       lfns = cc.inFCNotInBK
-      gLogger.always( "%d descendants were found in FC but have no replica flag in BK" % len( lfns ) )
+      gLogger.always( "%d descendants were found in FC but don't have replica flag in BK" % len( lfns ) )
       if not fp:
         fp = open( fileName, 'w' )
       fp.write( '\nInFCNotInBK '.join( [''] + lfns ) )
