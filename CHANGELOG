@@ -1,3 +1,18 @@
+[v8r8p17]
+use DIRAC v6r17p31
+
+* only check run tick if the run was not assigned
+* Fix printout and make pylint happier
+* Improve information when debugging Failed jobs
+* add docstring and replace "id"
+* Don't look for directories if files or BKQuery are given
+* Improve search for transformation
+* allow to give a transformation name and not only ID
+* add option to get the list of directories fomr a BK query
+* fix to get list of directories from file
+* Fix for getting directories form a file
+* Tier1-BUFFER -> Tier1-Buffer
+
 [v8r8p16]
 use DIRAC v6r17p30
 
