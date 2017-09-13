@@ -51,6 +51,7 @@ CREATE TABLE ProductionRequests (
   StartingDate DATETIME DEFAULT NULL,
   FinalizationDate DATETIME DEFAULT NULL,
   RetentionRate varchar(32) DEFAULT '1',
+  FastSimulationType varchar(32) DEFAULT 'None',
   PRIMARY KEY (RequestID),
   KEY ParentID (ParentID),
   KEY MasterID (MasterID),
