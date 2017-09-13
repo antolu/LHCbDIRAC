@@ -47,7 +47,7 @@ class ProductionRequestDB( DB ):
                     'ProPath', 'ProID', 'ProDetail',
                     'EventType', 'NumberOfEvents', 'Description', 'Comments',
                     'Inform', 'RealNumberOfEvents', 'IsModel', 'Extra',
-                    'RetentionRate','StartingDate', 'FinalizationDate', 'FastSimulationType',
+                    'RetentionRate','FastSimulationType', 'StartingDate', 'FinalizationDate',
                     'HasSubrequest', 'bk', 'bkSrTotal', 'bkTotal',  # runtime
                     'rqTotal', 'crTime', 'upTime' ]  # runtime
 
@@ -143,7 +143,7 @@ class ProductionRequestDB( DB ):
         TODO: Complete check of content
     '''
 
-    rec = dict.fromkeys( self.requestFields[1:-10], None )
+    rec = dict.fromkeys( self.requestFields[1:-9], None )
     
     for x in requestDict:
       if x in rec and str( requestDict[x] ) != '':
@@ -178,7 +178,7 @@ class ProductionRequestDB( DB ):
     rec['IsModel'] = 0
 
 
-    recl = [ rec[x] for x in self.requestFields[1:-10] ]
+    recl = [ rec[x] for x in self.requestFields[1:-9] ]
     result = self._fixedEscapeValues( recl )
     if not result['OK']:
       return result
