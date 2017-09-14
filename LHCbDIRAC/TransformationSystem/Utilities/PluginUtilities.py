@@ -963,7 +963,11 @@ class PluginUtilities( DIRACPluginUtilities ):
     site = self.runDestinations.get( runID )
     if site:
       self.logVerbose( 'Destination found for run %d: %s' % ( runID, site ) )
+      # Avoid spurious warning if no match found
+      savedLevel = gLogger.getLevel()
+      gLogger.setLevel( 'ERROR' )
       res = self.dmsHelper.getSEInGroupAtSite( targets, site )
+      gLogger.setLevel( savedLevel )
       return res.get( 'Value' )
     return None
 
