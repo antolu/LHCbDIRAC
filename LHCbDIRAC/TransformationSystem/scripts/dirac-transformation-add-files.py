@@ -129,7 +129,7 @@ if __name__ == "__main__":
 
   rc = 0
   for transID in transList:
-    res = addFilesToTransformation( transID, requestedLFNs, runInfo )
+    res = addFilesToTransformation( transID, requestedLFNs, addRunInfo = runInfo )
     if res['OK']:
       gLogger.always( 'Successfully added %d files to transformation %d' % ( len( res['Value'] ), transID ) )
     else:

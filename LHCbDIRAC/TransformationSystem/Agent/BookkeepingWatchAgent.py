@@ -18,6 +18,7 @@ from DIRAC.Core.Utilities.ThreadSafe                                      import
 from DIRAC.Core.Utilities.List                                            import breakListIntoChunks
 from DIRAC.FrameworkSystem.Client.MonitoringClient                        import gMonitor
 from DIRAC.TransformationSystem.Agent.TransformationAgentsUtilities       import TransformationAgentsUtilities
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations                  import Operations
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient                 import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
 
@@ -49,12 +50,7 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
     self.pickleFile = 'BookkeepingWatchAgent.pkl'
     self.chunkSize = 1000
 
-    self.pluginsWithNoRunInfo = ( 'LHCbStandard', 'ReplicateDataset', 'ArchiveDataset',
-                                  'LHCbMCDSTBroadcastRandom', 'ReplicateToLocalSE',
-                                  'RemoveReplicas', 'RemoveReplicasWhenProcessed', 'ReduceReplicas',
-                                  'DestroyDataset', 'DestroyDatasetWhenProcessed',
-                                  'RemoveDataset',
-                                  'BySize', 'Standard' )
+    self.pluginsWithNoRunInfo = []
 
     self.timeLog = {}
     self.fullTimeLog = {}
@@ -75,7 +71,9 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
     self.pickleFile = os.path.join( self.am_getWorkDirectory(), self.pickleFile )
     self.chunkSize = self.am_getOption( 'maxFilesPerChunk', self.chunkSize )
 
-    self.pluginsWithNoRunInfo = self.am_getOption( 'PluginsWithNoRunInfo', self.pluginsWithNoRunInfo )
+    self.pluginsWithNoRunInfo = Operations().getValue( 'TransformationPlugins/PluginsWithNoRunInfo', [] )
+    if not self.pluginsWithNoRunInfo:
+      self.pluginsWithNoRunInfo = self.am_getOption( 'PluginsWithNoRunInfo', self.pluginsWithNoRunInfo )
 
     self._logInfo( 'Full Update Period: %d seconds' % self.fullUpdatePeriod )
     self._logInfo( 'BK update latency : %d seconds' % self.bkUpdateLatency )
