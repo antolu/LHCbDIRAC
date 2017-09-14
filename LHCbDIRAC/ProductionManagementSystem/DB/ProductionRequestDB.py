@@ -185,7 +185,7 @@ class ProductionRequestDB( DB ):
     recls = result['Value']
     
     for dateValues in self.dateColumns:
-      recls.append( "STR_TO_DATE('%s','%s')" % ( requestDict[dateValues], self.dateFormat ) )
+      recls.append( "STR_TO_DATE('%s','%s')" % ( requestDict.get( dateValues, time.strftime( self.dateFormat ) ), self.dateFormat ) )
     
     self.lock.acquire() # transaction begin ?? may be after connection ??
     result = self._getConnection()
@@ -717,7 +717,7 @@ class ProductionRequestDB( DB ):
       # the order is very important that's why we use recl_fields 
       if dateValue in self.dateColumns:
         recl_fields.append( dateValue )
-        updateValues.append( "STR_TO_DATE('%s','%s')" % ( requestDict[dateValue], self.dateFormat ) )
+        updateValues.append( "STR_TO_DATE('%s','%s')" % ( requestDict.get( dateValue, time.strftime( self.dateFormat ) ), self.dateFormat ) )
     updates = ','.join( [x + '=' + y for x, y in zip( recl_fields, updateValues )] )
 
     req = "UPDATE ProductionRequests "
