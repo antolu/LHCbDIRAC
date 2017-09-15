@@ -1221,10 +1221,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     # Remove 1 as we keep the run destination as well...
     if minKeep is None:
       minKeep = abs( self.util.getPluginParam( 'NumberOfReplicas', 1 ) )
-    if minKeep > 0:
-      minKeep -= 1
-    else:
-      minKeep += 1
 
     # Group the  data by run
     res = groupByRun( self.transFiles )
@@ -1247,30 +1243,38 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     tasks = []
     for runID, runLfns in runFileDict.iteritems():
       replicas = dict( ( lfn, ses ) for lfn, ses in self.transReplicas.iteritems() if lfn in runLfns )
-      existingSEs = set( se for lfn, ses in replicas.iteritems() for se in ses )
+      existingSEs = set( se for ses in replicas.itervalues() for se in ses )
       destinationSE = self.util.getSEForDestination( runID, existingSEs )
       allKeepSEs = keepSEs
       if destinationSE is None:
         # If there is no replica at destination, remove randomly
         self.util.logInfo( "No replicas found at destination for %d files of run %d" % ( len( runLfns ), runID ) )
+        replicasWithKeep = {}
+        replicasNoKeep = replicas
       else:
         self.util.logVerbose( "Preparing tasks for run %d, destination %s" % ( runID, destinationSE ) )
         allKeepSEs.append( destinationSE )
-      res = self._removeReplicas( replicas = replicas, fromSEs = fromSEs, keepSEs = allKeepSEs, minKeep = minKeep )
-      if not res['OK']:
-        self.util.logError( "Error creating tasks", res['Message'] )
-      else:
-        tasks += res['Value']
-        targetSEs = set( se for targets, _lfns in res['Value'] for se in targets.split( ',' ) )
-        runTargets = runSites.get( runID, set() )
-        if targetSEs - runTargets:
-          # Set destination sites for that run
-          runTargets = ','.join( sorted( targetSEs | runTargets ) )
-          self.util.logVerbose( "Setting destination for run %d to %s" % ( runID, runTargets ) )
-          res = self.transClient.setTransformationRunsSite( self.transID, runID, runTargets )
+        replicasWithKeep = dict( ( lfn, ses ) for lfn, ses in replicas.iteritems() if destinationSE in ses )
+        replicasNoKeep = dict( ( lfn, ses ) for lfn, ses in replicas.iteritems() if destinationSE not in ses )
+      # We keep one more replica @ destinationSE, therefore decrease the number to be kept
+      for reps, keep in ( ( replicasNoKeep, minKeep ),
+                          ( replicasWithKeep, ( abs( minKeep ) - 1 ) * minKeep / abs( minKeep ) ) ):
+        if reps:
+          res = self._removeReplicas( replicas = reps, fromSEs = fromSEs, keepSEs = allKeepSEs, minKeep = keep )
           if not res['OK']:
-            self.util.logError( "Failed to set target SEs to run %d as %s" %
-                                ( runID, runTargets ), res['Message'] )
+            self.util.logError( "Error creating tasks", res['Message'] )
+          elif res['Value']:
+            tasks += res['Value']
+            targetSEs = set( se for targets, _lfns in res['Value'] for se in targets.split( ',' ) )
+            runTargets = runSites.get( runID, set() )
+            if targetSEs - runTargets:
+              # Set destination sites for that run
+              runTargets = ','.join( sorted( targetSEs | runTargets ) )
+              self.util.logVerbose( "Setting destination for run %d to %s" % ( runID, runTargets ) )
+              res = self.transClient.setTransformationRunsSite( self.transID, runID, runTargets )
+              if not res['OK']:
+                self.util.logError( "Failed to set target SEs to run %d as %s" %
+                                    ( runID, runTargets ), res['Message'] )
     return S_OK( tasks )
 
   def _RemoveDataset( self ):
@@ -1372,7 +1376,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       if targetSEs:
         stringTargetSEs = ','.join( targetSEs )
         storageElementGroups.setdefault( stringTargetSEs, [] ).extend( lfns )
-        self.util.logVerbose( "%d files to be removed at %s" % ( len( lfns ), stringTargetSEs ) )
       else:
         self.util.logInfo( "Found %s files that don't need any replica deletion, set Processed" % len( lfns ) )
         self.transClient.setFileStatusForTransformation( self.transID, 'Processed', lfns )
