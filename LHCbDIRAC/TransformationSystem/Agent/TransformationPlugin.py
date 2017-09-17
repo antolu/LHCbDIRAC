@@ -1245,7 +1245,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       replicas = dict( ( lfn, ses ) for lfn, ses in self.transReplicas.iteritems() if lfn in runLfns )
       existingSEs = set( se for ses in replicas.itervalues() for se in ses )
       destinationSE = self.util.getSEForDestination( runID, existingSEs )
-      allKeepSEs = keepSEs
       if destinationSE is None:
         # If there is no replica at destination, remove randomly
         self.util.logInfo( "No replicas found at destination for %d files of run %d" % ( len( runLfns ), runID ) )
@@ -1253,14 +1252,17 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         replicasNoKeep = replicas
       else:
         self.util.logVerbose( "Preparing tasks for run %d, destination %s" % ( runID, destinationSE ) )
-        allKeepSEs.append( destinationSE )
         replicasWithKeep = dict( ( lfn, ses ) for lfn, ses in replicas.iteritems() if destinationSE in ses )
         replicasNoKeep = dict( ( lfn, ses ) for lfn, ses in replicas.iteritems() if destinationSE not in ses )
       # We keep one more replica @ destinationSE, therefore decrease the number to be kept
-      for reps, keep in ( ( replicasNoKeep, minKeep ),
-                          ( replicasWithKeep, ( abs( minKeep ) - 1 ) * minKeep / abs( minKeep ) ) ):
+      for reps, keep, kSEs in ( ( replicasNoKeep,
+                                  minKeep,
+                                  keepSEs ),
+                                ( replicasWithKeep,
+                                  ( abs( minKeep ) - 1 ) * minKeep / abs( minKeep ),
+                                  keepSEs + [destinationSE] ) ):
         if reps:
-          res = self._removeReplicas( replicas = reps, fromSEs = fromSEs, keepSEs = allKeepSEs, minKeep = keep )
+          res = self._removeReplicas( replicas = reps, fromSEs = fromSEs, keepSEs = kSEs, minKeep = keep )
           if not res['OK']:
             self.util.logError( "Error creating tasks", res['Message'] )
           elif res['Value']:
