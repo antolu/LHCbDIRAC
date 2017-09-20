@@ -40,10 +40,15 @@ class Configurations_Success( Configurations_TestCase ):
     for policyName, policy in policies.items():
       print policyName
       self.assertEqual( policyKeys, set( policy.keys() ) )
-      self.assertEqual( True, isinstance( policy[ 'description' ], str ) )
-      self.assertEqual( True, isinstance( policy[ 'module' ], str ) )
-      self.assertEqual( True, type( policy[ 'command' ] ) in [ tuple, NoneType ] )
-      self.assertEqual( True, type( policy[ 'args' ] ) in [ dict, NoneType ] )
+      self.assertTrue( isinstance( policy[ 'description' ], str ) )
+      self.assertTrue( isinstance( policy[ 'module' ], str ) )
+      self.assertTrue( isinstance( policy[ 'command' ], (tuple, None) ) )
+      self.assertTrue( isinstance( policy[ 'args' ], (dict, None) ) )
+
+if __name__ == '__main__':
+  suite = unittest.defaultTestLoader.loadTestsFromTestCase( Configurations_TestCase )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( Configurations_Success ) )
+  testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
