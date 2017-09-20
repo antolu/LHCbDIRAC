@@ -386,88 +386,6 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 
     return self.rmService.addOrModify( 'PilotAccountingCache', self._prepare(locals()) )
 
-  #..................
-  # ENVIRONMENT CACHE methods
-
-  def selectEnvironmentCache( self, hashKey = None, environment = None,
-                              siteName = None, arguments = None,
-                              dateEffective = None, lastCheckTime = None,
-                              meta = None ):
-    """
-    Gets from EnvironmentCache all rows that match the parameters given.
-
-    :Parameters:
-      **hashKey** - `[, string, list]`
-        hash of the environment
-      **environment** - `[, string, list]`
-        string with the environment dump
-      **siteName** - `[, string, list]`
-        name of the site
-      **arguments** - `[, string, list]`
-        SetupProject arguments
-      **dateEffective** - `[, datetime, list]`
-        creation time of the hash
-      **lastCheckTime** - `[, datetime, list]`
-        last time it was cheched
-
-    :return: S_OK() || S_ERROR()
-    """
-
-    return self.rmService.select( 'EnvironmentCache', self._prepare(locals()) )
-
-  def deleteEnvironmentCache( self, hashKey = None, environment = None,
-                              siteName = None, arguments = None,
-                              dateEffective = None, lastCheckTime = None,
-                              meta = None ):
-    """
-    Deletes from EnvironmentCache all rows that match the parameters given.
-
-    :Parameters:
-      **hashKey** - `[, string, list]`
-        hash of the environment
-      **environment** - `[, string, list]`
-        string with the environment dump
-      **siteName** - `[, string, list]`
-        name of the site
-      **arguments** - `[, string, list]`
-        SetupProject arguments
-      **dateEffective** - `[, datetime, list]`
-        creation time of the hash
-      **lastCheckTime** - `[, datetime, list]`
-        last time it was cheched
-
-    :return: S_OK() || S_ERROR()
-    """
-
-    return self.rmService.delete( 'EnvironmentCache', self._prepare(locals()) )
-
-  def addOrModifyEnvironmentCache( self, hashKey, environment, siteName,
-                                   arguments, dateEffective, lastCheckTime ):
-    """
-    Using `hashKey` to query the database, decides whether to insert or update
-    the table.
-
-    :Parameters:
-      **hashKey** - `string`
-        hash of the environment
-      **environment** - `string`
-        string with the environment dump
-      **siteName** - `string`
-        name of the site
-      **arguments** - `string`
-        SetupProject arguments
-      **dateEffective** - `datetime`
-        creation time of the hash
-      **lastCheckTime** - `datetime`
-        last time it was cheched
-
-    :return: S_OK() || S_ERROR()
-    """
-
-    return self.rmService.addOrModify( 'EnvironmentCache', self._prepare(locals()) )
-
-  #.............................................................................
-  #
 
   def getSEStorageSpace( self, seName ):
     """ getSEStorageSpace
@@ -475,22 +393,6 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
     Given a SE, returns a dictionary with the Total, Free and Guaranteed Space.
     This last one, is still unclear what represents ( so far, is equal to Total
     space, but that might change ).
-
-    This new method returns a similar dictionary to getSLSStorage. However, some
-    of the keys in the dictionary have different values. Check them carefully !.
-
-    >>> res = self.getSLSStorage( site = 'CERN', token = 'LHCb-Tape' )
-    >>> dict( zip( res['Columns'], res['Value'][0] ) )
-    >>> { 'FreeSpace'        : 60L,
-          'RefreshPeriod'    : 'PT27M',
-          'TotalSpace'       : 465L,
-          'TimeStamp'        : datetime.datetime(2013, 10, 24, 12, 53, 27),
-          'GuaranteedSpace'  : 465L,
-          'Site'             : 'CERN',
-          'Token'            : 'LHCb-Tape',
-          'ValidityDuration' : 'PT13H',
-          'Availability'     : 100
-        }
 
     This is how this new method should be used, and also what it returns ( returns
     a dictionary, so there is no need to generate it - dict( zip ( ... ) ) ).
