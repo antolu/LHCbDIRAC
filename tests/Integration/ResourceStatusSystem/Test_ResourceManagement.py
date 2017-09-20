@@ -97,27 +97,4 @@ def test_addAndRemove():
   assert not res['Value']
 
 
-  # TEST addOrModifyEnvironmentCache
-  # ...............................................................................
-
-  res = rsClient.addOrModifyEnvironmentCache('TestName1234', 'environment', 'siteName',
-                                           'arguments', Datetime, Datetime)
-  assert res['OK'] == True
-
-  res = rsClient.selectEnvironmentCache('TestName1234')
-  assert res['OK'] == True
-  #check if the name that we got is equal to the previously added 'TestName1234'
-  assert res['Value'][0][4] == 'TestName1234'
-
-
-  # TEST deleteEnvironmentCache
-  # ...............................................................................
-
-  res = rsClient.deleteEnvironmentCache('TestName1234')
-  assert res['OK'] == True
-
-  res = rsClient.selectEnvironmentCache('TestName1234')
-  assert res['OK'] == True
-  assert not res['Value']
-
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
