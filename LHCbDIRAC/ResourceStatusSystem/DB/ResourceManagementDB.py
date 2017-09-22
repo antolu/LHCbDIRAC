@@ -1,119 +1,284 @@
 ''' LHCbDIRAC.ResourceStatusSystem.DB.ResourceManagementDB
 
-   ResourceManagementDB.__bases__:
-     DIRAC.ResourceStatusSystem.DB.ResourceManagementDB.ResourceManagementDB
-
-'''
-
-from DIRAC import S_OK, S_ERROR
-from DIRAC.ResourceStatusSystem.DB.ResourceManagementDB import ResourceManagementDB as DIRACResourceManagementDB
-from sqlalchemy.dialects.mysql import DOUBLE, INTEGER, TIMESTAMP, TINYINT, BIGINT
-from sqlalchemy import Table, Column, MetaData, String, DateTime, exc, Text, text, BLOB
-
-__RCSID__ = "$Id$"
-
-class ResourceManagementDB( DIRACResourceManagementDB ):
-  '''
-   Module that extends basic methods to access the ResourceManagementDB.
+    ResourceManagementDB.__bases__:
+      DIRAC.ResourceStatusSystem.DB.ResourceManagementDB.ResourceManagementDB
 
     Extension of ResourceManagementDB, adding the following tables:
     - HammerCloudTest
     - MonitoringTest
-    - SLST1Service
-    - SLSLogSE
-    - SLSStorage
-  '''
+    - JobAccountingCache
+    - PilotAccountingCache
+    - SLST1Service (obsolete)
+    - SLSLogSE (obsolete)
+'''
 
-  def createTables( self ):
-
-    EnvironmentCache = Table( 'EnvironmentCache', self.metadata,
-                              Column( 'DateEffective', DateTime, nullable = False ),
-                              Column( 'LastCheckTime', DateTime, nullable = False ),
-                              Column( 'SiteName', String( 64 ), nullable = False ),
-                              Column( 'Environment', Text ),
-                              Column( 'HashKey', String( 64 ), nullable = False, primary_key = True ),
-                              Column( 'Arguments', String( 512 ), nullable = False ),
-                              mysql_engine = 'InnoDB' )
-
-    HammerCloudTest = Table( 'HammerCloudTest', self.metadata,
-                              Column( 'Counter', INTEGER, nullable = False, server_default = '0' ),
-                              Column( 'TestStatus', String( 16 ) ),
-                              Column( 'TestID', INTEGER ),
-                              Column( 'ResourceName', String( 64 ), nullable = False ),
-                              Column( 'AgentStatus', String( 255 ), nullable = False, server_default = "Unspecified" ),
-                              Column( 'EndTime', DateTime ),
-                              Column( 'SiteName', String( 64 ), nullable = False ),
-                              Column( 'FormerAgentStatus', String( 255 ), nullable = False, server_default = "Unspecified" ),
-                              Column( 'StartTime', DateTime ),
-                              Column( 'SubmissionTime', DateTime, nullable = False, primary_key = True ),
-                              Column( 'CounterTime', DateTime ),
-                              mysql_engine = 'InnoDB' )
-
-    MonitoringTest = Table( 'MonitoringTest', self.metadata,
-                              Column( 'ServiceFlavour', String( 64 ), nullable = False ),
-                              Column( 'ServiceURI', String( 128 ), nullable = False, primary_key = True ),
-                              Column( 'LastCheckTime', DateTime, nullable = False ),
-                              Column( 'MetricStatus', String( 512 ), nullable = False ),
-                              Column( 'SiteName', String( 64 ), nullable = False ),
-                              Column( 'Timestamp', DateTime, nullable = False ),
-                              Column( 'SummaryData', BLOB, nullable = False ),
-                              Column( 'MetricName', String( 128 ), nullable = False, primary_key = True ),
-                              mysql_engine = 'InnoDB' )
-
-    JobAccountingCache = Table( 'JobAccountingCache', self.metadata,
-                              Column( 'Failed', DOUBLE, nullable = False, server_default = '0' ),
-                              Column( 'Running', DOUBLE, nullable = False, server_default = '0' ),
-                              Column( 'Done', DOUBLE, nullable = False, server_default = '0' ),
-                              Column( 'Name', String( 64 ), nullable = False, primary_key = True ),
-                              Column( 'Stalled', DOUBLE, nullable = False, server_default = '0' ),
-                              Column( 'Checking', DOUBLE, nullable = False, server_default = '0' ),
-                              Column( 'Completed', DOUBLE, nullable = False, server_default = '0' ),
-                              Column( 'Killed', DOUBLE, nullable = False ),
-                              Column( 'LastCheckTime', DateTime, nullable = False ),
-                              Column( 'Matched', DOUBLE, nullable = False, server_default = '0' ),
-                              mysql_engine = 'InnoDB' )
+__RCSID__ = "$Id$"
 
 
-    PilotAccountingCache = Table( 'PilotAccountingCache', self.metadata,
-                              Column( 'Name', String( 64 ), nullable = False, primary_key = True ),
-                              Column( 'LastCheckTime', DateTime, nullable = False ),
-                              Column( 'Deleted', DOUBLE, nullable = False, server_default = '0' ),
-                              Column( 'Failed', DOUBLE, nullable = False, server_default = '0' ),
-                              Column( 'Done', DOUBLE, nullable = False, server_default = '0' ),
-                              Column( 'Aborted', DOUBLE, nullable = False, server_default = '0' ),
-                              mysql_engine = 'InnoDB' )
+import datetime
+
+from sqlalchemy.dialects.mysql import INTEGER, TIMESTAMP, TINYINT, BIGINT
+from sqlalchemy import Column, String, DateTime, Text, text, BLOB
+
+from DIRAC.ResourceStatusSystem.DB.ResourceManagementDB import rmsBase, TABLESLIST
 
 
-    # TABLES THAT WILL EVENTUALLY BE DELETED
+TABLESLIST = TABLESLIST + ['HammerCloudTest',
+                           'MonitoringTest',
+                           'JobAccountingCache',
+                           'PilotAccountingCache',
+                           'SLST1Service',
+                           'SLSLogSE']
 
-    SLST1Service = Table( 'SLST1Service', self.metadata,
-                              Column( 'HostUptime', INTEGER ),
-                              Column( 'Version', String( 32 ) ),
-                              Column( 'ServiceUptime', INTEGER ),
-                              Column( 'TimeStamp', TIMESTAMP, server_default=text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP')),
-                              Column( 'Message', Text ),
-                              Column( 'Availability', TINYINT, nullable = False ),
-                              Column( 'Site', String( 64 ), nullable = False, primary_key = True ),
-                              Column( 'System', String( 32 ), nullable = False, primary_key = True ),
-                              mysql_engine = 'InnoDB' )
 
-    SLSLogSE = Table( 'SLSLogSE', self.metadata,
-                              Column( 'DataPartitionTotal', BIGINT ),
-                              Column( 'Name', String( 32 ), server_default = '0' ),
-                              Column( 'TimeStamp', TIMESTAMP, server_default=text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP')),
-                              Column( 'DataPartitionUsed', TINYINT ),
-                              Column( 'ValidityDuration', String( 32 ), nullable = False ),
-                              Column( 'Availability', TINYINT, nullable = False ),
-                              mysql_engine = 'InnoDB' )
+class HammerCloudTest(rmsBase):
+  """ HammerCloudTest table
+  """
 
-    # create tables
-    try:
-      self.metadata.create_all( self.engine )
-    except exc.SQLAlchemyError as e:
-      self.log.exception( "createTables: unexpected exception", lException = e )
-      return S_ERROR( "createTables: unexpected exception %s" % e )
+  __tablename__ = 'HammerCloudTest'
+  __table_args__ = {'mysql_engine': 'InnoDB',
+                    'mysql_charset': 'utf8'}
 
-    return S_OK()
+  submissiontime = Column( 'SubmissionTime', DateTime, nullable = False, primary_key = True )
+  counter = Column( 'Counter', INTEGER, nullable = False, server_default = '0' )
+  teststatus = Column( 'TestStatus', String( 16 ) )
+  testid = Column( 'TestID', INTEGER )
+  resourcename = Column( 'ResourceName', String( 64 ), nullable = False )
+  agentstatus = Column( 'AgentStatus', String( 255 ), nullable = False, server_default = "Unspecified" )
+  endtime = Column( 'EndTime', DateTime )
+  sitename = Column( 'SiteName', String( 64 ), nullable = False )
+  formeragentstatus = Column( 'FormerAgentStatus', String( 255 ), nullable = False, server_default = "Unspecified" )
+  starttime = Column( 'StartTime', DateTime )
+  countertime = Column( 'CounterTime', DateTime )
 
-#...............................................................................
-#EOF
+
+  def fromDict( self, dictionary ):
+    """
+    Fill the fields of the HammerCloudTest object from a dictionary
+    """
+
+    self.submissiontime = dictionary.get( 'SubmissionTime', self.submissiontime )
+    self.counter = dictionary.get( 'Counter', self.counter )
+    self.teststatus = dictionary.get( 'TestStatus', self.teststatus )
+    self.testid = dictionary.get( 'TestID', self.testid )
+    self.resourcename = dictionary.get( 'ResourceName', self.resourcename )
+    self.agentstatus = dictionary.get( 'AgentStatus', self.agentstatus )
+    self.endtime = dictionary.get( 'EndTime', self.endtime )
+    self.sitename = dictionary.get( 'SiteName', self.sitename )
+    self.formeragentstatus = dictionary.get( 'FormeraAentStatus', self.formeragentstatus )
+    self.starttime = dictionary.get( 'StartTime', self.starttime )
+    self.countertime = dictionary.get( 'CounterTime', self.countertime )
+
+  def toList(self):
+    """ Simply returns a list of column values
+    """
+    return [self.submissiontime, self.counter, self.teststatus, self.testid, self.resourcename, self.agentstatus,
+            self.endtime, self.sitename, self.formeragentstatus, self.starttime, self.countertime]
+
+
+class MonitoringTest(rmsBase):
+  """ MonitoringTest table
+  """
+
+  __tablename__ = 'MonitoringTest'
+  __table_args__ = {'mysql_engine': 'InnoDB',
+                    'mysql_charset': 'utf8'}
+
+  serviceuri = Column( 'ServiceURI', String( 128 ), nullable = False, primary_key = True )
+  metricname = Column( 'MetricName', String( 128 ), nullable = False, primary_key = True )
+  serviceflavour = Column( 'ServiceFlavour', String( 64 ), nullable = False )
+  lastchecktime = Column( 'LastCheckTime', DateTime, nullable = False )
+  metricstatus = Column( 'MetricStatus', String( 512 ), nullable = False )
+  sitename = Column( 'SiteName', String( 64 ), nullable = False )
+  timestamp = Column( 'Timestamp', DateTime, nullable = False )
+  summarydata = Column( 'SummaryData', BLOB, nullable = False )
+
+
+  def fromDict( self, dictionary ):
+    """
+    Fill the fields of the MonitoringTest object from a dictionary
+    """
+
+    utcnow = self.lastchecktime if self.lastchecktime else datetime.datetime.utcnow().replace(microsecond = 0)
+
+    self.serviceuri = dictionary.get( 'ServiceURI', self.serviceuri )
+    self.metricname = dictionary.get( 'MetricName', self.metricname )
+    self.serviceflavour = dictionary.get( 'ServiceFlavour', self.serviceflavour )
+    self.lastchecktime = dictionary.get( 'LastCheckTime', self.lastchecktime )
+    self.metricstatus = dictionary.get( 'MetricStatus', self.metricstatus )
+    self.sitename = dictionary.get( 'SiteName', self.sitename )
+    self.timestamp = dictionary.get( 'TimeStamp', utcnow )
+    self.summarydata = dictionary.get( 'SummaryData', self.summarydata )
+
+  def toList(self):
+    """ Simply returns a list of column values
+    """
+    return [self.serviceuri, self.metricname, self.serviceflavour, self.lastchecktime, self.metricstatus,
+            self.metricstatus, self.sitename, self.timestamp, self.summarydata]
+
+
+
+class JobAccountingCache(rmsBase):
+  """ JobAccountingCache table
+  """
+
+  __tablename__ = 'JobAccountingCache'
+  __table_args__ = {'mysql_engine': 'InnoDB',
+                    'mysql_charset': 'utf8'}
+
+  name = Column( 'Name', String( 64 ), nullable = False, primary_key = True )
+  failed = Column( 'Failed', INTEGER, nullable = False, server_default = '0' )
+  running = Column( 'Running', INTEGER, nullable = False, server_default = '0' )
+  done = Column( 'Done', INTEGER, nullable = False, server_default = '0' )
+  stalled = Column( 'Stalled', INTEGER, nullable = False, server_default = '0' )
+  checking = Column( 'Checking', INTEGER, nullable = False, server_default = '0' )
+  completed = Column( 'Completed', INTEGER, nullable = False, server_default = '0' )
+  killed = Column( 'Killed', INTEGER, nullable = False, server_default = '0' )
+  matched = Column( 'Matched', INTEGER, nullable = False, server_default = '0' )
+  lastchecktime = Column( 'LastCheckTime', DateTime, nullable = False )
+
+  def fromDict( self, dictionary ):
+    """
+    Fill the fields of the JobAccountingCache object from a dictionary
+    """
+
+    utcnow = self.lastchecktime if self.lastchecktime else datetime.datetime.utcnow().replace(microsecond = 0)
+
+    self.name = dictionary.get( 'Name', self.name )
+    self.failed = dictionary.get( 'Failed', self.failed )
+    self.running = dictionary.get( 'Running', self.running )
+    self.done = dictionary.get( 'Done', self.done )
+    self.stalled = dictionary.get( 'Stalled', self.stalled )
+    self.checking = dictionary.get( 'Checking', self.checking )
+    self.completed = dictionary.get( 'Completed', self.completed )
+    self.killed = dictionary.get( 'Killed', self.killed )
+    self.matched = dictionary.get( 'Matched', self.matched )
+    self.lastchecktime = dictionary.get( 'LastCheckTime', utcnow )
+
+
+  def toList(self):
+    """ Simply returns a list of column values
+    """
+    return [self.name, self.failed, self.running, self.done, self.stalled, self.checking,
+            self.completed, self.killed, self.matched, self.lastchecktime]
+
+
+class PilotAccountingCache(rmsBase):
+  """ PilotAccountingCache table
+  """
+
+  __tablename__ = 'PilotAccountingCache'
+  __table_args__ = {'mysql_engine': 'InnoDB',
+                    'mysql_charset': 'utf8'}
+
+  name = Column( 'Name', String( 64 ), nullable = False, primary_key = True )
+  failed = Column( 'Failed', INTEGER, nullable = False, server_default = '0' )
+  deleted = Column( 'Deleted', INTEGER, nullable = False, server_default = '0' )
+  done = Column( 'Done', INTEGER, nullable = False, server_default = '0' )
+  aborted = Column( 'Aborted', INTEGER, nullable = False, server_default = '0' )
+  lastchecktime = Column( 'LastCheckTime', DateTime, nullable = False )
+
+  def fromDict( self, dictionary ):
+    """
+    Fill the fields of the PilotAccountingCache object from a dictionary
+    """
+
+    utcnow = self.lastchecktime if self.lastchecktime else datetime.datetime.utcnow().replace(microsecond = 0)
+
+    self.name = dictionary.get( 'Name', self.name )
+    self.failed = dictionary.get( 'Failed', self.failed )
+    self.deleted = dictionary.get( 'Deleted', self.deleted )
+    self.done = dictionary.get( 'Done', self.done )
+    self.aborted = dictionary.get( 'Aborted', self.aborted )
+    self.lastchecktime = dictionary.get( 'LastCheckTime', utcnow )
+
+
+  def toList(self):
+    """ Simply returns a list of column values
+    """
+    return [self.name, self.failed, self.deleted, self.done, self.aborted, self.lastchecktime]
+
+
+
+# TABLES THAT WILL EVENTUALLY BE DELETED
+
+class SLST1Service(rmsBase):
+  """ SLST1Service table
+  """
+
+  __tablename__ = 'SLST1Service'
+  __table_args__ = {'mysql_engine': 'InnoDB',
+                    'mysql_charset': 'utf8'}
+
+
+  site = Column( 'Site', String( 64 ), nullable = False, primary_key = True )
+  system = Column( 'System', String( 32 ), nullable = False, primary_key = True )
+  hostuptime = Column( 'HostUptime', INTEGER )
+  version = Column( 'Version', String( 32 ) )
+  serviceuptime = Column( 'ServiceUptime', INTEGER )
+  timestamp = Column( 'TimeStamp', TIMESTAMP, server_default=text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'))
+  message = Column( 'Message', Text )
+  availability = Column( 'Availability', TINYINT, nullable = False )
+
+
+  def fromDict( self, dictionary ):
+    """
+    Fill the fields of the SLST1Service object from a dictionary
+    """
+
+    utcnow = self.lastchecktime if self.lastchecktime else datetime.datetime.utcnow().replace(microsecond = 0)
+
+    self.site = dictionary.get( 'Site', self.site )
+    self.system = dictionary.get( 'System', self.system )
+    self.hostuptime = dictionary.get( 'HostUpTime', self.hostuptime )
+    self.version = dictionary.get( 'Version', self.version )
+    self.serviceuptime = dictionary.get( 'ServiceUpTime', self.serviceuptime )
+    self.timestamp = dictionary.get( 'TimeStamp', utcnow )
+    self.message = dictionary.get( 'Message', self.message )
+    self.availability = dictionary.get( 'Availability', self.availability )
+
+
+  def toList(self):
+    """ Simply returns a list of column values
+    """
+    return [self.site, self.system, self.hostuptime, self.version, self.serviceuptime,
+            self.timestamp, self.message, self.availability]
+
+
+
+class SLSLogSE(rmsBase):
+  """ SLSLogSE table
+  """
+
+  __tablename__ = 'SLSLogSE'
+  __table_args__ = {'mysql_engine': 'InnoDB',
+                    'mysql_charset': 'utf8'}
+
+
+  name = Column( 'Name', String( 32 ), primary_key = True )
+  availability = Column( 'Availability', TINYINT, nullable = False )
+  timestamp = Column( 'TimeStamp', TIMESTAMP, server_default=text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'))
+  datapartitiontotal = Column( 'DataPartitionTotal', BIGINT )
+  datapartitionused = Column( 'DataPartitionUsed', TINYINT )
+  validityduration = Column( 'ValidityDuration', String( 32 ), nullable = False )
+
+
+  def fromDict( self, dictionary ):
+    """
+    Fill the fields of the SLSLogSE object from a dictionary
+    """
+
+    self.name = dictionary.get( 'Name', self.name )
+    self.timestamp = dictionary.get( 'TimeStamp', self.timestamp )
+    self.availability = dictionary.get( 'Availability', self.availability )
+    self.datapartitiontotal = dictionary.get( 'DataPartitionTotal', self.datapartitiontotal )
+    self.datapartitionused = dictionary.get( 'DataPartitionUsed', self.datapartitionused )
+    self.validityduration = dictionary.get( 'ValidityDuration', self.validityduration )
+
+
+
+  def toList(self):
+    """ Simply returns a list of column values
+    """
+    return [self.name, self.timestamp, self.availability,
+            self.datapartitiontotal, self.datapartitionused, self.validityduration]
