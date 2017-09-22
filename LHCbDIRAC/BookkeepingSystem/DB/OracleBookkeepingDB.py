@@ -1892,7 +1892,7 @@ class OracleBookkeepingDB( object ):
       pass  # it is already defined
 
 
-    result = self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.insertJobsRow_tmp',
+    result = self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.insertJobsRow',
                                               types.LongType, [attrList['ConfigName'],
                                                                attrList['ConfigVersion'],
                                                                attrList['DiracJobId'],
@@ -4017,7 +4017,7 @@ and files.qualityid= dataquality.qualityid'
   #############################################################################
   def insertproductionscontainer( self, prod, processingid, simid, daqperiodid, configName, configVersion ):
     """inserts a production to the productions container"""
-    return self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.insertproductionscontainer_tmp',
+    return self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.insertproductionscontainer',
                                             [ prod, processingid, simid, daqperiodid, configName, configVersion], False )
 
   #############################################################################
