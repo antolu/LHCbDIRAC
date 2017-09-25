@@ -1,3 +1,12 @@
+[v8r8p18]
+use DIRAC v6r17p32
+
+* Use the correct keepSEs
+* more fixes to RemoveReplicasKeepDestination
+* avoid warning
+* Get list of plugins with no run info from Operations and use it in scripts
+* remove temporary methods
+
 [v8r8p17]
 use DIRAC v6r17p31
 
