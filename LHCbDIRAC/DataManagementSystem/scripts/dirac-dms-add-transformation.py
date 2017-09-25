@@ -386,7 +386,7 @@ if __name__ == "__main__":
         break
       if requestedLFNs:
         from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities import addFilesToTransformation
-        res = addFilesToTransformation( transID, requestedLFNs, addRunInfo = ( transType != 'Removal' ) )
+        res = addFilesToTransformation( transID, requestedLFNs, addRunInfo = True )
         if not res['OK']:
           errMsg = "Could not add %d files to transformation: %s" % ( len( requestedLFNs ), res['Message'] )
           break

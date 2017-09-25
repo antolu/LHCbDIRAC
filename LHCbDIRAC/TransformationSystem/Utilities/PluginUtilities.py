@@ -1085,7 +1085,11 @@ class PluginUtilities( DIRACPluginUtilities ):
     site = self.runDestinations.get( runID )
     if site:
       self.logVerbose( 'Destination found for run %d: %s' % ( runID, site ) )
+      # Avoid spurious warning if no match found
+      savedLevel = gLogger.getLevel()
+      gLogger.setLevel( 'ERROR' )
       res = self.dmsHelper.getSEInGroupAtSite( targets, site )
+      gLogger.setLevel( savedLevel )
       return res.get( 'Value' )
     return None
 
@@ -1373,10 +1377,14 @@ def addFilesToTransformation( transID, lfns, addRunInfo = True ):
   res = transClient.getTransformation( transID )
   if not res['OK']:
     return res
-  transType = res['Value']['Type']
-  addRunInfo = addRunInfo and transType != 'Removal'
-  addedLfns = []
-  for lfnChunk in breakListIntoChunks( lfns, 10000 ):
+  transPlugin = res['Value']['Plugin']
+  pluginsWithNoRunInfo = Operations().getValue( 'TransformationPlugins/PluginsWithNoRunInfo', [] )
+  if not pluginsWithNoRunInfo:
+    optName = '/Systems/Transformation/Production/Agents/BookkeepingWatchAgent/PluginsWithNoRunInfo'
+    pluginsWithNoRunInfo = gConfig.getValue( optName, [] )
+  addRunInfo = addRunInfo and transPlugin not in pluginsWithNoRunInfo
+  addedLfns = set()
+  for lfnChunk in breakListIntoChunks( lfns, 1000 ):
     runDict = {}
     if addRunInfo:
       res = bk.getFileMetadata( lfnChunk )
@@ -1385,7 +1393,7 @@ def addFilesToTransformation( transID, lfns, addRunInfo = True ):
         for lfn, metadata in resMeta.iteritems():
           runID = metadata.get( 'RunNumber' )
           if runID:
-            runDict.setdefault( int( runID ), [] ).append( lfn )
+            runDict.setdefault( int( runID ), set() ).add( lfn )
       else:
         return res
     while True:
@@ -1395,13 +1403,13 @@ def addFilesToTransformation( transID, lfns, addRunInfo = True ):
         time.sleep( 1 )
       else:
         break
-    added = [lfn for ( lfn, status ) in res['Value']['Successful'].iteritems() if status == 'Added']
-    addedLfns += added
+    added = set( lfn for ( lfn, status ) in res['Value']['Successful'].iteritems() if status == 'Added' )
+    addedLfns.update( added )
     if addRunInfo and res['OK']:
       for runID, runLfns in runDict.iteritems():
-        runLfns = [lfn for lfn in runLfns if lfn in added]
+        runLfns &= added
         if runLfns:
-          res = transClient.addTransformationRunFiles( transID, runID, runLfns )
+          res = transClient.addTransformationRunFiles( transID, runID, list( runLfns ) )
           if not res['OK']:
             break
 
