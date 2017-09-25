@@ -1152,6 +1152,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def _DestroyDataset( self ):
     """ Plugin setting all existing SEs as targets
     """
+    self.util.logInfo( "Starting execution of plugin" )
     res = self._removeReplicas( keepSEs = [], minKeep = 0 )
     if not res['OK'] or not res['Value']:
       return res
@@ -1220,10 +1221,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     # Remove 1 as we keep the run destination as well...
     if minKeep is None:
       minKeep = abs( self.util.getPluginParam( 'NumberOfReplicas', 1 ) )
-    if minKeep > 0:
-      minKeep -= 1
-    else:
-      minKeep += 1
 
     # Group the  data by run
     res = groupByRun( self.transFiles )
@@ -1236,42 +1233,57 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     res = self.util.getTransformationRuns( runFileDict )
     if not res['OK']:
-      self.util.logError( "Error when getting transformation runs for runs %s" % str( runFileDict.keys() ), res['Message'] )
+      self.util.logError( "Error when getting transformation runs",
+                          "for runs %s: %s" % ( ','.join( str( run ) for run in runFileDict ), res['Message'] ) )
       return res
-    runSites = dict( ( run['RunNumber'], set( run['SelectedSite'].split( ',' ) ) ) for run in res['Value'] if run['SelectedSite'] )
+    runSites = dict( ( run['RunNumber'], set( run['SelectedSite'].split( ',' ) ) )
+                     for run in res['Value'] if run['SelectedSite'] )
 
     # Consider all runs in turn
     tasks = []
-    for runID in runFileDict.keys():
-      runLfns = runFileDict[runID]
+    for runID, runLfns in runFileDict.iteritems():
       replicas = dict( ( lfn, ses ) for lfn, ses in self.transReplicas.iteritems() if lfn in runLfns )
-      existingSEs = set( se for lfn, ses in replicas.iteritems() for se in ses )
+      existingSEs = set( se for ses in replicas.itervalues() for se in ses )
       destinationSE = self.util.getSEForDestination( runID, existingSEs )
       if destinationSE is None:
-        self.util.logWarn( "No destination found for run", str( runID ) )
-        continue
-      self.util.logVerbose( "Preparing tasks for run %d, destination %s" % ( runID, destinationSE ) )
-      res = self._removeReplicas( replicas = replicas, fromSEs = fromSEs, keepSEs = keepSEs + [destinationSE], minKeep = minKeep )
-      if not res['OK']:
-        self.util.logError( "Error creating tasks", res['Message'] )
+        # If there is no replica at destination, remove randomly
+        self.util.logInfo( "No replicas found at destination for %d files of run %d" % ( len( runLfns ), runID ) )
+        replicasWithKeep = {}
+        replicasNoKeep = replicas
       else:
-        tasks += res['Value']
-        targetSEs = set( se for targets, _lfns in res['Value'] for se in targets.split( ',' ) )
-        runTargets = runSites.get( runID, set() )
-        if targetSEs - runTargets:
-          # Set destination sites for that run
-          runTargets = ','.join( sorted( targetSEs | runTargets ) )
-          self.util.logVerbose( "Setting destination for run %d to %s" % ( runID, runTargets ) )
-          res = self.transClient.setTransformationRunsSite( self.transID, runID, runTargets )
+        self.util.logVerbose( "Preparing tasks for run %d, destination %s" % ( runID, destinationSE ) )
+        replicasWithKeep = dict( ( lfn, ses ) for lfn, ses in replicas.iteritems() if destinationSE in ses )
+        replicasNoKeep = dict( ( lfn, ses ) for lfn, ses in replicas.iteritems() if destinationSE not in ses )
+      # We keep one more replica @ destinationSE, therefore decrease the number to be kept
+      for reps, keep, kSEs in ( ( replicasNoKeep,
+                                  minKeep,
+                                  keepSEs ),
+                                ( replicasWithKeep,
+                                  ( abs( minKeep ) - 1 ) * minKeep / abs( minKeep ),
+                                  keepSEs + [destinationSE] ) ):
+        if reps:
+          res = self._removeReplicas( replicas = reps, fromSEs = fromSEs, keepSEs = kSEs, minKeep = keep )
           if not res['OK']:
-            self.util.logError( "Failed to set target SEs to run %d as %s" %
-                                ( runID, runTargets ), res['Message'] )
+            self.util.logError( "Error creating tasks", res['Message'] )
+          elif res['Value']:
+            tasks += res['Value']
+            targetSEs = set( se for targets, _lfns in res['Value'] for se in targets.split( ',' ) )
+            runTargets = runSites.get( runID, set() )
+            if targetSEs - runTargets:
+              # Set destination sites for that run
+              runTargets = ','.join( sorted( targetSEs | runTargets ) )
+              self.util.logVerbose( "Setting destination for run %d to %s" % ( runID, runTargets ) )
+              res = self.transClient.setTransformationRunsSite( self.transID, runID, runTargets )
+              if not res['OK']:
+                self.util.logError( "Failed to set target SEs to run %d as %s" %
+                                    ( runID, runTargets ), res['Message'] )
     return S_OK( tasks )
 
   def _RemoveDataset( self ):
     """ Plugin used to remove disk replicas, keeping some (e.g. archives)
     """
     keepSEs = resolveSEGroup( self.util.getPluginParam( 'KeepSEs', ['Tier1-Archive'] ) )
+    self.util.logInfo( "Starting execution of plugin" )
     return self._removeReplicas( keepSEs = keepSEs, minKeep = 0 )
 
   def _RemoveReplicas( self, minKeep = None ):
@@ -1286,12 +1298,14 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     if minKeep is None:
       minKeep = abs( self.util.getPluginParam( 'NumberOfReplicas', 1 ) )
 
+    self.util.logInfo( "Starting execution of plugin" )
     return self._removeReplicas( fromSEs = fromSEs, keepSEs = keepSEs, mandatorySEs = mandatorySEs, minKeep = minKeep )
 
   def _ReduceReplicas( self ):
     """ Plugin for reducing the number of replicas to NumberOfReplicas
     """
     # this is the number of replicas to be kept in addition to keepSEs and mandatorySEs
+    self.util.logInfo( "Starting execution of plugin" )
     minKeep = -abs( self.util.getPluginParam( 'NumberOfReplicas', 1 ) )
     return self._RemoveReplicas( minKeep = minKeep )
 
@@ -1304,7 +1318,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       keepSEs = []
     if mandatorySEs is None:
       mandatorySEs = []
-    self.util.logInfo( "Starting execution of plugin" )
     reduceSEs = minKeep < 0
     minKeep = abs( minKeep )
     if replicas is None:
@@ -1365,7 +1378,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       if targetSEs:
         stringTargetSEs = ','.join( targetSEs )
         storageElementGroups.setdefault( stringTargetSEs, [] ).extend( lfns )
-        self.util.logVerbose( "%d files to be removed at %s" % ( len( lfns ), stringTargetSEs ) )
       else:
         self.util.logInfo( "Found %s files that don't need any replica deletion, set Processed" % len( lfns ) )
         self.transClient.setFileStatusForTransformation( self.transID, 'Processed', lfns )
