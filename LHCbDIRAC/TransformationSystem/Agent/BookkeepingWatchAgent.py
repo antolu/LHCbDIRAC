@@ -71,13 +71,11 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
     self.pickleFile = os.path.join( self.am_getWorkDirectory(), self.pickleFile )
     self.chunkSize = self.am_getOption( 'maxFilesPerChunk', self.chunkSize )
 
-    self.pluginsWithNoRunInfo = Operations().getValue( 'TransformationPlugins/PluginsWithNoRunInfo', [] )
-    if not self.pluginsWithNoRunInfo:
-      self.pluginsWithNoRunInfo = self.am_getOption( 'PluginsWithNoRunInfo', self.pluginsWithNoRunInfo )
+    self.pluginsWithNoRunInfo = Operations().getValue( 'TransformationPlugins/PluginsWithNoRunInfo', self.pluginsWithNoRunInfo )
 
     self._logInfo( 'Full Update Period: %d seconds' % self.fullUpdatePeriod )
     self._logInfo( 'BK update latency : %d seconds' % self.bkUpdateLatency )
-    self._logInfo( 'Plugins with no run info: %s' % ','.join( self.pluginsWithNoRunInfo ) )
+    self._logInfo( 'Plugins with no run info: %s' % ', '.join( self.pluginsWithNoRunInfo ) )
 
     self.transClient = TransformationClient()
     self.bkClient = BookkeepingClient()

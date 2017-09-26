@@ -1244,9 +1244,6 @@ def addFilesToTransformation( transID, lfns, addRunInfo = True ):
     return res
   transPlugin = res['Value']['Plugin']
   pluginsWithNoRunInfo = Operations().getValue( 'TransformationPlugins/PluginsWithNoRunInfo', [] )
-  if not pluginsWithNoRunInfo:
-    optName = '/Systems/Transformation/Production/Agents/BookkeepingWatchAgent/PluginsWithNoRunInfo'
-    pluginsWithNoRunInfo = gConfig.getValue( optName, [] )
   addRunInfo = addRunInfo and transPlugin not in pluginsWithNoRunInfo
   addedLfns = set()
   for lfnChunk in breakListIntoChunks( lfns, 1000 ):
