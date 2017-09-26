@@ -1257,17 +1257,21 @@ def addFilesToTransformation( transID, lfns, addRunInfo = True ):
           if runID:
             runDict.setdefault( int( runID ), set() ).add( lfn )
       else:
-        return res
+        break
+    errorLogged = False
     while True:
       res = transClient.addFilesToTransformation( transID, lfnChunk )
       if not res['OK']:
-        gLogger.error( "Error adding %d files to transformation, retry..." % len( lfnChunk ), res['Message'] )
+        if not errorLogged:
+          errorLogged = True
+          gLogger.error( "Error adding %d files to transformation, retry..." % len( lfnChunk ), res['Message'] )
         time.sleep( 1 )
       else:
         break
     added = set( lfn for ( lfn, status ) in res['Value']['Successful'].iteritems() if status == 'Added' )
     addedLfns.update( added )
     if addRunInfo and res['OK']:
+      gLogger.info( "Add information for %d runs to transformation %s" % ( len( runDict ), transID ) )
       for runID, runLfns in runDict.iteritems():
         runLfns &= added
         if runLfns:
@@ -1275,8 +1279,8 @@ def addFilesToTransformation( transID, lfns, addRunInfo = True ):
           if not res['OK']:
             break
 
-    if not res['OK']:
-      return res
+  if not res['OK']:
+    return res
   gLogger.info( "%d files successfully added to transformation" % len( addedLfns ) )
   return S_OK( addedLfns )
 
