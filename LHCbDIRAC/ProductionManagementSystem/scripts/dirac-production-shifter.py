@@ -302,9 +302,9 @@ def printResults( request, mergeAction ):
       if filesDict[ 'Hot' ] == 'Hot':
         print 'BK Browsing Path: [%s]' % (filesDict[ 'Path' ])
         bkpath = filesDict[ 'Path' ]
-        if filesDict[ 'Total' ] > 0:
+        try:
           processed = ( float( filesDict[ 'Processed' ] ) / float( filesDict[ 'Total' ] ) ) * 100
-        else:
+        except ZeroDivisionError:
           processed = 0
         filesMsg = '%.2f%%\t\t(%d)\t\t%d\t%d\t%d\t%d\t%s' % ( processed, filesDict['Total'],filesDict[ 'Done' ], filesDict['Running'],filesDict[ 'Waiting' ], filesDict['Failed'], filesDict[ 'Hot' ] )
 
@@ -322,9 +322,9 @@ def printResults( request, mergeAction ):
       filesMsg = '..No files at all..'
     else:
       try:
-        if filesDict[ 'Total' ] > 0:
+        try:
           processed = ( float( filesDict[ 'Processed' ] ) / float( filesDict[ 'Total' ] ) ) * 100
-        else:
+        except ZeroDivisionError:
           processed = 0
         filesMsg = '%.2f%%\t\t(%d)\t\t%d\t%d\t%d\t%d\t%s' % ( processed, filesDict['Total'],filesDict[ 'Done' ], filesDict['Running'],filesDict[ 'Waiting' ], filesDict['Failed'], filesDict[ 'Hot' ] )
       except KeyError:
