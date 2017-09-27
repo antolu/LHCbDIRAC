@@ -274,36 +274,6 @@ policies = { 'DTScheduled' : {'description' : 'Ongoing and scheduled down-times'
                                                {'Format' : 'LastHours', 'hours': 24},
                                                'Destination',
                                                {'OperationType' : 'putAndRegister'} )}}, ]},
-  'SEOccupancy' :
-    {
-      'description' : 'SE occupancy',
-      'module'      : 'SEOccupancyPolicy',
-      'command'     : ( 'SLSCommand', 'SLSStatusCommand' ),
-      'args'        : None,
-
-      'SE_Panel' : [ {
-                      'WebLink': {
-                        'CommandIn' : ( 'SLSCommand', 'SLSLinkCommand' ),
-                        'args'      : None
-                                  }
-                      },
-                   ]
-     },
-  'SEQueuedTransfers' :
-    {
-      'description' : 'Queued transfers on the SE',
-      'module'      : 'SEQueuedTransfersPolicy',
-      'command'     : ( 'SLSCommand', 'SLSServiceInfoCommand' ),
-      'args'        : None,
-
-      'SE_Panel' : [ {
-                       'WebLink' : {
-                          'CommandIn' : ( 'SLSCommand', 'SLSLinkCommand' ),
-                          'args'      : None
-                                   }
-                      },
-                    ]
-     },
    'Nagios_CE' :
     {
       'description' : 'Checks probes with ServiceFlavour CE for a given resource',

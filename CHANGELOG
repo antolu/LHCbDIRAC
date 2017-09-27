@@ -15,6 +15,30 @@ use DIRAC v6r19-pre4
 * removing old tests
 * added reco17
 
+[v8r8p18]
+use DIRAC v6r17p32
+
+* Use the correct keepSEs
+* more fixes to RemoveReplicasKeepDestination
+* avoid warning
+* Get list of plugins with no run info from Operations and use it in scripts
+* remove temporary methods
+
+[v8r8p17]
+use DIRAC v6r17p31
+
+* only check run tick if the run was not assigned
+* Fix printout and make pylint happier
+* Improve information when debugging Failed jobs
+* add docstring and replace "id"
+* Don't look for directories if files or BKQuery are given
+* Improve search for transformation
+* allow to give a transformation name and not only ID
+* add option to get the list of directories fomr a BK query
+* fix to get list of directories from file
+* Fix for getting directories form a file
+* Tier1-BUFFER -> Tier1-Buffer
+
 [v8r8p16]
 use DIRAC v6r17p30
 

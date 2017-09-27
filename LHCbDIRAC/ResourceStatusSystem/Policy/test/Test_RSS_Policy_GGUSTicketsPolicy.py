@@ -44,36 +44,42 @@ class GGUSTicketsPolicy_Success( GGUSTicketsPolicy_TestCase ):
     module = self.testClass()
 
     res = module._evaluate( { 'OK' : False, 'Message' : 'Bo!' } )
-    self.assertEquals( True, res[ 'OK' ] )
+    self.assertTrue(res['OK'])
     self.assertEquals( 'Error', res[ 'Value' ][ 'Status' ] )
     self.assertEquals( 'Bo!', res[ 'Value' ][ 'Reason' ] )
 
     res = module._evaluate( { 'OK' : True, 'Value' : None } )
-    self.assertEquals( True, res[ 'OK' ] )
+    self.assertTrue(res['OK'])
     self.assertEquals( 'Unknown', res[ 'Value' ][ 'Status' ] )
     self.assertEquals( 'No values to take a decision', res[ 'Value' ][ 'Reason' ] )
 
     res = module._evaluate( { 'OK' : True, 'Value' : [] } )
-    self.assertEquals( True, res[ 'OK' ] )
+    self.assertTrue(res['OK'])
     self.assertEquals( 'Unknown', res[ 'Value' ][ 'Status' ] )
     self.assertEquals( 'No values to take a decision', res[ 'Value' ][ 'Reason' ] )
 
     res = module._evaluate( { 'OK' : True, 'Value' : [{ 'A' : 1 }] } )
-    self.assertEquals( True, res[ 'OK' ] )
+    self.assertTrue(res['OK'])
     self.assertEquals( 'Error', res[ 'Value' ][ 'Status' ] )
     self.assertEquals( 'Expected OpenTickets key for GGUSTickets', res[ 'Value' ][ 'Reason' ] )
 
     res = module._evaluate( { 'OK' : True, 'Value' : [{ 'OpenTickets' : 0 }] } )
-    self.assertEquals( True, res[ 'OK' ] )
+    self.assertTrue(res['OK'])
     self.assertEquals( 'Active', res[ 'Value' ][ 'Status' ] )
     self.assertEquals( 'NO GGUSTickets unsolved', res[ 'Value' ][ 'Reason' ] )
 
     self.assertRaises( KeyError, module._evaluate, { 'OK' : True, 'Value' : [{ 'OpenTickets' : 1 }] } )
 
     res = module._evaluate( { 'OK' : True, 'Value' : [{ 'OpenTickets' : 1, 'Tickets' : '1a' }] } )
-    self.assertEquals( True, res[ 'OK' ] )
+    self.assertTrue(res['OK'])
     self.assertEquals( 'Degraded', res[ 'Value' ][ 'Status' ] )
     self.assertEquals( '1 GGUSTickets unsolved: 1a', res[ 'Value' ][ 'Reason' ] )
+
+
+if __name__ == '__main__':
+  suite = unittest.defaultTestLoader.loadTestsFromTestCase( GGUSTicketsPolicy_TestCase )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GGUSTicketsPolicy_Success ) )
+  testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

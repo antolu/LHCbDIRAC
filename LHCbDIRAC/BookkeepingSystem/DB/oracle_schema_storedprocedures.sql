@@ -40,7 +40,7 @@ procedure getFileAndJobMetadata( v_jobid NUMBER, prod BOOLEAN, a_Cursor out udt_
 procedure checkfile(name varchar2, a_Cursor out udt_RefCursor);
 function checkFileTypeAndVersion (v_NAME  VARCHAR2,  v_VERSION VARCHAR2) return number;
 procedure checkEventType (v_EVENTTYPEID NUMBER, a_Cursor out udt_RefCursor);
-function insertJobsRow (
+function insertJobsRow(
      v_ConfigName                  VARCHAR2,
      v_ConfigVersion               VARCHAR2,
      v_DiracJobId                  NUMBER,
@@ -69,7 +69,8 @@ function insertJobsRow (
      v_totalLuminosity             NUMBER,
      v_tck                         VARCHAR2,
      v_stepid                      NUMBER,
-     v_WNMJFHS06                   FLOAT
+     v_WNMJFHS06                   FLOAT,
+     v_hlt2tck                     VARCHAR2
   ) return number;
 
 function insertJobsRow_tmp (
@@ -186,7 +187,7 @@ procedure getNumberOfEvents(prodId number, a_Cursor out udt_RefCursor);
 procedure getJobsNb(prodId number, a_Cursor out udt_RefCursor);
 procedure insertStepsContainer(v_prod number, v_stepid number, v_step number);
 procedure insertproductionscontainer_tmp(v_prod number, v_processingid number, v_simid number, v_daqperiodid number, cName varchar2, cVersion varchar2);
-procedure insertproductionscontainer(v_prod number, v_processingid number, v_simid number, v_daqperiodid number);
+procedure insertproductionscontainer(v_prod number, v_processingid number, v_simid number, v_daqperiodid number, cName varchar2, cVersion varchar2);
 procedure getEventTypes(cName varchar2, cVersion varchar2, a_Cursor out udt_RefCursor);
 function  getRunNumber(lfn varchar2) return number;
 procedure insertRunquality(run number, qid number,procid number);
@@ -886,7 +887,8 @@ function insertJobsRow (
      v_totalLuminosity             NUMBER,
      v_tck                         VARCHAR2,
      v_stepid                      NUMBER,
-     v_WNMJFHS06                   FLOAT
+     v_WNMJFHS06                   FLOAT,
+     v_hlt2tck                     VARCHAR2
   )return number is
   jid       number;
   configId  number;
@@ -933,7 +935,9 @@ function insertJobsRow (
          TotalLuminosity,
          Tck,
          StepID,
-         WNMJFHS06)
+         WNMJFHS06,
+         HLT2Tck
+         )
    values(
           jid,
           configId,
@@ -963,7 +967,8 @@ function insertJobsRow (
           v_totalLuminosity,
           v_tck,
           v_stepid,
-          v_WNMJFHS06);
+          v_WNMJFHS06,
+          v_hlt2tck);
 
   commit;
   return jid;
@@ -1006,7 +1011,8 @@ function insertJobsRow (
          TotalLuminosity=v_totalLuminosity,
          StepID = v_stepid,
          Tck=v_tck,
-         WNMJFHS06=v_WNMJFHS06 where jobid=jid;
+         WNMJFHS06=v_WNMJFHS06,
+         HLT2Tck=v_hlt2tck where jobid=jid;
       commit;
     return jid;
     END IF;
@@ -1690,16 +1696,26 @@ EXCEPTION
    END IF;
 end;
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-procedure insertproductionscontainer(v_prod number, v_processingid number, v_simid number, v_daqperiodid number) is
+procedure insertproductionscontainer(v_prod number, v_processingid number, v_simid number, v_daqperiodid number, cName varchar2, cVersion varchar2) is
+configId number;
 existInDB number;
-begin
-insert into productionscontainer(production,processingid,simid,daqperiodid)values(v_prod, v_processingid, v_simid, v_daqperiodid);
+BEGIN
+configId := 0;
+select count(*) into existInDB from configurations where ConfigName=cName and ConfigVersion=cVersion;
+if existInDB=0 then
+  select configurationId_seq.nextval into configId from dual;
+  insert into configurations(ConfigurationId,ConfigName,ConfigVersion)values(configId, cName, cVersion);
+  commit;
+else
+ select configurationid into configId from configurations where ConfigName=cName and ConfigVersion=cVersion;
+end if;
+insert into productionscontainer(production,processingid,simid,daqperiodid, configurationid)values(v_prod, v_processingid, v_simid, v_daqperiodid, configId);
 commit;
 EXCEPTION
   WHEN DUP_VAL_ON_INDEX THEN
-   dbms_output.put_line(v_prod || 'already in the steps container table');
    existInDB := 0;
-   SELECT count(*) INTO existInDB FROM productionscontainer WHERE production=v_prod and processingid=v_processingid AND  simid=v_simid AND daqperiodid=v_daqperiodid;
+   dbms_output.put_line(v_prod || 'already in the steps container table');
+   SELECT count(*) INTO existInDB FROM productionscontainer WHERE production=v_prod and processingid=v_processingid AND  simid=v_simid AND daqperiodid=v_daqperiodid and configurationid=configId;
    IF existInDB > 0 then
     raise_application_error(-20005, 'The production already exists in the productionscontainer table!');
    END IF;

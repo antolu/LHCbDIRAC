@@ -153,17 +153,17 @@ if __name__ == '__main__':
     fp = None
     if cc.inFCNotInBK:
       lfns = cc.inFCNotInBK
-      gLogger.always( "%d descendants were found in FC but not in BK" % len( lfns ) )
+      gLogger.always( "%d descendants were found in FC but don't have replica flag in BK" % len( lfns ) )
       if not fp:
         fp = open( fileName, 'w' )
       fp.write( '\nInFCNotInBK '.join( [''] + lfns ) )
       gLogger.always( 'First %d files:' % nMax if not verbose and len( lfns ) > nMax else 'All files:',
                      '\n'.join( [''] + lfns[0:nMax] ) )
-      gLogger.always( "To fix it:   grep InFCNotInBK %s | dirac-dms-check-fc2bkk" % fileName )
+      gLogger.always( "To fix it:   grep InFCNotInBK %s | dirac-dms-check-fc2bkk\n\tBeware you can then either fix the BK or the FC/SE" % fileName )
 
     if cc.inFailover:
       lfns = cc.inFailover
-      gLogger.always( "%d descendants were found in Failover and not in BK" % len( lfns ) )
+      gLogger.always( "%d descendants were found in Failover and have no replica flag in BK" % len( lfns ) )
       if not fp:
         fp = open( fileName, 'w' )
       fp.write( '\nInFailover '.join( [''] + lfns ) )
@@ -174,7 +174,7 @@ if __name__ == '__main__':
 
     if cc.inBKNotInFC:
       lfns = cc.inBKNotInFC
-      gLogger.always( "%d descendants were found in BK but not in FC" % len( lfns ) )
+      gLogger.always( "%d descendants were found with replica flag in BK but not in FC" % len( lfns ) )
       if not fp:
         fp = open( fileName, 'w' )
       fp.write( '\nInBKNotInFC '.join( [''] + lfns ) )

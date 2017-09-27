@@ -1,7 +1,7 @@
 """ Client test
 """
 
-#pylint: disable=protected-access, missing-docstring, invalid-name, line-too-long
+# pylint: disable=protected-access, missing-docstring, invalid-name, line-too-long
 
 import unittest
 
@@ -29,8 +29,7 @@ class ClientTestCase( unittest.TestCase ):
 
     self.l_wft = LHCbWorkflowTasks( tcMock, submissionClient = sc, jobMonitoringClient = jmc )
     self.tc = TransformationClient()
-    self.tc.opsH = MagicMock()
-    self.tc.opsH.getValue.return_value = ['MCSimulation', 'DataReconstruction']
+    self.tc.dataProcessingTypes = ['MCSimulation', 'DataReconstruction']
 
     self.tsMock = MagicMock()
 
@@ -215,41 +214,39 @@ class PluginsUtilitiesSuccess( ClientTestCase ):
   def test_groupByRun( self ):
 
     # no files, nothing happens
-    res = groupByRun( [] )
-    self.assert_( res['OK'] )
-    self.assertEqual( res['Value'], {} )
+    resDict = groupByRun( [] )
+    self.assertEqual( resDict, {} )
 
     # some files
-    res = groupByRun( list( runFiles ) )
-    self.assert_( res['OK'] )
+    resDict = groupByRun( list( runFiles ) )
     resExpected = { 1: ['/this/is/at_1'],
                     2: ['/this/is/at_2'],
                     4: ['/this/is/at_4'],
                     12: ['/this/is/at_12', '/this/is/also/at_12'],
                     23: ['/this/is/at_23'],
                     123: ['/this/is/at_123']}
-    self.assertEqual( res['Value'], resExpected )
+    self.assertEqual( resDict, resExpected )
 
 
   def test_groupByRunAndParam( self ):
 
     # no files, nothing happens
     pu = PluginUtilities( fc = self.fcMock, dataManager = MagicMock(), rmClient = MagicMock() )
-    res = pu.groupByRunAndParam( {}, [] )
-    self.assert_( res['OK'] )
-    self.assertEqual( res['Value'], {} )
+    pu.transFiles = []
+    resDict = pu.getFilesGroupedByRunAndParam( {} )
+    self.assertEqual( resDict, {} )
 
     # some files, no params (it seems it's never called with params...?
     pu = PluginUtilities( fc = self.fcMock, dataManager = MagicMock(), rmClient = MagicMock() )
-    res = pu.groupByRunAndParam( data, runFiles )
-    self.assert_( res['OK'] )
+    pu.transFiles = runFiles
+    resDict = pu.getFilesGroupedByRunAndParam( data )
     resExpected = {1: {None: ['/this/is/at_1']},
                    2: {None: ['/this/is/at_2']},
                    4: {None: ['/this/is/at_4']},
                    12: {None: ['/this/is/at_12', '/this/is/also/at_12']},
                    23: {None: ['/this/is/at_23']},
                    123: {None: ['/this/is/at_123']}}
-    self.assertEqual( res['Value'], resExpected )
+    self.assertEqual( resDict, resExpected )
 
 
   def test_getRAWAncestorsForRun( self ):

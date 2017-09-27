@@ -21,7 +21,7 @@ from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery, makeBKPath
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
-from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities import PluginUtilities, groupByRun, getActiveSEs
+from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities import PluginUtilities, getActiveSEs
 
 __RCSID__ = "$Id$"
 
@@ -88,6 +88,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     # data is a synonym as used in DIRAC
     self.transReplicas = data.copy()
     self.data = self.transReplicas
+    self.util.transReplicas = self.transReplicas
 
   def setTransformationFiles( self, files ):
     """
@@ -99,6 +100,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     # files is a synonym, as used in DIRAC
     self.transFiles = [fileDict for fileDict in files]
     self.files = self.transFiles
+    self.util.transFiles = self.transFiles
 
   def setParameters( self, params ):
     super( TransformationPlugin, self ).setParameters( params )
@@ -135,31 +137,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         # Here one should check descendants of children
         self.util.logVerbose( "No input files have already been processed" )
 
-  def __getRunFiles( self ):
-    """
-    Get files per run in a dicctionary and set the run number if not done
-    """
-    # Split the files in run groups
-    res = groupByRun( self.transFiles )
-    if not res['OK']:
-      self.util.logError( "Error splitting by run", res['Message'] )
-      return res
-    runFileDict = res['Value']
-    if not runFileDict:
-      # No files, no tasks!
-      self.util.logVerbose( "No runs found!" )
-      return S_OK( [] )
-    self.util.logVerbose( 'Obtained %d runs' % len( runFileDict ) )
-
-    # If some files don't have a run number, get it and set it
-    zeroRun = runFileDict.pop( 0, None )
-    if zeroRun:
-      self.util.logInfo( "Setting run number for files with run #0, which means it was not set yet" )
-      newRuns = self.util.setRunForFiles( zeroRun )
-      for newRun, runLFNs in newRuns.iteritems():
-        runFileDict.setdefault( newRun, [] ).extend( runLFNs )
-    return S_OK( runFileDict )
-
   def _RAWReplication( self ):
     """
     Plugin for replicating RAW data to Tier1s according to shares, and defining the processing destination site
@@ -186,15 +163,14 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return res
     existingCount, targetShares = res['Value']
 
-    res = self.__getRunFiles()
-    if not res['OK'] or not res['Value']:
-      return res
-    runFileDict = res['Value']
+    runFileDict = self.util.getFilesGroupedByRun()
+    if not runFileDict:
+      return S_OK( [] )
 
     # For each of the runs determine the destination of any previous files
     res = self.util.getTransformationRuns( runFileDict )
     if not res['OK']:
-      self.util.logError( "Failed to obtain TransformationRuns", res['Message'] )
+      self.util.logError( "Error when getting transformation runs", "for runs %s : %s" % ','.join( sorted( runFileDict ), res['Message'] ) )
       return res
     runSEDict = dict( ( runDict['RunNumber'], runDict['SelectedSite'] ) for runDict in res['Value'] )
 
@@ -327,27 +303,17 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return S_OK( [] )
 
     # Split the files in run groups
-    res = groupByRun( self.transFiles )
-    if not res['OK']:
-      self.util.logError( "Error splitting by run", res['Message'] )
-      return res
-    runFileDict = res['Value']
+    runFileDict = self.util.getFilesGroupedByRun()
     if not runFileDict:
       # No files, no tasks!
       self.util.logVerbose( "No runs found!" )
       return S_OK( [] )
     self.util.logVerbose( 'Obtained %d runs' % len( runFileDict ) )
 
-    zeroRun = runFileDict.pop( 0, None )
-    if zeroRun:
-      self.util.logInfo( "Setting run number for files with run #0, which means it was not set yet" )
-      newRuns = self.util.setRunForFiles( zeroRun )
-      for newRun, runLFNs in newRuns.iteritems():
-        runFileDict.setdefault( newRun, [] ).extend( runLFNs )
     # For each of the runs determine the destination of any previous files
     res = self.util.getTransformationRuns( runFileDict )
     if not res['OK']:
-      self.util.logError( "Failed to obtain TransformationRuns", res['Message'] )
+      self.util.logError( "Error when getting transformation runs", "for runs %s : %s" % ','.join( sorted( runFileDict ), res['Message'] ) )
       return res
     runSEDict = dict( ( runDict['RunNumber'], runDict['SelectedSite'] ) for runDict in res['Value'] )
 
@@ -360,9 +326,16 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     # Choose the destination SE
     tasks = []
     for runID in runSet:
-      runLfns = runFileDict[runID]
       assignedSE = runSEDict[runID]
       runSEs = set( assignedSE.split( ',' ) ) if assignedSE and isinstance( assignedSE, basestring ) else set()
+      if not runSEs:
+        # Check that the run tick is present, but if an SE is already assigned, this is not needed
+        runTick = self.util.checkCondDBRunTick( runID )
+        if runTick == False:
+          # If runTick is None it means the CondDB was not available in CVMFS, we ignore (but a warning is printed)
+          self.util.logInfo( "Run tick not present yet in OnlineCondDB for run %d" % runID )
+          continue
+      runLfns = runFileDict[runID]
       # Now determine where these files should go
       # Group by location
       update = False
@@ -479,52 +452,36 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """ Basic plugin for when you want to group files by run
     """
     self.util.logInfo( "Starting execution of plugin" )
+    allTasks = []
+    if not self.transReplicas:
+      self.util.logVerbose( "No data to be processed by plugin" )
+      return S_OK( allTasks )
     # If flush is force, it is obviously required! try and get forcing from parameter
     if self.util.getPluginParam( 'ForceFlush', False ):
       forceFlush = True
     requireFlush |= forceFlush
     pluginStartTime = time.time()
-    allTasks = []
     groupSize = self.util.getPluginParam( 'GroupSize' )
-    typesWithNoCheck = self.util.getPluginParam( 'NoCheckTypes', ['Merge', 'MCMerge', 'Replication', 'Removal'] )
+    typesWithNoCheck = self.util.getPluginParam( 'NoCheckTypes', ['Merge', 'MCMerge', 'HistoMerge', 'Replication', 'Removal'] )
     fromSEs = set( resolveSEGroup( self.util.getPluginParam( 'FromSEs', [] ) ) )
-    # This flag defaults to True for DataStripping transformations
-    lfn = self.transReplicas.keys()[0]
-    res = self.util.getBookkeepingMetadata( lfn, 'FileType' )
-    if not res['OK']:
-      self.util.logError( "Error getting file metadata", res['Message'] )
-      return res
-    fileType = res['Value'][lfn]
-    addAncestors = self.util.getPluginParam( 'UseAncestors', bool( self.params['Type'] == 'DataStripping' ) and fileType != 'FULL.DST' )
     maxTime = self.util.getPluginParam( 'MaxTimeAllowed', 0 )
-    self.util.readCacheFile( self.workDirectory )
-    if not self.transReplicas:
-      self.util.logVerbose( "No data to be processed by plugin" )
-      return S_OK( allTasks )
 
+    # Check if ancestors are required: this flag defaults to True for DataStripping transformations
+    lfn = self.transReplicas.keys()[0]
+    fileType = self.util.getMetadataFromTSorBK( lfn, 'FileType' )[lfn]
+    addAncestors = self.util.getPluginParam( 'UseAncestors', bool( self.params['Type'] == 'DataStripping' ) and fileType != 'FULL.DST' )
+    # Read the cached information from disk
+    self.util.readCacheFile( self.workDirectory )
+
+    # Group files by run number and value of parameter "param"
     self.util.logInfo( "Grouping %d files by runs %s " %
                        ( len( self.transFiles ), 'and %s' % param if param else '' ) )
-    res = self.util.groupByRunAndParam( self.transReplicas, self.transFiles, param = param )
-    if not res['OK']:
-      self.util.logError( "Error when grouping %d files by run for param %s" % ( len( self.transReplicas ), param ) )
-      return res
-    runDict = res['Value']
-
-    # If necessary fix files with run number 0
-    zeroRunDict = runDict.pop( 0, None )
-    if zeroRunDict:
-      nZero = 0
-      for paramValue, zeroRun in zeroRunDict.iteritems():
-        newRuns = self.util.setRunForFiles( zeroRun )
-        for newRun, runLFNs in newRuns.iteritems():
-          runDict.setdefault( newRun, {} ).setdefault( paramValue, [] ).extend( runLFNs )
-          nZero += len( runLFNs )
-      self.util.logInfo( "Set run number for %d files with run #0, which means it was not set yet" % nZero )
+    runFileDict = self.util.getFilesGroupedByRunAndParam( param = param )
 
     transStatus = self.params['Status']
-    res = self.util.getTransformationRuns( runDict )
+    res = self.util.getTransformationRuns( runFileDict )
     if not res['OK']:
-      self.util.logError( "Error when getting transformation runs for runs %s" % str( runDict.keys() ) )
+      self.util.logError( "Error when getting transformation runs", "for runs %s : %s" % ','.join( sorted( runFileDict ), res['Message'] ) )
       return res
     transRuns = res['Value']
     runSites = dict( ( run['RunNumber'], run['SelectedSite'] ) for run in transRuns if run['SelectedSite'] )
@@ -532,15 +489,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     inputData = self.transReplicas.copy()
     setInputData = set( inputData )
     runEvtType = {}
-    # Restart where we finished last time
+    # Restart where we finished last time and wrap to beginning
     lastRun = self.util.getCachedLastRun()
-    runNumbers = sorted( [run['RunNumber'] for run in transRuns if run['RunNumber'] > lastRun] ) + \
-                 sorted( [run['RunNumber'] for run in transRuns if run['RunNumber'] <= lastRun] )
-    # If none left, restart from the beginning
-    if not runNumbers:
-      runNumbers = [run['RunNumber'] for run in transRuns]
-      lastRun = 0
-      self.util.setCachedLastRun( lastRun )
+    runNumbers = sorted( run['RunNumber'] for run in transRuns if run['RunNumber'] > lastRun ) + \
+                 sorted( run['RunNumber'] for run in transRuns if run['RunNumber'] <= lastRun )
     # Find out how many files we have currently Unused per run
     res = self.transClient.getTransformationFilesCount( self.transID, 'RunNumber', {'Status':'Unused', 'RunNumber':runNumbers} )
     if not res['OK']:
@@ -550,15 +502,17 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     # Check that the total number of files we got for that run is equal to the number of Unused files
     nRunsLeft = len( runNumbers )
     for runID in list( runNumbers ):
-      runFiles = sum( len( lfns ) for lfns in runDict[runID].itervalues() )
+      runFiles = sum( len( lfns ) for lfns in runFileDict[runID].itervalues() )
       if runFiles != unusedFilesPerRun.get( runID, 0 ):
         runNumbers.remove( runID )
     if nRunsLeft != len( runNumbers ):
-      self.util.logVerbose( "Removed %d runs with less files than Unused" % ( nRunsLeft - len( runNumbers ) ) )
+      self.util.logWarn( "Removed %d runs with less files than Unused" % ( nRunsLeft - len( runNumbers ) ) )
       nRunsLeft = len( runNumbers )
-    runList = sorted( ( run for run in transRuns if run['RunNumber'] in runNumbers ), cmp = ( lambda d1, d2: int( d1['RunNumber'] - d2['RunNumber'] ) ) )
+    # Get the list of runs in the same order as runNumbers
+    runList = sorted( ( run for run in transRuns if run['RunNumber'] in runNumbers ),
+                      cmp = ( lambda d1, d2: runNumbers.index( d1['RunNumber'] ) - runNumbers.index( d2['RunNumber'] ) ) )
     if nRunsLeft:
-      self.util.logInfo( "Processing %d runs starting at run %d" % ( nRunsLeft, min( runNumbers ) ) )
+      self.util.logInfo( "Processing %d runs between runs %d and %d, starting at run %d" % ( nRunsLeft, min( runNumbers ), max( runNumbers ), runNumbers[0] ) )
     else:
       self.util.logInfo( "No runs to process, exit" )
       return S_OK( [] )
@@ -573,8 +527,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       self.util.logVerbose( "Processing run %d, still %d runs left" % ( runID, nRunsLeft ) )
       nRunsLeft -= 1
       runStatus = 'Flush' if transStatus == 'Flush' else run['Status']
-      paramDict = runDict.get( runID, {} )
-      targetSEs = [se for se in runSites.get( runID, '' ).split( ',' ) if se]
+      paramDict = runFileDict.get( runID, {} )
+      runTargetSEs = set( se for se in runSites.get( runID, '' ).split( ',' ) if se )
       #
       # Loop on parameters (None if not by param)
       #
@@ -598,16 +552,12 @@ class TransformationPlugin( DIRACTransformationPlugin ):
                                                                      len( newLfns ), runID, paramStr ) )
         runFlush = requireFlush
         if runFlush:
+          # Determine which event type is used, in order to get the corresponding number of RAW files
           if not runEvtType.get( paramValue ):
             lfn = paramDict[paramValue][0]
-            res = self.util.getBookkeepingMetadata( [lfn], 'EventType' )
-            if res['OK']:
-              runEvtType[paramValue] = res['Value'].get( lfn, 90000000 )
-              self.util.logDebug( 'Event type%s: %s' % ( paramStr, str( runEvtType[paramValue] ) ) )
-            else:
-              self.util.logWarn( "Can't determine event type for transformation%s, can't flush" %
-                                 paramStr, res['Message'] )
-              runEvtType[paramValue] = None
+            runEvtType[paramValue] = self.util.getMetadataFromTSorBK( lfn, 'EventType' )[lfn]
+            self.util.logDebug( 'Event type%s: %s' % ( paramStr, str( runEvtType[paramValue] ) ) )
+            runEvtType[paramValue] = None
           evtType = runEvtType[paramValue]
           if not evtType:
             runFlush = False
@@ -619,9 +569,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         # As it may use self.data, set both transReplicas and data members
         self.transReplicas = runParamReplicas
         # Check if files have already been processed
+        # Skipped as this is taking quite some time... Leave it here as reminder, in case it becomes mandatory
         if False and self.params['Type'] not in typesWithNoCheck:
           self.util.logInfo( "Removing processed files for %s" % paramStr )
           self._removeProcessedFiles()
+        # Backward compatibility for calling helper plugin
         self.data = self.transReplicas
         status = runStatus
         if status != 'Flush' and runFlush:
@@ -654,7 +606,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             self.util.logVerbose( "Only %d ancestor RAW files (of %d) available for run %d" %
                                   ( ancestorRawFiles, rawFiles, runID ) )
         if runStatus == 'Flush':
-          flushed.append( ( paramValue, len( self.data ) ) )
+          flushed.append( ( paramValue, len( self.transReplicas ) ) )
         # Now calling the helper plugin... Set status to a fake value
         self.params['Status'] = status
         res = eval( 'self._%s()' % plugin )
@@ -664,13 +616,15 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           return res
         tasks = res['Value']
         if fromSEs:
+          # The files and if needed its ancestors have to be in a set of SEs
+          # This is used to force processing from disk replicas
           missingAncestors = 0
           okDict = {}
           # Group the LFNs by (set of) SEs in order to speed up the check for ancestors
           nbTasks = len( tasks )
           for task in tasks:
             # Restrict target SEs to those in fromSEs
-            okSEs = fromSEs & set( task[0].split( ',' ) )
+            okSEs = fromSEs.intersection( task[0].split( ',' ) )
             if okSEs:
               okDict.setdefault( tuple( okSEs ), [] ).append( task[1] )
           # Create the real tasks now
@@ -680,11 +634,12 @@ class TransformationPlugin( DIRACTransformationPlugin ):
               # taskLfns is modified by this method: lfns are eventually removed
               missing = self.util.checkAncestorsAtSE( taskLfns, fromSEs )
               if missing:
-                missingAtSEs = True
                 missingAncestors += missing
-            # Not make the tasks
+            # Now create the list of tasks
             tasks += [( ','.join( sorted( okSEs ) ), lfnList ) for lfnList in taskLfns if lfnList]
+          # Log if files are not at the required SEs
           if missingAncestors:
+            missingAtSEs = True
             self.util.logInfo( "%d files have been removed from tasks as ancestors were not present at required SEs" % missingAncestors )
           if nbTasks != len( tasks ):
             missingAtSEs = True
@@ -693,27 +648,25 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         self.util.logInfo( "Created %d tasks for run %d%s" %
                               ( len( tasks ), runID, paramStr ) )
         allTasks.extend( tasks )
-        # Cache the left-over LFNs
-        taskLfns = []
-        newSEs = []
-        for task in tasks:
-          newSEs += [se for se in task[0].split( ',' ) if se not in targetSEs and se not in newSEs ]
-          taskLfns += task[1]
-        if newSEs:
-          targetSEs += newSEs
-          self.util.logVerbose( "Set target SEs for run %s as %s" % ( str( runID ), str( targetSEs ) ) )
-          res = self.transClient.setTransformationRunsSite( self.transID, runID, ','.join( targetSEs ) )
+        taskLfns = set( lfn for task in tasks for lfn in task[1] )
+        # If there are new SEs used for that run, add them to the DB
+        targetSEs = set( se for task in tasks for se in task[0].split( ',' ) )
+        if targetSEs - runTargetSEs:
+          targetSEs = ','.join( targetSEs | runTargetSEs )
+          self.util.logVerbose( "Set target SEs for run %d as %s" % ( runID, targetSEs ) )
+          res = self.transClient.setTransformationRunsSite( self.transID, runID, targetSEs )
           if not res['OK']:
-            self.util.logError( "Failed to set target SEs to run %s as %s" %
-                                ( str( runID ), str( targetSEs ) ), res['Message'] )
-        self.util.setCachedRunLfns( runID, paramValue, [lfn for lfn in runParamLfns if lfn not in taskLfns] )
+            self.util.logError( "Failed to set target SEs", "to run %d as %s: %s" %
+                                ( runID, targetSEs, res['Message'] ) )
+        # Cache the remaining files
+        self.util.setCachedRunLfns( runID, paramValue, set( runParamLfns ) - taskLfns )
       # # # # # # # # # # #
       # End of param loop #
       # # # # # # # # # # #
       if flushed:
         # Print out info about what was flushed
         prStr = "Run %d is flushed%s:" % ( runID, " for %s" % param if param else "" )
-        prStr += ','.join( [ " %s (%d)" % flTuple if flTuple[0] else " %d files" % flTuple[1] for flTuple in sorted( flushed )] )
+        prStr += ','.join( " %s (%d files)" % flTuple if flTuple[0] else " %d files" % flTuple[1] for flTuple in sorted( flushed ) )
         self.util.logInfo( prStr )
 
       # if enough time already spent, exit
@@ -815,40 +768,25 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
 
   def _LHCbDSTBroadcast( self ):
-    """ Usually for replication of real data (4 copies)
+    """ This plug-in broadcasts files to one archive1SE, one archive2SE and numberOfCopies secondarySEs
+        All files for the same run have the same target
+        Usually for replication of real data (4 copies)
     """
     archive1SEs = resolveSEGroup( self.util.getPluginParam( 'Archive1SEs', [] ) )
     archive2SEs = resolveSEGroup( self.util.getPluginParam( 'Archive2SEs', [] ) )
     mandatorySEs = resolveSEGroup( self.util.getPluginParam( 'MandatorySEs', [] ) )
     secondarySEs = resolveSEGroup( self.util.getPluginParam( 'SecondarySEs', [] ) )
     numberOfCopies = self.util.getPluginParam( 'NumberOfReplicas', 4 )
-    return self._lhcbBroadcast( archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies, forceRun = True )
 
-  def _lhcbBroadcast( self, archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies, forceRun = False ):
-    """ This plug-in broadcasts files to one archive1SE, one archive2SE and numberOfCopies secondarySEs
-        All files for the same run have the same target
-    """
     self.util.logInfo( "Starting execution of plugin" )
 
     # We need at least all mandatory copies
     numberOfCopies = max( numberOfCopies, len( mandatorySEs ) )
 
     # Group the remaining data by run
-    res = groupByRun( self.transFiles )
-    if not res['OK']:
-      return res
-    runFileDict = res['Value']
+    runFileDict = self.util.getFilesGroupedByRun()
     if not runFileDict:
       # No files, no tasks!
-      return S_OK( [] )
-    if forceRun:
-      zeroRun = runFileDict.pop( 0, None )
-      if zeroRun:
-        self.util.logInfo( "Setting run number for files with run #0, which means it was not set yet" )
-        newRuns = self.util.setRunForFiles( zeroRun )
-        for newRun, runLFNs in newRuns.iteritems():
-          runFileDict.setdefault( newRun, [] ).extend( runLFNs )
-    if not runFileDict:
       return S_OK( [] )
 
     # For each of the runs determine the destination of any previous files
@@ -857,7 +795,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     # Make a list of SEs already assigned to runs
     res = self.util.getTransformationRuns( runFileDict )
     if not res['OK']:
-      self.util.logError( "Failed to obtain TransformationRuns", res['Message'] )
+      self.util.logError( "Error when getting transformation runs", "for runs %s : %s" % ','.join( sorted( runFileDict ), res['Message'] ) )
       return res
     for runDict in res['Value']:
       runID = runDict['RunNumber']
@@ -943,11 +881,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     # Filter file types
     if excludedFileTypes:
-      res = self.util.getBookkeepingMetadata( self.transReplicas, 'FileType' )
-      if not res['OK']:
-        return res
       excludedLfns = []
-      for lfn, fileType in res['Value'].iteritems():
+      for lfn, fileType in self.util.getMetadataFromTSorBK( self.transReplicas, 'FileType' ).iteritems():
         if fileType in excludedFileTypes:
           self.transReplicas.pop( lfn )
           excludedLfns.append( lfn )
@@ -992,10 +927,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """ Plugin for replicating files to the run destination
     """
     destSEs = resolveSEGroup( self.util.getPluginParam( 'DestinationSEs', [] ) )
-    res = self.__getRunFiles()
-    if not res['OK'] or not res['Value']:
-      return res
-    runFileDict = res['Value']
+    runFileDict = self.util.getFilesGroupedByRun()
 
     maxFiles = self.util.getPluginParam( 'MaxFilesPerTask', 100 )
     tasks = []
@@ -1145,6 +1077,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def _DestroyDataset( self ):
     """ Plugin setting all existing SEs as targets
     """
+    self.util.logInfo( "Starting execution of plugin" )
     res = self._removeReplicas( keepSEs = [], minKeep = 0 )
     if not res['OK'] or not res['Value']:
       return res
@@ -1213,58 +1146,66 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     # Remove 1 as we keep the run destination as well...
     if minKeep is None:
       minKeep = abs( self.util.getPluginParam( 'NumberOfReplicas', 1 ) )
-    if minKeep > 0:
-      minKeep -= 1
-    else:
-      minKeep += 1
 
     # Group the  data by run
-    res = groupByRun( self.transFiles )
-    if not res['OK']:
-      return res
-    runFileDict = res['Value']
+    runFileDict = self.util.getFilesGroupedByRun()
     if not runFileDict:
       # No files, no tasks!
       return S_OK( [] )
 
     res = self.util.getTransformationRuns( runFileDict )
     if not res['OK']:
-      self.util.logError( "Error when getting transformation runs for runs %s" % str( runFileDict.keys() ), res['Message'] )
+      self.util.logError( "Error when getting transformation runs",
+                          "for runs %s: %s" % ( ','.join( str( run ) for run in runFileDict ), res['Message'] ) )
       return res
-    runSites = dict( ( run['RunNumber'], set( run['SelectedSite'].split( ',' ) ) ) for run in res['Value'] if run['SelectedSite'] )
+    runSites = dict( ( run['RunNumber'], set( run['SelectedSite'].split( ',' ) ) )
+                     for run in res['Value'] if run['SelectedSite'] )
 
     # Consider all runs in turn
     tasks = []
-    for runID in runFileDict.keys():
-      runLfns = runFileDict[runID]
+    for runID, runLfns in runFileDict.iteritems():
       replicas = dict( ( lfn, ses ) for lfn, ses in self.transReplicas.iteritems() if lfn in runLfns )
-      existingSEs = set( se for lfn, ses in replicas.iteritems() for se in ses )
+      existingSEs = set( se for ses in replicas.itervalues() for se in ses )
       destinationSE = self.util.getSEForDestination( runID, existingSEs )
       if destinationSE is None:
-        self.util.logWarn( "No destination found for run", str( runID ) )
-        continue
-      self.util.logVerbose( "Preparing tasks for run %d, destination %s" % ( runID, destinationSE ) )
-      res = self._removeReplicas( replicas = replicas, fromSEs = fromSEs, keepSEs = keepSEs + [destinationSE], minKeep = minKeep )
-      if not res['OK']:
-        self.util.logError( "Error creating tasks", res['Message'] )
+        # If there is no replica at destination, remove randomly
+        self.util.logInfo( "No replicas found at destination for %d files of run %d" % ( len( runLfns ), runID ) )
+        replicasWithKeep = {}
+        replicasNoKeep = replicas
       else:
-        tasks += res['Value']
-        targetSEs = set( se for targets, _lfns in res['Value'] for se in targets.split( ',' ) )
-        runTargets = runSites.get( runID, set() )
-        if targetSEs - runTargets:
-          # Set destination sites for that run
-          runTargets = ','.join( sorted( targetSEs | runTargets ) )
-          self.util.logVerbose( "Setting destination for run %d to %s" % ( runID, runTargets ) )
-          res = self.transClient.setTransformationRunsSite( self.transID, runID, runTargets )
+        self.util.logVerbose( "Preparing tasks for run %d, destination %s" % ( runID, destinationSE ) )
+        replicasWithKeep = dict( ( lfn, ses ) for lfn, ses in replicas.iteritems() if destinationSE in ses )
+        replicasNoKeep = dict( ( lfn, ses ) for lfn, ses in replicas.iteritems() if destinationSE not in ses )
+      # We keep one more replica @ destinationSE, therefore decrease the number to be kept
+      for reps, keep, kSEs in ( ( replicasNoKeep,
+                                  minKeep,
+                                  keepSEs ),
+                                ( replicasWithKeep,
+                                  ( abs( minKeep ) - 1 ) * minKeep / abs( minKeep ),
+                                  keepSEs + [destinationSE] ) ):
+        if reps:
+          res = self._removeReplicas( replicas = reps, fromSEs = fromSEs, keepSEs = kSEs, minKeep = keep )
           if not res['OK']:
-            self.util.logError( "Failed to set target SEs to run %d as %s" %
-                                ( runID, runTargets ), res['Message'] )
+            self.util.logError( "Error creating tasks", res['Message'] )
+          elif res['Value']:
+            tasks += res['Value']
+            targetSEs = set( se for targets, _lfns in res['Value'] for se in targets.split( ',' ) )
+            runTargets = runSites.get( runID, set() )
+            if targetSEs - runTargets:
+              # Set destination sites for that run
+              runTargets = ','.join( sorted( targetSEs | runTargets ) )
+              self.util.logVerbose( "Setting destination for run %d to %s" % ( runID, runTargets ) )
+              res = self.transClient.setTransformationRunsSite( self.transID, runID, runTargets )
+              if not res['OK']:
+                self.util.logError( "Failed to set target SEs to run %d as %s" %
+                                    ( runID, runTargets ), res['Message'] )
     return S_OK( tasks )
 
   def _RemoveDataset( self ):
     """ Plugin used to remove disk replicas, keeping some (e.g. archives)
     """
     keepSEs = resolveSEGroup( self.util.getPluginParam( 'KeepSEs', ['Tier1-Archive'] ) )
+    self.util.logInfo( "Starting execution of plugin" )
     return self._removeReplicas( keepSEs = keepSEs, minKeep = 0 )
 
   def _RemoveReplicas( self, minKeep = None ):
@@ -1279,12 +1220,14 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     if minKeep is None:
       minKeep = abs( self.util.getPluginParam( 'NumberOfReplicas', 1 ) )
 
+    self.util.logInfo( "Starting execution of plugin" )
     return self._removeReplicas( fromSEs = fromSEs, keepSEs = keepSEs, mandatorySEs = mandatorySEs, minKeep = minKeep )
 
   def _ReduceReplicas( self ):
     """ Plugin for reducing the number of replicas to NumberOfReplicas
     """
     # this is the number of replicas to be kept in addition to keepSEs and mandatorySEs
+    self.util.logInfo( "Starting execution of plugin" )
     minKeep = -abs( self.util.getPluginParam( 'NumberOfReplicas', 1 ) )
     return self._RemoveReplicas( minKeep = minKeep )
 
@@ -1297,7 +1240,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       keepSEs = []
     if mandatorySEs is None:
       mandatorySEs = []
-    self.util.logInfo( "Starting execution of plugin" )
     reduceSEs = minKeep < 0
     minKeep = abs( minKeep )
     if replicas is None:
@@ -1358,7 +1300,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       if targetSEs:
         stringTargetSEs = ','.join( targetSEs )
         storageElementGroups.setdefault( stringTargetSEs, [] ).extend( lfns )
-        self.util.logVerbose( "%d files to be removed at %s" % ( len( lfns ), stringTargetSEs ) )
       else:
         self.util.logInfo( "Found %s files that don't need any replica deletion, set Processed" % len( lfns ) )
         self.transClient.setFileStatusForTransformation( self.transID, 'Processed', lfns )
@@ -1428,8 +1369,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       if productions is None or not productions.get( 'List' ):
         return S_OK( [] )
 
-      replicaGroups = getFileGroups( self.data )
-      self.util.logVerbose( "Using %d input files, in %d groups" % ( len( self.data ), len( replicaGroups ) ) )
+      replicaGroups = getFileGroups( self.transReplicas )
+      self.util.logVerbose( "Using %d input files, in %d groups" % ( len( self.transReplicas ), len( replicaGroups ) ) )
       storageElementGroups = {}
       newGroups = {}
       for stringSEs, lfns in replicaGroups.iteritems():
@@ -1466,10 +1407,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           self.util.logVerbose( 'Checking descendants for %d files in productions %s, depth %d' % ( len( lfnsToCheckForPath ),
                                                                                                     ','.join( str( prod ) for prod in prods ),
                                                                                                     depth ) )
-          lfnLeft = self.util.filterNotProcessedFiles( lfnsToCheckForPath, prods )
+          lfnLeft = self.util.selectProcessedFiles( lfnsToCheckForPath, prods )
           for prod in sorted( prods, reverse = True ) if not newMethod else [None]:
             if not lfnLeft:
-              # All files have been processed, go to next bkPath
+              # No files have been processed, go to next bkPath
               break
             if prod:
               self.util.logVerbose( 'Checking descendants for %d files in production %d, depth %d' % ( len( lfnLeft ), prod, depth ) )

@@ -79,9 +79,8 @@ def parseArguments( dmScript, allSEs = False ):
       bkFile = bkQuery.getPath()
       # Trick to be able to pass a file containing BKpaths
       if os.path.exists( bkFile ):
-        f = open( bkFile, 'r' )
-        lines = f.read().splitlines()
-        f.close()
+        with open( bkFile, 'r' ) as  fc:
+          lines = fc.read().splitlines()
         bkQueries = [BKQuery( ll.strip().split()[0] ) for ll in lines ]
         gLogger.notice( "Executing %d BKQueries" % len( bkQueries ) )
       else:
@@ -129,7 +128,7 @@ def executeRemoveReplicas( dmScript, allDisk = False ):
         if not seList:
           dmScript.setSEs( 'Tier1-USER' )
           seList = dmScript.getOption( 'SEs', [] )
-      except:
+      except TypeError:
         gLogger.fatal( "Invalid number of replicas:", switch[1] )
         return 1
 
@@ -169,7 +168,8 @@ def removeReplicas( lfnList, seList, minReplicas = 1, checkFC = True, allDisk = 
 
   if fullyRemoved or allDisk:
     lfnList = fullyRemoved
-    for lfns in [lfns for reason, siteLFNs in errorReasons.iteritems() for lfns in siteLFNs.itervalues() if reason == 'Only ARCHIVE replicas']:
+    for lfns in [lfns for reason, siteLFNs in errorReasons.iteritems()
+                 for lfns in siteLFNs.itervalues() if reason == 'Only ARCHIVE replicas']:
       lfnList.update( dict.fromkeys( lfns, [] ) )
     if lfnList:
       removeFilesInTransformations( list( lfnList ) )
@@ -204,7 +204,9 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
   savedLevel = gLogger.getLevel()
   seList = set( seList )
   chunkSize = max( 10, min( 500, len( lfnList ) / 10 ) )
-  progressBar = ProgressBar( len( lfnList ), title = 'Removing replicas' + ( ' and setting them invisible in BK' if allDisk else '' ), chunk = chunkSize )
+  progressBar = ProgressBar( len( lfnList ),
+                             title = 'Removing replicas' + ( ' and setting them invisible in BK' if allDisk else '' ),
+                             chunk = chunkSize )
   # Set files invisible in BK if removing all disk replicas
   for lfnChunk in breakListIntoChunks( sorted( lfnList ), chunkSize ):
     progressBar.loop()
@@ -242,7 +244,8 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
           filesToRemove.append( lfn )
         else:
           seString = ','.join( sorted( seList & existingReps ) )
-          errorReasons.setdefault( 'No replicas to remove (%d existing/%d requested)' % ( len( existingReps ), minReplicas ), {} ).setdefault( seString, [] ).append( lfn )
+          errorReasons.setdefault( 'No replicas to remove (%d existing/%d requested)' %
+                                   ( len( existingReps ), minReplicas ), {} ).setdefault( seString, [] ).append( lfn )
       else:
         removeSEs = sorted( existingReps & seList )
         remaining = len( existingReps - seList )
@@ -250,7 +253,8 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
           # Not enough replicas outside seList, remove only part, otherwisae remove all
           random.shuffle( removeSEs )
           seString = ','.join( removeSEs[remaining - minReplicas:] )
-          errorReasons.setdefault( 'Not all replicas could be removed in order to keep at least %d' % minReplicas, {} ).setdefault( seString, [] ).append( lfn )
+          errorReasons.setdefault( 'Not all replicas could be removed in order to keep at least %d' %
+                                   minReplicas, {} ).setdefault( seString, [] ).append( lfn )
           removeSEs = removeSEs[0:remaining - minReplicas]
         if removeSEs:
           removeSEs = tuple( removeSEs )
@@ -550,7 +554,9 @@ def removeFiles( lfnList, setProcessed = False ):
 
   if notExisting:
     # The files are not yet removed from the catalog!! :(((
-    progressBar = ProgressBar( len( notExisting ), title = "Removing %d non-existing files from FC " % len( notExisting ), chunk = chunkSize )
+    progressBar = ProgressBar( len( notExisting ),
+                               title = "Removing %d non-existing files from FC " % len( notExisting ),
+                               chunk = chunkSize )
     notExistingRemoved = []
     for lfnChunk in breakListIntoChunks( notExisting, chunkSize ):
       progressBar.loop()
@@ -686,7 +692,9 @@ def printLfnReplicas( lfnList, active = True, diskOnly = False, preferDisk = Fal
         else:
           value['Successful'][lfn][se] = "(%s) %s" % ( res['Value']['Successful'][lfn], replicas[lfn][se] )
     res = S_OK( value )
-  return printDMResult( res, empty = "No %sreplica found" % ( 'active disk ' if diskOnly else 'allowed ' if active else '' ), script = "dirac-dms-lfn-replicas" )
+  return printDMResult( res,
+                        empty = "No %sreplica found" % ( 'active disk ' if diskOnly else 'allowed ' if active else '' ),
+                        script = "dirac-dms-lfn-replicas" )
 
 def executePfnMetadata( dmScript, check = False, exists = False, summary = False ):
   """
@@ -745,7 +753,8 @@ def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = 
       metadata['Failed'][lfn] = 'No such file at %s in FC' % ' '.join( seList )
       replicas.pop( lfn )
       lfnList.remove( lfn )
-  metadata['Failed'].update( dict.fromkeys( ( url for url in lfnList if url not in replicas and url not in metadata['Failed'] ), 'FC: No active replicas' ) )
+  metadata['Failed'].update( dict.fromkeys( ( url for url in lfnList if url not in replicas and url not in metadata['Failed'] ),
+                                            'FC: No active replicas' ) )
   if not seList:
     # take all seList in replicas and add a fake '' to printout the SE name
     seList = [''] + sorted( set( se for lfn in replicas for se in replicas[lfn] ) )
@@ -889,8 +898,11 @@ def executeReplicaStats( dmScript ):
     gLogger.notice( 'You cannot dump At and Not At SE!' )
     return 1
 
-  directories = dmScript.getOption( 'Directory' )
   lfnList, seList = parseArguments( dmScript )
+  if not lfnList:
+    directories = dmScript.getOption( 'Directory' )
+  else:
+    directories = []
   if dumpAtSE or dumpNotAtSE:
     prSEList = seList
 
@@ -962,9 +974,9 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
     progressBar = ProgressBar( len( lfnReplicas ), title = 'Getting size for %d LFNs' % len( lfnReplicas ), chunk = chunkSize )
     for lfns in breakListIntoChunks( lfnReplicas, chunkSize ):
       progressBar.loop()
-      r = FileCatalog().getFileSize( lfns )
-      if r['OK']:
-        lfnSize.update( r['Value']['Successful'] )
+      res = FileCatalog().getFileSize( lfns )
+      if res['OK']:
+        lfnSize.update( res['Value']['Successful'] )
     progressBar.endLoop()
     totSize += sum( lfnSize.itervalues() )
   for lfn, replicas in lfnReplicas.iteritems():
@@ -1039,7 +1051,7 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
       if res['OK']:
         try:
           site = res['Value'][0]
-        except:
+        except IndexError:
           continue
         if site not in repSites:
           repSites[site] = [0, 0]
@@ -1069,18 +1081,18 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
       gLogger.notice( "%s (%d archives)" % ( rep, noReplicas[rep] ) )
 
   if isinstance( prWithArchives, list ):
-    for n in [m for m in prWithArchives if m in withArchives]:
-      gLogger.notice( '\nFiles with %d archives:' % n )
-      for rep in sorted( withArchives[n] ):
+    for nb in [m for m in prWithArchives if m in withArchives]:
+      gLogger.notice( '\nFiles with %d archives:' % nb )
+      for rep in sorted( withArchives[nb] ):
         gLogger.notice( rep )
 
   if isinstance( prWithReplicas, list ):
-    for n in [m for m in prWithReplicas if m in withReplicas]:
-      gLogger.notice( '\nFiles with %d disk replicas:' % n )
+    for nb in [m for m in prWithReplicas if m in withReplicas]:
+      gLogger.notice( '\nFiles with %d disk replicas:' % nb )
       if prFailover:
-        prList = withReplicas[n] & withFailover
+        prList = withReplicas[nb] & withFailover
       else:
-        prList = withReplicas[n]
+        prList = withReplicas[nb]
       for rep in sorted( prList ):
         gLogger.notice( rep )
   elif not prNoReplicas and prFailover and withFailover:
@@ -1115,7 +1127,7 @@ def executeReplicateLfn( dmScript ):
     # Extract the destination and source SEs
     destList, _args = __checkSEs( seList[0].split( ',' ), expand = False )
     sourceSE = seList[1].split( ',' )
-  except:
+  except IndexError:
     pass
   # gLogger.notice( seList, destList, sourceSE
   if not destList or len( sourceSE ) > 1:
@@ -1402,18 +1414,18 @@ def setProblematicFiles( lfnList, targetSEs, reset = False, fullInfo = False, ac
 def __dfcGetDirectoryMetadata( catalog, dirList ):
   success = {}
   failed = {}
-  for d in dirList:
-    sup = os.path.dirname( d )
+  for dirName in dirList:
+    sup = os.path.dirname( dirName )
     res = catalog.listDirectory( sup, True )
     if res['OK']:
-      metadata = res['Value']['Successful'].get( sup, {} ).get( 'SubDirs', {} ).get( d )
+      metadata = res['Value']['Successful'].get( sup, {} ).get( 'SubDirs', {} ).get( dirName )
       if metadata:
         metadata['isDirectory'] = True
-        success[d] = metadata
+        success[dirName] = metadata
       else:
-        failed[d] = 'No such file or directory'
+        failed[dirName] = 'No such file or directory'
     else:
-      failed[d] = res['Message']
+      failed[dirName] = res['Message']
   return S_OK( { 'Successful': success, 'Failed':failed} )
 
 def executeLfnMetadata( dmScript ):
@@ -1474,7 +1486,9 @@ def executeGetFile( dmScript ):
     return 2
 
   nLfns = len( lfnList )
-  gLogger.notice( 'Downloading %s to %s%s' % ( ( '%d files' % nLfns ) if nLfns > 1 else 'file', dirList[0], ' from %s' % sourceSE if sourceSE else '' ) )
+  gLogger.notice( 'Downloading %s to %s%s' %
+                  ( ( '%d files' % nLfns ) if nLfns > 1 else 'file', dirList[0],
+                    ' from %s' % sourceSE if sourceSE else '' ) )
   result = DataManager().getFile( lfnList, destinationDir = dirList[0], sourceSE = sourceSE )
 
   # Prepare popularity report
@@ -1488,7 +1502,7 @@ def executeGetFile( dmScript ):
       localSite = gConfig.getValue( '/LocalSite/Site', 'UNKNOWN' )
       try:
         localSite = localSite.split( '.' )[1]
-      except:
+      except IndexError:
         pass
       res = DataUsageClient().sendDataUsageReport( localSite, popReport )
       if not res['OK']:
@@ -1664,8 +1678,16 @@ def executeListDirectory( dmScript, days = 0, months = 0, years = 0, wildcard = 
   for arg in args:
     baseDirs += arg.split( ',' )
 
+  bkQuery = dmScript.getBKQuery()
+  if bkQuery:
+    # We should get the list of directories from that query
+    baseDirs += bkQuery.getDirs()
+
   wildcardSplit = wildcard.split( '/' )
+  progressBar = ProgressBar( len( baseDirs ), title = "Getting files from %d directories" % len( baseDirs ), chunk = 1 )
+  filesInDirs = {}
   for baseDir in baseDirs:
+    progressBar.loop()
     if baseDir[-1] == '/':
       baseDir = baseDir[:-1]
     gLogger.info( 'Will search for files in %s' % baseDir )
@@ -1681,17 +1703,19 @@ def executeListDirectory( dmScript, days = 0, months = 0, years = 0, wildcard = 
         continue
       res = fc.listDirectory( currentDir, verbose )
       if not res['OK']:
-        gLogger.error( "Error retrieving directory contents -", "%s %s/" % ( res['Message'].replace( currentDir, '' ), currentDir ) )
+        gLogger.error( "Error retrieving directory contents -",
+                       "%s %s/" % ( res['Message'].replace( currentDir, '' ), currentDir ) )
       elif currentDir in res['Value']['Failed']:
-        gLogger.error( "Error retrieving directory contents -", "%s %s/" % ( res['Value']['Failed'][currentDir].replace( currentDir, '' ), currentDir ) )
+        gLogger.error( "Error retrieving directory contents -",
+                       "%s %s/" % ( res['Value']['Failed'][currentDir].replace( currentDir, '' ), currentDir ) )
       else:
         dirContents = res['Value']['Successful'][currentDir]
         empty = True
         for subdir in sorted( dirContents['SubDirs'] ):
           metadata = dirContents['SubDirs'][subdir]
-          d = len( subdir.replace( baseDir, '' ).split( '/' ) )
-          # print subdir, baseDir, subdir.replace( baseDir, '' ).split( '/' ), d
-          if ( d < depth ) and ( not verbose or __isOlderThan( metadata['CreationDate'], totalDays ) ):
+          dirDepth = len( subdir.replace( baseDir, '' ).split( '/' ) )
+          # print subdir, baseDir, subdir.replace( baseDir, '' ).split( '/' ), dirDepth
+          if ( dirDepth < depth ) and ( not verbose or __isOlderThan( metadata['CreationDate'], totalDays ) ):
             activeDirs.append( subdir )
           empty = False
         for filename in sorted( dirContents['Files'] ):
@@ -1705,7 +1729,10 @@ def executeListDirectory( dmScript, days = 0, months = 0, years = 0, wildcard = 
           gLogger.notice( "%s/: %d files, %d sub-directories" % ( currentDir, len( dirContents['Files'] ), len( dirContents['SubDirs'] ) ) )
         if empty:
           emptyDirs.add( currentDir )
+    filesInDirs[baseDir] = allFiles
+  progressBar.endLoop()
 
+  for baseDir, allFiles in filesInDirs.iteritems():
     if outputFlag:
       outputFileName = '%s.lfns' % baseDir[1:].replace( '/', '-' )
       outputFile = open( outputFileName, 'w' )
@@ -1806,7 +1833,8 @@ def registerBK2FC( lfnList, seList, printResult = False ):
               result['Failed'].update( res['Value']['Failed'] )
 
     if lfnList:
-      result['Failed'].update( dict.fromkeys( [lfn for lfn in lfnList if lfn not in result['Failed']], 'Not found at any of %s' % seListString ) )
+      result['Failed'].update( dict.fromkeys( ( lfn for lfn in lfnList if lfn not in result['Failed'] ),
+                                              'Not found at any of %s' % seListString ) )
 
   if printResult:
     printDMResult( S_OK( result ) )

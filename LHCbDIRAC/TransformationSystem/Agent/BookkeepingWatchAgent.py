@@ -18,6 +18,7 @@ from DIRAC.Core.Utilities.ThreadSafe                                      import
 from DIRAC.Core.Utilities.List                                            import breakListIntoChunks
 from DIRAC.FrameworkSystem.Client.MonitoringClient                        import gMonitor
 from DIRAC.TransformationSystem.Agent.TransformationAgentsUtilities       import TransformationAgentsUtilities
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations                  import Operations
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient                 import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
 
@@ -49,12 +50,13 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
     self.pickleFile = 'BookkeepingWatchAgent.pkl'
     self.chunkSize = 1000
 
-    self.pluginsWithNoRunInfo = ( 'LHCbStandard', 'ReplicateDataset', 'ArchiveDataset',
+    self.pluginsWithNoRunInfo = [ 'LHCbStandard', 'ReplicateDataset', 'ArchiveDataset',
                                   'LHCbMCDSTBroadcastRandom', 'ReplicateToLocalSE',
-                                  'RemoveReplicas', 'RemoveReplicasWhenProcessed', 'ReduceReplicas',
+                                  'RemoveReplicas', 'RemoveReplicasWhenProcessed',
+                                  'RemoveReplicasWithAncestors', 'ReplicateWithAncestors',
+                                  'ReduceReplicas', 'RemoveDataset',
                                   'DestroyDataset', 'DestroyDatasetWhenProcessed',
-                                  'RemoveDataset',
-                                  'BySize', 'Standard' )
+                                  'BySize', 'Standard' ]
 
     self.timeLog = {}
     self.fullTimeLog = {}
@@ -75,7 +77,9 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
     self.pickleFile = os.path.join( self.am_getWorkDirectory(), self.pickleFile )
     self.chunkSize = self.am_getOption( 'maxFilesPerChunk', self.chunkSize )
 
-    self.pluginsWithNoRunInfo = self.am_getOption( 'PluginsWithNoRunInfo', self.pluginsWithNoRunInfo )
+    self.pluginsWithNoRunInfo = Operations().getValue( 'TransformationPlugins/PluginsWithNoRunInfo', [] )
+    if not self.pluginsWithNoRunInfo:
+      self.pluginsWithNoRunInfo = self.am_getOption( 'PluginsWithNoRunInfo', self.pluginsWithNoRunInfo )
 
     self._logInfo( 'Full Update Period: %d seconds' % self.fullUpdatePeriod )
     self._logInfo( 'BK update latency : %d seconds' % self.bkUpdateLatency )
@@ -198,39 +202,45 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
           continue
 
         runDict = {}
-        # There is no need to add the run information for a removal transformation
+        filesMetadata = {}
+        # get the files metadata
+        for lfnChunk in breakListIntoChunks( files, self.chunkSize ):
+          start = time.time()
+          res = self.bkClient.getFileMetadata( lfnChunk )
+          self._logVerbose( "Got metadata from BK for %d files" % len( lfnChunk ), transID = transID, reftime = start )
+          if not res['OK']:
+            self._logError( "Failed to get BK metadata for %d files" % len( lfnChunk ),
+                            res['Message'], transID = transID )
+            # No need to return as we only consider files that are successful...
+          else:
+            filesMetadata.update( res['Value']['Successful'] )
+
+        # There is no need to add the run information for a transformation that doesn't need it
         if transPlugin not in self.pluginsWithNoRunInfo:
-          # get the run number in order to sort the files
-          for lfnChunk in breakListIntoChunks( files, self.chunkSize ):
-            start = time.time()
-            res = self.bkClient.getFileMetadata( lfnChunk )
-            self._logVerbose( "Got metadata from BK for %d files" % len( lfnChunk ), transID = transID, reftime = start )
-            if not res['OK']:
-              self._logError( "Failed to get BK metadata for %d files" % len( lfnChunk ),
-                              res['Message'], transID = transID )
-            else:
-              for lfn, metadata in res['Value']['Successful'].iteritems():
-                runID = metadata.get( 'RunNumber', None )
-                if isinstance( runID, ( basestring, int, long ) ):
-                  runDict.setdefault( int( runID ), [] ).append( lfn )
+          for lfn, metadata in filesMetadata.iteritems():
+            runID = metadata.get( 'RunNumber', None )
+            if isinstance( runID, ( basestring, int, long ) ):
+              runDict.setdefault( int( runID ), [] ).append( lfn )
           try:
             self.__addRunsMetadata( transID, runDict.keys() )
           except RuntimeError as e:
             self._logException( "Failure adding runs metadata", method = "__addRunsMetadata", lException = e, transID = transID )
         else:
-          runDict[None] = files
+          runDict[None] = filesMetadata.keys()
 
         # Add all new files to the transformation
         for runID in sorted( runDict ):
-          lfnList = sorted( runDict[runID] )
+          lfnList = runDict[runID]
+          # We enter all files of a run at once, otherwise do it by chunks
           lfnChunks = [lfnList] if runID else breakListIntoChunks( lfnList, self.chunkSize )
           for lfnChunk in lfnChunks:
             # Add the files to the transformation
             self._logVerbose( 'Adding %d lfns for transformation' % len( lfnChunk ), transID = transID )
             result = self.transClient.addFilesToTransformation( transID, lfnChunk )
             if not result['OK']:
-              self._logWarn( "Failed to add %d lfns to transformation" % len( lfnChunk ), result['Message'],
+              self._logError( "Failed to add %d lfns to transformation" % len( lfnChunk ), result['Message'],
                              transID = transID )
+              return result
             else:
               # Handle errors
               errors = {}
@@ -239,17 +249,25 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
               for error, lfns in errors.iteritems():
                 self._logWarn( "Failed to add files to transformation", error, transID = transID )
                 self._logVerbose( "\n\t".join( [''] + lfns ) )
-              # Add the RunNumber to the newly inserted files
+              # Add the metadata and RunNumber to the newly inserted files
               addedLfns = [lfn for ( lfn, status ) in result['Value']['Successful'].iteritems() if status == 'Added']
               if addedLfns:
+                # Add files metadata: size and file type
+                lfnDict = dict( ( lfn, {'Size':filesMetadata[lfn]['FileSize'], 'FileType':filesMetadata[lfn]['FileType']} ) for lfn in addedLfns )
+                res = self.transClient.setParameterToTransformationFiles( transID, lfnDict )
+                if not res['OK']:
+                  self._logError( "Failed to set transformation files metadata", res['Message'] )
+                  return res
+                # Add run information if it exists
                 if runID:
                   self._logInfo( "Added %d files to transformation for run %d, now including run information"
                                  % ( len( addedLfns ), runID ) , transID = transID )
                   self._logVerbose( "Associating %d files to run %d" % ( len( addedLfns ), runID ), transID = transID )
                   res = self.transClient.addTransformationRunFiles( transID, runID, addedLfns )
                   if not res['OK']:
-                    self._logWarn( "Failed to associate %d files to run %d" % ( len( addedLfns ), runID ),
+                    self._logError( "Failed to associate %d files to run %d" % ( len( addedLfns ), runID ),
                                    res['Message'], transID = transID )
+                    return res
                 else:
                   self._logInfo( "Added %d files to transformation" % len( addedLfns ) , transID = transID )
 

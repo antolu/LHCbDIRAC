@@ -375,7 +375,6 @@ class ConsistencyChecks( DiracConsistencyChecks ):
     self.descForNonPrcdLFNs = res[3]
     self.inFCNotInBK += res[4]
     self.inBKNotInFC += res[5]
-    self.removedFiles += res[6]
     self.inFailover += res[7]
 
     if self.prcdWithoutDesc:
@@ -592,7 +591,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
 
     daughtersBKInfo = self.__getDaughtersInfo( lfns, status, filesWithDescendants,
                                                filesWithoutDescendants, filesWithMultipleDescendants )
-    for daughter in daughtersBKInfo.keys():  # pylint: disable=consider-iterating-dictionary
+    for daughter in daughtersBKInfo.keys():
       # Ignore the daughters that have a type to ignore
       if daughtersBKInfo[daughter][1] in fileTypesExcluded:
         daughtersBKInfo.pop( daughter )
@@ -649,7 +648,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
           _, notPresent = self.getReplicasPresence( uniqueDescendants )
           inBKNotInFC += notPresent
           # Remove descendants that are not in FC, and if no descendants remove ancestor as well
-          for anc in notPresentDescendants.keys():  # pylint: disable=consider-iterating-dictionary
+          for anc in notPresentDescendants.keys():
             for desc in notPresentDescendants[anc].keys():
               if desc in notPresent:
                 notPresentDescendants[anc].pop( desc )
@@ -734,7 +733,9 @@ class ConsistencyChecks( DiracConsistencyChecks ):
       filesWithDescendants.pop( lfn, None )
     # For files in FC and not in BK, ignore if they are not active
     if inFCNotInBK:
-      progressBar = ProgressBar( len( inFCNotInBK ), title = "Checking FC for %d file found in FC and not in BK" % len( inFCNotInBK ), step = 1, interactive = self.interactive )
+      progressBar = ProgressBar( len( inFCNotInBK ),
+                                 title = "Checking FC for %d file found in FC and not in BK" % len( inFCNotInBK ),
+                                 step = 1, interactive = self.interactive )
       notInFailover, _notFound = self.getReplicasPresence( inFCNotInBK, ignoreFailover = True )
       inFailover = list( set( inFCNotInBK ) - set( notInFailover ) )
       progressBar.endLoop( message = "found %d in Failover" % len( inFailover ) )
@@ -1010,7 +1011,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
                                title = "Get FC metadata for %d files to be checked: " % len( replicas ),
                                chunk = chunkSize, interactive = self.interactive )
     metadata = {}
-    for lfnChunk in breakListIntoChunks( replicas, chunkSize ):  # pylint: disable=consider-iterating-dictionary
+    for lfnChunk in breakListIntoChunks( replicas, chunkSize ):
       progressBar.loop()
       res = self.fc.getFileMetadata( lfnChunk )
       if not res['OK']:
