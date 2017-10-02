@@ -302,8 +302,10 @@ def printResults( request, mergeAction ):
       if filesDict[ 'Hot' ] == 'Hot':
         print 'BK Browsing Path: [%s]' % (filesDict[ 'Path' ])
         bkpath = filesDict[ 'Path' ]
-
-        processed = ( float( filesDict[ 'Processed' ] ) / float( filesDict[ 'Total' ] ) ) * 100
+        try:
+          processed = ( float( filesDict[ 'Processed' ] ) / float( filesDict[ 'Total' ] ) ) * 100
+        except ZeroDivisionError:
+          processed = 0
         filesMsg = '%.2f%%\t\t(%d)\t\t%d\t%d\t%d\t%d\t%s' % ( processed, filesDict['Total'],filesDict[ 'Done' ], filesDict['Running'],filesDict[ 'Waiting' ], filesDict['Failed'], filesDict[ 'Hot' ] )
 
         msgTuple = ( ( '%d\t%d\t%s\t%s' % (request[ 'requestID' ], transformationID, transformation[ 'transformationStatus' ],
@@ -320,7 +322,10 @@ def printResults( request, mergeAction ):
       filesMsg = '..No files at all..'
     else:
       try:
-        processed = ( float( filesDict[ 'Processed' ] ) / float( filesDict[ 'Total' ] ) ) * 100
+        try:
+          processed = ( float( filesDict[ 'Processed' ] ) / float( filesDict[ 'Total' ] ) ) * 100
+        except ZeroDivisionError:
+          processed = 0
         filesMsg = '%.2f%%\t\t(%d)\t\t%d\t%d\t%d\t%d\t%s' % ( processed, filesDict['Total'],filesDict[ 'Done' ], filesDict['Running'],filesDict[ 'Waiting' ], filesDict['Failed'], filesDict[ 'Hot' ] )
       except KeyError:
         print "No files processed"
