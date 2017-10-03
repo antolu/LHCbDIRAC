@@ -1059,7 +1059,11 @@ class TransformationDebug( object ):
         gLogger.notice( '\n %d LFNs: %s : Status of corresponding %d jobs (ordered):' % ( len( lfnList ), lfnList, len( allJobs ) ) )
       else:
         gLogger.notice( '\n %d LFNs: Status of corresponding %d jobs (ordered):' % ( len( lfnList ), len( allJobs ) ) )
-      gLogger.notice( ' '.join( allJobs ) )
+      res = self.monitoring.getJobsSites( allJobs )
+      if res['OK']:
+        jobSites.update( dict( ( job, res['Value'][int( job )]['Site'] ) for job in allJobs ) )
+      gLogger.notice( ', '.join( allJobs ) )
+      gLogger.notice( 'Sites:', ', '.join( jobSites.get( job, 'Unknown' ) for job in allJobs ) )
       prevStatus = None
       allStatus[sys.maxint] = ''
       jobs = []
@@ -1085,14 +1089,11 @@ class TransformationDebug( object ):
         if majorStatus == 'Failed' and minorStatus == 'Job stalled: pilot not running':
           lastLine = ''
           # Now get last lines
-          res = self.monitoring.getJobsSites( jobs )
-          if res['OK']:
-            jobSites.update( res['Value'] )
           for job1 in sorted( jobs ) + [0]:
             if job1:
               res = self.monitoring.getJobParameter( int( job1 ), 'StandardOutput' )
               if res['OK']:
-                line = '(%s) ' % jobSites.get( job1, {} ).get( 'Site', 'Unknown' ) + \
+                line = '(%s) ' % jobSites.get( job1, 'Unknown' ) + \
                        res['Value'].get( 'StandardOutput', 'stdout not available\n' ).splitlines()[-1].split( 'UTC ' )[-1]
             else:
               line = ''
@@ -1156,9 +1157,7 @@ class TransformationDebug( object ):
 
       for ( lfn, reason ), jobs in failedLfns.iteritems():
         jobs = sorted( set( jobs ) )
-        res = self.monitoring.getJobsSites( jobs )
-        if res['OK']:
-          sites = sorted( set( val['Site'] for val in res['Value'].itervalues() ) )
+        sites = sorted( jobSites.get( job, 'Unknown' ) for job in jobs )
         gLogger.notice( "ERROR ==> %s was %s during processing from jobs %s (sites %s): " %
                         ( lfn, reason, ','.join( str( job ) for job in jobs ), ','.join( sites ) ) )
         # Get an example log if possible

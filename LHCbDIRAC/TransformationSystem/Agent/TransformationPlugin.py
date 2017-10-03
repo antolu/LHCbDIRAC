@@ -562,9 +562,17 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           if not evtType:
             runFlush = False
         runParamReplicas = {}
+        notAtSEs = 0
         for lfn in runParamLfns & setInputData:
-          runParamReplicas[lfn ] = [se for se in inputData[lfn]
-                                    if self.util.dmsHelper.isSEForJobs( se, checkSE = False )]
+          runParamReplicas[lfn] = [se for se in inputData[lfn]
+                                   if self.util.dmsHelper.isSEForJobs( se, checkSE = False ) and
+                                   ( not fromSEs or se in fromSEs )]
+          if not runParamReplicas[lfn]:
+            notAtSEs += 1
+            del runParamReplicas[lfn]
+        if notAtSEs:
+          self.util.logInfo( "For run %d, %d files are not at required SEs: tasks cannot be created" % ( runID, notAtSEs ) )
+
         # We need to replace the input replicas by those of this run before calling the helper plugin
         # As it may use self.data, set both transReplicas and data members
         self.transReplicas = runParamReplicas

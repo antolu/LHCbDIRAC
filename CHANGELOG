@@ -15,6 +15,18 @@ use DIRAC v6r19-pre4
 * removing old tests
 * added reco17
 
+[v8r8p19]
+use DIRAC v6r17p33
+
+* report error in mail
+* Only consider replicas in fromSEs in _byRun
+* Avoid considering runs that miss one detector
+* More pythonic way of doing it
+* Fix divide-by-zero error
+* Add list of sites in jobs info
+* More logging
+* Remove backward compatibility for PluginsWithNoRunInfo
+
 [v8r8p18]
 use DIRAC v6r17p32
 
