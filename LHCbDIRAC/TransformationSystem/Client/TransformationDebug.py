@@ -332,9 +332,11 @@ class TransformationDebug( object ):
         notMissing = len( replicas )
         if notMissing:
           if not self.kickRequests:
-            gLogger.notice( "%d files are %s but indeed are in the FC - Use --KickRequests to reset them Unused" % ( notMissing, status ) )
+            gLogger.notice( "%d files are %s but indeed are in the FC - \
+              Use --KickRequests to reset them Unused" % ( notMissing, status ) )
           else:
-            res = self.transClient.setFileStatusForTransformation( self.transID, 'Unused', replicas.keys(), force = True )
+            res = self.transClient.setFileStatusForTransformation( self.transID, 'Unused',
+                                                                   replicas.keys(), force = True )
             if res['OK']:
               gLogger.notice( "%d files were %s but indeed are in the FC - Reset to Unused" % ( notMissing, status ) )
             else:
@@ -658,7 +660,8 @@ class TransformationDebug( object ):
       for nb in sorted( nbExistingReplicas ):
         gLogger.notice( "   %d active replicas: %d files" % ( nb, nbExistingReplicas[nb] ) )
       for se in problematicReplicas:
-        lfns = [lfn for lfn in problematicReplicas[se] if lfn not in existingReplicas or se not in existingReplicas[lfn]]
+        lfns = [lfn for lfn in problematicReplicas[se]\
+                if lfn not in existingReplicas or se not in existingReplicas[lfn]]
         str2Msg = ''
         if len( lfns ):
           nonExistingReplicas.setdefault( se, [] ).extend( lfns )
@@ -673,7 +676,8 @@ class TransformationDebug( object ):
           gLogger.notice( "   %s : %d replicas of problematic files in FC, %s physically missing.%s" %
                           ( str( se ).ljust( 15 ), len( problematicReplicas[se] ), strMsg, str2Msg ) )
         else:
-          gLogger.notice( "   %s : %d files are not in self.fileCatalog." % ( ''.ljust( 15 ), len( problematicReplicas[se] ) ) )
+          gLogger.notice( "   %s : %d files are not in self.fileCatalog." % ( ''.ljust( 15 ),
+                                                                              len( problematicReplicas[se] ) ) )
       lfns = [lfn for lfn in existingReplicas if lfn in failedFiles]
       if lfns:
         prString = "Failed transfers but existing replicas"
@@ -1480,8 +1484,12 @@ class TransformationDebug( object ):
         self.__checkWaitingTasks()
         continue
 
-      self.pluginUtil = PluginUtilities( self.transPlugin, transClient = self.transClient, dataManager = self.dataManager,
-                                    bkClient = self.bkClient, debug = verbose, transID = transID )  ################
+      self.pluginUtil = PluginUtilities( self.transPlugin,
+                                         transClient = self.transClient,
+                                         dataManager = self.dataManager,
+                                         bkClient = self.bkClient, 
+                                         debug = verbose, 
+                                         transID = transID )
       # Select runs, or all
       runsDictList = self.__getRuns( runList, byRuns, seList, status )
       if runList and [run['RunNumber'] for run in runsDictList] == [None]:
@@ -1547,7 +1555,7 @@ class TransformationDebug( object ):
           if runStatus != 'Flush':
             # Check if the run should be flushed
             lfn = transFilesList[0]['LFN']
-            res = self.pluginUtil.getBookkeepingMetadata( lfn, 'EventType' )
+            res = self.pluginUtil.getMetadataFromTSorBK( lfn, 'EventType' )
             if res['OK']:
               evtType = res['Value'][lfn]
             else:

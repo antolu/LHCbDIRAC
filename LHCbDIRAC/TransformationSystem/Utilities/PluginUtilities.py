@@ -306,7 +306,9 @@ class PluginUtilities( DIRACPluginUtilities ):
             filesParam[lfn] = value
 
       lfnsLeft = set( lfns ) - set( filesParam )
-      self.logVerbose( "Found parameter %s in transFiles for %d files, %d left" % ( param, len( filesParam ), len( lfnsLeft ) ) )
+      self.logVerbose( "Found parameter %s in transFiles for %d files, %d left" % ( param,
+                                                                                    len( filesParam ),
+                                                                                    len( lfnsLeft ) ) )
     else:
       lfnsLeft = lfns
 
@@ -335,7 +337,8 @@ class PluginUtilities( DIRACPluginUtilities ):
               lfnDict.setdefault( lfn, {} ).update( {par: success[lfn][param]} )
       if lfnDict:
         res = self.transClient.setParameterToTransformationFiles( self.transID, lfnDict )
-        self.logVerbose( "Updated files metadata in TS for %d files: %s" % ( len( lfnDict ), 'OK' if res['OK'] else 'Failed' ) )
+        self.logVerbose( "Updated files metadata in TS for %d files: %s" % ( len( lfnDict ),
+                                                                             'OK' if res['OK'] else 'Failed' ) )
 
     return filesParam
 
@@ -353,7 +356,8 @@ class PluginUtilities( DIRACPluginUtilities ):
     else:
       cacheOK = False
     if cacheOK:
-      if transStatus != 'Flush' and ( now - productions['LastCall_%s' % self.transID] ) < datetime.timedelta( hours = period ):
+      if transStatus != 'Flush' and ( now - productions['LastCall_%s' % self.transID] )\
+                                      < datetime.timedelta( hours = period ):
         self.logInfo( "Skip this loop (less than %s hours since last call)" % period )
         return None
     else:
@@ -391,7 +395,8 @@ class PluginUtilities( DIRACPluginUtilities ):
     """
     # Make sure we request the same parameter
     if self.paramName and self.paramName != param:
-      self.logWarn( "Requested parameter %s not compatible with previously used parameter %s, get from BK" % ( param, self.paramName ) )
+      self.logWarn( "Requested parameter %s not compatible with previously used parameter %s, \
+                    get from BK" % ( param, self.paramName ) )
       return self.getMetadataFromTSorBK( lfns, param )
 
     self.paramName = param
@@ -483,7 +488,8 @@ class PluginUtilities( DIRACPluginUtilities ):
       weightForSEs.pop( se )
     return rankedSEs
 
-  def setTargetSEs( self, numberOfCopies, archive1SEs, archive2SEs, mandatorySEs, secondarySEs, existingSEs, exclusiveSEs = False ):
+  def setTargetSEs( self, numberOfCopies, archive1SEs, archive2SEs, 
+                    mandatorySEs, secondarySEs, existingSEs, exclusiveSEs = False ):
     """
     Decide on which SEs to target from lists and current status of replication
         Policy is max one archive1, one archive 2, all mandatory SEs and required number of copies elsewhere
@@ -528,7 +534,9 @@ class PluginUtilities( DIRACPluginUtilities ):
     # 1. add mandatory SEs
     candidateSEs = [se for se in mandatorySEs if not self.isSameSEInList( se, existingSEs )]
     # 2. add existing disk SEs that are either mandatory or secondary
-    candidateSEs += [se for se in existingSEs if se in ( mandatorySEs + secondarySEs ) and not self.isSameSEInList( se, targetSEs + candidateSEs ) and not isArchive( se )]
+    candidateSEs += [se for se in existingSEs if se in ( mandatorySEs + secondarySEs )\
+                                              and not self.isSameSEInList( se, targetSEs + candidateSEs )\
+                                              and not isArchive( se )]
     # 3. add ranked list of secondary SEs
     candidateSEs += [se for se in self.rankSEs( secondaryActiveSEs ) if not self.isSameSEInList( se, targetSEs + candidateSEs + existingSEs )]
     # 4. Select the proper number of SEs in the candidate ordered list
@@ -592,7 +600,8 @@ class PluginUtilities( DIRACPluginUtilities ):
     Check which files have been processed by a given production, i.e. have a meaningful descendant
     """
     from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import getFileDescendants
-    return getFileDescendants( self.transID, lfns, transClient = self.transClient, dm = self.dm, bkClient = self.bkClient )
+    return getFileDescendants( self.transID, lfns, transClient = self.transClient, 
+                               dm = self.dm, bkClient = self.bkClient )
 
   # @timeThis
   def getRAWAncestorsForRun( self, runID, param = None, paramValue = None, getFiles = False ):
@@ -752,7 +761,8 @@ class PluginUtilities( DIRACPluginUtilities ):
       return self.__clearTaskLFNs( taskLfns )
     ancestors = ancestors['Value']['Successful']
     ancLfns = [anc['FileName'] for ancList in ancestors.itervalues() for anc in ancList]
-    self.logVerbose( 'Checking ancestors presence at %s for %d files' % ( ','.join( sorted( seList ) ), len( ancLfns ) ) )
+    self.logVerbose( 'Checking ancestors presence at %s for %d files' % ( ','.join( sorted( seList ) ),
+                                                                          len( ancLfns ) ) )
     res = self.dm.getReplicasForJobs( ancLfns, getUrl = False )
     if not res['OK']:
       self.logError( "Error getting replicas of ancestors", res['Message'] )
@@ -905,23 +915,20 @@ class PluginUtilities( DIRACPluginUtilities ):
       if not self.cacheFile:
         self.cacheFile = cacheFile
       try:
-        f = open( cacheFile, 'r' )
-        self.cachedLFNAncestors = pickle.load( f )
-        # Do not cache between cycles, only cache temporarily, but keep same structure in file, i.e. fake load
-        _cachedNbRAWFiles = pickle.load( f )
-        _cachedLFNSize = pickle.load( f )
-        self.cachedRunLfns = pickle.load( f )
-        self.cachedProductions = pickle.load( f )
-        self.cachedLastRun = pickle.load( f )
-        self.cachedLFNProcessedPath = pickle.load( f )
-        self.lastCall = pickle.load( f )
-        f.close()
+        with open( cacheFile, 'r' ) as cacheFile_o:
+          self.cachedLFNAncestors = pickle.load( cacheFile_o )
+          # Do not cache between cycles, only cache temporarily, but keep same structure in file, i.e. fake load
+          _cachedNbRAWFiles = pickle.load( cacheFile_o )
+          _cachedLFNSize = pickle.load( cacheFile_o )
+          self.cachedRunLfns = pickle.load( cacheFile_o )
+          self.cachedProductions = pickle.load( cacheFile_o )
+          self.cachedLastRun = pickle.load( cacheFile_o )
+          self.cachedLFNProcessedPath = pickle.load( cacheFile_o )
+          self.lastCall = pickle.load( cacheFile_o )
         self.logVerbose( "Cache file %s successfully loaded" % cacheFile )
         # print '*****'
         # print '\n'.join( ['%s %s' % ( key, val ) for key, val in self.cachedLFNProcessedPath.items()] )
         break
-      except EOFError:
-        f.close()
       except IOError:
         self.logVerbose( "Cache file %s could not be loaded" % cacheFile )
 
@@ -982,16 +989,15 @@ class PluginUtilities( DIRACPluginUtilities ):
     import pickle
     if self.cacheFile:
       try:
-        f = open( self.cacheFile, 'w' )
-        pickle.dump( self.cachedLFNAncestors, f )
-        pickle.dump( self.cachedNbRAWFiles, f )
-        pickle.dump( self.cachedLFNSize, f )
-        pickle.dump( self.cachedRunLfns, f )
-        pickle.dump( self.cachedProductions, f )
-        pickle.dump( self.cachedLastRun, f )
-        pickle.dump( self.cachedLFNProcessedPath, f )
-        pickle.dump( self.lastCall, f )
-        f.close()
+        with open( self.cacheFile, 'w' ) as cacheFile_o:
+          pickle.dump( self.cachedLFNAncestors, cacheFile_o )
+          pickle.dump( self.cachedNbRAWFiles, cacheFile_o )
+          pickle.dump( self.cachedLFNSize, cacheFile_o )
+          pickle.dump( self.cachedRunLfns, cacheFile_o )
+          pickle.dump( self.cachedProductions, cacheFile_o )
+          pickle.dump( self.cachedLastRun, cacheFile_o )
+          pickle.dump( self.cachedLFNProcessedPath, cacheFile_o )
+          pickle.dump( self.lastCall, cacheFile_o )
         self.logVerbose( "Cache file %s successfully written" % self.cacheFile )
       except:
         self.logError( "Could not write cache file %s" % self.cacheFile )
