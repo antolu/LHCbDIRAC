@@ -1,3 +1,84 @@
+[v9r0-pre7]
+use DIRAC v6r19-pre13
+
+* add Instructions for running MC on HTLFarm
+* moved some columns from DOUBLE to INTEGER
+* removed obsolete module
+* fixed some unit tests
+* moved to sqlalchemy declarative_base definition of table
+* removed obsolete stuff
+* add empty line before :param
+* Fix bk-rejection-stats, final checks OK
+* make pylint happy and add feature to get EventInputStat from ancestors if not reliable in BK
+* Allow to flush all active runs in a production
+* revert print
+* Bad argument
+* add else: clause
+* Fix information from check-descendants
+* Fix undefined variable
+* Cosmetic changes
+* Use TS files metadata in plugins rather than query again the BK
+* Make use of the TransformationFiles metadata rather that query again hte BK
+* Fix few rare errors
+* adapt to change in se.getStatus()
+* allow DIRAC not to be released yet
+* adapt to se.getStatus()
+* Set Size and FileType metadata in the TS table
+* fix permissions
+*  add comment
+* Change comments
+* From Fede: Fix tests
+* Merge branch 'master_DOC_moreReleaseDoc' into 'master'
+* Correct ordering of releases.cfg
+* split test in 2 (to avoid logger confusion)
+* v9r0-pre6
+* use the latest verdsion of pyGSI (0.6.5)
+* just fixed list of ST
+* removing M_DST
+* change one line comment
+* remove heptools for gcc48
+* rescheduling when LbRunError
+* treating separately lb-run errors from application errors
+* remove ref to gcc
+* just removing seemingly useless parts
+* test and pylint fixes
+* pylint
+* var fix
+* updated Reco, removed outdated tests
+* removing old tests
+* added reco17
+* fixed paths
+* adapting to v6r18
+* RSS fixes
+* fix
+* just updating the reco17 step
+* fix finder
+* using the right commands list
+* fixing RSS unit tests
+* LHCbDIRAC can be released in all platform
+* gLogger instead of print
+* fixing location finder
+* add lbvobox110,201 and 27 hosts
+* Docker:allow to specify alternative repository to checkout the code when running
+* final removal of AnalyseLogFile
+* split regression tests
+* using ancestor
+* minor fixes
+* just pylint
+* added eventType
+* added missing file type
+* typo fix
+* removed Reco14
+* typo
+* split of prod tests in MC and data, and updated data
+* change qt in Qt
+* added switched for custom commands and options
+* fix runLocal for ancestors
+* Deleted spaces
+* Removed spaces
+* Changed column order
+* Moved RMS db to sqlalchemy
+
 [v9r0-pre6]
 use DIRAC v6r19-pre4
 
