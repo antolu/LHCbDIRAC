@@ -16,7 +16,7 @@ class DataStorage( BaseAccountingType ):
     BaseAccountingType.__init__( self )
 
     self.definitionKeyFields = [ ( 'StorageElement',       "VARCHAR(64)" ),
-                                 ( 'ProcessingPass',       "VARCHAR(64)" ),
+                                 ( 'ProcessingPass',       "VARCHAR(256)" ),
                                  ( 'Production',       "VARCHAR(32)" ),
                                  ( 'DataType',     "VARCHAR(32)" ),
                                  ( 'Activity', "VARCHAR(64)" ),
