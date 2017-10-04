@@ -287,7 +287,7 @@ class BrunelSuccess( RunApplicationTestCase ):
     ra.applicationLog = '0brunel_000v52r2_62_log.txt'
     ra.stdError = '0brunel_000v52r2_62_err.txt'
 
-    self.assertRaises(LHCbApplicationError, ra.run()) #This will fail as there's no input file
+    self.assertRaises(LHCbApplicationError, ra.run) #This will fail as there's no input file
 
 
   def test_Brunel_new_bestCMT( self ):
@@ -311,7 +311,7 @@ class BrunelSuccess( RunApplicationTestCase ):
     ra.applicationLog = '0brunel_000v52r2_ANY_62_log.txt'
     ra.stdError = '0brunel_000v52r2_ANY_62_err.txt'
 
-    self.assertRaises(LHCbApplicationError, ra.run()) #This will fail as there's no input file
+    self.assertRaises(LHCbApplicationError, ra.run) #This will fail as there's no input file
 
 
 class DaVinciSuccess( RunApplicationTestCase ):
