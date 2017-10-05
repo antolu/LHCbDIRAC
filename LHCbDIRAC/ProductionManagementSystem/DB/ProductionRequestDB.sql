@@ -10,7 +10,6 @@
 -- USE mysql;
 -- Must set passwords for database user by replacing "must_be_set".
 -- GRANT SELECT,INSERT,LOCK TABLES,UPDATE,DELETE,CREATE,DROP,ALTER ON ProductionRequestDB.* TO Dirac@localhost IDENTIFIED BY 'FillIt';
--- GRANT SELECT,INSERT,LOCK TABLES,UPDATE,DELETE,CREATE,DROP,ALTER ON ProductionRequest.* TO Dirac@'%' IDENTIFIED BY 'FillIt';
 -- FLUSH PRIVILEGES;
 
 --
