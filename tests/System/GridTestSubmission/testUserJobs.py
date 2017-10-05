@@ -10,7 +10,7 @@ from DIRAC.tests.Utilities.utils import find_all
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
-from tests.Workflow.Integration.Test_UserJobs import createJob
+from LHCbDIRAC.tests.Workflow.Integration.Test_UserJobs import createJob
 
 gLogger.setLevel( 'DEBUG' )
 
