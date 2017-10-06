@@ -67,7 +67,11 @@ def saveEnvInFile( env, eFile ):
 
   fd = open( eFile, 'w' )
   for var, val in env.iteritems():
-    if var == '_' or 'SSH' in var or '{' in val or '}' in val:
+    if var == '_' \
+       or var == 'X509_USER_PROXY' \
+       or 'SSH' in var \
+       or '{' in val \
+       or '}' in val:
       continue
     if ' ' in val and val[0] != '"':
       val = '"%s"' % val
