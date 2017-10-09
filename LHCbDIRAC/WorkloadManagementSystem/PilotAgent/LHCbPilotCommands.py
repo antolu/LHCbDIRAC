@@ -150,9 +150,9 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
     return parseEnvironmentFile( 'environmentLbLogin' )
 
   def _do_lb_run( self ):
-    """ do lb-run LHCbDIRAC of the requested version. If the version does not exist, raise OSError
+    """ do lb-run -c best LHCbDIRAC of the requested version. If the version does not exist, raise OSError
     """
-    invokeCmd( 'lb-run LHCbDirac/%s -c x86_64-slc6-gcc49 > environmentLbRunDirac' % self.pp.releaseVersion, 
+    invokeCmd( 'lb-run -c best LHCbDirac/%s > environmentLbRunDirac' % self.pp.releaseVersion,
                self.pp.installEnv )
     return parseEnvironmentFile( 'environmentLbRunDirac' )
 
