@@ -396,7 +396,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     # Make sure we request the same parameter
     if self.paramName and self.paramName != param:
       self.logWarn( "Requested parameter %s not compatible with previously used parameter %s, \
-                    get from BK" % ( param, self.paramName ) )
+get from BK" % ( param, self.paramName ) )
       return self.getMetadataFromTSorBK( lfns, param )
 
     self.paramName = param
