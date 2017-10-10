@@ -136,67 +136,35 @@ function findRelease(){
 }
 
 
-#.............................................................................
+
+#-------------------------------------------------------------------------------
+# diracServices:
 #
-# installSite command:
+#   specialized, for fixing BKK DB
 #
-#   Specialized command:
-#  Here only for installing also the BKK DB
-#
-#.............................................................................
+#-------------------------------------------------------------------------------
 
+diracServices(){
+  echo '==> [diracServices]'
 
-function installSite(){
-  echo '==> [installSite]'
+  services=`cat services | cut -d '.' -f 1 | grep -v IRODSStorageElementHandler | grep -v ^ConfigurationSystem | grep -v Plotting | grep -v RAWIntegrity | grep -v RunDBInterface | grep -v ComponentMonitoring | sed 's/System / /g' | sed 's/Handler//g' | sed 's/ /\//g'`
 
-  prepareForServer
+  for serv in $services
+  do
 
-  killRunsv
-  findRelease
+    if [ "$serv" == "Bookkeeping/BookkeepingManager" ]
+    then
+      # start BKK DB setup
+      setupBKKDB
+      source $SERVERINSTALLDIR/Core/scripts/install_oracle-client.sh
+      # end BKK DB setup
+    fi
 
-  generateCertificates
-
-  getCFGFile
-
-  echo '==> Fixing install.cfg file'
-  if [ "$LcgVer" ]
-  then
-    echo '==> Fixing LcgVer to ' $LcgVer
-    sed -i s/VAR_LcgVer/$LcgVer/g $SERVERINSTALLDIR/install.cfg
-  else
-    sed -i s/VAR_LcgVer/$externalsVersion/g $SERVERINSTALLDIR/install.cfg
-  fi
-  sed -i s,VAR_TargetPath,$SERVERINSTALLDIR,g $SERVERINSTALLDIR/install.cfg
-  fqdn=`hostname --fqdn`
-  sed -i s,VAR_HostDN,$fqdn,g $SERVERINSTALLDIR/install.cfg
-
-  sed -i s/VAR_DB_User/$DB_USER/g $SERVERINSTALLDIR/install.cfg
-  sed -i s/VAR_DB_Password/$DB_PASSWORD/g $SERVERINSTALLDIR/install.cfg
-  sed -i s/VAR_DB_RootUser/$DB_ROOTUSER/g $SERVERINSTALLDIR/install.cfg
-  sed -i s/VAR_DB_RootPwd/$DB_ROOTPWD/g $SERVERINSTALLDIR/install.cfg
-  sed -i s/VAR_DB_Host/$DB_HOST/g $SERVERINSTALLDIR/install.cfg
-  sed -i s/VAR_DB_Port/$DB_PORT/g $SERVERINSTALLDIR/install.cfg
-
-  sed -i s/VAR_NoSQLDB_User/$NoSQLDB_USER/g $SERVERINSTALLDIR/install.cfg
-  sed -i s/VAR_NoSQLDB_Password/$NoSQLDB_PASSWORD/g $SERVERINSTALLDIR/install.cfg
-  sed -i s/VAR_NoSQLDB_Host/$NoSQLDB_HOST/g $SERVERINSTALLDIR/install.cfg
-  sed -i s/VAR_NoSQLDB_Port/$NoSQLDB_PORT/g $SERVERINSTALLDIR/install.cfg
-
-  echo '==> Started installing'
-  $SERVERINSTALLDIR/dirac-install.py -t server $SERVERINSTALLDIR/install.cfg $DEBUG
-
-  echo '==> Done installing, now configuring'
-  source $SERVERINSTALLDIR/bashrc
-  dirac-configure $SERVERINSTALLDIR/install.cfg $DEBUG
-  dirac-setup-site $DEBUG
-
-  setupBKKDB
-  source $SERVERINSTALLDIR/Core/scripts/install_oracle-client.sh
-
-  echo '==> Completed installation'
+    echo '==> calling dirac-install-component' $serv $DEBUG
+    dirac-install-component $serv $DEBUG
+  done
 
 }
-
 
 
 #.............................................................................
