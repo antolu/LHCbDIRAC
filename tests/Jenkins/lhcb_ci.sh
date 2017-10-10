@@ -156,7 +156,7 @@ diracServices(){
     then
       # start BKK DB setup
       setupBKKDB
-      source $SERVERINSTALLDIR/Core/scripts/install_oracle-client.sh
+      source $SERVERINSTALLDIR/scripts/install_oracle-client.sh
       # end BKK DB setup
     fi
 
