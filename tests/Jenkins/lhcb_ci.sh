@@ -147,7 +147,7 @@ function findRelease(){
 diracServices(){
   echo '==> [diracServices]'
 
-  services=`cat services | cut -d '.' -f 1 | grep -v IRODSStorageElementHandler | grep -v ^ConfigurationSystem | grep -v Plotting | grep -v RAWIntegrity | grep -v RunDBInterface | grep -v ComponentMonitoring | sed 's/System / /g' | sed 's/Handler//g' | sed 's/ /\//g'`
+  services=`cat services | cut -d '.' -f 1 | grep -v IRODSStorageElementHandler | grep -v ^ConfigurationSystem | grep -v Plotting | grep -v RAWIntegrity | grep -v RunDBInterface | grep -v ComponentMonitoring | grep -v WMSSecureGW | sed 's/System / /g' | sed 's/Handler//g' | sed 's/ /\//g'`
 
   for serv in $services
   do
