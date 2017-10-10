@@ -26,6 +26,50 @@ if not passwd:
 from DIRAC.ConfigurationSystem.Client.CSAPI import CSAPI
 csAPI = CSAPI()
 
+
+# Now setting the followings:
+#     System
+#     {
+#       Bookkeeping
+#       {
+#         Production
+#         {
+#           Databases
+#           {
+#             BookkeepingDB
+#             {
+#               LHCbDIRACBookkeepingUser=LHCB_DIRACBOOKKEEPING_INT_R
+#               LHCbDIRACBookkeepingServer=LHCB_DIRACBOOKKEEPING_INT_W
+#               LHCbDIRACBookkeepingPassword=passwd
+#               LHCbDIRACBookkeepingTNS=int12r
+#             }
+#           }
+#         }
+#       }
+#     }
+#
+#     Operations
+#     {
+#       Defaults
+#       {
+#         Services
+#         {
+#           Catalogs
+#           {
+#             BookkeepingDB
+#             {
+#               AccessType=Write
+#               Status=Active
+#               Conditions
+#               {
+#                 WRITE=Proxy=group.not_in(lhcb_user)
+#               }
+#             }
+#           }
+#         }
+#       }
+
+
 for sct in ['Systems/Bookkeeping',
             'Systems/Bookkeeping/Production',
             'Systems/Bookkeeping/Production/Databases',
@@ -52,5 +96,28 @@ csAPI.setOption( 'Operations/Defaults/Services/Catalogs/BookkeepingDB/AccessType
 csAPI.setOption( 'Operations/Defaults/Services/Catalogs/BookkeepingDB/Status', 'Active' )
 csAPI.setOption( 'Operations/Defaults/Services/Catalogs/BookkeepingDB/Conditions/WRITE',
                  'Proxy=group.not_in(lhcb_user)' )
+
+
+# Now setting a FileCatalogs section as the following:
+#     FileCatalogs
+#     {
+#       BookkeepingDB
+#       {
+#         AccessType = Read-Write
+#         Status = Active
+#         Master = True
+#       }
+#     }
+for sct in ['Resources/FileCatalogs',
+            'Resources/FileCatalogs/BookkeepingDB']:
+  res = csAPI.createSection( sct )
+  if not res['OK']:
+    print res['Message']
+    exit( 1 )
+
+csAPI.setOption( 'Resources/FileCatalogs/BookkeepingDB/AccessType', 'Write' )
+csAPI.setOption( 'Resources/FileCatalogs/BookkeepingDB/Status', 'Active' )
+csAPI.setOption( 'Resources/FileCatalogs/BookkeepingDB/CatalogURL', 'Bookkeeping/BookkeepingManager' )
+
 
 csAPI.commit()
