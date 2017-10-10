@@ -157,7 +157,8 @@ diracServices(){
       # start BKK DB setup
       setupBKKDB
       wget http://lhcb-portal-dirac.cern.ch/defaults/cx_Oracle-5.1.tar.gz -O cx_Oracle-5.1.tar.gz
-      #source /afs/cern.ch/project/oracle/script/setoraenv.sh -s 11203
+      source /afs/cern.ch/project/oracle/script/setoraenv.sh
+      # -s 11203
       python `which easy_install` cx_Oracle-5.1.tar.gz
       # end BKK DB setup
     fi
