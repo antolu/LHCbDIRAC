@@ -29,15 +29,28 @@ csAPI = CSAPI()
 for sct in ['Systems/Bookkeeping',
             'Systems/Bookkeeping/Production',
             'Systems/Bookkeeping/Production/Databases',
-            'Systems/Bookkeeping/Production/Databases/BookkeepingDB' ]:
+            'Systems/Bookkeeping/Production/Databases/BookkeepingDB',
+            'Operations',
+            'Operations/Defaults',
+            'Operations/Defaults/Services',
+            'Operations/Defaults/Services/Catalogs',
+            'Operations/Defaults/Services/Catalogs/BookkeepingDB',
+            'Operations/Defaults/Services/Catalogs/BookkeepingDB/Conditions']:
   res = csAPI.createSection( sct )
   if not res['OK']:
     gLogger.error( res['Message'] )
     exit( 1 )
 
-csAPI.setOption( 'Systems/Bookkeeping/Production/Databases/BookkeepingDB/LHCbDIRACBookkeepingUser', 'LHCB_DIRACBOOKKEEPING_INT_R' )
-csAPI.setOption( 'Systems/Bookkeeping/Production/Databases/BookkeepingDB/LHCbDIRACBookkeepingServer', 'LHCB_DIRACBOOKKEEPING_INT_W' )
+csAPI.setOption( 'Systems/Bookkeeping/Production/Databases/BookkeepingDB/LHCbDIRACBookkeepingUser',
+                 'LHCB_DIRACBOOKKEEPING_INT_R' )
+csAPI.setOption( 'Systems/Bookkeeping/Production/Databases/BookkeepingDB/LHCbDIRACBookkeepingServer',
+                 'LHCB_DIRACBOOKKEEPING_INT_W' )
 csAPI.setOption( 'Systems/Bookkeeping/Production/Databases/BookkeepingDB/LHCbDIRACBookkeepingPassword', passwd )
 csAPI.setOption( 'Systems/Bookkeeping/Production/Databases/BookkeepingDB/LHCbDIRACBookkeepingTNS', 'int12r' )
+
+csAPI.setOption( 'Operations/Defaults/Services/Catalogs/BookkeepingDB/AccessType', 'Write' )
+csAPI.setOption( 'Operations/Defaults/Services/Catalogs/BookkeepingDB/Status', 'Active' )
+csAPI.setOption( 'Operations/Defaults/Services/Catalogs/BookkeepingDB/Conditions/WRITE',
+                 'Proxy=group.not_in(lhcb_user)' )
 
 csAPI.commit()
