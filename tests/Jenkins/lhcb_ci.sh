@@ -170,6 +170,35 @@ diracServices(){
 }
 
 
+#-------------------------------------------------------------------------------
+# diracAgents:
+#
+#   specialized, just adding some more agents to exclude
+#
+#-------------------------------------------------------------------------------
+
+diracAgents(){
+  echo '==> [diracAgents]'
+
+  agents=`cat agents | cut -d '.' -f 1 | grep -v LFC | grep -v MyProxy | grep -v CAUpdate | grep -v CE2CSAgent.py | grep -v GOCDB2CS | grep -v Bdii2CS | grep -v CacheFeeder | grep -v NetworkAgent | grep -v FrameworkSystem | grep -v DiracSiteAgent | grep -v StatesMonitoringAgent | grep -v DataProcessingProgressAgent | grep -v RAWIntegrityAgent  | grep -v GridSiteWMSMonitoringAgent | grep -v HCAgent | grep -v GridCollectorAgent | grep -v HCProxyAgent | grep -v Nagios | grep -v AncestorFiles | grep -v BKInputData | grep -v LHCbPRProxyAgent | grep -v StorageUsageAgent | grep -v PopularityAnalysisAgent | grep -v SEUsageAgent | sed 's/System / /g' | sed 's/ /\//g'`
+
+  for agent in $agents
+  do
+    if [[ $agent == *" JobAgent"* ]]
+    then
+      echo '==> '
+    else
+      echo '==> calling dirac-cfg-add-option agent' $agent
+      python $TESTCODE/DIRAC/tests/Jenkins/dirac-cfg-add-option.py agent $agent
+      echo '==> calling dirac-agent' $agent -o MaxCycles=1 $DEBUG
+      dirac-agent $agent  -o MaxCycles=1 $DEBUG
+    fi
+  done
+
+}
+
+
+
 #.............................................................................
 #
 # diracInstallCommand:
