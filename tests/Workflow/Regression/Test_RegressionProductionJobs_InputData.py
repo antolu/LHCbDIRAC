@@ -81,6 +81,16 @@ class MergeMDFSuccess( RegressionTestCase ):
     res = j_mergeMDF_20657.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
+class MergeHISTOSuccess( RegressionTestCase ):
+  def test_Regression_Production( self ):
+    location66219 = find_all( '66219.xml', '..', '/LHCbDIRAC/tests/Workflow/Regression' )[0]
+    j_mergeHISTO_66219 = LHCbJob( location66219 )
+    j_mergeHISTO_66219.setConfigArgs( 'pilot.cfg' )
+
+    res = j_mergeHISTO_66219.runLocal( self.diracLHCb, self.bkkClient )
+    self.assertTrue( res['OK'] )
+
+
 #############################################################################
 # Test Suite run
 #############################################################################
@@ -92,4 +102,5 @@ if __name__ == '__main__':
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( StrippSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCMergeSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMDFSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeHISTOSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )

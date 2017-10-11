@@ -62,29 +62,6 @@ class Reco17Success( ProductionJobTestCase ):
     self.assertTrue( res['OK'] )
 
 
-# THIS does NOT work!
-class RecoSuccessMultiProcessor( ProductionJobTestCase ):
-  def test_Integration_Production( self ):
-    lfns = ['/lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/103681/103681_0000000005.raw']
-    # From request 15630 - no DQ
-    stepsInProd = [{'StepId': 125574, 'StepName': 'Reco14', 'ApplicationName': 'Brunel', 'ApplicationVersion': 'v44r5',
-                    'ExtraPackages': 'AppConfig.v3r158', 'ProcessingPass': 'Reco14', 'Visible': 'Y', 'Usable': 'Yes',
-                    'DDDB': 'dddb-20130111', 'CONDDB': 'cond-20130114', 'DQTag': '', 'OptionsFormat': '',
-                    'OptionFiles': '$APPCONFIGOPTS/Brunel/DataType-2011.py', 'mcTCK': '', 'ExtraOptions': '',
-                    'isMulticore': 'Y', 'SystemConfig': '',
-                    'fileTypesIn':['RAW'],
-                    'fileTypesOut':['BRUNELHIST', 'FULL.DST'],
-                    'visibilityFlag':[{'Visible': 'N', 'FileType': 'FULL.DST'},
-                                      {'Visible': 'Y', 'FileType':'BRUNELHIST'}]}]
-
-    prod = self.pr._buildProduction( 'Reconstruction', stepsInProd, {'FULL.DST': 'Tier1-Buffer'}, 0, 100,
-                                     outputMode = 'Run', inputDataPolicy = 'protocol', inputDataList = lfns, events = 25 )
-    prod.LHCbJob._addParameter( prod.LHCbJob.workflow, 'runNumber', 'JDL', 154030, 'Input run number' )
-    prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
-    prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
-    res = self.diracProduction.launchProduction( prod, False, True, 0 )
-    self.assertTrue( res['OK'] )
-
 
 class StrippSuccess( ProductionJobTestCase ):
   def test_Integration_Production( self ):
@@ -179,27 +156,28 @@ class MergeMDFSuccess( ProductionJobTestCase ):
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
-#FIXME: not ready, now disabled - should also add DAVINCIHIST in input, plus ntuples and other combinations
 class RootMergeSuccess( ProductionJobTestCase ):
   def test_Integration_Production( self ):
+    # From request 41740
+    lfns = ['/lhcb/LHCb/Collision17/BRUNELHIST/00064899/0006/Brunel_00064899_00067792_1.Hist.root',
+            '/lhcb/LHCb/Collision17/BRUNELHIST/00064899/0006/Brunel_00064899_00067793_1.Hist.root']
 
-    lfns = ['/lhcb/LHCb/Collision15/BRUNELHIST/00047763/0006/Brunel_00047763_00069480_1.Hist.root',
-            '/lhcb/LHCb/Collision15/BRUNELHIST/00047763/0006/Brunel_00047763_00069421_1.Hist.root']
-
-    stepsInProd = [{'StepId': 12345, 'StepName': 'RootMerging', 'ApplicationName': 'Noether', 'ApplicationVersion': 'v1r4',
-                    'ExtraPackages': '', 'ProcessingPass': 'RootMerging', 'Visible': 'N', 'Usable': 'Yes',
-                    'DDDB': 'dddb-20150724', 'CONDDB': ' cond-20150828', 'DQTag': '', 'OptionsFormat': 'merge',
-                    'OptionFiles': 'DQMergeRun.py',
+    stepsInProd = [{'StepId': 132150, 'StepName': 'Histo-merging-Reco17-6500GeV-MagUp-Full',
+                    'ApplicationName': 'Noether', 'ApplicationVersion': 'v1r4',
+                    'ExtraPackages': 'AppConfig.v3r337', 'ProcessingPass': 'HistoMerge02',
+                    'Visible': 'Y', 'Usable': 'Yes',
+                    'DDDB': '', 'CONDDB': '', 'DQTag': '', 'OptionsFormat': '',
+                    'OptionFiles': ' $APPCONFIGOPTS/DataQuality/DQMergeRun.py',
                     'mcTCK': '', 'ExtraOptions': '',
-                    'isMulticore': 'N', 'SystemConfig': 'x86_64-slc6-gcc48-opt',
+                    'isMulticore': 'N', 'SystemConfig': '',
                     'fileTypesIn':['BRUNELHIST', 'DAVINCIHIST'],
-                    'fileTypesOut':['ROOT'],
-                    'visibilityFlag':[{'Visible': 'Y', 'FileType': 'ROOT'}]}]
+                    'fileTypesOut':['HIST.ROOT'],
+                    'visibilityFlag':[{'Visible': 'Y', 'FileType': 'HIST.ROOT'}]}]
 
 
-    prod = self.pr._buildProduction( 'Merge', stepsInProd, {'ROOT': 'CERN-EOS-HIST'}, 0, 100,
+    prod = self.pr._buildProduction( 'HistoMerge', stepsInProd, {'HIST.ROOT': 'CERN-EOS-HIST'}, 0, 100,
                                      inputDataPolicy = 'protocol', inputDataList = lfns )
-    prod.LHCbJob.setInputSandbox( [find_all( 'pilot.cfg', '.' )[0], 'DQMergeRun.py'] )
+    prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
     prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
@@ -212,9 +190,8 @@ class RootMergeSuccess( ProductionJobTestCase ):
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( ProductionJobTestCase )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( Reco17Success ) )
-  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RecoSuccessMultiProcessor ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( StrippSuccess ) )
   #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCMergeSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMDFSuccess ) )
-  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RootMergeSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RootMergeSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
