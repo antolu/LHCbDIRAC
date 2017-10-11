@@ -72,7 +72,7 @@ class ProductionRequestDB( DB ):
       old = ''
     if not update.startswith( old ) and not update.endswith( old ):
       return update
-    prefix = "Comment by %s on %s:\n" % ( user, time.strftime( "%b %d, %Y" ) )
+    prefix = "Comment by %s on %s: " % ( user, time.strftime( "%b %d, %Y" ) )
     if update.startswith( old ):
       if old.rstrip():
         old = old.rstrip() + '\n\n'
@@ -263,8 +263,35 @@ class ProductionRequestDB( DB ):
     rQuery += "                COALESCE(t.RealNumberOfEvents,0) AS SIGNED)"
     rQuery += "           AS rqTotal "
     rQuery += " FROM "
-    rQuery += " (SELECT t.*,CAST(COALESCE(SUM(t.bkSrTotal),0)+"
-    rQuery += "                  COALESCE(t.bk,0) AS SIGNED) AS bkTotal FROM "
+    rQuery += """
+    (SELECT 
+      t.RequestID,
+      t.ParentID,
+      t.MasterID,
+      t.RequestAuthor,
+      t.RequestName,
+      t.RequestType,
+      t.RequestState,
+      t.RequestPriority,
+      t.RequestPDG,
+      t.RequestWG,
+      t.SimCondition,
+      t.SimCondID,
+      t.SimCondDetail,
+      t.ProPath,
+      t.ProID,
+      t.ProDetail,
+      t.EventType,
+      t.NumberOfEvents,
+      t.Description,
+      t.Comments,
+      t.Inform,
+      t.RealNumberOfEvents,
+      t.IsModel,
+      t.Extra,
+      t.HasSubrequest,
+      t.bk,
+      CAST(COALESCE(SUM(t.bkSrTotal),0)+ COALESCE(t.bk,0) AS SIGNED) AS bkTotal FROM """
     rQuery += "  (SELECT t.*,CAST(LEAST(COALESCE(SUM(pp.BkEvents),0),"
     rQuery += "                   COALESCE(sr.RealNumberOfEvents,0)) AS SIGNED)"
     rQuery += "              AS bkSrTotal FROM "

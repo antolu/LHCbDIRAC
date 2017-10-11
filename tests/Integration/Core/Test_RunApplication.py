@@ -15,7 +15,7 @@ gLogger.setLevel('DEBUG')
 
 from DIRAC.tests.Utilities.utils import find_all
 
-from LHCbDIRAC.Core.Utilities.RunApplication import RunApplication
+from LHCbDIRAC.Core.Utilities.RunApplication import RunApplication, LHCbApplicationError
 from LHCbDIRAC.Core.Utilities.ProductionOptions import getDataOptions, getModuleOptions
 
 
@@ -270,11 +270,11 @@ class BrunelSuccess( RunApplicationTestCase ):
 
         This is taken from step 131287 (Reco17)
     """
-    gLogger.always("**** Brunel v52r4")
+    gLogger.always("**** Brunel v52r2")
 
     ra = RunApplication()
     ra.applicationName = 'Brunel'
-    ra.applicationVersion = 'v52r4'
+    ra.applicationVersion = 'v52r2'
     ra.systemConfig = 'x86_64-slc6-gcc62-opt'
     ra.commandOptions = ['$APPCONFIGOPTS/Brunel/DataType-2017.py',
                          '$APPCONFIGOPTS/Brunel/rdst.py']
@@ -283,12 +283,11 @@ class BrunelSuccess( RunApplicationTestCase ):
                         ('ProdConf', '')
                        ]
     ra.step_Number = 1
-    ra.prodConfFileName = find_all('test_prodConf_brunel_v52r4.py', '..')[0]
-    ra.applicationLog = '0brunel_000v52r4_62_log.txt'
-    ra.stdError = '0brunel_000v52r4_62_err.txt'
+    ra.prodConfFileName = find_all('test_prodConf_brunel_v52r2.py', '..')[0]
+    ra.applicationLog = '0brunel_000v52r2_62_log.txt'
+    ra.stdError = '0brunel_000v52r2_62_err.txt'
 
-    res = ra.run()
-    self.assertFalse(res['OK']) #This will fail as there's no input file
+    self.assertRaises(LHCbApplicationError, ra.run) #This will fail as there's no input file
 
 
   def test_Brunel_new_bestCMT( self ):
@@ -296,11 +295,11 @@ class BrunelSuccess( RunApplicationTestCase ):
 
         This is taken from step 131287 (Reco17)
     """
-    gLogger.always("**** Brunel v52r4")
+    gLogger.always("**** Brunel v52r2")
 
     ra = RunApplication()
     ra.applicationName = 'Brunel'
-    ra.applicationVersion = 'v52r4'
+    ra.applicationVersion = 'v52r2'
     ra.commandOptions = ['$APPCONFIGOPTS/Brunel/DataType-2017.py',
                          '$APPCONFIGOPTS/Brunel/rdst.py']
     ra.extraPackages = [('AppConfig', 'v3r323'),
@@ -308,13 +307,11 @@ class BrunelSuccess( RunApplicationTestCase ):
                         ('ProdConf', '')
                        ]
     ra.step_Number = 1
-    ra.prodConfFileName = find_all('test_prodConf_brunel_v52r4.py', '..')[0]
-    ra.applicationLog = '0brunel_000v52r4_ANY_62_log.txt'
-    ra.stdError = '0brunel_000v52r4_ANY_62_err.txt'
+    ra.prodConfFileName = find_all('test_prodConf_brunel_v52r2.py', '..')[0]
+    ra.applicationLog = '0brunel_000v52r2_ANY_62_log.txt'
+    ra.stdError = '0brunel_000v52r2_ANY_62_err.txt'
 
-    res = ra.run()
-    self.assertFalse(res['OK']) #This will fail as there's no input file
-
+    self.assertRaises(LHCbApplicationError, ra.run) #This will fail as there's no input file
 
 
 class DaVinciSuccess( RunApplicationTestCase ):
