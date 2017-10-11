@@ -11,6 +11,8 @@ parseCommandLine()
 
 from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
 
+from DIRAC import rootPath
+
 from DIRAC.tests.Utilities.utils import find_all
 
 from LHCbDIRAC.tests.Utilities.IntegrationTest import IntegrationTest, FailingUserJobTestCase
@@ -27,11 +29,11 @@ class UserJobTestCase( IntegrationTest ):
     print "\n \n ********************************* \n   Running a new test \n *********************************"
 
     self.dLHCb = DiracLHCb()
-    self.exeScriptLocation = find_all( 'exe-script.py', '../..', '/LHCbDIRAC/tests/Workflow' )[0]
-    self.exeScriptFromDIRACLocation = find_all( 'exe-script-fromDIRAC.py', '../..', '/LHCbDIRAC/tests/Workflow' )[0]
+    self.exeScriptLocation = find_all( 'exe-script.py', rootPath, '/LHCbDIRAC/tests/Workflow' )[0]
+    self.exeScriptFromDIRACLocation = find_all( 'exe-script-fromDIRAC.py', rootPath, '/LHCbDIRAC/tests/Workflow' )[0]
     self.lhcbJobTemplate = LHCbJob()
     self.lhcbJobTemplate.setLogLevel( 'DEBUG' )
-    self.lhcbJobTemplate.setInputSandbox( find_all( 'pilot.cfg', '..' )[0] )
+    self.lhcbJobTemplate.setInputSandbox( find_all( 'pilot.cfg', rootPath )[0] )
     self.lhcbJobTemplate.setConfigArgs( 'pilot.cfg' )
 
   def tearDown( self ):
@@ -121,8 +123,8 @@ class GaudirunSuccess( UserJobTestCase ):
 
     oJob = copy.deepcopy( self.lhcbJobTemplate )
     oJob.setName( "gaudirun-test" )
-    oJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '../..', '/LHCbDIRAC/tests/Workflow/Integration' )[0],
-                           find_all( 'pilot.cfg', '.' )[0]] )
+    oJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', rootPath, '/LHCbDIRAC/tests/Workflow/Integration' )[0],
+                           find_all( 'pilot.cfg', rootPath )[0]] )
 
     optGauss = "$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.py;"
     optDec = "$DECFILESROOT/options/11102400.py;"
@@ -149,8 +151,8 @@ class GaudirunSuccess( UserJobTestCase ):
 
     oJob = copy.deepcopy( self.lhcbJobTemplate )
     oJob.setName( "gaudirun-test-inputs" )
-    oJob.setInputSandbox( [find_all( 'prodConf_Boole_00012345_00067890_1.py', '../..', '/LHCbDIRAC/tests/Workflow/Integration' )[0],
-                           find_all( 'pilot.cfg', '.' )[0]] )
+    oJob.setInputSandbox( [find_all( 'prodConf_Boole_00012345_00067890_1.py', rootPath, '/LHCbDIRAC/tests/Workflow/Integration' )[0],
+                           find_all( 'pilot.cfg', rootPath )[0]] )
 
     opts = "$APPCONFIGOPTS/Boole/Default.py;"
     optDT = "$APPCONFIGOPTS/Boole/DataType-2012.py;"
@@ -215,14 +217,14 @@ def createJob( local = True ):
 
   gaudirunJob.setName( "gaudirun-Gauss-test" )
   if local:
-    gaudirunJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '../..',
+    gaudirunJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', rootPath,
                                             '/LHCbDIRAC/tests/System/GridTestSubmission' )[0],
-                                  find_all( 'wrongConfig.cfg', '../..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0],
-                                  find_all( 'pilot.cfg', '.' )[0] ] )
+                                  find_all( 'wrongConfig.cfg', rootPath, '/LHCbDIRAC/tests/System/GridTestSubmission' )[0],
+                                  find_all( 'pilot.cfg', rootPath )[0] ] )
   else:
-    gaudirunJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '../..',
+    gaudirunJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', rootPath,
                                             '/LHCbDIRAC/tests/System/GridTestSubmission' )[0],
-                                  find_all( 'wrongConfig.cfg', '../..',
+                                  find_all( 'wrongConfig.cfg', rootPath,
                                             '/LHCbDIRAC/tests/System/GridTestSubmission' )[0] ] )
 
   gaudirunJob.setOutputSandbox( '00012345_00067890_1.sim' )
