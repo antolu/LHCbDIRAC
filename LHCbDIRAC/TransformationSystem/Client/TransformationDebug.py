@@ -1157,7 +1157,7 @@ class TransformationDebug( object ):
 
       for ( lfn, reason ), jobs in failedLfns.iteritems():
         jobs = sorted( set( jobs ) )
-        sites = sorted( jobSites.get( job, 'Unknown' ) for job in jobs )
+        sites = sorted( jobSites.get( str( job ), 'Unknown' ) for job in jobs )
         gLogger.notice( "ERROR ==> %s was %s during processing from jobs %s (sites %s): " %
                         ( lfn, reason, ','.join( str( job ) for job in jobs ), ','.join( sites ) ) )
         # Get an example log if possible

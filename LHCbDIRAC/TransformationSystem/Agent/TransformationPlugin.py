@@ -1251,7 +1251,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     tasks = []
     for runID, runLfns in runFileDict.iteritems():
       replicas = dict( ( lfn, ses ) for lfn, ses in self.transReplicas.iteritems() if lfn in runLfns )
-      existingSEs = set( se for ses in replicas.itervalues() for se in ses )
+      existingSEs = set( se for ses in replicas.itervalues() for se in ses if se not in keepSEs )
       destinationSE = self.util.getSEForDestination( runID, existingSEs )
       if destinationSE is None:
         # If there is no replica at destination, remove randomly
