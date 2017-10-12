@@ -67,7 +67,11 @@ def saveEnvInFile( env, eFile ):
 
   fd = open( eFile, 'w' )
   for var, val in env.iteritems():
-    if var == '_' or 'SSH' in var or '{' in val or '}' in val:
+    if var == '_' \
+       or var == 'X509_USER_PROXY' \
+       or 'SSH' in var \
+       or '{' in val \
+       or '}' in val:
       continue
     if ' ' in val and val[0] != '"':
       val = '"%s"' % val
@@ -146,9 +150,10 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
     return parseEnvironmentFile( 'environmentLbLogin' )
 
   def _do_lb_run( self ):
-    """ do lb-run LHCbDIRAC of the requested version. If the version does not exist, raise OSError
+    """ do lb-run -c best LHCbDIRAC of the requested version. If the version does not exist, raise OSError
     """
-    invokeCmd( 'lb-run LHCbDirac/%s > environmentLbRunDirac' % self.pp.releaseVersion, self.pp.installEnv )
+    invokeCmd( 'lb-run -c best LHCbDirac/%s > environmentLbRunDirac' % self.pp.releaseVersion,
+               self.pp.installEnv )
     return parseEnvironmentFile( 'environmentLbRunDirac' )
 
 class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
