@@ -1,3 +1,10 @@
+[v8r8p20]
+use DIRAC v6r17p33
+
+* backporting of calling -c best
+* at some places jobID is a string
+* avoid choosing a keepSE as destinationSE
+
 [v8r8p19]
 use DIRAC v6r17p33
 
