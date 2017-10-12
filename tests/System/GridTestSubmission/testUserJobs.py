@@ -3,9 +3,11 @@ parseCommandLine()
 
 import os.path
 
-from DIRAC import gLogger, rootPath
+from DIRAC import gLogger
 
 from DIRAC.tests.Utilities.utils import find_all
+
+from LHCbDIRAC import rootPath
 
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb

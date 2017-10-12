@@ -11,9 +11,9 @@ parseCommandLine()
 
 from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
 
-from DIRAC import rootPath
-
 from DIRAC.tests.Utilities.utils import find_all
+
+from LHCbDIRAC import rootPath
 
 from LHCbDIRAC.tests.Utilities.IntegrationTest import IntegrationTest, FailingUserJobTestCase
 
