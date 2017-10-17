@@ -12,6 +12,7 @@ import urllib
 import shutil
 import os
 import glob
+import tarfile
 from git import Repo
 
 from DIRAC                                    import gLogger, S_OK, gConfig, S_ERROR
@@ -33,22 +34,24 @@ class pilotSynchronizer( object ):
         Just setting defaults
     '''
     self.pilotFileName = 'pilot.json'  # default filename of the pilot json file
-    self.pilotFileServer = paramDict['pilotFileServer']  # domain name of the web server used to upload the pilot json file and the pilot scripts
+    # domain name of the web server used to upload the pilot json file and the pilot scripts
+    self.pilotFileServer = paramDict['pilotFileServer']
     self.pilotRepo = paramDict['pilotRepo']  # repository of the pilot
     self.pilotVORepo = paramDict['pilotVORepo']  # repository of the VO that can contain a pilot extension
     self.pilotLocalRepo = 'pilotLocalRepo'  # local repository to be created
     self.pilotVOLocalRepo = 'pilotVOLocalRepo'  # local VO repository to be created
     self.pilotSetup = gConfig.getValue( '/DIRAC/Setup', '' )
     self.projectDir = paramDict['projectDir']
-    self.pilotVOScriptPath = paramDict['pilotVOScriptPath']  # where the find the pilot scripts in the VO pilot repository
-    self.pilotScriptsPath = paramDict['pilotScriptsPath']  # where the find the pilot scripts in the pilot repository
+    # where the find the pilot scripts in the VO pilot repository
+    self.pilotVOScriptPath = paramDict['pilotVOScriptPath']
+    self.pilotScriptsPath = paramDict['pilotScriptsPath'] # where the find the pilot scripts in the pilot repository
     self.pilotVersion = ''
     self.pilotVOVersion =''
 
   def sync( self, _eventName, _params ):
     ''' Main synchronizer method.
     '''
-    gLogger.notice( '-- Synchronizing the content of the pilot file %s with the content of the CS --' % self.pilotFileName  )
+    gLogger.notice( '-- Synchronizing the content of the pilot file %s with the content of the CS --' % self.pilotFileName )
 
     result = self._syncFile()
     if not result['OK']:
@@ -171,8 +174,10 @@ class pilotSynchronizer( object ):
     else:
       repo_VO.git.checkout( 'upstream/master', b = 'pilotVOScripts' )
     scriptDir = ( os.path.join( self.pilotVOLocalRepo, self.projectDir, self.pilotVOScriptPath, "*.py" ) )
+    tarFiles = []
     for fileVO in glob.glob( scriptDir ):
       result = self._upload( filename = os.path.basename( fileVO ), pilotScript = fileVO )
+      tarFiles.append(fileVO)
     if not result['OK']:
       gLogger.error( "Error uploading the VO pilot script: %s" % result['Message'] )
       return result
@@ -195,15 +200,22 @@ class pilotSynchronizer( object ):
     try:
       scriptDir = os.path.join( self.pilotLocalRepo, self.pilotScriptsPath, "*.py" )
       for filename in glob.glob( scriptDir ):
-        result = self._upload(
-            filename = os.path.basename(filename),
-            pilotScript = filename)
+        result = self._upload(filename = os.path.basename(filename),
+                              pilotScript = filename)
+        tarFiles.append(filename)
       if not os.path.isfile(os.path.join(self.pilotLocalRepo,
                                          self.pilotScriptsPath,
                                          "dirac-install.py")):
-        result = self._upload(
-            filename = 'dirac-install.py',
-            pilotScript = os.path.join( self.pilotLocalRepo, "Core/scripts/dirac-install.py"))
+        result = self._upload(filename = 'dirac-install.py',
+                              pilotScript = os.path.join( self.pilotLocalRepo, "Core/scripts/dirac-install.py"))
+        tarFiles.append('dirac-install.py')
+
+      with tarfile.TarFile(name = 'pilot.tar', mode = 'w') as tf:
+        for ptf in tarFiles:
+          tf.add(ptf)
+      result = self._upload(filename = 'pilot.tar',
+                            pilotScript = os.path.join( self.pilotLocalRepo, 'pilot.tar'))
+
     except ValueError:
       gLogger.error( "Error uploading the pilot scripts: %s" % result['Message'] )
       return result
@@ -217,8 +229,8 @@ class pilotSynchronizer( object ):
     if pilotDict:
       params = urllib.urlencode( {'filename':self.pilotFileName, 'data':json.dumps( pilotDict ) } )
     else:
-      with open( pilotScript, "rb" ) as f:
-        script = f.read()
+      with open( pilotScript, "rb" ) as psf:
+        script = psf.read()
       params = urllib.urlencode( {'filename':filename, 'data':script} )
     headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
     con = HTTPDISETConnection( self.pilotFileServer, '443' )
