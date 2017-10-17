@@ -8,9 +8,12 @@
    The distributed data production and analysis system of LHCb.
 """
 
+import os
 
 from pkgutil import extend_path
-__path__ = extend_path( __path__, __name__ )
+__path__ = extend_path( __path__, __name__ )  # pylint: disable=redefined-builtin
+
+rootPath = os.path.dirname( os.path.realpath( __path__[0] ) )
 
 # Define Version
 

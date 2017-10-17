@@ -7,6 +7,8 @@ from DIRAC import gLogger
 
 from DIRAC.tests.Utilities.utils import find_all
 
+from LHCbDIRAC import rootPath
+
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
@@ -24,7 +26,7 @@ helloJ = LHCbJob()
 dirac = DiracLHCb()
 
 helloJ.setName( "helloWorld-test-T2s" )
-helloJ.setInputSandbox( [find_all( 'exe-script.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
+helloJ.setInputSandbox( [find_all( 'exe-script.py', rootPath, '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
 
 helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 
@@ -47,7 +49,7 @@ helloJ = LHCbJob()
 dirac = DiracLHCb()
 
 helloJ.setName( "helloWorld-test-CERN" )
-helloJ.setInputSandbox( [find_all( 'exe-script.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
+helloJ.setInputSandbox( [find_all( 'exe-script.py', rootPath, '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
 helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 
 helloJ.setCPUTime( 17800 )
@@ -63,7 +65,7 @@ helloJ = LHCbJob()
 dirac = DiracLHCb()
 
 helloJ.setName( "helloWorld-test-slc6" )
-helloJ.setInputSandbox( [find_all( 'exe-script.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
+helloJ.setInputSandbox( [find_all( 'exe-script.py', rootPath, '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
 helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 
 helloJ.setCPUTime( 17800 )
@@ -79,7 +81,7 @@ helloJ = LHCbJob()
 dirac = DiracLHCb()
 
 helloJ.setName( "helloWorld-test-slc5" )
-helloJ.setInputSandbox( [find_all( 'exe-script.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
+helloJ.setInputSandbox( [find_all( 'exe-script.py', rootPath, '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
 helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 
 helloJ.setCPUTime( 17800 )
@@ -95,7 +97,7 @@ helloJ = LHCbJob()
 dirac = DiracLHCb()
 
 helloJ.setName( "upload-Output-test" )
-helloJ.setInputSandbox( [find_all( 'testFileUpload.txt', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
+helloJ.setInputSandbox( [find_all( 'testFileUpload.txt', rootPath, '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
 helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 
 helloJ.setCPUTime( 17800 )
@@ -113,7 +115,7 @@ helloJ = LHCbJob()
 dirac = DiracLHCb()
 
 helloJ.setName( "upload-Output-test-with-replication" )
-helloJ.setInputSandbox( [find_all( 'testFileReplication.txt', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
+helloJ.setInputSandbox( [find_all( 'testFileReplication.txt', rootPath, '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
 helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 
 helloJ.setCPUTime( 17800 )
@@ -130,7 +132,7 @@ gLogger.info( "\n Submitting gaudiRun job (Gauss only)" )
 gaudirunJob = LHCbJob()
 
 gaudirunJob.setName( "gaudirun-Gauss-test" )
-gaudirunJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '..',
+gaudirunJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', rootPath,
                                         '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
 gaudirunJob.setOutputSandbox( '00012345_00067890_1.sim' )
 
@@ -160,7 +162,7 @@ gLogger.info( "\n Submitting gaudiRun job (Gauss only) that should use TAG to ru
 gaudirunJob = LHCbJob()
 
 gaudirunJob.setName( "gaudirun-Gauss-test-TAG-multicore" )
-gaudirunJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '..',
+gaudirunJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', rootPath,
                                         '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
 gaudirunJob.setOutputSandbox( '00012345_00067890_1.sim' )
 
@@ -191,7 +193,7 @@ gLogger.info( "\n Submitting gaudiRun job (Boole only)" )
 gaudirunJob = LHCbJob()
 
 gaudirunJob.setName( "gaudirun-Boole-test" )
-gaudirunJob.setInputSandbox( [find_all( 'prodConf_Boole_00012345_00067890_1.py', '..',
+gaudirunJob.setInputSandbox( [find_all( 'prodConf_Boole_00012345_00067890_1.py', rootPath,
                                         '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
 gaudirunJob.setOutputSandbox( '00012345_00067890_1.digi' )
 
