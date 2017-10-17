@@ -22,7 +22,10 @@ from LHCbDIRAC.BookkeepingSystem.Client.ScriptExecutors import scaleSize
 __RCSID__ = "$Id$"
 
 
-def __checkSEs( args, expand = True ):
+def __checkSEs( args, expand=True ):
+  """
+  Finds StorageElements in a list of arguments and returns them separate from other arguments
+  """
   if expand:
     expanded = []
     for arg in args:
@@ -39,6 +42,9 @@ def __checkSEs( args, expand = True ):
   return seList, expanded
 
 def __getSEsFromOptions( dmScript ):
+  """
+  Get the list of SEs from the dmScript information
+  """
   seList = dmScript.getOption( 'SEs', [] )
   sites = dmScript.getOption( 'Sites', [] )
   if sites:
@@ -52,7 +58,7 @@ def __getSEsFromOptions( dmScript ):
       seList += siteSEs
   return seList
 
-def parseArguments( dmScript, allSEs = False ):
+def parseArguments( dmScript, allSEs=False ):
   """
   Analyse the options passed using the DMScript options,
   returns a list of LFNs and a list of SEs
@@ -90,20 +96,20 @@ def parseArguments( dmScript, allSEs = False ):
         if isinstance( bkQuery, BKQuery ):
           if not multi:
             gLogger.notice( "Executing BKQuery:", bkQuery )
-          lfnList += bkQuery.getLFNs( printOutput = not multi )
+          lfnList += bkQuery.getLFNs( printOutput=not multi )
       if multi:
         gLogger.notice( 'Got %d LFNs' % len( lfnList ) )
 
   return sorted( lfnList ), seList
 
-def executeRemoveReplicas( dmScript, allDisk = False ):
+def executeRemoveReplicas( dmScript, allDisk=False ):
   """
   get options for remove-replicas and cal for it
   """
   checkFC = True
   force = False
 
-  lfnList, seList = parseArguments( dmScript, allSEs = allDisk )
+  lfnList, seList = parseArguments( dmScript, allSEs=allDisk )
   if not lfnList:
     gLogger.fatal( "No LFNs have been supplied" )
     return 1
@@ -140,7 +146,7 @@ def executeRemoveReplicas( dmScript, allDisk = False ):
 
   return removeReplicas( lfnList, seList, minReplicas, checkFC, allDisk, force )
 
-def removeReplicas( lfnList, seList, minReplicas = 1, checkFC = True, allDisk = False, force = False ):
+def removeReplicas( lfnList, seList, minReplicas=1, checkFC=True, allDisk=False, force=False ):
   """
   remove replicas from a list of SEs or all disk SEs
   2 different methods are used to remove registered and unregistered replicas
@@ -187,7 +193,7 @@ def removeReplicas( lfnList, seList, minReplicas = 1, checkFC = True, allDisk = 
     gLogger.notice( "Replicas were found at no SE in %s" % str( seList ) )
   return 0
 
-def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, force = False ):
+def removeReplicasWithFC( lfnList, seList, minReplicas=1, allDisk=False, force=False ):
   """
   Remove registered files
   """
@@ -205,8 +211,8 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
   seList = set( seList )
   chunkSize = max( 10, min( 500, len( lfnList ) / 10 ) )
   progressBar = ProgressBar( len( lfnList ),
-                             title = 'Removing replicas' + ( ' and setting them invisible in BK' if allDisk else '' ),
-                             chunk = chunkSize )
+                             title='Removing replicas' + ( ' and setting them invisible in BK' if allDisk else '' ),
+                             chunk=chunkSize )
   # Set files invisible in BK if removing all disk replicas
   for lfnChunk in breakListIntoChunks( sorted( lfnList ), chunkSize ):
     progressBar.loop()
@@ -215,7 +221,7 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
       if not res['OK']:
         gLogger.error( "\nError setting files invisible in BK", res['Message'] )
         return -3
-    res = dm.getReplicas( lfnChunk, getUrl = False )
+    res = dm.getReplicas( lfnChunk, getUrl=False )
     if not res['OK']:
       gLogger.fatal( "\nFailed to get replicas", res['Message'] )
       return -2
@@ -347,10 +353,10 @@ def removeReplicasNoFC( lfnList, seList ):
   notInBK = {}
   bkOK = 0
   chunkSize = max( 50, min( 500, len( lfnList ) / 10 ) )
-  progressBar = ProgressBar( len( lfnList ), title = 'Removing replica flag in BK for files not in FC', chunk = chunkSize )
+  progressBar = ProgressBar( len( lfnList ), title='Removing replica flag in BK for files not in FC', chunk=chunkSize )
   for lfnChunk in breakListIntoChunks( lfnList, chunkSize ):
     progressBar.loop()
-    res = dm.getReplicas( lfnChunk, getUrl = False )
+    res = dm.getReplicas( lfnChunk, getUrl=False )
     if res['OK'] and res['Value']['Failed']:
       bkToRemove = res['Value']['Failed'].keys()
       notInFC.update( bkToRemove )
@@ -369,14 +375,14 @@ def removeReplicasNoFC( lfnList, seList ):
         elif isinstance( bkFailed, list ):
           notInBK.setdefault( 'Not in BK', [] ).extend( bkFailed )
         bkOK += len( bkToRemove ) - len( bkFailed )
-  progressBar.endLoop( message = ( 'Removed replica flag for %d files' % bkOK ) if bkOK else 'No such files found' )
+  progressBar.endLoop( message=( 'Removed replica flag for %d files' % bkOK ) if bkOK else 'No such files found' )
   for reason, lfns in notInBK.iteritems():
     gLogger.notice( "Failed to remove replica flag in BK for %d files with error: %s" % ( len( lfns ), reason ) )
 
   inFC = {}
   for seName in seList:
     se = StorageElement( seName )
-    progressBar = ProgressBar( len( lfnList ), title = 'Checking and removing files from %s' % seName, chunk = chunkSize )
+    progressBar = ProgressBar( len( lfnList ), title='Checking and removing files from %s' % seName, chunk=chunkSize )
     for lfnChunk in breakListIntoChunks( lfnList, chunkSize ):
       progressBar.loop()
       lfnChunk = set( lfnChunk )
@@ -419,7 +425,7 @@ def removeReplicasNoFC( lfnList, seList ):
             errorReasons.setdefault( str( reason ), {} ).setdefault( seName, [] ).append( lfn )
         successfullyRemoved.setdefault( seName, set() ).update( res['Value']['Successful'] )
     removed = len( successfullyRemoved.get( seName, [] ) )
-    progressBar.endLoop( message = ( '%d files removed' % removed ) if removed else 'No replicas found to be removed' )
+    progressBar.endLoop( message=( '%d files removed' % removed ) if removed else 'No replicas found to be removed' )
   if inFC:
     for se, lfns in inFC.iteritems():
       gLogger.notice( '%d files have replica in FC at %s, not removed' % ( len( lfns ), se ) )
@@ -450,14 +456,14 @@ def executeAccessURL( dmScript ):
     return 1
   else:
     results = getAccessURL( lfnList, seList, protocol )
-    return printDMResult( results, empty = "File not at SE", script = "dirac-dms-lfn-accessURL" )
+    return printDMResult( results, empty="File not at SE", script="dirac-dms-lfn-accessURL" )
 
-def getAccessURL( lfnList, seList, protocol = None ):
+def getAccessURL( lfnList, seList, protocol=None ):
   """
   Get TURL at a list of SEs
   """
   dm = DataManager()
-  res = dm.getReplicas( lfnList, getUrl = False )
+  res = dm.getReplicas( lfnList, getUrl=False )
   replicas = res.get( 'Value', {} ).get( 'Successful', {} )
   if isinstance( seList, basestring ):
     seList = seList.split( ',' )
@@ -476,7 +482,7 @@ def getAccessURL( lfnList, seList, protocol = None ):
   for se in seList:
     lfns = [lfn for lfn in lfnList if se in replicas.get( lfn, [] )]
     if lfns:
-      res = StorageElement( se ).getURL( lfns, protocol = protocol )
+      res = StorageElement( se ).getURL( lfns, protocol=protocol )
       success = res.get( 'Value', {} ).get( 'Successful' )
       failed = res.get( 'Value', {} ).get( 'Failed' )
       if res['OK']:
@@ -515,7 +521,7 @@ def executeRemoveFiles( dmScript ):
 
   return removeFiles( lfnList, setProcessed )
 
-def removeFiles( lfnList, setProcessed = False ):
+def removeFiles( lfnList, setProcessed=False ):
   """
   Remove files, and set them Removed in the TS
   If setProcessed is True, even Processed files are set Removed
@@ -529,11 +535,11 @@ def removeFiles( lfnList, setProcessed = False ):
   # Avoid spurious error messages
   savedLevel = gLogger.getLevel()
   chunkSize = max( 10, min( 100, len( lfnList ) / 10 ) )
-  progressBar = ProgressBar( len( lfnList ), title = "Removing %d files" % len( lfnList ), chunk = chunkSize )
+  progressBar = ProgressBar( len( lfnList ), title="Removing %d files" % len( lfnList ), chunk=chunkSize )
   for lfnChunk in breakListIntoChunks( lfnList, chunkSize ):
     progressBar.loop()
     # gLogger.setLevel( 'FATAL' )
-    res = dm.removeFile( lfnChunk, force = False )
+    res = dm.removeFile( lfnChunk, force=False )
     gLogger.setLevel( savedLevel )
     if not res['OK']:
       gLogger.error( "\nFailed to remove data", res['Message'] )
@@ -550,13 +556,13 @@ def removeFiles( lfnList, setProcessed = False ):
   progressBar.endLoop()
 
   if successfullyRemoved + notExisting:
-    removeFilesInTransformations( successfullyRemoved + notExisting, setProcessed = setProcessed )
+    removeFilesInTransformations( successfullyRemoved + notExisting, setProcessed=setProcessed )
 
   if notExisting:
     # The files are not yet removed from the catalog!! :(((
     progressBar = ProgressBar( len( notExisting ),
-                               title = "Removing %d non-existing files from FC " % len( notExisting ),
-                               chunk = chunkSize )
+                               title="Removing %d non-existing files from FC " % len( notExisting ),
+                               chunk=chunkSize )
     notExistingRemoved = []
     for lfnChunk in breakListIntoChunks( notExisting, chunkSize ):
       progressBar.loop()
@@ -603,7 +609,7 @@ def removeFiles( lfnList, setProcessed = False ):
     gLogger.notice( '\n'.join( lfns[:maxLfns] ) )
   return 0
 
-def removeFilesInTransformations( lfns, setProcessed = False ):
+def removeFilesInTransformations( lfns, setProcessed=False ):
   """
   Set files Removed in transformations
   """
@@ -629,7 +635,7 @@ def removeFilesInTransformations( lfns, setProcessed = False ):
       lfnsToSet.setdefault( fileDict['TransformationID'], [] ).append( fileDict['LFN'] )
     # If required, set files Removed in transformations
     for transID, lfns in lfnsToSet.iteritems():
-      res = transClient.setFileStatusForTransformation( transID, 'Removed', lfns, force = True )
+      res = transClient.setFileStatusForTransformation( transID, 'Removed', lfns, force=True )
       if not res['OK']:
         gLogger.error( 'Error setting %d files to Removed' % len( lfns ), res['Message'] )
       else:
@@ -661,9 +667,9 @@ def executeLfnReplicas( dmScript ):
     gLogger.fatal( "No LFNs supplies" )
     Script.showHelp()
     return 1
-  return printLfnReplicas( lfnList, active = active, diskOnly = diskOnly, preferDisk = preferDisk, forJobs = forJobs )
+  return printLfnReplicas( lfnList, active=active, diskOnly=diskOnly, preferDisk=preferDisk, forJobs=forJobs )
 
-def printLfnReplicas( lfnList, active = True, diskOnly = False, preferDisk = False, forJobs = False ):
+def printLfnReplicas( lfnList, active=True, diskOnly=False, preferDisk=False, forJobs=False ):
   """
   get the replica list for a list of LFNs and print them depending on options
   """
@@ -671,9 +677,9 @@ def printLfnReplicas( lfnList, active = True, diskOnly = False, preferDisk = Fal
   fc = FileCatalog()
   while True:
     if forJobs:
-      res = dm.getReplicasForJobs( lfnList, diskOnly = diskOnly )
+      res = dm.getReplicasForJobs( lfnList, diskOnly=diskOnly )
     else:
-      res = dm.getReplicas( lfnList, active = active, diskOnly = diskOnly, preferDisk = preferDisk )
+      res = dm.getReplicas( lfnList, active=active, diskOnly=diskOnly, preferDisk=preferDisk )
     if not res['OK']:
       break
     if active and not forJobs and not res['Value']['Successful'] and not res['Value']['Failed']:
@@ -693,10 +699,10 @@ def printLfnReplicas( lfnList, active = True, diskOnly = False, preferDisk = Fal
           value['Successful'][lfn][se] = "(%s) %s" % ( res['Value']['Successful'][lfn], replicas[lfn][se] )
     res = S_OK( value )
   return printDMResult( res,
-                        empty = "No %sreplica found" % ( 'active disk ' if diskOnly else 'allowed ' if active else '' ),
-                        script = "dirac-dms-lfn-replicas" )
+                        empty="No %sreplica found" % ( 'active disk ' if diskOnly else 'allowed ' if active else '' ),
+                        script="dirac-dms-lfn-replicas" )
 
-def executePfnMetadata( dmScript, check = False, exists = False, summary = False ):
+def executePfnMetadata( dmScript, check=False, exists=False, summary=False ):
   """
   get options for pfn-metadata
   """
@@ -719,7 +725,7 @@ def executePfnMetadata( dmScript, check = False, exists = False, summary = False
     return 1
   return printPfnMetadata( lfnList, seList, check, exists, summary )
 
-def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = False ):
+def printPfnMetadata( lfnList, seList, check=False, exists=False, summary=False ):
   """
   get physical files metadata at a set of SEs
   If requested, it compares the checksum with the FC one
@@ -736,10 +742,10 @@ def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = 
   replicas = {}
   # restrict seList to those where the replicas are
   chunkSize = 20
-  progressBar = ProgressBar( len( lfnList ), title = "Getting replicas for %d files" % len( lfnList ), chunk = chunkSize )
+  progressBar = ProgressBar( len( lfnList ), title="Getting replicas for %d files" % len( lfnList ), chunk=chunkSize )
   for lfnChunk in breakListIntoChunks( lfnList, chunkSize ):
     progressBar.loop()
-    res = fc.getReplicas( lfnChunk, allStatus = True )
+    res = fc.getReplicas( lfnChunk, allStatus=True )
     if not res['OK']:
       gLogger.fatal( 'Error getting replicas for %d files' % len( lfnChunk ), res['Message'] )
       return 2
@@ -767,7 +773,7 @@ def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = 
         lfnMetadataDict = {}
     nbCalls = len( [0 for se in seList for lfn in lfnList if se in replicas.get( lfn, [] ) ] )
     chunkSize = 20
-    progressBar = ProgressBar( nbCalls, title = "Getting SE metadata of %d replicas" % nbCalls, step = chunkSize )
+    progressBar = ProgressBar( nbCalls, title="Getting SE metadata of %d replicas" % nbCalls, step=chunkSize )
     for se in seList:
       fileList = [url for url in lfnList if se in replicas.get( url, [] )]
       if not fileList:
@@ -813,7 +819,7 @@ def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = 
     progressBar.endLoop()
 
   if not summary:
-    return printDMResult( S_OK( metadata ), empty = "File not at SE" )
+    return printDMResult( S_OK( metadata ), empty="File not at SE" )
   else:
     nFiles = 0
     counterKeys = ['Not in FC', 'No active replicas', 'Not existing', 'Exists', 'Checksum OK', 'Checksum bad']
@@ -836,7 +842,7 @@ def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = 
     for lfn, seDict in metadata['Successful'].iteritems():
       nFiles += 1
       for se in seDict:
-        if seDict[se]['MatchLFN'] == True:
+        if seDict[se]['MatchLFN'] is True:
           counters['Checksum OK'] += 1
         else:
           counters['Checksum bad'] += 1
@@ -906,12 +912,12 @@ def executeReplicaStats( dmScript ):
   if dumpAtSE or dumpNotAtSE:
     prSEList = seList
 
-  return printReplicaStats( directories, lfnList, getSize = getSize, prNoReplicas = prNoReplicas,
-                     prWithReplicas = prWithReplicas, prWithArchives = prWithArchives,
-                     prFailover = prFailover, prSEList = prSEList, notAtSE = dumpNotAtSE )
+  return printReplicaStats( directories, lfnList, getSize=getSize, prNoReplicas=prNoReplicas,
+                     prWithReplicas=prWithReplicas, prWithArchives=prWithArchives,
+                     prFailover=prFailover, prSEList=prSEList, notAtSE=dumpNotAtSE )
 
-def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = False,
-                       prWithReplicas = False, prWithArchives = False, prFailover = False, prSEList = None, notAtSE = False ):
+def printReplicaStats( directories, lfnList, getSize=False, prNoReplicas=False,
+                       prWithReplicas=False, prWithArchives=False, prFailover=False, prSEList=None, notAtSE=False ):
   """
   get storage statistics on a dataset (directories or LFN list
   If requested, lists of LFNs with some criteria can be printed out
@@ -939,10 +945,10 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
   elif lfnList:
     chunkSize = max( 50, min( 500, len( lfnList ) / 10 ) )
     lfnReplicas = {}
-    progressBar = ProgressBar( len( lfnList ), title = 'Getting replicas for %d LFNs' % len( lfnList ), chunk = chunkSize )
+    progressBar = ProgressBar( len( lfnList ), title='Getting replicas for %d LFNs' % len( lfnList ), chunk=chunkSize )
     for lfnChunk in breakListIntoChunks( lfnList, chunkSize ):
       progressBar.loop()
-      res = dm.getReplicas( lfnChunk, getUrl = False )
+      res = dm.getReplicas( lfnChunk, getUrl=False )
       if not res['OK']:
         gLogger.fatal( res['Message'] )
         return 2
@@ -971,7 +977,7 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
   if getSize:
     lfnSize = {}
     chunkSize = max( 50, min( 500, len( lfnReplicas ) / 10 ) )
-    progressBar = ProgressBar( len( lfnReplicas ), title = 'Getting size for %d LFNs' % len( lfnReplicas ), chunk = chunkSize )
+    progressBar = ProgressBar( len( lfnReplicas ), title='Getting size for %d LFNs' % len( lfnReplicas ), chunk=chunkSize )
     for lfns in breakListIntoChunks( lfnReplicas, chunkSize ):
       progressBar.loop()
       res = FileCatalog().getFileSize( lfns )
@@ -1047,7 +1053,7 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
     if dmsHelper.isSEFailover( se ):
       continue
     if not dmsHelper.isSEArchive( se ):
-      res = dmsHelper.getSitesForSE( se, connectionLevel = 'LOCAL' )
+      res = dmsHelper.getSitesForSE( se, connectionLevel='LOCAL' )
       if res['OK']:
         try:
           site = res['Value'][0]
@@ -1116,7 +1122,7 @@ def executeReplicateLfn( dmScript ):
   get options for replicate-lfn
   """
   # The source SE may be given as second positional argument, therefore do not aggregate
-  seList, args = __checkSEs( Script.getPositionalArgs(), expand = False )
+  seList, args = __checkSEs( Script.getPositionalArgs(), expand=False )
   if not seList:
     # No source SE, hence fake with '' and join the destination SEs
     seList = [','.join( __getSEsFromOptions( dmScript ) ), '']
@@ -1125,7 +1131,7 @@ def executeReplicateLfn( dmScript ):
   localCache = ''
   try:
     # Extract the destination and source SEs
-    destList, _args = __checkSEs( seList[0].split( ',' ), expand = False )
+    destList, _args = __checkSEs( seList[0].split( ',' ), expand=False )
     sourceSE = seList[1].split( ',' )
   except IndexError:
     pass
@@ -1154,7 +1160,7 @@ def executeReplicateToRunDestination( dmScript ):
   """
   get information from file for destination according to the run destination
   """
-  seList, args = __checkSEs( Script.getPositionalArgs(), expand = False )
+  seList, args = __checkSEs( Script.getPositionalArgs(), expand=False )
   if not seList:
     seList = __getSEsFromOptions( dmScript )
   if not seList:
@@ -1195,12 +1201,12 @@ def executeReplicateToRunDestination( dmScript ):
       else:
         finalResult['Value']['Failed'].update( dict.fromkeys( lfns, res['Message'] ) )
   for destSE, lfns in groupBySE.iteritems():
-    result = replicateLfn( lfns, '', [destSE], verbose = True )
+    result = replicateLfn( lfns, '', [destSE], verbose=True )
     finalResult['Value']['Successful'].update( result['Value']['Successful'] )
     finalResult['Value']['Failed'].update( result['Value']['Failed'] )
   return printDMResult( finalResult )
 
-def replicateLfn( lfnList, sourceSE, destList, localCache = None, verbose = False ):
+def replicateLfn( lfnList, sourceSE, destList, localCache=None, verbose=False ):
   """
   replicate a list of LFNs to a list of SEs
   """
@@ -1212,7 +1218,7 @@ def replicateLfn( lfnList, sourceSE, destList, localCache = None, verbose = Fals
                     ( ' from %s' % sourceSE if sourceSE else '' ) )
   for lfn in lfnList:
     for seName in destList:
-      result = dm.replicateAndRegister( lfn, seName, sourceSE, localCache = localCache )
+      result = dm.replicateAndRegister( lfn, seName, sourceSE, localCache=localCache )
       if not result['OK']:
         finalResult['Value']["Failed"].setdefault( seName, {} ).update( {lfn:result['Message']} )
       else:
@@ -1250,7 +1256,7 @@ def executeSetProblematicFiles( dmScript ):
   else:
     return setProblematicFiles( lfnList, targetSEs, reset, fullInfo, action )
 
-def setProblematicFiles( lfnList, targetSEs, reset = False, fullInfo = False, action = True ):
+def setProblematicFiles( lfnList, targetSEs, reset=False, fullInfo=False, action=True ):
   """
   sets replicas problematic in the FC
   """
@@ -1261,11 +1267,11 @@ def setProblematicFiles( lfnList, targetSEs, reset = False, fullInfo = False, ac
 
   gLogger.notice( "Now processing %d files" % len( lfnList ) )
   chunkSize = max( 50, min( 500, len( lfnList ) / 10 ) )
-  progressBar = ProgressBar( len( lfnList ), title = 'Getting replicas from FC ', chunk = chunkSize )
+  progressBar = ProgressBar( len( lfnList ), title='Getting replicas from FC ', chunk=chunkSize )
   replicas = {'Successful':{}, 'Failed':{}}
   for chunk in breakListIntoChunks( lfnList, chunkSize ):
     progressBar.loop()
-    res = fc.getReplicas( chunk, allStatus = True )
+    res = fc.getReplicas( chunk, allStatus=True )
     if not res['OK']:
       gLogger.error( "Error getting file replicas:", res['Message'] )
       return 1
@@ -1302,7 +1308,7 @@ def setProblematicFiles( lfnList, targetSEs, reset = False, fullInfo = False, ac
     chunkSize = max( 10, min( 100, len( bkToggle ) / 10 ) )
     transStatusOK = { True:( 'Problematic', 'MissingLFC', 'MissingInFC', 'ProbInFC', 'MaxReset' ),
                      False:( 'Unused', 'MaxReset', 'Assigned' )}
-    progressBar = ProgressBar( len( bkToggle ), title = 'Checking with Transformation system', chunk = chunkSize )
+    progressBar = ProgressBar( len( bkToggle ), title='Checking with Transformation system', chunk=chunkSize )
     for chunk in breakListIntoChunks( bkToggle, chunkSize ):
       progressBar.loop()
       res = tr.getTransformationFiles( {'LFN': chunk} )
@@ -1338,13 +1344,13 @@ def setProblematicFiles( lfnList, targetSEs, reset = False, fullInfo = False, ac
     toSet = len( repsDict )
     chunkSize = max( 10, min( 100, toSet / 10 ) )
     progressBar = ProgressBar( toSet,
-                               title = "Setting replicas %s for %d files" % ( status, toSet ),
-                               chunk = chunkSize )
+                               title="Setting replicas %s for %d files" % ( status, toSet ),
+                               chunk=chunkSize )
     errors = {}
     for lfnChunk in breakListIntoChunks( repsDict, chunkSize ):
       progressBar.loop()
       chunkDict = dict( ( lfn, repsDict[lfn] ) for lfn in lfnChunk )
-      res = fc.setReplicaProblematic( chunkDict, revert = reset ) if action else {'OK':True}
+      res = fc.setReplicaProblematic( chunkDict, revert=reset ) if action else {'OK':True}
       if not res['OK']:
         errors[res['Message']] = errors.setdefault( res['Message'], 0 ) + len( lfnChunk )
       else:
@@ -1360,8 +1366,8 @@ def setProblematicFiles( lfnList, targetSEs, reset = False, fullInfo = False, ac
     status = 'set' if reset else 'removed'
     chunkSize = max( 10, min( 100, toSet / 10 ) )
     progressBar = ProgressBar( toSet,
-                               title = "Replica flag being %s for %d files" % ( status, toSet ),
-                               chunk = chunkSize )
+                               title="Replica flag being %s for %d files" % ( status, toSet ),
+                               chunk=chunkSize )
     errors = {}
     success = 0
     for lfnChunk in breakListIntoChunks( bkToggle, chunkSize ):
@@ -1386,7 +1392,7 @@ def setProblematicFiles( lfnList, targetSEs, reset = False, fullInfo = False, ac
     gLogger.notice( "\n%d files were set %s in the transformation system" % ( nb, status ) )
     for transID in sorted( transDict ):
       lfns = sorted( transDict[transID] )
-      res = tr.setFileStatusForTransformation( transID, status, lfns, force = True ) if action else {'OK':True}
+      res = tr.setFileStatusForTransformation( transID, status, lfns, force=True ) if action else {'OK':True}
       if not res['OK']:
         gLogger.error( "\tError setting %d files %s for transformation %s" % ( len( lfns ), status, transID ), res['Message'] )
       else:
@@ -1466,7 +1472,7 @@ def executeLfnMetadata( dmScript ):
     if 'Mode' in metadata:
       metadata['Mode'] = '%o' % metadata['Mode']
   gLogger.setLevel( savedLevel )
-  return printDMResult( S_OK( {'Successful':success, 'Failed':failed} ), empty = "File not in FC", script = "dirac-dms-lfn-metadata" )
+  return printDMResult( S_OK( {'Successful':success, 'Failed':failed} ), empty="File not in FC", script="dirac-dms-lfn-metadata" )
 
 def executeGetFile( dmScript ):
   """
@@ -1489,7 +1495,7 @@ def executeGetFile( dmScript ):
   gLogger.notice( 'Downloading %s to %s%s' %
                   ( ( '%d files' % nLfns ) if nLfns > 1 else 'file', dirList[0],
                     ' from %s' % sourceSE if sourceSE else '' ) )
-  result = DataManager().getFile( lfnList, destinationDir = dirList[0], sourceSE = sourceSE )
+  result = DataManager().getFile( lfnList, destinationDir=dirList[0], sourceSE=sourceSE )
 
   # Prepare popularity report
   if result['OK']:
@@ -1510,7 +1516,7 @@ def executeGetFile( dmScript ):
       else:
         gLogger.info( 'Successfully reported data usage', '(site: %s, usage: %s)' % ( localSite, str( popReport ) ) )
 
-  return printDMResult( result, empty = "No allowed replica found", script = "dirac-dms-get-file" )
+  return printDMResult( result, empty="No allowed replica found", script="dirac-dms-get-file" )
 
 def __buildLfnDict( item_list ):
   """
@@ -1585,7 +1591,7 @@ def executeAddFile():
       localFile = os.path.join( os.environ.get( 'TMPDIR', os.environ.get( 'TMP', '/tmp' ) ), os.path.basename( remoteFile ) )
       gLogger.notice( 'Attempting to download file to', localFile )
       from subprocess import Popen, PIPE
-      process = Popen( [eos, 'cp', '%s%s' % ( prefix, remoteFile ), localFile], stdout = PIPE, stderr = PIPE )
+      process = Popen( [eos, 'cp', '%s%s' % ( prefix, remoteFile ), localFile], stdout=PIPE, stderr=PIPE )
       out = process.stdout.read()
       err = process.stderr.read()
       process.stdout.close()
@@ -1621,17 +1627,20 @@ def executeAddFile():
   return exitCode
 
 def __isOlderThan( cTimeStruct, days ):
+  """
+  Check if a time is older than a given number of days
+  """
   from datetime import datetime, timedelta
-  return cTimeStruct < ( datetime.utcnow() - timedelta( days = days ) )
+  return cTimeStruct < ( datetime.utcnow() - timedelta( days=days ) )
 
-def executeListDirectory( dmScript, days = 0, months = 0, years = 0, wildcard = None, depth = 0 ):
+def executeListDirectory( dmScript, days=0, months=0, years=0, wildcard=None, depth=0 ):
   """
   List a FC directory contents recursively
   """
   onlyFiles = False
   emptyDirsFlag = False
   outputFlag = False
-  if wildcard == None:
+  if wildcard is None:
     wildcard = '*'
   for switch in Script.getUnprocessedSwitches():
     if switch[0] == "Days":
@@ -1684,7 +1693,7 @@ def executeListDirectory( dmScript, days = 0, months = 0, years = 0, wildcard = 
     baseDirs += bkQuery.getDirs()
 
   wildcardSplit = wildcard.split( '/' )
-  progressBar = ProgressBar( len( baseDirs ), title = "Getting files from %d directories" % len( baseDirs ), chunk = 1 )
+  progressBar = ProgressBar( len( baseDirs ), title="Getting files from %d directories" % len( baseDirs ), chunk=1 )
   filesInDirs = {}
   for baseDir in baseDirs:
     progressBar.loop()
@@ -1759,9 +1768,9 @@ def executeRegisterBK2FC( dmScript ):
   # The source SE may be given as second positional argument, therefore do not aggregate
   lfnList, seList = parseArguments( dmScript )
 
-  return registerBK2FC( lfnList, seList, printResult = True )
+  return registerBK2FC( lfnList, seList, printResult=True )
 
-def registerBK2FC( lfnList, seList, printResult = False ):
+def registerBK2FC( lfnList, seList, printResult=False ):
   """
   Check if files are in BK and not in the FC,
     check they are in any of the SEs and
@@ -1769,7 +1778,7 @@ def registerBK2FC( lfnList, seList, printResult = False ):
   """
 
   result = {'Successful':{}, 'Failed':{}}
-  res = DataManager().getReplicas( lfnList, getUrl = False )
+  res = DataManager().getReplicas( lfnList, getUrl=False )
   if not res['OK']:
     gLogger.error( 'Cannot get replicas', res['Message'] )
     return 1 if printResult else res
@@ -1816,7 +1825,7 @@ def registerBK2FC( lfnList, seList, printResult = False ):
             result['Failed'][lfn] = 'Size mismatch between BK and SE %s' % se
             continue
           guid = bkMetadata[lfn]['GUID']
-          res = storageElement.getURL( lfn, protocol = registrationProtocol )
+          res = storageElement.getURL( lfn, protocol=registrationProtocol )
           if res['OK']:
             pfn = res['Value']['Successful'][lfn]
           else:
@@ -1841,4 +1850,3 @@ def registerBK2FC( lfnList, seList, printResult = False ):
     return 0
   else:
     return S_OK( result )
-
