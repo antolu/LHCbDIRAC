@@ -69,29 +69,29 @@ class OracleBookkeepingDB_Success(OracleBookkeepingDB_TestCase):
     condition = ''
     tables = ''
     retVal = client._OracleBookkeepingDB__buildRunnumbers(runnumbers, startRunID, endRunID, condition, tables)
-    self.assert_(retVal['OK'])
-    self.assert_(retVal['Value'])
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'])
     self.assertEqual(retVal['Value'], (' and  (  j.runnumber=1 or  j.runnumber=3 or  j.runnumber=4 ) ', ''))
 
     startRunID = 1
     retVal = client._OracleBookkeepingDB__buildRunnumbers(runnumbers, startRunID, endRunID, condition, tables)
-    self.assert_(retVal['OK'])
-    self.assert_(retVal['Value'])
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'])
     self.assertEqual((' and  (  j.runnumber=1 or  j.runnumber=3 or  j.runnumber=4 ) ', ''), retVal['Value'])
 
     startRunID = None
     endRunID = 1
     retVal = client._OracleBookkeepingDB__buildRunnumbers(runnumbers, startRunID, endRunID, condition, tables)
-    self.assert_(retVal['OK'])
-    self.assert_(retVal['Value'])
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'])
     self.assertEqual((' and  (  j.runnumber=1 or  j.runnumber=3 or  j.runnumber=4 ) ', ''), retVal['Value'])
 
     startRunID = 1
     endRunID = 2
     runnumbers = [33, 44]
     retVal = client._OracleBookkeepingDB__buildRunnumbers(runnumbers, startRunID, endRunID, condition, tables)
-    self.assert_(retVal['OK'])
-    self.assert_(retVal['Value'])
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'])
     self.assertEqual((' and (j.runnumber>=1 and j.runnumber<=2 or  (  j.runnumber=33 or  j.runnumber=44 ))', ''),
                      retVal['Value'])
 
@@ -100,8 +100,8 @@ class OracleBookkeepingDB_Success(OracleBookkeepingDB_TestCase):
       startRunID = 1
       endRunID = 2
       retVal = client._OracleBookkeepingDB__buildRunnumbers(runnumbers, startRunID, endRunID, condition, tables)
-      self.assert_(retVal['OK'])
-      self.assert_(retVal['Value'])
+      self.assertTrue(retVal['OK'])
+      self.assertTrue(retVal['Value'])
       self.assertEqual((' and j.runnumber>=1 and j.runnumber<=2', ''), retVal['Value'])
 
   ################################################################################
@@ -118,8 +118,8 @@ class OracleBookkeepingDB_Success(OracleBookkeepingDB_TestCase):
       mock_db.query.return_value = {'OK' : True, 'Value' : [(1,)] }
       client.dbR_ = mock_db
       retVal = client._OracleBookkeepingDB__buildConditions(simdesc, daqdesc, condition, tables)
-      self.assert_(retVal['OK'])
-      self.assert_(retVal['Value'])
+      self.assertTrue(retVal['OK'])
+      self.assertTrue(retVal['Value'])
       self.assertEqual((' and prod.DAQPERIODID=1 and \
 prod.DAQPERIODID is not null  and prod.production=j.production ',
                         ' ,productionscontainer prod '), retVal['Value'])
@@ -133,22 +133,22 @@ prod.DAQPERIODID is not null  and prod.production=j.production ',
     configName = ''
     configVersion = ''
     retVal = client._OracleBookkeepingDB__buildConfiguration(configName, configVersion, condition, tables)
-    self.assert_(retVal['OK'])
-    self.assert_(retVal['Value'])
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'])
     self.assertEqual(('',''), retVal['Value'])
 
     configName = 'MC'
     configVersion = ''
     retVal = client._OracleBookkeepingDB__buildConfiguration(configName, configVersion, condition, tables)
-    self.assert_(retVal['OK'])
-    self.assert_(retVal['Value'])
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'])
     self.assertEqual(('',''), retVal['Value'])
 
     configName = 'MC'
     configVersion = 'MC11a'
     retVal = client._OracleBookkeepingDB__buildConfiguration(configName, configVersion, condition, tables)
-    self.assert_(retVal['OK'])
-    self.assert_(retVal['Value'])
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'])
     self.assertEqual(("  and c.ConfigName='MC' and c.ConfigVersion='MC11a' \
 and       j.configurationid=c.configurationid "," ,configurations c"), retVal['Value'])
 
@@ -164,20 +164,20 @@ and       j.configurationid=c.configurationid "," ,configurations c"), retVal['V
     for i in ['ALL', None]:
       dqFlag = i
       retVal = client._OracleBookkeepingDB__buildDataquality(dqFlag, condition, tables)
-      self.assert_(retVal['OK'])
-      self.assert_(retVal['Value'])
+      self.assertTrue(retVal['OK'])
+      self.assertTrue(retVal['Value'])
       self.assertEqual(('', ''), retVal['Value'])
 
     dqFlag = 'OK'
     retVal = client._OracleBookkeepingDB__buildDataquality(dqFlag, condition, tables)
-    self.assert_(retVal['OK'])
-    self.assert_(retVal['Value'])
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'])
     self.assertEqual((' and f.qualityid=1', ''), retVal['Value'])
 
     dqFlag = ['OK', 'UNCHECKED', 'BAD']
     retVal = client._OracleBookkeepingDB__buildDataquality(dqFlag, condition, tables)
-    self.assert_(retVal['OK'])
-    self.assert_(retVal['Value'])
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'])
     self.assertEqual((' and ( f.qualityid=1 or f.qualityid=1 or f.qualityid=1)', ''), retVal['Value'])
 
   ################################################################################
@@ -190,19 +190,19 @@ and       j.configurationid=c.configurationid "," ,configurations c"), retVal['V
     for i in [0, None, 'ALL']:
       evt = i
       retVal = client._OracleBookkeepingDB__buildEventType(evt, condition, tables)
-      self.assert_(retVal['OK'])
-      self.assert_(retVal['Value'])
+      self.assertTrue(retVal['OK'])
+      self.assertTrue(retVal['Value'])
       self.assertEqual(('', ''), retVal['Value'])
 
     evt = 1
     retVal = client._OracleBookkeepingDB__buildEventType(evt, condition, tables)
-    self.assert_(retVal['OK'])
-    self.assert_(retVal['Value'])
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'])
     self.assertEqual((' and f.eventtypeid=1', ''), retVal['Value'])
 
     retVal = client._OracleBookkeepingDB__buildEventType([], condition, tables)
-    self.assert_(retVal['OK'])
-    self.assert_(retVal['Value'])
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'])
     self.assertEqual(('', ''), retVal['Value'])
 
   ################################################################################
@@ -214,12 +214,12 @@ and       j.configurationid=c.configurationid "," ,configurations c"), retVal['V
     for i in [None, 'ALL']:
       ft = i
       retVal = client._OracleBookkeepingDB__buildFileTypes(ft, condition, tables)
-      self.assert_(retVal['OK'])
-      self.assert_(retVal['Value'])
+      self.assertTrue(retVal['OK'])
+      self.assertTrue(retVal['Value'])
       self.assertEqual(('', ''), retVal['Value'])
 
     retVal = client._OracleBookkeepingDB__buildFileTypes([], condition, tables)
-    self.assert_(retVal['Message'])
+    self.assertTrue(retVal['Message'])
 
   ################################################################################
   def test_buildProcessingPass(self):
@@ -234,29 +234,29 @@ and       j.configurationid=c.configurationid "," ,configurations c"), retVal['V
     for i in [None, 'ALL']:
       procpass = i
       retVal = client._OracleBookkeepingDB__buildProcessingPass(procpass, condition, tables)
-      self.assert_(retVal['OK'])
-      self.assert_(retVal['Value'])
+      self.assertTrue(retVal['OK'])
+      self.assertTrue(retVal['Value'])
       self.assertEqual(('', ''), retVal['Value'])
 
     procpass = '/Sim08/Reco01'
     retVal = client._OracleBookkeepingDB__buildProcessingPass(procpass, condition, tables)
-    self.assert_(retVal['OK'])
-    self.assert_(retVal['Value'])
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'])
     self.assertEqual((' and j.production=prod.production\
                       and prod.processingid in (1)', ',productionscontainer prod'), retVal['Value'])
 
     procpass = '/Sim08/Reco01'
     tables = ',productionscontainer prod'
     retVal = client._OracleBookkeepingDB__buildProcessingPass(procpass, condition, tables)
-    self.assert_(retVal['OK'])
-    self.assert_(retVal['Value'])
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'])
     self.assertEqual((' and j.production=prod.production\
                       and prod.processingid in (1)', ',productionscontainer prod'), retVal['Value'])
 
     mock_db.query.return_value = {'OK' : True, 'Value' : [(1,),(2,)] }
     retVal = client._OracleBookkeepingDB__buildProcessingPass(procpass, condition, tables)
-    self.assert_(retVal['OK'])
-    self.assert_(retVal['Value'])
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'])
     self.assertEqual((' and j.production=prod.production\
                       and prod.processingid in (1,2)', ',productionscontainer prod'), retVal['Value'])
 
@@ -271,20 +271,20 @@ and       j.configurationid=c.configurationid "," ,configurations c"), retVal['V
     for i in [None, 'ALL', []]:
       prod = i
       retVal = client._OracleBookkeepingDB__buildProduction(prod, condition, tables)
-      self.assert_(retVal['OK'])
-      self.assert_(retVal['Value'])
+      self.assertTrue(retVal['OK'])
+      self.assertTrue(retVal['Value'])
       self.assertEqual(('', ''), retVal['Value'])
 
     prod = 1
     retVal = client._OracleBookkeepingDB__buildProduction(prod, condition, tables)
-    self.assert_(retVal['OK'])
-    self.assert_(retVal['Value'])
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'])
     self.assertEqual((' and j.production=1', ''), retVal['Value'])
 
     prod = [1, 2]
     retVal = client._OracleBookkeepingDB__buildProduction(prod, condition, tables)
-    self.assert_(retVal['OK'])
-    self.assert_(retVal['Value'])
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'])
     self.assertEqual((' and  (  j.production=1 or  j.production=2 )', ''), retVal['Value'])
 
   ################################################################################
@@ -297,20 +297,20 @@ and       j.configurationid=c.configurationid "," ,configurations c"), retVal['V
     for i in [None, 'ALL', []]:
       flag = i
       retVal = client._OracleBookkeepingDB__buildReplicaflag(flag, condition, tables)
-      self.assert_(retVal['OK'])
-      self.assert_(retVal['Value'])
+      self.assertTrue(retVal['OK'])
+      self.assertTrue(retVal['Value'])
       self.assertEqual(('', tables), retVal['Value'])
 
     flag = 'Yes'
     retVal = client._OracleBookkeepingDB__buildReplicaflag(flag, condition, tables)
-    self.assert_(retVal['OK'])
-    self.assert_(retVal['Value'])
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'])
     self.assertEqual((" and f.gotreplica='Yes' ", tables), retVal['Value'])
 
     flag = 'No'
     retVal = client._OracleBookkeepingDB__buildReplicaflag(flag, condition, tables)
-    self.assert_(retVal['OK'])
-    self.assert_(retVal['Value'])
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'])
     self.assertEqual((" and f.gotreplica='No' ", tables), retVal['Value'])
 
   ################################################################################
@@ -324,30 +324,30 @@ and       j.configurationid=c.configurationid "," ,configurations c"), retVal['V
       sDate = i
       eDate = i
       retVal = client._OracleBookkeepingDB__buildStartenddate(sDate, eDate, condition, tables)
-      self.assert_(retVal['OK'])
-      self.assert_(retVal['Value'])
+      self.assertTrue(retVal['OK'])
+      self.assertTrue(retVal['Value'])
       self.assertEqual(('', tables), retVal['Value'])
 
     sDate = 1
     eDate = 2
     retVal = client._OracleBookkeepingDB__buildStartenddate(sDate, eDate, condition, tables)
-    self.assert_(retVal['OK'])
-    self.assert_(retVal['Value'])
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'])
     self.assertEqual((" and f.inserttimestamp >= TO_TIMESTAMP ('1','YYYY-MM-DD HH24:MI:SS') \
 and f.inserttimestamp <= TO_TIMESTAMP ('2','YYYY-MM-DD HH24:MI:SS')", tables), retVal['Value'])
 
     sDate = None
     eDate = 2
     retVal = client._OracleBookkeepingDB__buildStartenddate(sDate, eDate, condition, tables)
-    self.assert_(retVal['OK'])
-    self.assert_(retVal['Value'])
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'])
     self.assertEqual((" and f.inserttimestamp <= TO_TIMESTAMP ('2','YYYY-MM-DD HH24:MI:SS')", tables), retVal['Value'])
 
     sDate = 1
     eDate = None
     retVal = client._OracleBookkeepingDB__buildStartenddate(sDate, eDate, condition, tables)
-    self.assert_(retVal['OK'])
-    self.assert_(retVal['Value'])
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'])
     condition, tables2 = retVal['Value']
     self.assertEqual(154, len(condition)) #the current time is returned and can not compared
     self.assertEqual(tables, tables2)
@@ -362,32 +362,32 @@ and f.inserttimestamp <= TO_TIMESTAMP ('2','YYYY-MM-DD HH24:MI:SS')", tables), r
     for i in [None, 'ALL']:
       tcks = i
       retVal = client._OracleBookkeepingDB__buildTCKS(tcks, condition, tables)
-      self.assert_(retVal['OK'])
-      self.assert_(retVal['Value'])
+      self.assertTrue(retVal['OK'])
+      self.assertTrue(retVal['Value'])
       self.assertEqual(('', tables), retVal['Value'])
 
     tcks = [1]
     retVal = client._OracleBookkeepingDB__buildTCKS(tcks, condition, tables)
-    self.assert_(retVal['OK'])
-    self.assert_(retVal['Value'])
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'])
     self.assertEqual((" and (j.tck='1' ) ", tables), retVal['Value'])
 
     tcks = "1"
     retVal = client._OracleBookkeepingDB__buildTCKS(tcks, condition, tables)
-    self.assert_(retVal['OK'])
-    self.assert_(retVal['Value'])
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'])
     self.assertEqual((" and j.tck='1'", tables), retVal['Value'])
 
     tcks = [1, 2]
     retVal = client._OracleBookkeepingDB__buildTCKS(tcks, condition, tables)
-    self.assert_(retVal['OK'])
-    self.assert_(retVal['Value'])
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'])
     self.assertEqual((" and (j.tck='1' or j.tck='2' ) ", tables), retVal['Value'])
 
     tcks = []
     retVal = client._OracleBookkeepingDB__buildTCKS(tcks, condition, tables)
-    self.assert_(retVal['OK'])
-    self.assert_(retVal['Value'])
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'])
     self.assertEqual(('', tables), retVal['Value'])
 
 if __name__ == '__main__':

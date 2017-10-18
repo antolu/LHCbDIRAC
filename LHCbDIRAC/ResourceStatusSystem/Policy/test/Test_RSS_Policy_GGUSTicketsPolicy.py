@@ -45,35 +45,35 @@ class GGUSTicketsPolicy_Success( GGUSTicketsPolicy_TestCase ):
 
     res = module._evaluate( { 'OK' : False, 'Message' : 'Bo!' } )
     self.assertTrue(res['OK'])
-    self.assertEquals( 'Error', res[ 'Value' ][ 'Status' ] )
-    self.assertEquals( 'Bo!', res[ 'Value' ][ 'Reason' ] )
+    self.assertEqual( 'Error', res[ 'Value' ][ 'Status' ] )
+    self.assertEqual( 'Bo!', res[ 'Value' ][ 'Reason' ] )
 
     res = module._evaluate( { 'OK' : True, 'Value' : None } )
     self.assertTrue(res['OK'])
-    self.assertEquals( 'Unknown', res[ 'Value' ][ 'Status' ] )
-    self.assertEquals( 'No values to take a decision', res[ 'Value' ][ 'Reason' ] )
+    self.assertEqual( 'Unknown', res[ 'Value' ][ 'Status' ] )
+    self.assertEqual( 'No values to take a decision', res[ 'Value' ][ 'Reason' ] )
 
     res = module._evaluate( { 'OK' : True, 'Value' : [] } )
     self.assertTrue(res['OK'])
-    self.assertEquals( 'Unknown', res[ 'Value' ][ 'Status' ] )
-    self.assertEquals( 'No values to take a decision', res[ 'Value' ][ 'Reason' ] )
+    self.assertEqual( 'Unknown', res[ 'Value' ][ 'Status' ] )
+    self.assertEqual( 'No values to take a decision', res[ 'Value' ][ 'Reason' ] )
 
     res = module._evaluate( { 'OK' : True, 'Value' : [{ 'A' : 1 }] } )
     self.assertTrue(res['OK'])
-    self.assertEquals( 'Error', res[ 'Value' ][ 'Status' ] )
-    self.assertEquals( 'Expected OpenTickets key for GGUSTickets', res[ 'Value' ][ 'Reason' ] )
+    self.assertEqual( 'Error', res[ 'Value' ][ 'Status' ] )
+    self.assertEqual( 'Expected OpenTickets key for GGUSTickets', res[ 'Value' ][ 'Reason' ] )
 
     res = module._evaluate( { 'OK' : True, 'Value' : [{ 'OpenTickets' : 0 }] } )
     self.assertTrue(res['OK'])
-    self.assertEquals( 'Active', res[ 'Value' ][ 'Status' ] )
-    self.assertEquals( 'NO GGUSTickets unsolved', res[ 'Value' ][ 'Reason' ] )
+    self.assertEqual( 'Active', res[ 'Value' ][ 'Status' ] )
+    self.assertEqual( 'NO GGUSTickets unsolved', res[ 'Value' ][ 'Reason' ] )
 
     self.assertRaises( KeyError, module._evaluate, { 'OK' : True, 'Value' : [{ 'OpenTickets' : 1 }] } )
 
     res = module._evaluate( { 'OK' : True, 'Value' : [{ 'OpenTickets' : 1, 'Tickets' : '1a' }] } )
     self.assertTrue(res['OK'])
-    self.assertEquals( 'Degraded', res[ 'Value' ][ 'Status' ] )
-    self.assertEquals( '1 GGUSTickets unsolved: 1a', res[ 'Value' ][ 'Reason' ] )
+    self.assertEqual( 'Degraded', res[ 'Value' ][ 'Status' ] )
+    self.assertEqual( '1 GGUSTickets unsolved: 1a', res[ 'Value' ][ 'Reason' ] )
 
 
 if __name__ == '__main__':

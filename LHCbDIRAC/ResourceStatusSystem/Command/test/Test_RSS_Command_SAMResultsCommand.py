@@ -80,66 +80,66 @@
 #
 #    c.args = ( None, None )
 #    res = c.doCommand()
-#    self.assertEquals( res, { 'Result' : 'None is not a valid granularity' } )
+#    self.assertEqual( res, { 'Result' : 'None is not a valid granularity' } )
 #
 #    c.args = ( 'A', None )
 #    res = c.doCommand()
-#    self.assertEquals( res, { 'Result' : 'A is not a valid granularity' } )
+#    self.assertEqual( res, { 'Result' : 'A is not a valid granularity' } )
 #
 #    c.args = ( 'Site', None )
 #    dummyResults[ 'dgetGOCSiteName' ] = { 'OK' : False, 'Message' : 'Nonono' }
 #    res = c.doCommand()
-#    self.assertEquals( res, { 'OK' : False, 'Message' : 'Nonono' } )
+#    self.assertEqual( res, { 'OK' : False, 'Message' : 'Nonono' } )
 #
 #    c.args = ( 'Site', None )
 #    dummyResults[ 'dgetGOCSiteName' ] = { 'OK' : True, 'Value' : 'Site1' }
 #    res = c.doCommand()
-#    self.assertEquals( res, { 'Result' : { 'OK' : True, 'Value' : 1 } } )
+#    self.assertEqual( res, { 'Result' : { 'OK' : True, 'Value' : 1 } } )
 #
 #    c.args = ( 'Site', None, None )
 #    dummyResults[ 'dgetGOCSiteName' ] = { 'OK' : True, 'Value' : 'Site1' }
 #    res = c.doCommand()
-#    self.assertEquals( res, { 'Result' : { 'OK' : True, 'Value' : 1 } } )
+#    self.assertEqual( res, { 'Result' : { 'OK' : True, 'Value' : 1 } } )
 #
 #    c.args = ( 'Site', None, 'SiteName' )
 #    dummyResults[ 'dgetGOCSiteName' ] = { 'OK' : True, 'Value' : 'Site1' }
 #    res = c.doCommand()
-#    self.assertEquals( res, { 'Result' : { 'OK' : True, 'Value' : 1 } } )
+#    self.assertEqual( res, { 'Result' : { 'OK' : True, 'Value' : 1 } } )
 #
 #    c.args = ( 'Resource', None )
 #    dummyResults[ 'dgetGOCSiteName' ] = None
 #    dummyResults[ 'dResourceStatusClient' ] = { 'OK' : False, 'Message' : 'Notnow' }
 #    res = c.doCommand()
-#    self.assertEquals( res, { 'OK' : False, 'Message' : 'Notnow' } )
+#    self.assertEqual( res, { 'OK' : False, 'Message' : 'Notnow' } )
 #
 #    c.args = ( 'Resource', None )
 #    dummyResults[ 'dResourceStatusClient' ] = { 'OK' : True, 'Value' : 'SiteR1' }
 #    res = c.doCommand()
-#    self.assertEquals( res, { 'Result' : { 'OK' : True, 'Value' : 'R1' } } )
+#    self.assertEqual( res, { 'Result' : { 'OK' : True, 'Value' : 'R1' } } )
 #
 #    c.args = ( 'Resource', None, 'SiteName2' )
 #    dummyResults[ 'dResourceStatusClient' ] = None
 #    dummyResults[ 'dgetGOCSiteName' ] = { 'OK' : False, 'Message' : 'No site R2' }
 #    res = c.doCommand()
-#    self.assertEquals( res, { 'OK' : False, 'Message' : 'No site R2' } )
+#    self.assertEqual( res, { 'OK' : False, 'Message' : 'No site R2' } )
 #
 #    c.args = ( 'Resource', None, 'SiteName2' )
 #    dummyResults[ 'dResourceStatusClient' ] = None
 #    dummyResults[ 'dgetGOCSiteName' ] = { 'OK' : True, 'Value' : 'SiteR2' }
 #    res = c.doCommand()
-#    self.assertEquals( res, { 'Result' : { 'OK' : True, 'Value' : 'R2' } })
+#    self.assertEqual( res, { 'Result' : { 'OK' : True, 'Value' : 'R2' } })
 #
 #    c.args = ( 'Resource', None, 'SiteName2' )
 #    dummyResults[ 'dResourceStatusClient' ] = None
 #    dummyResults[ 'dgetGOCSiteName' ] = { 'OK' : True, 'Value' : 'SiteR2' }
 #    res = c.doCommand()
-#    self.assertEquals( res, { 'Result' : { 'OK' : False, 'Message' : 'Not R2' } })
+#    self.assertEqual( res, { 'Result' : { 'OK' : False, 'Message' : 'Not R2' } })
 #
 #    c.args = ( 'Resource', None, 'SiteName2', None )
 #    dummyResults[ 'dResourceStatusClient' ] = None
 #    dummyResults[ 'dgetGOCSiteName' ] = { 'OK' : True, 'Value' : 'SiteR2' }
 #    res = c.doCommand()
-#    self.assertEquals( res, { 'Result' : { 'OK' : False, 'Message' : 'Not R2' } })
+#    self.assertEqual( res, { 'Result' : { 'OK' : False, 'Message' : 'Not R2' } })
 #
 #################################################################################
 ##EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

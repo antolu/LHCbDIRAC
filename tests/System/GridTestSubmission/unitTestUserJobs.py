@@ -60,145 +60,145 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
   def test_LHCbsubmit( self ):
 
     res = helloWorld()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = helloWorldTestT2s()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = helloWorldTestCERN()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = helloWorldTestIN2P3()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = helloWorldTestGRIDKA()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = helloWorldTestSSH()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = helloWorldTestSSHCondor()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = helloWorldTestARC()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = helloWorldTestVAC()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = helloWorldTestCLOUD()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = helloWorldTestBOINC()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = helloWorldTestSLC6()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = helloWorldTestSLC5()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = jobWithOutput()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = jobWithOutputAndPrepend()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     jobWithOutputAndPrependWithUnderscore()
 
     res = jobWithOutputAndReplication()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = jobWith2OutputsToBannedSE()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = jobWithSingleInputData()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = jobWithSingleInputDataCERN()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = jobWithSingleInputDataRAL()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = jobWithSingleInputDataIN2P3()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = jobWithSingleInputDataGRIDKA()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = jobWithSingleInputDataRRCKI()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = jobWithSingleInputDataSARA()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = jobWithSingleInputDataNIKHEF()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = jobWithSingleInputDataPIC()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = jobWithInputDataAndAncestor()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = jobWithSingleInputDataSpreaded()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = gaussJob()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = booleJob()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = gaudiApplicationScriptJob()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = daVinciLHCbScriptJob_v41r2()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = daVinciLHCbScriptJob_v42r1()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = wrongJob()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
     res = booleJobWithConf()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     jobsSubmittedList.append( res['Value'] )
 
 
@@ -216,12 +216,12 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
 #     counter = 0
 #     while counter < 36:
 #       jobStatus = self.dirac.status( jobsSubmittedList )
-#       self.assert_( jobStatus['OK'] )
+#       self.assertTrue( jobStatus['OK'] )
 #       for jobID in jobsSubmittedList:
 #         status = jobStatus['Value'][jobID]['Status']
 #         minorStatus = jobStatus['Value'][jobID]['MinorStatus']
 #         if status == 'Done':
-#           self.assert_( minorStatus in ['Execution Complete', 'Requests Done'] )
+#           self.assertTrue( minorStatus in ['Execution Complete', 'Requests Done'] )
 #           jobsSubmittedList.remove( jobID )
 #           res = self.dirac.getJobOutputLFNs( jobID )
 #           if res['OK']:
@@ -238,7 +238,7 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
 #
 #     # removing produced files
 #     res = self.dirac.removeFile( toRemove )
-#     self.assert_( res['OK'] )
+#     self.assertTrue(res['OK'])
 #
 #     if fail:
 #       self.assertFalse( True )

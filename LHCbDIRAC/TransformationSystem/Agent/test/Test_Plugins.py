@@ -79,7 +79,7 @@ class PluginsBaseSuccess( PluginsTestCase ):
                                            fc = self.mockCatalog )
     pluginStandard.setParameters( paramsBase )
     res = pluginStandard.run()
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     self.assertEqual( res['Value'], [] )
 
     # input data, active
@@ -97,10 +97,10 @@ class PluginsBaseSuccess( PluginsTestCase ):
     params['GroupSize'] = 2
     pluginStandard.setParameters( params )
     res = pluginStandard.run()
-    self.assert_( res['OK'] )
-    self.assert_( len( res['Value'] ) == 3 )
+    self.assertTrue(res['OK'])
+    self.assertTrue( len( res['Value'] ) == 3 )
     for t in res['Value']:
-      self.assert_( len( t[1] ) <= 2 )
+      self.assertTrue( len( t[1] ) <= 2 )
 
     # input data, flush
     pluginStandard = TransformationPlugin( 'LHCbStandard',
@@ -117,10 +117,10 @@ class PluginsBaseSuccess( PluginsTestCase ):
     params['GroupSize'] = 2
     pluginStandard.setParameters( params )
     res = pluginStandard.run()
-    self.assert_( res['OK'] )
-    self.assert_( len( res['Value'] ) == 5 )
+    self.assertTrue(res['OK'])
+    self.assertTrue( len( res['Value'] ) == 5 )
     for t in res['Value']:
-      self.assert_( len( t[1] ) <= 2 )
+      self.assertTrue( len( t[1] ) <= 2 )
 
 #############################################################################
 # Test Suite run

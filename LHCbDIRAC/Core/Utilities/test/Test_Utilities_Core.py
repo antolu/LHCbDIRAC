@@ -130,18 +130,18 @@ class ProdConfSuccess( UtilitiesTestCase ):
 
   def test__buildOptions( self ):
     ret = self.pc._buildOptions( {'Application':'DaVinci', 'InputFiles':['foo', 'bar']} )
-    self.assertEquals( ret, {'Application':'DaVinci', 'InputFiles':['foo', 'bar']} )
+    self.assertEqual( ret, {'Application':'DaVinci', 'InputFiles':['foo', 'bar']} )
 
     self.pc.whatsIn = {'AppVersion': 'v30r0'}
     ret = self.pc._buildOptions( {'Application':'DaVinci', 'InputFiles':['foo', 'bar']} )
-    self.assertEquals( ret, {'Application':'DaVinci', 'InputFiles':['foo', 'bar'], 'AppVersion': 'v30r0'} )
+    self.assertEqual( ret, {'Application':'DaVinci', 'InputFiles':['foo', 'bar'], 'AppVersion': 'v30r0'} )
 
     ret = self.pc._buildOptions( {'AppVersion':'v31r0', 'InputFiles':['foo', 'bar']} )
-    self.assertEquals( ret, {'InputFiles':['foo', 'bar'], 'AppVersion': 'v31r0'} )
+    self.assertEqual( ret, {'InputFiles':['foo', 'bar'], 'AppVersion': 'v31r0'} )
 
   def test__getOptionsString( self ):
     ret = self.pc._getOptionsString( {'Application':'DaVinci', 'InputFiles':['foo', 'bar']} )
-    self.assertEquals( ret, "from ProdConf import ProdConf\n\nProdConf(\n  Application='DaVinci',\n  InputFiles=['foo', 'bar'],\n)" )
+    self.assertEqual( ret, "from ProdConf import ProdConf\n\nProdConf(\n  Application='DaVinci',\n  InputFiles=['foo', 'bar'],\n)" )
 
   def test_complete( self ):
     try:
@@ -149,9 +149,9 @@ class ProdConfSuccess( UtilitiesTestCase ):
     except OSError:
       pass
     pc1 = ProdConf()
-    self.assertEquals( pc1.whatsIn, {} )
+    self.assertEqual( pc1.whatsIn, {} )
     pc1.putOptionsIn( {'Application':'DaVinci'} )
-    self.assertEquals( pc1.whatsIn, {'Application':'DaVinci'} )
+    self.assertEqual( pc1.whatsIn, {'Application':'DaVinci'} )
 
     try:
       os.remove( 'prodConf.py' )
@@ -159,7 +159,7 @@ class ProdConfSuccess( UtilitiesTestCase ):
       pass
     pc1 = ProdConf()
     pc1.putOptionsIn( {'InputFiles':['foo', 'bar']} )
-    self.assertEquals( pc1.whatsIn, {'InputFiles':['foo', 'bar']} )
+    self.assertEqual( pc1.whatsIn, {'InputFiles':['foo', 'bar']} )
 
     try:
       os.remove( 'prodConf.py' )
@@ -167,12 +167,12 @@ class ProdConfSuccess( UtilitiesTestCase ):
       pass
     pc1 = ProdConf()
     pc1.putOptionsIn( {'RunNumber':12345} )
-    self.assertEquals( pc1.whatsIn, {'RunNumber':12345} )
+    self.assertEqual( pc1.whatsIn, {'RunNumber':12345} )
     fopen = open( 'prodConf.py', 'r' )
     fileString = fopen.read()
     fopen.close()
     string = "from ProdConf import ProdConf\n\nProdConf(\n  RunNumber=12345,\n)"
-    self.assertEquals( string, fileString )
+    self.assertEqual( string, fileString )
 
     try:
       os.remove( 'prodConf.py' )
@@ -180,7 +180,7 @@ class ProdConfSuccess( UtilitiesTestCase ):
       pass
     pc1 = ProdConf()
     pc1.putOptionsIn( {'Application':'DaVinci', 'InputFiles':['foo', 'bar']} )
-    self.assertEquals( pc1.whatsIn, {'Application':'DaVinci', 'InputFiles':['foo', 'bar']} )
+    self.assertEqual( pc1.whatsIn, {'Application':'DaVinci', 'InputFiles':['foo', 'bar']} )
 
     try:
       os.remove( 'prodConf.py' )
@@ -188,9 +188,9 @@ class ProdConfSuccess( UtilitiesTestCase ):
       pass
     pc1 = ProdConf()
     pc1.putOptionsIn( {'Application':'DaVinci'} )
-    self.assertEquals( pc1.whatsIn, {'Application':'DaVinci'} )
+    self.assertEqual( pc1.whatsIn, {'Application':'DaVinci'} )
     pc1.putOptionsIn( {'Application':'LHCb'} )
-    self.assertEquals( pc1.whatsIn, {'Application':'LHCb'} )
+    self.assertEqual( pc1.whatsIn, {'Application':'LHCb'} )
 
     try:
       os.remove( 'prodConf.py' )
@@ -198,11 +198,11 @@ class ProdConfSuccess( UtilitiesTestCase ):
       pass
     pc1 = ProdConf()
     pc1.putOptionsIn( {'Application':'DaVinci', 'InputFiles':['foo', 'bar']} )
-    self.assertEquals( pc1.whatsIn, {'Application':'DaVinci', 'InputFiles':['foo', 'bar']} )
+    self.assertEqual( pc1.whatsIn, {'Application':'DaVinci', 'InputFiles':['foo', 'bar']} )
     pc1.putOptionsIn( {'Application':'LHCb'} )
-    self.assertEquals( pc1.whatsIn, {'Application':'LHCb', 'InputFiles':['foo', 'bar']} )
+    self.assertEqual( pc1.whatsIn, {'Application':'LHCb', 'InputFiles':['foo', 'bar']} )
     pc1.putOptionsIn( {'RunNumber':12345} )
-    self.assertEquals( pc1.whatsIn, {'Application':'LHCb', 'InputFiles':['foo', 'bar'], 'RunNumber':12345} )
+    self.assertEqual( pc1.whatsIn, {'Application':'LHCb', 'InputFiles':['foo', 'bar'], 'RunNumber':12345} )
 
     try:
       os.remove( 'prodConf.py' )
@@ -211,44 +211,44 @@ class ProdConfSuccess( UtilitiesTestCase ):
     pc1 = ProdConf()
 
     pc1.putOptionsIn( {'Application':'DaVinci', 'InputFiles':['foo', 'bar'], 'AppVersion':'v30r0'} )
-    self.assertEquals( pc1.whatsIn, {'Application':'DaVinci', 'InputFiles':['foo', 'bar'], 'AppVersion':'v30r0'} )
+    self.assertEqual( pc1.whatsIn, {'Application':'DaVinci', 'InputFiles':['foo', 'bar'], 'AppVersion':'v30r0'} )
     fopen = open( 'prodConf.py', 'r' )
     fileString = fopen.read()
     fopen.close()
     string = "from ProdConf import ProdConf\n\nProdConf(\n  Application='DaVinci',\n  InputFiles=['foo', 'bar'],\n  AppVersion='v30r0',\n)"
-    self.assertEquals( string, fileString )
+    self.assertEqual( string, fileString )
 
     pc1.putOptionsIn( {'Application':'LHCb'} )
-    self.assertEquals( pc1.whatsIn, {'Application':'LHCb', 'InputFiles':['foo', 'bar'], 'AppVersion':'v30r0'} )
+    self.assertEqual( pc1.whatsIn, {'Application':'LHCb', 'InputFiles':['foo', 'bar'], 'AppVersion':'v30r0'} )
     fopen = open( 'prodConf.py', 'r' )
     fileString = fopen.read()
     fopen.close()
     string = "from ProdConf import ProdConf\n\nProdConf(\n  Application='LHCb',\n  InputFiles=['foo', 'bar'],\n  AppVersion='v30r0',\n)"
-    self.assertEquals( string, fileString )
+    self.assertEqual( string, fileString )
 
     pc1.putOptionsIn( {'InputFiles':['pippo', 'pluto']} )
-    self.assertEquals( pc1.whatsIn, {'Application': 'LHCb', 'InputFiles': ['pippo', 'pluto'], 'AppVersion': 'v30r0'} )
+    self.assertEqual( pc1.whatsIn, {'Application': 'LHCb', 'InputFiles': ['pippo', 'pluto'], 'AppVersion': 'v30r0'} )
     fopen = open( 'prodConf.py', 'r' )
     fileString = fopen.read()
     fopen.close()
     string = "from ProdConf import ProdConf\n\nProdConf(\n  Application='LHCb',\n  InputFiles=['pippo', 'pluto'],\n  AppVersion='v30r0',\n)"
-    self.assertEquals( string, fileString )
+    self.assertEqual( string, fileString )
 
     pc1.putOptionsIn( {'InputFiles':[]} )
-    self.assertEquals( pc1.whatsIn, {'Application': 'LHCb', 'InputFiles': [], 'AppVersion': 'v30r0'} )
+    self.assertEqual( pc1.whatsIn, {'Application': 'LHCb', 'InputFiles': [], 'AppVersion': 'v30r0'} )
     fopen = open( 'prodConf.py', 'r' )
     fileString = fopen.read()
     fopen.close()
     string = "from ProdConf import ProdConf\n\nProdConf(\n  Application='LHCb',\n  InputFiles=[],\n  AppVersion='v30r0',\n)"
-    self.assertEquals( string, fileString )
+    self.assertEqual( string, fileString )
 
     pc1.putOptionsIn( {'Application':'', 'RunNumber':12345} )
-    self.assertEquals( pc1.whatsIn, {'Application': '', 'InputFiles': [], 'AppVersion': 'v30r0', 'RunNumber':12345} )
+    self.assertEqual( pc1.whatsIn, {'Application': '', 'InputFiles': [], 'AppVersion': 'v30r0', 'RunNumber':12345} )
     fopen = open( 'prodConf.py', 'r' )
     fileString = fopen.read()
     fopen.close()
     string = "from ProdConf import ProdConf\n\nProdConf(\n  Application='',\n  InputFiles=[],\n  AppVersion='v30r0',\n  RunNumber=12345,\n)"
-    self.assertEquals( string, fileString )
+    self.assertEqual( string, fileString )
 
 
 #################################################
@@ -436,12 +436,12 @@ class ProductionDataSuccess( UtilitiesTestCase ):
 
       res = constructProductionLFNs( paramDict, bkc_mock )
 
-      self.assert_( res['OK'] )
+      self.assertTrue(res['OK'])
       self.assertEqual( res['Value'], resL )
 
       resWithBkk = constructProductionLFNs( paramDict, bkc_mock, quick = False )
 
-      self.assert_( resWithBkk['OK'] )
+      self.assertTrue( resWithBkk['OK'] )
       self.assertEqual( resWithBkk['Value'], resL )
 
   #################################################
@@ -582,7 +582,7 @@ class NagiosConnectorSuccess( UtilitiesTestCase ):
 
     nagConn = NagiosConnector()
     nagConn.readConfig()
-    self.assert_( nagConn.config['MsgPort'] )
+    self.assertTrue( nagConn.config['MsgPort'] )
     self.assertEqual( nagConn.config['MsgBroker'], None )
     self.assertEqual( nagConn.config['MsgQueue'], None )
 
@@ -592,10 +592,10 @@ class NagiosConnectorSuccess( UtilitiesTestCase ):
 #    nagConn.readConfig()
 #    nagConn.config['NagiosName'] = 'lhcb-Dirac.Unittest'
 #    nagConn.useDebugMessage()
-#    self.assertEquals( nagConn.initializeConnection(),
+#    self.assertEqual( nagConn.initializeConnection(),
 #                       S_OK( 'Connection to Broker established' ),
 #                       'Connection not correctly initialized' )
-#    self.assertEquals( nagConn.sendMessage(),
+#    self.assertEqual( nagConn.sendMessage(),
 #                       S_OK('Message sent to Broker.'),
 #                       'Sending unsuccessful!' )
 

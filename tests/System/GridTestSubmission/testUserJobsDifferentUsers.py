@@ -67,61 +67,61 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
     for uName, uGroup in [( 'cluzzi', 'lhcb_user' ), ( 'joel', 'lhcb_admin' )]:
 
       res = helloWorldTestT2s( proxyUserName = uName, proxyUserGroup = uGroup ) # pylint: disable=unexpected-keyword-arg
-      self.assert_( res['OK'] )
+      self.assertTrue(res['OK'])
       jobsSubmittedList.append( res['Value'] )
 
       res = helloWorldTestCERN( proxyUserName = uName, proxyUserGroup = uGroup ) # pylint: disable=unexpected-keyword-arg
-      self.assert_( res['OK'] )
+      self.assertTrue(res['OK'])
       jobsSubmittedList.append( res['Value'] )
 
       res = helloWorldTestSLC6( proxyUserName = uName, proxyUserGroup = uGroup ) # pylint: disable=unexpected-keyword-arg
-      self.assert_( res['OK'] )
+      self.assertTrue(res['OK'])
       jobsSubmittedList.append( res['Value'] )
 
       res = helloWorldTestSLC5( proxyUserName = uName, proxyUserGroup = uGroup ) # pylint: disable=unexpected-keyword-arg
-      self.assert_( res['OK'] )
+      self.assertTrue(res['OK'])
       jobsSubmittedList.append( res['Value'] )
 
 #       res = jobWithOutput( proxyUserName = uName, proxyUserGroup = uGroup )
-#       self.assert_( res['OK'] )
+#       self.assertTrue(res['OK'])
 #       jobsSubmittedList.append( res['Value'] )
 #
 #       res = jobWithOutputAndPrepend( proxyUserName = uName, proxyUserGroup = uGroup )
-#       self.assert_( res['OK'] )
+#       self.assertTrue(res['OK'])
 #       jobsSubmittedList.append( res['Value'] )
 #
 #       jobWithOutputAndPrependWithUnderscore( proxyUserName = uName, proxyUserGroup = uGroup )
 #
 #       res = jobWithOutputAndReplication( proxyUserName = uName, proxyUserGroup = uGroup )
-#       self.assert_( res['OK'] )
+#       self.assertTrue(res['OK'])
 #       jobsSubmittedList.append( res['Value'] )
 #
 #       res = jobWith2OutputsToBannedSE( proxyUserName = uName, proxyUserGroup = uGroup )
-#       self.assert_( res['OK'] )
+#       self.assertTrue(res['OK'])
 #       jobsSubmittedList.append( res['Value'] )
 
       res = jobWithSingleInputData( proxyUserName = uName, proxyUserGroup = uGroup ) # pylint: disable=unexpected-keyword-arg
-      self.assert_( res['OK'] )
+      self.assertTrue(res['OK'])
       jobsSubmittedList.append( res['Value'] )
 
       res = jobWithSingleInputDataSpreaded( proxyUserName = uName, proxyUserGroup = uGroup ) # pylint: disable=unexpected-keyword-arg
-      self.assert_( res['OK'] )
+      self.assertTrue(res['OK'])
       jobsSubmittedList.append( res['Value'] )
 
       res = gaussJob( proxyUserName = uName, proxyUserGroup = uGroup ) # pylint: disable=unexpected-keyword-arg
-      self.assert_( res['OK'] )
+      self.assertTrue(res['OK'])
       jobsSubmittedList.append( res['Value'] )
 
       res = booleJob( proxyUserName = uName, proxyUserGroup = uGroup ) # pylint: disable=unexpected-keyword-arg
-      self.assert_( res['OK'] )
+      self.assertTrue(res['OK'])
       jobsSubmittedList.append( res['Value'] )
 
       res = gaudiApplicationScriptJob( proxyUserName = uName, proxyUserGroup = uGroup ) # pylint: disable=unexpected-keyword-arg
-      self.assert_( res['OK'] )
+      self.assertTrue(res['OK'])
       jobsSubmittedList.append( res['Value'] )
 
       res = wrongJob( proxyUserName = uName, proxyUserGroup = uGroup ) # pylint: disable=unexpected-keyword-arg
-      self.assert_( res['OK'] )
+      self.assertTrue(res['OK'])
       jobsSubmittedList.append( res['Value'] )
 
 
