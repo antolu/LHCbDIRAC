@@ -209,7 +209,7 @@ diracAgents(){
 #.............................................................................
 
 function diracInstallCommand(){
-  $SERVERINSTALLDIR/dirac-install -l LHCb -r `cat project.version` -e LHCb -t server $DEBUG
+  $SERVERINSTALLDIR/dirac-install -l LHCb -r `cat project.version` -e LHCb -t fullserver $DEBUG
 }
 
 # Getting a CFG file for the installation: Specialized command
