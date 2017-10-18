@@ -34,7 +34,7 @@ def execute():
 
   bkQueryDict = bkQuery.getQueryDict()
   gLogger.notice( "For BK Query:", str( bkQueryDict ) )
-  progressBar = ProgressBar( 1, title = "Running BK query...", step = 1 )
+  progressBar = ProgressBar( 1, title="Running BK query...", step=1 )
   res = bk.getFilesWithMetadata( bkQueryDict )
   if not res['OK']:
     gLogger.error( "Error getting files from BK", res['Message'] )
@@ -56,12 +56,12 @@ def execute():
     runLFNs.setdefault( metadata['RunNumber'], [] ).append( lfn )
 
   chunkSize = 1000
-  progressBar = ProgressBar( len( lfns ), title = 'Getting replicas of %d files' % len( lfns ), chunk = chunkSize )
+  progressBar = ProgressBar( len( lfns ), title='Getting replicas of %d files' % len( lfns ), chunk=chunkSize )
   replicas = {}
   errors = {}
   for lfnChunk in breakListIntoChunks( lfns, chunkSize ):
     progressBar.loop()
-    res = dm.getReplicas( lfnChunk, getUrl = False )
+    res = dm.getReplicas( lfnChunk, getUrl=False )
     if not res['OK']:
       errors.setdefault( res['Message'], [] ).extend( lfnChunk )
     else:
@@ -75,7 +75,7 @@ def execute():
   tier1RDST = set( resolveSEGroup( 'Tier1-RDST' ) )
   setOK = 0
   errors = {}
-  progressBar = ProgressBar( len( runLFNs ), title = 'Defining destination for %d runs' % len( runLFNs ), step = 10 )
+  progressBar = ProgressBar( len( runLFNs ), title='Defining destination for %d runs' % len( runLFNs ), step=10 )
   for run, lfns in runLFNs.iteritems():
     progressBar.loop()
     # print 'Run', run, len( lfns ), 'Files', lfns[:3]
@@ -114,7 +114,7 @@ if __name__ == "__main__":
                                        'Usage:',
                                        '  %s [option|cfgfile]' % Script.scriptName, ] ) )
 
-  Script.parseCommandLine( ignoreErrors = False )
+  Script.parseCommandLine( ignoreErrors=False )
 
   execute()
 
