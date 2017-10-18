@@ -44,57 +44,57 @@
 #    module = self.testClass()
 #    
 #    res = module._evaluate( { 'OK' : False, 'Message' : 'Bo!' } )
-#    self.assertEqual( True, res[ 'OK' ] )
+#    self.assertTrue(res['OK'])
 #    self.assertEqual( 'Error', res[ 'Value' ][ 'Status' ] )
 #    self.assertEqual( 'Bo!', res[ 'Value' ][ 'Reason' ] )
 #
 #    res = module._evaluate( { 'OK' : True, 'Value' : None } )
-#    self.assertEqual( True, res[ 'OK' ] )
+#    self.assertTrue(res['OK'])
 #    self.assertEqual( 'Unknown', res[ 'Value' ][ 'Status' ] )
 #    self.assertEqual( 'No values to take a decision', res[ 'Value' ][ 'Reason' ] )
 #
 #    res = module._evaluate( { 'OK' : True, 'Value' : [] } )
-#    self.assertEqual( True, res[ 'OK' ] )
+#    self.assertTrue(res['OK'])
 #    self.assertEqual( 'Unknown', res[ 'Value' ][ 'Status' ] )
 #    self.assertEqual( 'No values to take a decision', res[ 'Value' ][ 'Reason' ] )
 #
 #    res = module._evaluate( { 'OK' : True, 'Value' : [{ 'A' : 1 }] } )
-#    self.assertEqual( True, res[ 'OK' ] )
+#    self.assertTrue(res['OK'])
 #    self.assertEqual( 'Error', res[ 'Value' ][ 'Status' ] )
 #    self.assertEqual( '"Status" key missing', res[ 'Value' ][ 'Reason' ] )    
 #
 #    res = module._evaluate( { 'OK' : True, 'Value' : [{ 'Status' : 1 }] } )
-#    self.assertEqual( True, res[ 'OK' ] )
+#    self.assertTrue(res['OK'])
 #    self.assertEqual( 'Error', res[ 'Value' ][ 'Status' ] )
 #    self.assertEqual( '"PilotJobEff" key missing', res[ 'Value' ][ 'Reason' ] )              
 #
 #    res = module._evaluate( { 'OK' : True, 'Value' : [{ 'Status' : 1, 'PilotJobEff' : 1 }] } )
-#    self.assertEqual( True, res[ 'OK' ] )
+#    self.assertTrue(res['OK'])
 #    self.assertEqual( 'Error', res[ 'Value' ][ 'Status' ] )
 #    self.assertEqual( 'Unknown status "1"', res[ 'Value' ][ 'Reason' ] )
 #
 #    res = module._evaluate( { 'OK' : True, 'Value' : [{ 'Status' : 'Good', 'PilotJobEff' : 1 }] } )
-#    self.assertEqual( True, res[ 'OK' ] )
+#    self.assertTrue(res['OK'])
 #    self.assertEqual( 'Active', res[ 'Value' ][ 'Status' ] )
 #    self.assertEqual( 'Pilots Efficiency: 1 with status Good', res[ 'Value' ][ 'Reason' ] )
 #
 #    res = module._evaluate( { 'OK' : True, 'Value' : [{ 'Status' : 'Fair', 'PilotJobEff' : 1 }] } )
-#    self.assertEqual( True, res[ 'OK' ] )
+#    self.assertTrue(res['OK'])
 #    self.assertEqual( 'Active', res[ 'Value' ][ 'Status' ] )
 #    self.assertEqual( 'Pilots Efficiency: 1 with status Fair', res[ 'Value' ][ 'Reason' ] )
 #
 #    res = module._evaluate( { 'OK' : True, 'Value' : [{ 'Status' : 'Poor', 'PilotJobEff' : 1 }] } )
-#    self.assertEqual( True, res[ 'OK' ] )
+#    self.assertTrue(res['OK'])
 #    self.assertEqual( 'Degraded', res[ 'Value' ][ 'Status' ] )
 #    self.assertEqual( 'Pilots Efficiency: 1 with status Poor', res[ 'Value' ][ 'Reason' ] )
 #
 #    res = module._evaluate( { 'OK' : True, 'Value' : [{ 'Status' : 'Idle', 'PilotJobEff' : 1 }] } )
-#    self.assertEqual( True, res[ 'OK' ] )
+#    self.assertTrue(res['OK'])
 #    self.assertEqual( 'Unknown', res[ 'Value' ][ 'Status' ] )
 #    self.assertEqual( 'Pilots Efficiency: 1 with status Idle', res[ 'Value' ][ 'Reason' ] )
 #
 #    res = module._evaluate( { 'OK' : True, 'Value' : [{ 'Status' : 'Bad', 'PilotJobEff' : 1 }] } )
-#    self.assertEqual( True, res[ 'OK' ] )
+#    self.assertTrue(res['OK'])
 #    self.assertEqual( 'Banned', res[ 'Value' ][ 'Status' ] )
 #    self.assertEqual( 'Pilots Efficiency: 1 with status Bad', res[ 'Value' ][ 'Reason' ] )
 #    

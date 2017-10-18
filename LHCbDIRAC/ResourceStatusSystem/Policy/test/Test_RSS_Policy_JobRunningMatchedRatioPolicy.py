@@ -45,46 +45,46 @@
 #    module = self.testClass()
 #
 #    res = module._evaluate( { 'OK' : False, 'Message' : 'Bo!' } )
-#    self.assertEqual( True, res[ 'OK' ] )
+#    self.assertTrue(res['OK'])
 #    self.assertEqual( 'Error', res[ 'Value' ][ 'Status' ] )
 #    self.assertEqual( 'Bo!', res[ 'Value' ][ 'Reason' ] )
 #
 #    res = module._evaluate( { 'OK' : True, 'Value' : None } )
-#    self.assertEqual( True, res[ 'OK' ] )
+#    self.assertTrue(res['OK'])
 #    self.assertEqual( 'Unknown', res[ 'Value' ][ 'Status' ] )
 #    self.assertEqual( 'No values to take a decision', res[ 'Value' ][ 'Reason' ] )
 #
 #    res = module._evaluate( { 'OK' : True, 'Value' : [] } )
-#    self.assertEqual( True, res[ 'OK' ] )
+#    self.assertTrue(res['OK'])
 #    self.assertEqual( 'Unknown', res[ 'Value' ][ 'Status' ] )
 #    self.assertEqual( 'No values to take a decision', res[ 'Value' ][ 'Reason' ] )
 #
 #    res = module._evaluate( { 'OK' : True, 'Value' : [{}] } )
-#    self.assertEqual( True, res[ 'OK' ] )
+#    self.assertTrue(res['OK'])
 #    self.assertEqual( 'Unknown', res[ 'Value' ][ 'Status' ] )
 #    self.assertEqual( 'No values to take a decision', res[ 'Value' ][ 'Reason' ] )
 #
 #    res  = module._evaluate( { 'OK' : True, 'Value' : [{ 'Running' : 0, 'Matched' : 0,
 #                                                         'Received': 0, 'Checking' : 0 }] } )
-#    self.assertEqual( True, res[ 'OK' ] )
+#    self.assertTrue(res['OK'])
 #    self.assertEqual( 'Unknown', res[ 'Value' ][ 'Status' ] )
-#    self.assertEqual( 'No jobs take a decision', res[ 'Value' ][ 'Reason' ] )
+#    self.assertEqual( 'Not enough jobs to take a decision', res[ 'Value' ][ 'Reason' ] )
 #
 #    res  = module._evaluate( { 'OK' : True, 'Value' : [{ 'Running' : 1, 'Matched' : 1,
 #                                                         'Received': 0, 'Checking' : 0 }] } )
-#    self.assertEqual( True, res[ 'OK' ] )
+#    self.assertTrue(res['OK'])
 #    self.assertEqual( 'Banned', res[ 'Value' ][ 'Status' ] )
 #    self.assertEqual( 'Job Running / Matched ratio of 0.50', res[ 'Value' ][ 'Reason' ] )
 #
 #    res  = module._evaluate( { 'OK' : True, 'Value' : [{ 'Running' : 7, 'Matched' : 1,
 #                                                         'Received': 1, 'Checking' : 1 }] } )
-#    self.assertEqual( True, res[ 'OK' ] )
+#    self.assertTrue(res['OK'])
 #    self.assertEqual( 'Degraded', res[ 'Value' ][ 'Status' ] )
 #    self.assertEqual( 'Job Running / Matched ratio of 0.70', res[ 'Value' ][ 'Reason' ] )
 #
 #    res  = module._evaluate( { 'OK' : True, 'Value' : [{ 'Running' : 7, 'Matched' : 0,
 #                                                         'Received': 0, 'Checking' : 0 }] } )
-#    self.assertEqual( True, res[ 'OK' ] )
+#    self.assertTrue(res['OK'])
 #    self.assertEqual( 'Active', res[ 'Value' ][ 'Status' ] )
 #    self.assertEqual( 'Job Running / Matched ratio of 1.00', res[ 'Value' ][ 'Reason' ] )
 #
