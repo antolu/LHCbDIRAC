@@ -4,32 +4,25 @@
     use by workflow modules or client tools.
 """
 
-from DIRAC import S_OK, S_ERROR
+from distutils.version import LooseVersion #pylint: disable=import-error,no-name-in-module
+
+from DIRAC import S_OK
+from DIRAC.Core.Utilities.List import uniqueElements
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 
 __RCSID__ = "$Id$"
 
 opsH = Operations()
-global PlatformsConfigsDict
-PlatformsConfigsDict = None
 
-def _getPlatformsDefinitions():
+def getPlatformsConfigsDict():
   """ Just utility function
   """
-  global PlatformsConfigsDict
-  if PlatformsConfigsDict is None:
-    result = opsH.getOptionsDict( 'PlatformsToConfigs' )
-    if not result['OK'] or not result['Value']:
-      raise ValueError( "PlatformsToConfigs info not found" )
-    configDict = dict( ( plat, [config.strip() for config in configList.split( ',' )] ) \
-                       for plat, configList in result['Value'].iteritems() )
-    for platform, configList in configDict.iteritems():
-      fullList = [conf for config in configList for conf in configDict.get( config, [config] )]
-      configDict[platform] = fullList
-    PlatformsConfigsDict = configDict
-  return PlatformsConfigsDict
+  result = opsH.getOptionsDict( 'PlatformsToConfigs' )
+  if not result['OK'] or not result['Value']:
+    raise ValueError( "PlatformsToConfigs info not found" )
+  return dict( [( k, v.replace( ' ', '' ).split( ',' ) ) for k, v in result['Value'].iteritems()] )
 
-def getLHCbConfigsForPlatform( originalPlatforms ):
+def getCMTConfigsCompatibleWithPlatforms( originalPlatforms ):
   """ Get a list of platforms compatible with the given list
       Looks into operation section PlatformsToConfigs
   """
@@ -37,68 +30,31 @@ def getLHCbConfigsForPlatform( originalPlatforms ):
     platforms = [originalPlatforms]
   else:
     platforms = originalPlatforms
-  platformsDict = _getPlatformsDefinitions()
-  configsList = set( config for plat in platforms for config in platformsDict.get( plat, [] ) )
+  platformsDict = getPlatformsConfigsDict()
+  CMTConfigsList = list()
 
-  return S_OK( list( configsList ) )
+  for plat in platforms:
+    CMTConfigsList += platformsDict.get( plat, [] )
 
-def _comparePlatforms( platform1, platform2 ):
-  """ Function to be used for ordering the platforms
-  Returns 0 if same configs, -1 if config1 in within config2, 1 else
+  return S_OK( list( set( CMTConfigsList ) ) )
+
+
+def getPlatformFromConfig( CMTConfig ):
+  """ Returns the DIRAC platform compatible with the given CMTConfig
   """
-  platformsDict = _getPlatformsDefinitions()
-  config1 = set( platformsDict[platform1] )
-  config2 = set( platformsDict[platform2] )
-  return 0 if ( config1 == config2 ) else -1 if not ( config1 - config2 ) else 1
+  platformsDict = getPlatformsConfigsDict()
+  platformsList = list()
+  for plat in platformsDict:
+    if CMTConfig in platformsDict[plat]:
+      platformsList.append( plat )
+
+  platformsList.sort( key = LooseVersion )
+  return uniqueElements( platformsList )
 
 def getPlatformsCompatibilities( platform1, platform2 ):
   """ Is platform1 compatible with platform2? (e.g. can slc5 jobs run on a slc6 machine?)
   """
-  return bool( _comparePlatforms( platform1, platform2 ) <= 0 )
-
-def getPlatformsFromLHCbConfig( config ):
-  """ Returns the DIRAC platforms compatible with the given config, sorted in increasing order
-  """
-  platformsDict = _getPlatformsDefinitions()
-  platformsList = [plat for plat in platformsDict if config in platformsDict[plat]]
-
-  if platformsList:
-    platformsList.sort( cmp = ( lambda p1, p2: _comparePlatforms( p1, p2 ) ) )
-    return platformsList
-  else:
-    return None
-
-def getPlatformFromLHCbConfig( config ):
-  """ Returns the minimal DIRAC platform compatible with the given config
-  """
-  platforms = getPlatformsFromLHCbConfig( config )
-  return platforms[0] if platforms else None
-
-def getPlatform():
-  """ Determine which is the platform on the current machine
-  """
-  try:
-    from LbPlatformUtils import dirac_platform, can_run, requires
-  except ImportError:
-    return S_ERROR( "Could not import LbPlatformUtils" )
-
-  platformsDict = _getPlatformsDefinitions()
-  architecture = dirac_platform()
-
-  # This is the list of platforms in increasing order of capabilities
-  orderedPlatforms = sorted( platformsDict, cmp = ( lambda p1, p2: _comparePlatforms( p1, p2 ) ) )
-  preferedPlatform = None
-  for platform in orderedPlatforms:
-    for config in platformsDict[platform]:
-      try:
-        if can_run( architecture, requires( config ) ):
-          preferedPlatform = platform
-          break
-      except:
-        pass
-  if not preferedPlatform:
-    return S_ERROR( "No compatible platform found" )
-  return preferedPlatform
-
+  platformsConfigsDict = getPlatformsConfigsDict()
+  return set( platformsConfigsDict[platform1] ) <= set( platformsConfigsDict[platform2] )
 
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
