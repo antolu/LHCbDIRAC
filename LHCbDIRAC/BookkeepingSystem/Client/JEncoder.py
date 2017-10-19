@@ -8,8 +8,10 @@ import datetime
 __RCSID__ = "$Id$"
 
 class JSONDateTimeEncoder( json.JSONEncoder ):
+  """ encoder of datetime objects
+  """
 
-  def default( self, obj ):
+  def default( self, obj ): #pylint: disable=method-hidden
     if isinstance( obj, datetime.datetime ):
       return {'dt': [obj.year, obj.month, obj.day, obj.hour, obj.minute, obj.second]}
     elif isinstance( obj, datetime.date ):
@@ -20,19 +22,21 @@ class JSONDateTimeEncoder( json.JSONEncoder ):
     return super( JSONDateTimeEncoder, self ).default( obj )
 
 class JSONDateTimeDecoder( json.JSONDecoder ):
+  """ decoder of datetime objects
+  """
 
   def __init__( self, *args, **kwargs ):
     json.JSONDecoder.__init__( self, object_hook = self.object_hook, *args, **kwargs )
 
-  def object_hook( self, d ):
-    if 'dt' in d:
-      d = datetime.datetime( d['dt'][0], d['dt'][1], d['dt'][2], d['dt'][3], d['dt'][4], d['dt'][5] )
-    elif 'd' in d:
-      d = datetime.date( d['d'][0], d['d'][1], d['d'][2] )
-    elif 't' in d:
-      d = datetime.time( d['t'][0], d['t'][1], d['t'][2] )
+  def object_hook( self, obj ): #pylint: disable=method-hidden
+    if 'dt' in obj:
+      obj = datetime.datetime( obj['dt'][0], obj['dt'][1], obj['dt'][2], obj['dt'][3], obj['dt'][4], obj['dt'][5] )
+    elif 'd' in obj:
+      obj = datetime.date( obj['d'][0], obj['d'][1], obj['d'][2] )
+    elif 't' in obj:
+      obj = datetime.time( obj['t'][0], obj['t'][1], obj['t'][2] )
 
-    return d
+    return obj
 
 def dumps( obj ):
   return json.dumps( obj, cls = JSONDateTimeEncoder, encoding = 'utf-8' )
