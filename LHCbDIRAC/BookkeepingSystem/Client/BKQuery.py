@@ -247,7 +247,7 @@ class BKQuery():
             bpath = eventTypes
             gLogger.verbose( 'buildBKQuery. Event types %s' % eventTypes )
         # Set the BK dictionary item
-        if bpath is not '':
+        if bpath != '':
           bkQuery[bkFields[i]] = bpath
         if defaultPP:
           # PP was empty, try once more to get the Event Type
