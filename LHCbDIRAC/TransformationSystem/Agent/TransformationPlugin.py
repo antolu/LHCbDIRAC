@@ -574,7 +574,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             lfn = paramDict[paramValue][0]
             runEvtType[paramValue] = self.util.getMetadataFromTSorBK( lfn, 'EventType' )[lfn]
             self.util.logDebug( 'Event type%s: %s' % ( paramStr, str( runEvtType[paramValue] ) ) )
-            runEvtType[paramValue] = None
           evtType = runEvtType[paramValue]
           if not evtType:
             runFlush = False
