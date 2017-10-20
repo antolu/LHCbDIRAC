@@ -45,7 +45,7 @@ def checkDQFlag( dqFlag ):
 # Flag a LFN or a list of LFN contained in a file.                             #
 #                                                                              #
 ################################################################################
-def flagFileList( filename, dqFlqg ):
+def flagFileList( filename, dqFlag ):
   lfns = []
 
   #
@@ -67,7 +67,7 @@ def flagFileList( filename, dqFlqg ):
   if not res['OK']:
     return res
   else:
-    glogger.notice( 'The data quality has been set %s for %d files:' % ( dqFlag, len( lfns ) ) )
+    gLogger.notice( 'The data quality has been set %s for %d files:' % ( dqFlag, len( lfns ) ) )
 
   return S_OK()
 
@@ -78,7 +78,7 @@ def flagFileList( filename, dqFlqg ):
 # Flag a run given its number, the processing pass and the DQ flag.            #
 #                                                                              #
 ################################################################################
-def flagRun( runNumber, procPass, dqFlag, flagRAW = False ):
+def flagRun( runNumber, procPass, dqFlag, flagRAW=False ):
 
   res = getProcessingPasses( runNumber, '/Real Data' )
   if not res['OK']:
@@ -98,7 +98,7 @@ def flagRun( runNumber, procPass, dqFlag, flagRAW = False ):
 
   if flagRAW:
     processingPasses.append( '/Real Data' )
-  
+
   if not processingPasses:
     return S_ERROR( '%s is not a valid processing pass.' % procPass )
 
@@ -190,7 +190,7 @@ Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
 
 
 
-Script.parseCommandLine( ignoreErrors = True )
+Script.parseCommandLine( ignoreErrors=True )
 
 
 exitCode = 0
@@ -246,18 +246,18 @@ if params['lfn']:
 if params['runnumber']:
   if not processingPass:  # processing pass is not given
     # this flags the RAW and all derived files as the given dq flag
-    res = flagRun( runNumber = params['runnumber'],
-                   procPass = '/',
-                   dqFlag = params['dqflag'],
-                   flagRAW = True )
+    res = flagRun( runNumber=params['runnumber'],
+                   procPass='/',
+                   dqFlag=params['dqflag'],
+                   flagRAW=True )
     if not res['OK']:
       gLogger.fatal( res['Message'] )
       DIRAC.exit( 1 )
   else:  # the processing pass is given
     if params['dqflag'] == 'BAD':  # only that processing pass (and derived) is flagged BAD. RAW is left unchanged
-      res = flagRun( runNumber = params['runnumber'],
-                     procPass = processingPass,
-                     dqFlag = params['dqflag'] )
+      res = flagRun( runNumber=params['runnumber'],
+                     procPass=processingPass,
+                     dqFlag=params['dqflag'] )
       if not res['OK']:
         gLogger.fatal( res['Message'] )
         DIRAC.exit( 1 )
@@ -270,10 +270,10 @@ if params['runnumber']:
         else:
           gLogger.notice( "%d flagged OK" % params['runnumber'] )
       else:
-        res = flagRun( runNumber = params['runnumber'],
-                       procPass = processingPass,
-                       dqFlag = params['dqflag'],
-                       flagRAW = True )
+        res = flagRun( runNumber=params['runnumber'],
+                       procPass=processingPass,
+                       dqFlag=params['dqflag'],
+                       flagRAW=True )
         if not res['OK']:
           gLogger.fatal( res['Message'] )
           DIRAC.exit( 1 )
