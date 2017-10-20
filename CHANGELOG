@@ -1,3 +1,24 @@
+[v9r0-pre10]
+use DIRAC v6r19p2
+
+* Attempt to rename, add __init__.py for pylint
+* make scripts symlinks relative to the scripts directory
+* making pylint happy
+* trying with explicit set
+* pylint changes
+* installing fullserver for test purposes
+* minor assert fix
+* moved out of deprecated alises
+* moved tests to DIRAC
+* removed old tests unused
+* pylint changes
+* Add reason for FTSClient import failure
+* add option --NoParse to take full line as argument and escape spaces
+* Use LHCbConfig rather than Config
+* Port to devel changes for platforms in master
+* different state machine, DIRAC test overwritten
+* saving from paths
+
 [v9r0-pre9]
 use DIRAC v6r19p1
 
