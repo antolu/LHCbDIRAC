@@ -107,7 +107,7 @@ if processing != realData:
 
 recoPasses = getProcessingPasses( bkDict, processing )
 if realData in list( recoPasses ):
-  recoPasses.remove( realData )
+  recoPasses.pop( realData )
 
 # Flag the run realData first
 
