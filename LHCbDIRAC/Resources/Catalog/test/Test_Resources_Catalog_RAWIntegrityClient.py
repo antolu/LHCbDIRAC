@@ -69,16 +69,16 @@ class RAWIntegrityClient_Success( RAWIntegrityClient_TestCase ):
     catalog = self.testClass()
 
     res = catalog.exists( '1' )
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
 
     res = catalog.exists( {} )
     self.assertFalse( res['OK'] )
 
     res = catalog.exists( [ 'path1' ] )
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
 
     res = catalog.exists( { 'A' : 1, 'B' : 2 } )
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     self.assertEqual( { 'Failed' : {}, 'Successful' : { 'A' : False, 'B' : False} }, res['Value'] )
 
   def test_addFile( self ):
@@ -89,7 +89,7 @@ class RAWIntegrityClient_Success( RAWIntegrityClient_TestCase ):
     catalog.rawIntegritySrv = mock.MagicMock()
 
     res = catalog.addFile( {'1':{'PFN':'pfn', 'Size': 123, 'SE': 'aSe', 'GUID': 'aGuid', 'Checksum': 'aCksm'}} )
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
 
     fileDict = {'PFN'      : 'pfn',
                  'Size'     : '10',
@@ -100,11 +100,11 @@ class RAWIntegrityClient_Success( RAWIntegrityClient_TestCase ):
     fileDict[ 'Size' ] = '10'
 
 #    res = catalog.addFile( { 'lfn1' : fileDict } )
-#    self.assert_( res['OK'] )
+#    self.assertTrue(res['OK'])
 #    self.assertEqual( { 'Successful' : { 'lfn1' : True }, 'Failed' : {} }, res['Value'] )
 #
 #    res = catalog.addFile( { 'lfn1' : fileDict, 'lfn2' : fileDict } )
-#    self.assert_( res['OK'] )
+#    self.assertTrue(res['OK'])
 #    self.assertEqual( { 'Successful' : { 'lfn1' : True, 'lfn2' : True }, 'Failed' : {} }, res['Value'] )
 #
 #    mock_RPC = mock.Mock()
@@ -114,11 +114,11 @@ class RAWIntegrityClient_Success( RAWIntegrityClient_TestCase ):
 #    catalog = self.testClass()
 #
 #    res = catalog.addFile( { 'lfn1' : fileDict } )
-#    self.assert_( res['OK'] )
+#    self.assertTrue(res['OK'])
 #    self.assertEqual( { 'Successful' : {}, 'Failed' : {'lfn1' : 'Bo!' } }, res['Value'] )
 #
 #    res = catalog.addFile( { 'lfn1' : fileDict, 'lfn2' : fileDict } )
-#    self.assert_( res['OK'] )
+#    self.assertTrue(res['OK'])
 #    self.assertEqual( { 'Successful' : {}, 'Failed' : {  'lfn1' : 'Bo!', 'lfn2' : 'Bo!' } }, res['Value'] )
 
     # Restore the module

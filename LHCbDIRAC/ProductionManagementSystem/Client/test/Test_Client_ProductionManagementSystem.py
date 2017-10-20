@@ -79,7 +79,7 @@ class ProductionRequestSuccess( ClientTestCase ):
       if par.getName() == 'Numberofevents':
         self.assertEqual( par.value, '500' )
       if par.getName() == 'listoutput':
-        self.assert_( 'gausshist' in dict( par.value ).values() )
+        self.assertTrue( 'gausshist' in dict( par.value ).values() )
       if par.getName() == 'outputDataStep':
         self.assertEqual( par.value, '1;4' )
       if par.getName() == 'outputDataFileMask':
@@ -99,7 +99,7 @@ class ProductionRequestSuccess( ClientTestCase ):
       if par.getName() == 'Site':
         self.assertEqual( par.value, 'ANY' )
       if par.getName() == 'listoutput':
-        self.assert_( 'gausshist' not in dict( par.value ).values() )
+        self.assertTrue( 'gausshist' not in dict( par.value ).values() )
       if par.getName() == 'outputDataStep':
         self.assertEqual( par.value, '4' )
       if par.getName() == 'outputDataFileMask':
@@ -121,7 +121,7 @@ class ProductionRequestSuccess( ClientTestCase ):
       if par.getName() == 'Site':
         self.assertEqual( par.value, 'ANY' )
       if par.getName() == 'listoutput':
-        self.assert_( 'gausshist' not in dict( par.value ).values() )
+        self.assertTrue( 'gausshist' not in dict( par.value ).values() )
       if par.getName() == 'outputDataFileMask':
         self.assertEqual( par.value, '' )
       if par.getName() == 'Priority':

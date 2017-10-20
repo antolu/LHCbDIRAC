@@ -159,6 +159,7 @@ diracServices(){
       wget http://lhcb-portal-dirac.cern.ch/defaults/cx_Oracle-5.1.tar.gz -O cx_Oracle-5.1.tar.gz
       source /afs/cern.ch/project/oracle/script/setoraenv.sh
       # -s 11203
+      export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/afs/cern.ch/project/oracle/amd64_linux26/prod/lib/
       python `which easy_install` cx_Oracle-5.1.tar.gz
       # end BKK DB setup
     fi
@@ -209,7 +210,7 @@ diracAgents(){
 #.............................................................................
 
 function diracInstallCommand(){
-  $SERVERINSTALLDIR/dirac-install -l LHCb -r `cat project.version` -e LHCb -t server $DEBUG
+  $SERVERINSTALLDIR/dirac-install -l LHCb -r `cat project.version` -e LHCb -t fullserver $DEBUG
 }
 
 # Getting a CFG file for the installation: Specialized command

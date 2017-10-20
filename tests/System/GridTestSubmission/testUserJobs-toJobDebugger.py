@@ -55,7 +55,7 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
     jobID = int( result['Value'] )
     jobsSubmittedList.append( jobID )
 
-    self.assert_( result['OK'] )
+    self.assertTrue(result['OK'])
 
 
     print "**********************************************************************************************************"
@@ -76,7 +76,7 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
     jobID = int( result['Value'] )
     jobsSubmittedList.append( jobID )
 
-    self.assert_( result['OK'] )
+    self.assertTrue(result['OK'])
 
 
     print "**********************************************************************************************************"
@@ -103,7 +103,7 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
     jobID = int( result['Value'] )
     jobsSubmittedList.append( jobID )
 
-    self.assert_( result['OK'] )
+    self.assertTrue(result['OK'])
 
 
 #############################################################################

@@ -541,5 +541,5 @@ def wrongJob():
 # #     jobID = int( result['Value'] )
 # #     jobsSubmittedList.append( jobID )
 # #
-# #     self.assert_( result['OK'] )
+# #     self.assertTrue(result['OK'])
 #
