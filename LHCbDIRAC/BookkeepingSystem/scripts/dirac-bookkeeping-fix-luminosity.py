@@ -19,7 +19,7 @@ if __name__ == "__main__":
                                        '  %s [option|cfgfile]' % Script.scriptName, ] ) )
 
   Script.addDefaultOptionValue( 'LogLevel', 'error' )
-  Script.parseCommandLine( ignoreErrors = False )
+  Script.parseCommandLine( ignoreErrors=False )
 
-  execute()
-
+  from LHCbDIRAC.BookkeepingSystem.Client.ScriptExecutors import executeFixLuminosity
+  executeFixLuminosity( dmScript )
