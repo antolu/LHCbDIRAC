@@ -604,7 +604,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
 
     daughtersBKInfo = self.__getDaughtersInfo( lfns, status, filesWithDescendants,
                                                filesWithoutDescendants, filesWithMultipleDescendants )
-    for daughter in list( daughtersBKInfo.keys ):
+    for daughter in list( daughtersBKInfo ):
       # Ignore the daughters that have a type to ignore
       if daughtersBKInfo[daughter][1] in fileTypesExcluded:
         daughtersBKInfo.pop( daughter )

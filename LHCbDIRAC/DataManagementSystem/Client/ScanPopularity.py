@@ -204,7 +204,7 @@ def isType( se, infoType ):
     return True
   if infoType == 'LFN':
     return False
-  return bool( storageType( [se] ) == infoType )
+  return storageType( [se] ) == infoType
 
 def isAtSite( se, site ):
   """
@@ -215,7 +215,7 @@ def isAtSite( se, site ):
     seSite = dmsHelper.getLocalSiteForSE( se )
     if seSite['OK']:
       cachedSESites[se] = seSite['Value']
-  return bool( site == seSite )
+  return site == seSite
 
 def prBinNumber( binNumber ):
   """ Return bin number as a string
