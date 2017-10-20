@@ -8,23 +8,33 @@ import os
 from DIRAC import gLogger
 from DIRAC.Core.Utilities.List import breakListIntoChunks
 
+from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import removeFiles, removeReplicas
+
 def __removeFile( lfns ):
+  """
+  Use the ScriptExecutors removeFile method
+  """
   if isinstance( lfns, basestring ):
     lfns = [lfns]
-  from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import removeFiles
   removeFiles( lfns )
 
 def __removeReplica( lfnDict ):
+  """
+  Use the ScriptExecutors removeReplicas method
+  """
   seLFNs = {}
   for lfn in lfnDict:
     for se in lfnDict[lfn]:
       seLFNs.setdefault( se, [] ).append( lfn )
-  from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import removeReplicas
   for se, lfns in seLFNs.iteritems():
     removeReplicas( lfns, [se] )
   return seLFNs
 
-def __replaceReplica( seLFNs ):
+def __replaceReplica( dm, seLFNs ):
+  """
+  Re-replicate replicas that had just been removed because they were bad
+  It uses the DataManager instance from the ConsistencyCheck
+  """
   if seLFNs:
     gLogger.notice( "Now replicating bad replicas..." )
     success = {}
@@ -49,14 +59,11 @@ def __replaceReplica( seLFNs ):
       gLogger.notice( '\tError %s : %d files' % ( reason, errors[reason] ) )
 
 
-def doCheckFC2SE( cc, bkCheck = True, fixIt = False, replace = False, maxFiles = None ):
+def doCheckFC2SE( cc, bkCheck=True, fixIt=False, replace=False, maxFiles=None ):
   """
   Method actually calling for the the check using ConsistencyChecks module
   It prints out results and calls corrective actions if required
   """
-  global dm, bk
-  dm = cc.dm
-  bk = cc.bkClient
   cc.checkFC2SE( bkCheck )
 
   if maxFiles is None:
@@ -69,14 +76,16 @@ def doCheckFC2SE( cc, bkCheck = True, fixIt = False, replace = False, maxFiles =
     else:
       prStr = ''
     gLogger.error( "%d files are in the FC but have replica = NO in BK%s:\nAffected runs: %s" %
-                   ( len( cc.existLFNsBKRepNo ), prStr, ','.join( sorted( affectedRuns ) if affectedRuns else 'None' ) ) )
+                   ( len( cc.existLFNsBKRepNo ),
+                     prStr,
+                     ','.join( sorted( affectedRuns ) if affectedRuns else 'None' ) ) )
     if not gLogger.info( '\n'.join( sorted( cc.existLFNsBKRepNo ) ) ):
       if len( cc.existLFNsBKRepNo ) > maxFiles:
         gLogger.notice( 'First %d files:' % maxFiles )
       gLogger.error( '\n'.join( sorted( cc.existLFNsBKRepNo )[0:maxFiles] ) )
     if fixIt:
       gLogger.notice( "Going to fix them, setting the replica flag" )
-      res = bk.addFiles( cc.existLFNsBKRepNo.keys() )
+      res = cc.bkClient.addFiles( cc.existLFNsBKRepNo.keys() )
       if res['OK']:
         gLogger.notice( "\tSuccessfully added replica flag" )
       else:
@@ -122,18 +131,18 @@ def doCheckFC2SE( cc, bkCheck = True, fixIt = False, replace = False, maxFiles =
     if fixIt:
       gLogger.notice( "Going to fix, " + fixStr )
       removeLfns = []
-      removeReplicas = {}
+      replicasToRemove = {}
       for lfn, ses in cc.existLFNsNoSE.iteritems():
         if ses == 'All':
           removeLfns.append( lfn )
         else:
-          removeReplicas.setdefault( lfn, [] ).extend( ses )
+          replicasToRemove.setdefault( lfn, [] ).extend( ses )
       if removeLfns:
         __removeFile( removeLfns )
-      if removeReplicas:
-        seLFNs = __removeReplica( removeReplicas )
+      if replicasToRemove:
+        seLFNs = __removeReplica( replicasToRemove )
         if replace:
-          __replaceReplica( seLFNs )
+          __replaceReplica( cc.dm, seLFNs )
     else:
       if not replace:
         fixStr += "; use --Replace if you want to re-replicate them"
@@ -176,7 +185,7 @@ def doCheckFC2SE( cc, bkCheck = True, fixIt = False, replace = False, maxFiles =
       gLogger.notice( "Going to fix, " + fixStr )
       seLFNs = __removeReplica( cc.existLFNsBadReplicas )
       if replace:
-        __replaceReplica( seLFNs )
+        __replaceReplica( cc.dm, seLFNs )
     else:
       if not replace:
         fixStr += "; use --Replace if you want to re-replicate them"
@@ -190,14 +199,11 @@ def doCheckFC2SE( cc, bkCheck = True, fixIt = False, replace = False, maxFiles =
     gLogger.notice( "All files exist and have a correct checksum -> OK!" )
 
 
-def doCheckFC2BK( cc, fixFC = False, fixBK = False, listAffectedRuns = False ):
+def doCheckFC2BK( cc, fixFC=False, fixBK=False, listAffectedRuns=False ):
   """
   Method actually calling for the the check using ConsistencyChecks module
   It prints out results and calls corrective actions if required
   """
-  global dm, bk
-  dm = cc.dm
-  bk = cc.bkClient
   cc.checkFC2BK()
 
   maxFiles = 20
@@ -223,11 +229,12 @@ def doCheckFC2BK( cc, fixFC = False, fixBK = False, listAffectedRuns = False ):
     cc.existLFNsBKRepNo = sorted( set( cc.existLFNsBKRepNo ) - set( ccAux.existLFNsNoSE ) -
                                   set( ccAux.existLFNsNotExisting ) - set( ccAux.existLFNsBadFiles ) )
     if cc.existLFNsBKRepNo:
-      gLogger.notice( "====== Completed, %d files are in the FC and SE but have replica = NO in BK ======" % len( cc.existLFNsBKRepNo ) )
+      gLogger.notice( "====== Completed, %d files are in the FC and SE but have replica = NO in BK ======" %
+                      len( cc.existLFNsBKRepNo ) )
       if fp is None:
         fp = open( fileName, 'w' )
       fp.write( '\nInFCButBKNo'.join( [''] + sorted( cc.existLFNsBKRepNo ) ) )
-      res = bk.getFileMetadata( cc.existLFNsBKRepNo )
+      res = cc.bkClient.getFileMetadata( cc.existLFNsBKRepNo )
       if not res['OK']:
         gLogger.fatal( "Unable to get file metadata", res['Message'] )
         return
@@ -238,7 +245,8 @@ def doCheckFC2BK( cc, fixFC = False, fixBK = False, listAffectedRuns = False ):
       filesVisible = set( success ) - filesInvisible
       gLogger.notice( '%d files are visible, %d files are invisible' % \
                       ( len( filesVisible ), len( filesInvisible ) ) )
-      # Try and print the whole as INFO (in case --Verbose was used). If nothing printed, print a limited number of files as ERROR
+      # Try and print the whole as INFO (in case --Verbose was used).
+      #   If nothing printed, print a limited number of files as ERROR
       if not gLogger.info( '\n'.join( '%s : Visi %s' % ( lfn, success.get( lfn, {} ).get( 'VisibilityFlag', '?' ) ) \
                                       for lfn in sorted( cc.existLFNsBKRepNo ) ) ):
         if len( cc.existLFNsBKRepNo ) > maxFiles:
@@ -250,7 +258,7 @@ def doCheckFC2BK( cc, fixFC = False, fixBK = False, listAffectedRuns = False ):
       gLogger.notice( "Full list of files:    grep InFCButBKNo %s" % fileName )
       if fixBK:
         gLogger.notice( "Going to fix them, setting the replica flag" )
-        res = bk.addFiles( list( success ) )
+        res = cc.bkClient.addFiles( list( success ) )
         if res['OK']:
           gLogger.notice( "\tSuccessfully added replica flag to %d files" % len( success ) )
         else:
@@ -291,13 +299,11 @@ def doCheckFC2BK( cc, fixFC = False, fixBK = False, listAffectedRuns = False ):
   if fp is not None:
     fp.close()
 
-def doCheckBK2FC( cc, checkAll = False, fixIt = False ):
+def doCheckBK2FC( cc, checkAll=False, fixIt=False ):
   """
   Method actually calling for the the check using ConsistencyChecks module
   It prints out results and calls corrective actions if required
   """
-  global bk
-  bk = cc.bkClient
   cc.checkBK2FC( checkAll )
   maxPrint = 20
   chunkSize = 100
@@ -316,7 +322,7 @@ def doCheckBK2FC( cc, checkAll = False, fixIt = False ):
         gLogger.notice( "Setting the replica flag..." )
         nFiles = 0
         for lfnChunk in breakListIntoChunks( cc.existLFNsBKRepNo, chunkSize ):
-          res = bk.addFiles( lfnChunk )
+          res = cc.bkClient.addFiles( lfnChunk )
           if not res['OK']:
             gLogger.error( "Something wrong: %s" % res['Message'] )
           else:
@@ -342,7 +348,7 @@ def doCheckBK2FC( cc, checkAll = False, fixIt = False ):
       gLogger.notice( "Removing the replica flag..." )
       nFiles = 0
       for lfnChunk in breakListIntoChunks( cc.absentLFNsBKRepYes, chunkSize ):
-        res = bk.removeFiles( lfnChunk )
+        res = cc.bkClient.removeFiles( lfnChunk )
         if not res['OK']:
           gLogger.error( "Something wrong:", res['Message'] )
         else:
@@ -355,9 +361,8 @@ def doCheckBK2FC( cc, checkAll = False, fixIt = False ):
   else:
     gLogger.notice( "No LFNs have replicaFlag = Yes but are not in the FC -> OK!" )
 
-def doCheckSE( cc, seList, fixIt = False ):
+def doCheckSE( cc, seList, fixIt=False ):
   cc.checkSE( seList )
-  dm = cc.dm
 
   if cc.absentLFNsInFC:
     gLogger.notice( '>>>>' )

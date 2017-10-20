@@ -25,7 +25,7 @@ if __name__ == "__main__":
                                        '  File:     Name of the file with a list of LFNs',
                                        '  Level:    Number of levels to search (default: %d)' % level ] ) )
 
-  Script.parseCommandLine( ignoreErrors = True )
+  Script.parseCommandLine( ignoreErrors=True )
 
   from LHCbDIRAC.BookkeepingSystem.Client.ScriptExecutors import executeFileAncestors
   executeFileAncestors( dmScript, level )

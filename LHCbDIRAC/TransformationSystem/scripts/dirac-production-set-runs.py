@@ -40,7 +40,7 @@ Script.registerSwitch( '', 'Add=', "add List of runs to the production" )
 Script.registerSwitch( '', 'list', "List the runs for the production" )
 Script.registerSwitch( '', 'List', "List the runs for the production" )
 
-Script.parseCommandLine ( ignoreErrors = True )
+Script.parseCommandLine ( ignoreErrors=True )
 
 args = Script.getPositionalArgs()
 try:

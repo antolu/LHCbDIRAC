@@ -114,7 +114,7 @@ def analyzeAncestors( commonAncestors, ancestors ):
     run = lfnRuns.get( lfns[0], 'Unknown' )
     gLogger.always( '\n%s (run %s):\n\t%s' % ( '\n'.join( lfns ), str( run ), '\n\t'.join( anc ) ) )
     # Now check if one of the files only has those common ancestors
-    for lfn in sorted( lfns, reverse = True ):
+    for lfn in sorted( lfns, reverse=True ):
       if anc == ancestors[lfn]:
         if not fixIt:
           gLogger.always( '%s only has those as ancestors. Use --FixIt to remove the file' % lfn )
@@ -144,7 +144,7 @@ if __name__ == '__main__':
   Script.setUsageMessage( '\n'.join( [ __doc__,
                                        'Usage:',
                                        '  %s [option|cfgfile]' % Script.scriptName, ] ) )
-  Script.parseCommandLine( ignoreErrors = True )
+  Script.parseCommandLine( ignoreErrors=True )
 
   fixIt = False
   for switch in Script.getUnprocessedSwitches():
@@ -166,7 +166,7 @@ if __name__ == '__main__':
   bkClient = BookkeepingClient()
   transClient = TransformationClient()
 
-  cc = ConsistencyChecks( transClient = transClient, dm = dm, bkClient = bkClient )
+  cc = ConsistencyChecks( transClient=transClient, dm=dm, bkClient=bkClient )
   cc.bkQuery = dmScript.getBKQuery()
   cc.lfns = lfnList
   cc.ancestorsDepth = depth

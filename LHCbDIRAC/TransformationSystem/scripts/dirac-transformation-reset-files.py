@@ -5,10 +5,10 @@
 
 import DIRAC
 from DIRAC.Core.Base import Script
-from DIRAC.TransformationSystem.Client.TransformationClient     import TransformationClient
+from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+from DIRAC.Core.Utilities.List import breakListIntoChunks
 
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
-from DIRAC.Core.Utilities.List import breakListIntoChunks
 
 if __name__ == "__main__":
 
@@ -77,7 +77,7 @@ if __name__ == "__main__":
         DIRAC.exit( 2 )
 
       selectDict = {'TransformationID':res['Value']['TransformationID'], 'Status':status}
-      res = transClient.getTransformationFiles( condDict = selectDict )
+      res = transClient.getTransformationFiles( condDict=selectDict )
       if not res['OK']:
         print "Failed to get files: %s" % res['Message']
         DIRAC.exit( 2 )
@@ -93,7 +93,7 @@ if __name__ == "__main__":
       failed = {}
       for lfnChunk in breakListIntoChunks( lfns, 10000 ):
         res = transClient.setFileStatusForTransformation( transID, newStatus, lfnChunk,
-                                             force = ( status == 'MaxReset' or status == 'Processed' ) or lfnsExplicit )
+                                             force=( status == 'MaxReset' or status == 'Processed' ) or lfnsExplicit )
         if res['OK']:
           resetFiles += len( res['Value'].get( 'Successful', res['Value'] ) )
           for lfn, reason in res['Value'].get( 'Failed', {} ).iteritems():

@@ -61,15 +61,19 @@ if __name__ == '__main__':
 
   Script.registerSwitch( '', 'NoMerge', 'If set, do not merge arguments if BK paths' )
   Script.registerSwitch( '', 'Items=', 'Alternative way of passing list of arguments' )
+  Script.registerSwitch( '', 'NoParse', 'Consider the full lines are arguments and not only the first word' )
   Script.setUsageMessage( '\n'.join( [ __doc__ ] ) )
-  Script.parseCommandLine( ignoreErrors = True )
+  Script.parseCommandLine( ignoreErrors=True )
   args = Script.getPositionalArgs()
 
   noMerge = False
+  noParse = False
   arguments = []
   for switch, val in Script.getUnprocessedSwitches():
     if switch == 'NoMerge':
       noMerge = True
+    elif switch == 'NoParse':
+      noParse = True
     elif switch == 'Items':
       arguments = val.split( ',' )
 
@@ -88,20 +92,33 @@ if __name__ == '__main__':
 
   commands = args
 
-  arguments = [arg.strip().split()[0] for arg in arguments]
+  argList = []
+  for arg in arguments:
+    # If the argument is between quotes, take what is between the quotes
+    if arg[0] == "'":
+      arg = arg.split( "'" )[1]
+    elif arg[0] == '"':
+      arg = arg.split( '"' )[1]
+    elif noParse:
+      # Consider the whole line is the argument
+      pass
+    else:
+      # Take the firt word
+      arg = arg.strip().split()[0]
+    # Escape any space left
+    argList.append( arg.replace( ' ', '\ ' ) )
 
-  for arg in reduce( arguments ):
+  for arg in reduce( argList ):
     if arg:
       for command in commands:
         if '@arg@' in command:
           c = command.replace( '@arg@', arg, 1 ) if 'dirac-loop' in command else \
               command.replace( '@arg@', arg )
         elif command[-1] in ( '"', "'" ):
-          c = command + arg + command[-1]
+          c = command + arg.replace( '\ ', ' ' ) + command[-1]
         else:
           c = command + ' ' + arg
         gLogger.always( '======= %s =========' % c )
         pipe = os.popen( c )
         gLogger.always( pipe.read() )
         pipe.close()
-

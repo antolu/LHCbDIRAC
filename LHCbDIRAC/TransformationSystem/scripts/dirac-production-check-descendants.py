@@ -29,7 +29,7 @@ if __name__ == '__main__':
   Script.registerSwitch( '', 'Verbose', '   Print full list of files with error' )
   Script.registerSwitch( '', 'Status=', '   Select files with a given status in the production' )
   Script.registerSwitch( '', 'Depth=', '   Depth to which to check descendants (default=%d)' % depth )
-  Script.parseCommandLine( ignoreErrors = True )
+  Script.parseCommandLine( ignoreErrors=True )
   fileType = []
   runsList = []
   fixIt = False
@@ -49,7 +49,7 @@ if __name__ == '__main__':
           else:
             runsList.append( int( run ) )
       except Exception as e:
-        gLogger.exception( "Bad run range", switch[1], lException = e )
+        gLogger.exception( "Bad run range", switch[1], lException=e )
         DIRAC.exit( 1 )
     elif switch[0] == 'Status':
       status = switch[1].split( ',' )
@@ -192,7 +192,7 @@ if __name__ == '__main__':
                      '\n'.join( [''] + cc.removedFiles[0:nMax] ) )
       for lfnChunk in breakListIntoChunks( cc.removedFiles, 1000 ):
         while True:
-          res = cc.transClient.setFileStatusForTransformation( cc.prod, 'Removed', lfnChunk, force = True )
+          res = cc.transClient.setFileStatusForTransformation( cc.prod, 'Removed', lfnChunk, force=True )
           if not res['OK']:
             gLogger.always( 'Error setting files Removed, retry...', res['Message'] )
           else:
@@ -221,7 +221,7 @@ if __name__ == '__main__':
       if fixIt:
         fixIt = False
         gLogger.always( "Resetting them 'Unused'" )
-        res = cc.transClient.setFileStatusForTransformation( prod, 'Unused', lfns, force = True )
+        res = cc.transClient.setFileStatusForTransformation( prod, 'Unused', lfns, force=True )
         if not res['OK']:
           gLogger.always( "Error resetting files to Unused", res['Message'] )
       else:
@@ -253,7 +253,7 @@ if __name__ == '__main__':
       if fixIt:
         fixIt = False
         gLogger.always( "Marking them as 'Processed'" )
-        cc.transClient.setFileStatusForTransformation( prod, 'Processed', lfns, force = True )
+        cc.transClient.setFileStatusForTransformation( prod, 'Processed', lfns, force=True )
       else:
         if not fp:
           fp = open( fileName, 'w' )
