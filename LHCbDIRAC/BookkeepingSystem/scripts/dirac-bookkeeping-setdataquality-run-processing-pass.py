@@ -13,12 +13,12 @@ from DIRAC.Core.Base import Script
 
 ################################################################################
 #                                                                              #
-# GetProcessingPasses:                                                         #
+# getProcessingPasses:                                                         #
 #                                                                              #
 # Find all known processing passes for the selected configurations.            #
 #                                                                              #
 ################################################################################
-def GetProcessingPasses( bkDict, headPass ):
+def getProcessingPasses( bkDict, headPass ):
   passes = {}
   res = bkClient.getProcessingPass( bkDict, headPass )
   if not res['OK']:
@@ -42,7 +42,7 @@ def GetProcessingPasses( bkDict, headPass ):
       for reco in recordList['Records']:
         recoName = headPass + '/' + reco[0]
         passes[recoName] = True
-        passes.update( GetProcessingPasses( bkDict, recoName ) )
+        passes.update( getProcessingPasses( bkDict, recoName ) )
 
   return passes
 ################################################################################
@@ -100,13 +100,13 @@ bkDict = {'ConfigName'           : configName,
           'ConditionDescription' : dtd}
 
 if processing != realData:
-  knownPasses = GetProcessingPasses( bkDict, '' )
+  knownPasses = getProcessingPasses( bkDict, '' )
   if processing not in knownPasses:
     gLogger.error( "%s is not a valid processing pass." % ( processing ) )
     DIRAC.exit( 2 )
 
-recoPasses = GetProcessingPasses( bkDict, processing )
-if realData in recoPasses:
+recoPasses = getProcessingPasses( bkDict, processing )
+if realData in list( recoPasses ):
   recoPasses.remove( realData )
 
 # Flag the run realData first
