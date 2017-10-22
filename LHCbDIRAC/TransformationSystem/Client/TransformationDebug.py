@@ -96,10 +96,17 @@ def _getLog( urlBase, logFile, debug=False ):
   if logFile and ".tgz" not in url:
     if debug:
       print "Opening URL ", url
-    with urllib.urlopen( url ) as fd:
+    try:
+      fd = None
+      fd = urllib.urlopen( url )
       cc = fd.read()
-    if "was not found on this server." in cc:
-      return ""
+      if "was not found on this server." in cc:
+        return ""
+    except:
+      pass
+    finally:
+      if fd:
+        fd.close()
     cc = cc.split( "\n" )
     logURL = None
     for ll in cc:
