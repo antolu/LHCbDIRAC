@@ -20,7 +20,7 @@ from LHCbDIRAC.TransformationSystem.Client.TransformationClient import Transform
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities import PluginUtilities
 
-def __getTransformations( args ):
+def _getTransformations( args ):
   """
   Parse command arguments to get a list of transformations
 
@@ -45,7 +45,7 @@ def __getTransformations( args ):
   return transList
 
 
-def __checkReplicasForProblematic( lfns, replicas, nbReplicasProblematic, problematicReplicas ):
+def _checkReplicasForProblematic( lfns, replicas, nbReplicasProblematic, problematicReplicas ):
   """
   Check replicas of Problematic files
 
@@ -68,7 +68,7 @@ def __checkReplicasForProblematic( lfns, replicas, nbReplicasProblematic, proble
     for se in realSEs:
       problematicReplicas.setdefault( se, [] ).append( lfn )
 
-def __genericLfn( lfn, lfnList ):
+def _genericLfn( lfn, lfnList ):
   """
   From a file name, replace the job number with <jobNumber>
   """
@@ -80,7 +80,7 @@ def __genericLfn( lfn, lfnList ):
   return lfn
 
 
-def __getLog( urlBase, logFile, debug=False ):
+def _getLog( urlBase, logFile, debug=False ):
   """
   Get a logfile and return its content
   """
@@ -186,7 +186,7 @@ def __getLog( urlBase, logFile, debug=False ):
     os.remove( tmp1 )
   return cc
 
-def __getSandbox( job, logFile, debug=False ):
+def _getSandbox( job, logFile, debug=False ):
   """
   Get a sandox and return its content
   """
@@ -220,14 +220,14 @@ def __getSandbox( job, logFile, debug=False ):
       os.remove( os.path.join( tmpDir, lf ) )
     os.rmdir( tmpDir )
 
-def __checkXMLSummary( job, logURL ):
+def _checkXMLSummary( job, logURL ):
   """
   Look in an XMLSummary file for partly processed files of failed files
   Return the list of bad LFNs
   """
-  xmlFile = __getLog( logURL, 'summary*.xml*', debug=False )
+  xmlFile = _getLog( logURL, 'summary*.xml*', debug=False )
   if not xmlFile:
-    xmlFile = __getSandbox( job, 'summary*.xml*', debug=False )
+    xmlFile = _getSandbox( job, 'summary*.xml*', debug=False )
   lfns = {}
   if xmlFile:
     for line in xmlFile:
@@ -240,12 +240,12 @@ def __checkXMLSummary( job, logURL ):
       lfns = {None:'No errors found in XML summary'}
   return lfns
 
-def __checkLog( logURL ):
+def _checkLog( logURL ):
   """
   Find ERROR string, core dump or "stalled events" in a logfile
   """
   for i in xrange( 5, 0, -1 ):
-    logFile = __getLog( logURL, '*_%d.log' % i, debug=False )
+    logFile = _getLog( logURL, '*_%d.log' % i, debug=False )
     if logFile:
       break
   logDump = []
@@ -1149,8 +1149,8 @@ class TransformationDebug( object ):
             if res['OK'] and 'Log URL' in res['Value']:
               logURL = res['Value']['Log URL'].split( '"' )[1] + '/'
               jobLogURL[lastJob] = logURL
-              lfns = __checkXMLSummary( lastJob, logURL )
-              lfns = dict( ( __genericLfn( lfn, lfnList ), lfns[lfn] ) for lfn in lfns if lfn )
+              lfns = _checkXMLSummary( lastJob, logURL )
+              lfns = dict( ( _genericLfn( lfn, lfnList ), lfns[lfn] ) for lfn in lfns if lfn )
               if lfns:
                 badLfns.update( {lastJob: lfns} )
             # break
@@ -1195,7 +1195,7 @@ class TransformationDebug( object ):
                         ( lfn, reason, ','.join( str( job ) for job in jobs ), ','.join( sites ) ) )
         # Get an example log if possible
         if checkLogs:
-          logDump = __checkLog( jobLogURL[jobs[0]] )
+          logDump = _checkLog( jobLogURL[jobs[0]] )
           prStr = "\tFrom logfile of job %s: " % jobs[0]
           if len( logDump ) == 1:
             prStr += logDump[0]
@@ -1477,7 +1477,7 @@ class TransformationDebug( object ):
     if fixRun and not status:
       status = 'Unused'
 
-    transList = __getTransformations( Script.getPositionalArgs() ) if not jobList else []
+    transList = _getTransformations( Script.getPositionalArgs() ) if not jobList else []
 
     improperJobs = []
     # gLogger.setLevel( 'INFO' )
@@ -1658,7 +1658,7 @@ class TransformationDebug( object ):
 
         # Problematic files
         if problematicFiles and not byFiles:
-          __checkReplicasForProblematic( problematicFiles,
+          _checkReplicasForProblematic( problematicFiles,
                                               self.__getReplicas( problematicFiles ),
                                               nbReplicasProblematic,
                                               problematicReplicas )
@@ -1718,7 +1718,7 @@ class TransformationDebug( object ):
 
           # Check problematic files
           if 'Problematic' in status:
-            __checkReplicasForProblematic( lfnsInTask, replicas, nbReplicasProblematic, problematicReplicas )
+            _checkReplicasForProblematic( lfnsInTask, replicas, nbReplicasProblematic, problematicReplicas )
 
           # Collect statistics per SE
           for lfn in replicas:
