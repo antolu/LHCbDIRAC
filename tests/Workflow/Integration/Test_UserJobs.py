@@ -15,7 +15,10 @@ from DIRAC.tests.Utilities.utils import find_all
 
 from LHCbDIRAC import rootPath
 
-from LHCbDIRAC.tests.Utilities.IntegrationTest import IntegrationTest, FailingUserJobTestCase
+try:
+  from LHCbDIRAC.tests.Utilities.IntegrationTest import IntegrationTest, FailingUserJobTestCase
+except ImportError:
+  from tests.Utilities.IntegrationTest import IntegrationTest, FailingUserJobTestCase
 
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
