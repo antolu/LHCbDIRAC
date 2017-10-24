@@ -1072,11 +1072,30 @@ class TransformationDebug(object):
         if res['OK']:
           jobApplicationStatus = res['Value']
     if not res['OK']:
-      return res
+      return {}
     return dict((job, '%s; %s; %s' %
                  (jobStatus[job]['Status'],
                   jobMinorStatus[job]['MinorStatus'],
                   jobApplicationStatus[job]['ApplicationStatus'])) for job in jobs)
+
+  def __getJobSites(self, job):
+    """
+    Get the status of a (list of) job, return it formated <major>;<minor>;<application>
+    """
+    if isinstance(job, basestring):
+      jobs = [int(job)]
+    elif isinstance(job, (long, int)):
+      jobs = [job]
+    else:
+      jobs = list(int(jid) for jid in job)
+    if not self.monitoring:
+      self.monitoring = RPCClient('WorkloadManagement/JobMonitoring')
+    res = self.monitoring.getJobsSites(jobs)
+    if res['OK']:
+      jobSites = res['Value']
+    else:
+      return {}
+    return dict((job, jobSites[job]['Site']) for job in jobs)
 
   def __checkJobs(self, jobsForLfn, byFiles=False, checkLogs=False):
     """
@@ -1107,11 +1126,10 @@ class TransformationDebug(object):
                        (len(lfnList), lfnList, len(allJobs)))
       else:
         gLogger.notice('\n %d LFNs: Status of corresponding %d jobs (ordered):' % (len(lfnList), len(allJobs)))
-      res = self.monitoring.getJobsSites(allJobs)
-      if res['OK']:
-        jobSites.update(dict((job, res['Value'][int(job)]['Site']) for job in allJobs))
+      # Get the sites
+      jobSites.update(self.__getJobSites(allJobs))
       gLogger.notice(', '.join(allJobs))
-      gLogger.notice('Sites:', ', '.join(jobSites.get(job, 'Unknown') for job in allJobs))
+      gLogger.notice('Sites:', ', '.join(jobSites.get(int(job), 'Unknown') for job in allJobs))
       prevStatus = None
       allStatus[sys.maxint] = ''
       jobs = []
@@ -1758,7 +1776,8 @@ class TransformationDebug(object):
               # Get job statuses
               jobID = int(task['ExternalID'])
               jobStatus = self.__getJobStatus(jobID)
-              gLogger.notice("Job status:", jobStatus[jobID])
+              jobSite = self.__getJobSites(jobID)
+              gLogger.notice("Job status at %s:" % jobSite[int(jobID)], jobStatus[jobID])
             if not allTasks:
               gLogger.notice("")
         if byJobs and jobsForLfn:
