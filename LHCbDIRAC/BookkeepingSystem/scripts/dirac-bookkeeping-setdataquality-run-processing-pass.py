@@ -109,7 +109,7 @@ if processing != realData:
     DIRAC.exit(2)
 
 recoPasses = getProcessingPasses(bkDict, processing)
-if realData in list(recoPasses):
+if realData in recoPasses:
   recoPasses.pop(realData)
 
 # Flag the run realData first
