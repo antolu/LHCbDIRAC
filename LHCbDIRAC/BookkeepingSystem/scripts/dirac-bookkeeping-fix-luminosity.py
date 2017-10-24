@@ -12,14 +12,14 @@ if __name__ == "__main__":
   dmScript = DMScript()
   dmScript.registerBKSwitches()
 
-  Script.registerSwitch( '', 'DoIt', '   Fix the BK database (default No)' )
-  Script.registerSwitch( '', 'Force', '   Force checking all descendants and not only those of files with bad lumi (default No)' )
-  Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
-                                       'Usage:',
-                                       '  %s [option|cfgfile]' % Script.scriptName, ] ) )
+  Script.registerSwitch('', 'DoIt', '   Fix the BK database (default No)')
+  Script.registerSwitch('', 'Force', '   Force checking all descendants and not only those of files with bad lumi (default No)')
+  Script.setUsageMessage('\n'.join([__doc__.split('\n')[1],
+                                    'Usage:',
+                                    '  %s [option|cfgfile]' % Script.scriptName, ]))
 
-  Script.addDefaultOptionValue( 'LogLevel', 'error' )
-  Script.parseCommandLine( ignoreErrors=False )
+  Script.addDefaultOptionValue('LogLevel', 'error')
+  Script.parseCommandLine(ignoreErrors=False)
 
   from LHCbDIRAC.BookkeepingSystem.Client.ScriptExecutors import executeFixLuminosity
-  executeFixLuminosity( dmScript )
+  executeFixLuminosity(dmScript)
