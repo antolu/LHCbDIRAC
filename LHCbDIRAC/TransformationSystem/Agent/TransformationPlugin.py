@@ -1577,7 +1577,8 @@ class TransformationPlugin(DIRACTransformationPlugin):
     # if there is a maximum number of files to get at destination, get the current usage
     if targetFilesAtDestination:
       self.util.readCacheFile(self.workDirectory)
-      directories = set(os.path.dirname(lfn) for lfn in self.transReplicas)
+      # Directories limited to the top 4 directories
+      directories = set(os.path.sep + os.path.join(*lfn.split(os.path.sep)[:5]) for lfn in self.transReplicas)
       # Get the maximum number of files that are allowed to be copied at this round (for prestaging mainly)
       maxFilesAtSE = self.util.getMaxFilesAtSE(targetFilesAtDestination, directories, destSEs)
       if not maxFilesAtSE['OK']:
@@ -1612,7 +1613,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
       candidateSEs = self.util.closerSEs(replicaSEs, targetSEs, local=True)
       if candidateSEs:
         # If the max number of files to copy is negative, stop
-        shortSEs = [se for se in candidateSEs if maxFilesAtSE.get(se, sys.maxint) == 0]
+        shortSEs = [se for se in candidateSEs if maxFilesAtSE.get(se, sys.maxsize) == 0]
         candidateSEs = [se for se in candidateSEs if se not in shortSEs]
         if not candidateSEs:
           self.util.logVerbose("No candidate SE where files are accepted (%s not allowed)" % ','.join(shortSEs))
@@ -1626,7 +1627,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
           else:
             # Select a single SE out of candidates; in most cases there is one only
             candidateSE = candidateSEs[0]
-            maxToReplicate = maxFilesAtSE.get(candidateSE, sys.maxint)
+            maxToReplicate = maxFilesAtSE.get(candidateSE, sys.maxsize)
             if maxToReplicate < len(lfns):
               self.util.logVerbose("Limit number of files for %s to %d (out of %d)" %
                                    (candidateSE, maxToReplicate, len(lfns)))
