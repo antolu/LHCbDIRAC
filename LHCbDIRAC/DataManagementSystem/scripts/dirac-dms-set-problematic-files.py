@@ -5,8 +5,7 @@
 __RCSID__ = "$Id$"
 __VERSION__ = "$Revision: 87258 $"
 
-from DIRAC.Core.Base import Script
-from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, Script
 
 if __name__ == "__main__":
 
@@ -14,17 +13,16 @@ if __name__ == "__main__":
   dmScript.registerFileSwitches()
   dmScript.registerSiteSwitches()
 
-  Script.registerSwitch( '', 'Reset', '   Reset files to OK' )
-  Script.registerSwitch( '', 'Full', '   Give full list of files' )
-  Script.registerSwitch( '', 'NoAction', '   No action taken, just give stats' )
+  Script.registerSwitch('', 'Reset', '   Reset files to OK')
+  Script.registerSwitch('', 'Full', '   Give full list of files')
+  Script.registerSwitch('', 'NoAction', '   No action taken, just give stats')
 
-  Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
-                                       'Usage:',
-                                       '  %s [option|cfgfile] [<LFN>] [<LFN>...]' % Script.scriptName, ] ) )
+  Script.setUsageMessage('\n'.join([__doc__.split('\n')[1],
+                                    'Usage:',
+                                    '  %s [option|cfgfile] [<LFN>] [<LFN>...]' % Script.scriptName, ]))
 
-  Script.parseCommandLine( ignoreErrors = False )
+  Script.parseCommandLine(ignoreErrors=False)
 
   from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executeSetProblematicFiles
   from DIRAC import exit
-  exit( executeSetProblematicFiles( dmScript ) )
-
+  exit(executeSetProblematicFiles(dmScript))

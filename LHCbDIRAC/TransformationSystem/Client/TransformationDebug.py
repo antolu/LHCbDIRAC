@@ -104,7 +104,7 @@ def _getLog(urlBase, logFile, debug=False):
       cc = fd.read()
       if "was not found on this server." in cc:
         return ""
-    except:
+    except IOError:
       pass
     finally:
       if fd:
@@ -119,13 +119,13 @@ def _getLog(urlBase, logFile, debug=False):
         try:
           logURL = ll.split('"')[1]
           break
-        except:
+        except IndexError:
           pass
       elif fnmatch.fnmatch(ll, '*.tgz*'):
         # If a tgz file is found, it could help!
         try:
           logURL = ll.split('"')[1]
-        except:
+        except IndexError:
           pass
     if not logURL:
       return ''
@@ -225,7 +225,7 @@ def _getSandbox(job, logFile, debug=False):
           with open(os.path.join(tmpDir, lf), 'r') as fd:
             return fd.readlines()
       return ''
-  except Exception as e:
+  except IOError as e:
     gLogger.exception('Exception while getting sandbox', lException=e)
     return ''
   finally:
@@ -681,7 +681,7 @@ class TransformationDebug(object):
         return res['Value'][2]
       gLogger.notice("No such request found: %s" % requestID)
       return None
-    except:  # pylint: disable=bare-except
+    except IndexError:
       return None
     finally:
       gLogger.setLevel(level)
@@ -1131,7 +1131,7 @@ class TransformationDebug(object):
       gLogger.notice(', '.join(allJobs))
       gLogger.notice('Sites:', ', '.join(jobSites.get(int(job), 'Unknown') for job in allJobs))
       prevStatus = None
-      allStatus[sys.maxint] = ''
+      allStatus[sys.maxsize] = ''
       jobs = []
       for job in sorted(allStatus):
         status = allStatus[job]
