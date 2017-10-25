@@ -51,11 +51,20 @@ The Request will be executed by the local RequestExecutingAgent, which will tran
 Authentication and Authorization
 ********************************
 
+Input sandbox download
+**********************
+
+The download goes through a StorageElementProxy. This means that if the real Sandbox SE is a dirac service, we will use the host certificate of the boinc gateway. This is the only case that can work. If the SE were an outside service (eos, anything else), we would use the MrBoinc proxy, and then fail.
+
 Output data upload
 ******************
 
+The data is uploaded as MrBOINC to the BOINC-SE. The final copy to the real system will be done using the DN inserted to perform the replication request (see below).
 
 
 
 Request modification
 ********************
+
+When a request is done, it is intercepted by the WMSSecureGW, which changes the ownerDN and add a first Operation which is WMSSecureOutput.
+For the time being, the ownerDN is always the one defined in `Operations/<setup>/BoincShifter/ProductionManager`. This should however change and be based on the actual job (see todo)

@@ -4,7 +4,7 @@ BOINC Image
 
 The client side interaction is handled by CERN IT (Laurence Field atm).
 I am not sure how their whole system works, but the main point is that the client ends up booting an image:
-* contextualized by a user_data file which basically just specify the cvmfs path to use, and contain the MrBoincHost certificate and key (see bellow)
+* contextualized by a user_data file which basically just specify the cvmfs path to use, and contain the MrBoincHost certificate and key (see below)
 * Start a pilot bootstrap script available here: https://gitlab.cern.ch/vc/vm/raw/master/bin/lhcb-pilot
 
 

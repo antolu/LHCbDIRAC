@@ -1,5 +1,0 @@
-It runs on lbvobox46
-
-CA files:  in /opt/dirac/etc/grid-security  cacert.pem and cakey.pem
-
-Renew certificate procedure

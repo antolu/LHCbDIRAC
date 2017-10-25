@@ -78,19 +78,13 @@ LHCb accounting
 
 Volunteers accounting
 *********************
-The Test4Theory project use a second accounting method, based on the number of event produced. While not a good metric in our case as all events are not the same, a similar system could be implemented.
+The Test4Theory project uses a second accounting method, based on the number of event produced. While not a good metric in our case as all events are not the same, a similar system could be implemented.
 
-Currently, BOINC VMs hostname are set to boinc[host id]. This enable a basic job accounting, since the hostname will appear in the parameters of the jobs.
+Currently, BOINC VMs hostname are set to boinc[host id]. This enables a basic job accounting, since the hostname will appear in the parameters of the jobs.
 Philippe Charpentier made a script to select jobs based on this: ``WorkloadManagementSystem/scripts/dirac-wms-get-wn.py``. Because the hostname is not a primary key, this is slow.
 A web interface could be made available to volunteers to access this information.
 
 Alternative? Use a noSQL db to store ~json~ data with job parameters (yet another accounting)
-
-Institutionnal accounting
-*************************
-The Manchester grid site has offered to deploy the project on their desktop computers and need an accounting of their participation. This will be handled by a specific site set for them based on the machine location (using a reverse DNS lookup). The script to do that exist and must be integrated into the contextualization.
-
-??
 
 
 New VM contextualization / merge BOINC-specific changes ?
