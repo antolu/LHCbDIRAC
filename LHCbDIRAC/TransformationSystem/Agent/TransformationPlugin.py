@@ -21,7 +21,7 @@ from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery, makeBKPath
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
-from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities import PluginUtilities, getActiveSEs
+from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities import PluginUtilities, getActiveSEs, stripDirectory
 
 __RCSID__ = "$Id$"
 
@@ -1578,7 +1578,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
     if targetFilesAtDestination:
       self.util.readCacheFile(self.workDirectory)
       # Directories limited to the top 4 directories
-      directories = set(os.path.sep + os.path.join(*lfn.split(os.path.sep)[:5]) for lfn in self.transReplicas)
+      directories = stripDirectory(self.transReplicas)
       # Get the maximum number of files that are allowed to be copied at this round (for prestaging mainly)
       maxFilesAtSE = self.util.getMaxFilesAtSE(targetFilesAtDestination, directories, destSEs)
       if not maxFilesAtSE['OK']:
