@@ -728,7 +728,8 @@ get from BK" % (param, self.paramName))
         # If not, get its ancestors
         res = self.getFileAncestors(lfnToCheck, replica=False)
         if res['OK']:
-          fullDst = [f['FileName'] for f in res['Value']['Successful'].get(lfnToCheck, [{}]) if f.get('FileType') in self.__recoType]
+          fullDst = [f['FileName'] for f in res['Value']['Successful'].get(
+              lfnToCheck, [{}]) if f.get('FileType') in self.__recoType]
           if fullDst:
             ancestorFullDST = fullDst[0]
         else:
@@ -740,7 +741,7 @@ get from BK" % (param, self.paramName))
         try:
           recoProduction = res['Value'][0][18]
           self.logVerbose('Reconstruction production is %d' % recoProduction)
-        except Exception as e:
+        except IndexError as e:
           self.logException("Exception extracting reco production from %s" % str(res['Value']), lException=e)
           recoProduction = None
       else:
@@ -827,7 +828,8 @@ get from BK" % (param, self.paramName))
     if runs:
       missingRuns = set(runs) - runsFound
       if missingRuns:
-        self.logInfo('Add missing runs in transformation runs table: %s' % ','.join(str(run) for run in sorted(missingRuns)))
+        self.logInfo('Add missing runs in transformation runs table: %s' %
+                     ','.join(str(run) for run in sorted(missingRuns)))
         for runID in missingRuns:
           res = self.transClient.insertTransformationRun(transID, runID, '')
           if not res['OK']:
@@ -846,7 +848,8 @@ get from BK" % (param, self.paramName))
       files = self.transFiles
     else:
       files = [fileDict for fileDict in self.transFiles if fileDict['LFN'] in lfns]
-    self.logVerbose("Starting getFilesGroupedByRunAndParam for %d files, %s" % (len(files), 'by %s' % param if param else 'no param'))
+    self.logVerbose("Starting getFilesGroupedByRunAndParam for %d files, %s" %
+                    (len(files), 'by %s' % param if param else 'no param'))
     runGroups = groupByRun(files)
     for runNumber, runLFNs in runGroups.iteritems():
       if not param:
@@ -1031,13 +1034,15 @@ get from BK" % (param, self.paramName))
         runFiles.setdefault(metadata['RunNumber'], []).append(lfn)
       for run in sorted(runFiles):
         if not run:
-          self.logInfo("%d files found with void run '%s': \n%s" % (len(runFiles[run]), str(run), '\n'.join(runFiles[run])))
+          self.logInfo("%d files found with void run '%s': \n%s" % (
+              len(runFiles[run]), str(run), '\n'.join(runFiles[run])))
           runFiles.pop(run)
           continue
         res = self.transClient.addTransformationRunFiles(self.transID, run, runFiles[run])
         # print run, runFiles[run], res
         if not res['OK']:
-          self.logError("Error setting files to run", " - %d files to run %d: %s" % (len(runFiles[run]), run, res['Message']))
+          self.logError("Error setting files to run", " - %d files to run %d: %s" %
+                        (len(runFiles[run]), run, res['Message']))
           runFiles.pop(run)
     else:
       self.logError("Error getting metadata for %d files" % len(lfns), res['Message'])
@@ -1121,7 +1126,8 @@ get from BK" % (param, self.paramName))
     """
     Select only the files that are Processed in a list of productions
     """
-    res = self.transClient.getTransformationFiles({'LFN': list(lfns), 'TransformationID': prodList, 'Status': 'Processed'})
+    res = self.transClient.getTransformationFiles(
+        {'LFN': list(lfns), 'TransformationID': prodList, 'Status': 'Processed'})
     if not res['OK']:
       self.logError("Error getting transformation files", res['Message'])
       return []

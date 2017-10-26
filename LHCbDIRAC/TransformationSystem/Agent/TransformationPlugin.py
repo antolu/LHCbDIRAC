@@ -456,7 +456,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
     try:
       return self.__byRun(param=param, plugin=plugin, requireFlush=requireFlush, forceFlush=forceFlush)
     except Exception as x:
-      self.util.logException("Exception in _ByRun plugin:", '', x)
+      self.util.logException("Exception in _ByRun plugin:", '', lException=x)
       return S_ERROR([])
 
   # @timeThis
@@ -1494,7 +1494,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
             storageElementGroups.setdefault(stringTargetSEs, []).extend(lfnsProcessed)
       if not storageElementGroups:
         return S_OK([])
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-except
       self.util.logException('Exception while executing the plugin', '', lException=e)
       return S_ERROR(e)
     finally:
@@ -1593,8 +1593,8 @@ class TransformationPlugin(DIRACTransformationPlugin):
     storageElementGroups = {}
 
     for replicaSE, lfns in getFileGroups(self.transReplicas).iteritems():
-      replicaSEs = set(se for se in replicaSE.split(',')
-                       if not self.util.dmsHelper.isSEFailover(se) and not self.util.dmsHelper.isSEArchive(se))
+      replicaSEs = set(se for se in replicaSE.split(',') if not self.util.dmsHelper.isSEFailover(se)
+                       and not self.util.dmsHelper.isSEArchive(se))
       if not replicaSEs:
         continue
       okSEs = replicaSEs & destSEs
@@ -1694,7 +1694,9 @@ class TransformationPlugin(DIRACTransformationPlugin):
                                                                                                str(self.transID),
                                                                                                res['Message']))
       if noMissingSE:
-        self.util.logInfo("Found %d files that are already present in the destination SEs (set Processed)" % len(noMissingSE))
+        self.util.logInfo(
+            "Found %d files that are already present in the destination SEs (set Processed)" %
+            len(noMissingSE))
         res = self.transClient.setFileStatusForTransformation(self.transID, 'Processed', noMissingSE)
         if not res['OK']:
           self.util.logError("Can't set %d files of transformation %s to 'Processed': %s" % (len(noMissingSE),
