@@ -617,7 +617,10 @@ def removeFiles(lfnList, setProcessed=False):
   maxLfns = 20
   for reason, lfns in errorReasons.iteritems():
     nbLfns = len(lfns)
-    gLogger.notice("Failed to remove %d files with error: %s%s" % (nbLfns, reason, ' (first %d)' % maxLfns if nbLfns > maxLfns else ''))
+    gLogger.notice(
+        "Failed to remove %d files with error: %s%s" %
+        (nbLfns, reason, ' (first %d)' %
+         maxLfns if nbLfns > maxLfns else ''))
     gLogger.notice('\n'.join(lfns[:maxLfns]))
   return 0
 
@@ -1419,7 +1422,8 @@ def setProblematicFiles(lfnList, targetSEs, reset=False, fullInfo=False, action=
       lfns = sorted(transDict[transID])
       res = tr.setFileStatusForTransformation(transID, status, lfns, force=True) if action else {'OK': True}
       if not res['OK']:
-        gLogger.error("\tError setting %d files %s for transformation %s" % (len(lfns), status, transID), res['Message'])
+        gLogger.error("\tError setting %d files %s for transformation %s" %
+                      (len(lfns), status, transID), res['Message'])
       else:
         gLogger.notice("\t%d files set %s for transformation %s" % (len(lfns), status, transID))
       for lfn in lfns:
@@ -1435,7 +1439,8 @@ def setProblematicFiles(lfnList, targetSEs, reset=False, fullInfo=False, action=
       for lfn, transID in transNotSet[status]:
         transDict.setdefault(transID, []).append(lfn)
       for transID in transDict:
-        gLogger.notice("\t%d files were in status %s in transformation %s" % (len(transDict[transID]), status, str(transID)))
+        gLogger.notice("\t%d files were in status %s in transformation %s" %
+                       (len(transDict[transID]), status, str(transID)))
         for lfn in transDict[transID]:
           gLogger.verbose('\t\t%s' % lfn)
 
@@ -1499,7 +1504,8 @@ def executeLfnMetadata(dmScript):
     if 'Mode' in metadata:
       metadata['Mode'] = '%o' % metadata['Mode']
   gLogger.setLevel(savedLevel)
-  return printDMResult(S_OK({'Successful': success, 'Failed': failed}), empty="File not in FC", script="dirac-dms-lfn-metadata")
+  return printDMResult(S_OK({'Successful': success, 'Failed': failed}),
+                       empty="File not in FC", script="dirac-dms-lfn-metadata")
 
 
 def executeGetFile(dmScript):
@@ -1767,7 +1773,11 @@ def executeListDirectory(dmScript, days=0, months=0, years=0, wildcard=None, dep
               allFiles.add(filename)
           empty = False
         if not onlyFiles:
-          gLogger.notice("%s/: %d files, %d sub-directories" % (currentDir, len(dirContents['Files']), len(dirContents['SubDirs'])))
+          gLogger.notice(
+              "%s/: %d files, %d sub-directories" %
+              (currentDir, len(
+                  dirContents['Files']), len(
+                  dirContents['SubDirs'])))
         if empty:
           emptyDirs.add(currentDir)
     filesInDirs[baseDir] = allFiles
@@ -1896,11 +1906,12 @@ class SpaceTokenUsage:
     import lcg_util
     self.lcg_util = lcg_util
     self.storageusage = RPCClient('DataManagement/StorageUsage')
-    self.spaceTokenInfo = CSHelpers.getSpaceTokenEndpoints()['Value']
+    self.spaceTokenInfo = {}
     self.sitesSEs = {}
     self.storageElementSet = DMSHelpers().getStorageElements()
     self.dmsHelper = DMSHelpers()
     self.shortSiteNames = self.dmsHelper.getShortSiteNames(tier=(0, 1))
+    self.storageSummary = None
 
   def execute(self, unit):
     """ Parse the request and execute the command """
@@ -1934,29 +1945,24 @@ class SpaceTokenUsage:
 
     for site in sites:
       self.sitesSEs[site] = {}
-      self.sitesSEs[site].setdefault('LHCb-Tape', {})['SEs'] = self.dmsHelper.getAllSEsInGroupAtSite(['Tier1-RAW',
-                                                                                                      'Tier1-RDST',
-                                                                                                      'Tier1-Archive'],
-                                                                                                     site)
-      # At CERN, the disk space token is different
-      diskToken = 'LHCb-EOS' if 'CERN' in site else 'LHCb-Disk'
-      self.sitesSEs[site].setdefault(diskToken, {})['SEs'] = self.dmsHelper.getAllSEsInGroupAtSite(['Tier1-Buffer',
-                                                                                                    'Tier1-DST',
-                                                                                                    'Tier1_MC-DST',
-                                                                                                    'Tier1-Failover'],
-                                                                                                   site)
-      self.sitesSEs[site].setdefault('LHCb_USER', {})['SEs'] = self.dmsHelper.getAllSEsInGroupAtSite('Tier1-USER',
-                                                                                                     site)
-      self.sitesSEs[site]['LHCb-Tape']['type'] = 't1d0'
-      self.sitesSEs[site][diskToken]['type'] = 't0d1'
-      self.sitesSEs[site]['LHCb_USER']['type'] = 't0d1'
+      # Get SEs at site
+      seList = self.dmsHelper.getSEsAtSite(site).get('Value', [])
+      for se in seList:
+        spaceToken = StorageElement(se).getStorageParameters(protocol='srm')
+        if spaceToken['OK']:
+          spaceToken = spaceToken['Value']
+          st = spaceToken['SpaceToken']
+          self.sitesSEs[site].setdefault(st, {}).setdefault('SEs', []).append(se)
+          # Fill in the endpoints
+          ep = 'httpg://%s:%s%s' % (spaceToken['Host'], spaceToken['Port'], spaceToken['WSUrl'].split('?')[0])
+          self.spaceTokenInfo.setdefault(site.split('.')[1], {}).setdefault(ep, set()).add(st)
 
     lfcUsage = {}
     srmUsage = {}
     sdUsage = {}
     for site in sites:
       # retrieve space usage from LFC
-      lfcUsage[site] = self.getLFCUsage(site)
+      lfcUsage[site] = self.getFCUsage(site)
 
       # retrieve SRM usage
       srmResult = self.getSrmUsage(site)
@@ -1973,25 +1979,25 @@ class SpaceTokenUsage:
         return 1
 
       gLogger.notice("Storage usage summary for site %s - %s " % (site.split('.')[1], time.asctime()))
-      for st in self.siteSEs[site]:
+      for st in self.sitesSEs[site]:
         gLogger.notice("Space token %s " % st)
-        gLogger.notice("From LFC: Files: %d, Size: %.2f %s" %
+        gLogger.notice("\tFrom FC: Files: %d, Size: %.2f %s" %
                        (lfcUsage[site][st]['Files'],
                         lfcUsage[site][st]['Size'] / scaleFactor, unit))
-        if site in srmUsage:
-          gLogger.notice("From SRM: Total Assigned Space: %.2f, Used Space: %.2f, Free Space: %.2f %s " %
-                         (srmUsage[site][st]['SRMTotal'] / scaleFactor,
-                          srmUsage[site][st]['SRMUsed'] / scaleFactor,
+        if site in srmUsage and st in srmUsage[site]:
+          gLogger.notice("\tFrom SRM: Total Assigned Space: %.2f %s, Used Space: %.2f %s, Free Space: %.2f %s " %
+                         (srmUsage[site][st]['SRMTotal'] / scaleFactor, unit,
+                          srmUsage[site][st]['SRMUsed'] / scaleFactor, unit,
                           srmUsage[site][st]['SRMFree'] / scaleFactor, unit))
         else:
-          gLogger.notice("From SRM: Information not available")
-        if site in sdUsage:
-          gLogger.notice("From storage dumps: Files: %d, Size: %.2f %s - last update %s " %
+          gLogger.notice("\tFrom SRM: Information not available")
+        if site in sdUsage and st in sdUsage[site]:
+          gLogger.notice("\tFrom storage dumps: Files: %d, Size: %.2f %s - last update %s " %
                          (sdUsage[site][st]['Files'],
                           sdUsage[site][st]['Size'] / scaleFactor, unit,
                           sdUsage[site][st]['LastUpdate']))
         else:
-          gLogger.notice("From storage dumps: Information not available")
+          gLogger.notice("\tFrom storage dumps: Information not available")
     return 0
 
   def getSrmUsage(self, lcgSite):
@@ -2005,31 +2011,26 @@ class SpaceTokenUsage:
       gLogger.error("ERROR: information not available for site %s. Space token information from CS: %s "
                     % (site, sorted(self.spaceTokenInfo)))
       return -1
-    try:
-      ep = self.spaceTokenInfo[site]['Endpoint']
-    except KeyError:
-      gLogger.notice('ERROR! endpoint information not available for site! ', self.spaceTokenInfo[site])
-      return -1
 
     result = {}
-    for st in self.siteSEs[lcgSite]:
-      result[st] = {}
-      print ep, st
-      srm = self.lcg_util.lcg_stmd(st, ep, True, 0)
-      if srm[0]:
-        gLogger.error('ERROR! for EndPoint = %s and SpaceToken = %s' % (ep, st))
-        continue
-      srmVal = srm[1][0]
-      srmTotSpace = srmVal['totalsize']
-      # correct for the 6% overhead due to castor setup at RAL
-      if 'gridpp' in ep:
-        srmTotSpace = (srmVal['totalsize']) * 0.94
-        gLogger.warn('WARNING! apply a 0.94 factor to total space for RAL!')
-      srmFree = srmVal['unusedsize']
-      srmUsed = srmTotSpace - srmFree
-      result[st]['SRMUsed'] = srmUsed
-      result[st]['SRMFree'] = srmFree
-      result[st]['SRMTotal'] = srmTotSpace
+    for ep, stList in self.spaceTokenInfo[site].iteritems():
+      for st in stList:
+        result[st] = {}
+        srm = self.lcg_util.lcg_stmd(st, ep, True, 0)
+        if srm[0]:
+          # This SpaceToken doesn't exist at this endPoint
+          continue
+        srmVal = srm[1][0]
+        srmTotSpace = srmVal['totalsize']
+        # correct for the 6% overhead due to castor setup at RAL
+        if 'gridpp' in ep:
+          srmTotSpace = (srmVal['totalsize']) * 0.94
+          gLogger.warn('WARNING! apply a 0.94 factor to total space for RAL!')
+        srmFree = srmVal['unusedsize']
+        srmUsed = srmTotSpace - srmFree
+        result[st]['SRMUsed'] = srmUsed
+        result[st]['SRMFree'] = srmFree
+        result[st]['SRMTotal'] = srmTotSpace
     return result
 
   # .................................................
@@ -2047,7 +2048,6 @@ class SpaceTokenUsage:
       return -1
     if not res['Value']:
       gLogger.warn(" No information available for site %s from storage dumps" % site)
-      return -1
     sdUsage = {}
     for row in res['Value']:
       site, spaceTokenWithID, totalSpace, totalFiles, lastUpdate = row
@@ -2060,22 +2060,25 @@ class SpaceTokenUsage:
           break
     return sdUsage
 
-  def getLFCUsage(self, lcgSite):
+  def getFCUsage(self, lcgSite):
     """ get storage usage from LFC
     """
-    res = self.storageusage.getStorageSummary()
-    if not res['OK']:
-      gLogger.error('ERROR in getStorageSummary ', res['Message'])
-      return {}
+    if self.storageSummary is None:
+      res = self.storageusage.getStorageSummary()
+      if not res['OK']:
+        gLogger.error('ERROR in getStorageSummary ', res['Message'])
+        return {}
+      self.storageSummary = res['Value']
+
     usage = {}
     for st in self.sitesSEs[lcgSite]:
       usage[st] = {'Files': 0, 'Size': 0}
-    for se in res['Value']:
-      for st in self.sitesSEs[lcgSite]:
-        if se in self.sitesSEs[lcgSite][st]['SEs']:
-          usage[st]['Files'] += res['Value'][se]['Files']
-          usage[st]['Size'] += res['Value'][se]['Size']
-          break
+      for se in self.sitesSEs[lcgSite][st]['SEs']:
+        if se in self.storageSummary:
+          usage[st]['Files'] += self.storageSummary[se]['Files']
+          usage[st]['Size'] += self.storageSummary[se]['Size']
+        else:
+          gLogger.error("No FC storage information for SE", se)
 
     return usage
 
