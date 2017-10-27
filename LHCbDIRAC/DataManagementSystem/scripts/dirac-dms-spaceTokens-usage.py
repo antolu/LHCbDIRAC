@@ -23,5 +23,5 @@ if __name__ == "__main__":
 
   Script.parseCommandLine(ignoreErrors=False)
 
-  from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import SpaceTokenUsage
+  from LHCbDIRAC.DataManagementSystem.Client.SpaceTokenUsage import SpaceTokenUsage
   DIRAC.exit(SpaceTokenUsage().execute(unit))
