@@ -1,3 +1,25 @@
+[v9r0-pre11]
+use DIRAC v6r19p3
+
+* DOC: improve BOINC doc
+* Remove unnecessary cast
+* use DIRAC.rootPath
+* Fix format using autopep8
+* don't use dm and fc as data member
+* finders
+* try...except import
+* removed deprecated option
+* removed invokation of AnalyseLogFile
+* Add full BOINC documentation
+* "with " cannot be used with urlopen
+* Function names should not start wit __
+* remove -> pop as it was a dict
+* Fix function name and loop on list with remove()
+* fix rubbish
+* Rename scripts with hyphens instead of underscores
+* fix typos
+* remove stupid instruction added for tests earlier
+
 [v9r0-pre10]
 use DIRAC v6r19p2
 
