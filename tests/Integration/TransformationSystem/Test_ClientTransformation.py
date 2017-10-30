@@ -45,11 +45,10 @@ class LHCbTransformationClientChain( TestClientTransformationTestCase, DIRACTran
     self.assertEqual( res['Value'], {'StartRun': 1L, 'EndRun': 10L,
                                      'EventType': 12345L, 'DataTakingConditions':'DataTakingConditions'} )
     res = self.transClient.addBookkeepingQueryRunList( transID, [2, 3, 4, 5] )
-    self.assertTrue(res['OK'])
+    self.assertFalse(res['OK']) #there's already a start and end run
     res = self.transClient.getBookkeepingQuery( transID )
     self.assertTrue(res['OK'])
     self.assertEqual( res['Value'], {'StartRun': 1L, 'EndRun': 10L, 'EventType': 12345L,
-                                     'RunNumbers': ['2', '3', '4', '5'],
                                      'DataTakingConditions': 'DataTakingConditions'} )
     res = self.transClient.getTransformationsWithBkQueries( [] )
     self.assertTrue(res['OK'])
@@ -202,7 +201,7 @@ class LHCbTransformationClientChain( TestClientTransformationTestCase, DIRACTran
 
     # tasks
     res = self.transClient.addTaskForTransformation( transID, lfns )
-    self.assertTrue( res['OK'] )
+    self.assertFalse( res['OK'] ) #tasks are in MaxReset
     res = self.transClient.getTransformationTasks( {'TransformationID': transID} )
     self.assertTrue( res['OK'] )
     taskIDs = []
@@ -216,7 +215,7 @@ class LHCbTransformationClientChain( TestClientTransformationTestCase, DIRACTran
     res = self.transClient.extendTransformation( transID, 5 )
     self.assertTrue( res['OK'] )
     res = self.transClient.getTransformationTasks( {'TransformationID': transID} )
-    self.assertEqual( len( res['Value'] ), 6 )
+    self.assertEqual( len( res['Value'] ), 5 )
     res = self.transClient.getTasksToSubmit( transID, 5 )
     self.assertTrue( res['OK'] )
 
