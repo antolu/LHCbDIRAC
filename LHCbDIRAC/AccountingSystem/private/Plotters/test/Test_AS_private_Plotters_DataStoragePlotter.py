@@ -11,13 +11,16 @@
   IMPORTANT: the test MUST be pylint compliant !
 '''
 
-import mock
+#pylint: disable=protected-access
+
 import unittest
+import math
+import operator
 
 from decimal import Decimal
 
-import math
-import operator
+import mock
+
 from PIL import Image
 
 def compare( file1Path, file2Path ):
@@ -60,8 +63,8 @@ class DataStoragePlotterTestCase( unittest.TestCase ):
         continue
 
     # And then makes its own mock
-    class MockDataStorage:
-      # pylint: disable=missing-docstring,min-public-methods,no-init
+    class MockDataStorage(object):
+      # pylint: disable=missing-docstring,no-init
       definitionKeyFields = ( 'DataType', 'Activity', 'FileType', 'Production',
                               'ProcessingPass', 'Conditions', 'EventType',
                               'StorageElement' )
@@ -178,7 +181,7 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                                      'startTime'      : 'startTime',
                                      'endTime'        : 'endTime',
                                      'condDict'       : {}
-                                    } )
+                                   } )
 #     self.assertEqual( res[ 'OK' ], False )
 #     self.assertEqual( res[ 'Message' ], 'No connection' )
 
@@ -189,13 +192,13 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                                      'startTime'      : 'startTime',
                                      'endTime'        : 'endTime',
                                      'condDict'       : {}
-                                    } )
+                                   } )
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'graphDataDict': {},
                                         'data'         : {},
                                         'unit'         : 'MB',
                                         'granularity'  : 'BucketLength'
-                                       } )
+                                      } )
 
     mockedData = ( ( 'Full stream', 1355616000L, 86400, Decimal( '935388524246.91630989384787' ) ),
                    ( 'Full stream', 1355702400L, 86400, Decimal( '843844487074.82197482051816' ) ) )
@@ -207,19 +210,19 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                                      'startTime'      : 1355663249.0,
                                      'endTime'        : 1355749690.0,
                                      'condDict'       : { 'EventType' : 'Full stream' }
-                                    } )
+                                   } )
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'graphDataDict' : { 'Full stream': { 1355616000L: 935.38852424691629,
                                                                              1355702400L: 843.84448707482204
-                                                                            }
-                                                           },
+                                                                           }
+                                                          },
                                         'data'          : { 'Full stream': { 1355616000L: 935388.52424691629,
                                                                              1355702400L: 843844.48707482207
-                                                                            }
-                                                           },
+                                                                           }
+                                                          },
                                         'unit'          : 'GB',
                                         'granularity'   : 86400
-                                       } )
+                                      } )
 
   def test_reportCatalogFiles( self ):
     ''' test the method "_reportCatalogFiles"
@@ -240,7 +243,7 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                                      'startTime'      : 'startTime',
                                      'endTime'        : 'endTime',
                                      'condDict'       : {}
-                                    } )
+                                   } )
 #     self.assertEqual( res[ 'OK' ], False )
 #     self.assertEqual( res[ 'Message' ], 'No connection' )
 
@@ -251,13 +254,13 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                                      'startTime'      : 'startTime',
                                      'endTime'        : 'endTime',
                                      'condDict'       : {}
-                                    } )
+                                   } )
     self.assertEqual( res[ 'OK' ], True, msg = 'Expected S_OK' )
     self.assertEqual( res[ 'Value' ], { 'graphDataDict': {},
                                         'data'         : {},
                                         'unit'         : 'files',
                                         'granularity'  : 'BucketLength'
-                                       } )
+                                      } )
 
     mockedData = ( ( 'Full stream', 1355616000L, 86400, Decimal( '420.47885754501202' ) ),
                    ( 'Full stream', 1355702400L, 86400, Decimal( '380.35170637810842' ) ) )
@@ -269,17 +272,17 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                                      'startTime'      : 1355663249.0,
                                      'endTime'        : 1355749690.0,
                                      'condDict'       : { 'EventType' : 'Full stream' }
-                                    } )
+                                   } )
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'graphDataDict' : { 'Full stream' : { 1355616000L : 420.47885754501203,
                                                                               1355702400L : 380.35170637810842 }
-                                                           },
+                                                          },
                                         'data'          : { 'Full stream' : { 1355616000L : 420.47885754501203,
                                                                               1355702400L : 380.35170637810842 }
-                                                           },
+                                                          },
                                         'unit'          : 'files',
                                         'granularity'   : 86400
-                                        } )
+                                      } )
 
   def test_reportPhysicalSpace( self ):
     ''' test the method "_reportPhysicalSpace"
@@ -295,24 +298,24 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                                       'startTime'      : 'startTime',
                                       'endTime'        : 'endTime',
                                       'condDict'       : {}
-                                     } )
+                                    } )
 #     self.assertEqual( res[ 'OK' ], False )
 #     self.assertEqual( res[ 'Message' ], 'No connection' )
 
     # Changed mocked to run over different lines of code
     mockAccountingDB._getConnection.return_value = { 'OK' : True, 'Value' : [] }
     res = obj._reportPhysicalSpace( { 'grouping'       : 'NextToABeer',
-                                     'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
-                                     'startTime'      : 'startTime',
-                                     'endTime'        : 'endTime',
-                                     'condDict'       : {}
+                                      'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
+                                      'startTime'      : 'startTime',
+                                      'endTime'        : 'endTime',
+                                      'condDict'       : {}
                                     } )
     self.assertEqual( res[ 'OK' ], True, msg = 'Expected S_OK' )
     self.assertEqual( res[ 'Value' ], { 'graphDataDict': {},
                                         'data'         : {},
                                         'unit'         : 'MB',
                                         'granularity'  : 'BucketLength'
-                                       } )
+                                      } )
 
     mockedData = ( ( 'Full stream', 1355616000L, 86400, Decimal( '14754501.202' ) ),
                    ( 'Full stream', 1355702400L, 86400, Decimal( '15237810.842' ) ) )
@@ -324,17 +327,17 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                                       'startTime'      : 1355663249.0,
                                       'endTime'        : 1355749690.0,
                                       'condDict'       : { 'EventType' : 'Full stream' }
-                                     } )
+                                    } )
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'graphDataDict' : { 'Full stream' : { 1355616000L : 14.754501202,
                                                                               1355702400L : 15.237810842 }
-                                                           },
+                                                          },
                                         'data'          : { 'Full stream' : { 1355616000L : 14.754501202,
                                                                               1355702400L : 15.237810842 }
-                                                           },
+                                                          },
                                         'unit'          : 'MB',
                                         'granularity'   : 86400
-                                        } )
+                                      } )
 
   def test_reportPhysicalFiles( self ):
     ''' test the method "_reportPhysicalFiles"
@@ -357,17 +360,17 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
     # Changed mocked to run over different lines of code
     mockAccountingDB._getConnection.return_value = { 'OK' : True, 'Value' : [] }
     res = obj._reportPhysicalFiles( { 'grouping'       : 'NextToABeer',
-                                     'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
-                                     'startTime'      : 'startTime',
-                                     'endTime'        : 'endTime',
-                                     'condDict'       : {}
+                                      'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
+                                      'startTime'      : 'startTime',
+                                      'endTime'        : 'endTime',
+                                      'condDict'       : {}
                                     } )
     self.assertEqual( res[ 'OK' ], True, msg = 'Expected S_OK' )
     self.assertEqual( res[ 'Value' ], { 'graphDataDict': {},
                                         'data'         : {},
                                         'unit'         : 'files',
                                         'granularity'  : 'BucketLength'
-                                       } )
+                                      } )
 
     mockedData = ( ( 'Full stream', 1355616000L, 86400, Decimal( '42.47885754501202' ) ),
                    ( 'Full stream', 1355702400L, 86400, Decimal( '38.35170637810842' ) ) )
@@ -375,21 +378,21 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
     mockAccountingDB.calculateBucketLengthForTime.return_value = 86400
 
     res = obj._reportPhysicalFiles( { 'grouping'       : 'EventType',
-                                     'groupingFields' : ( '%s', [ 'EventType' ] ),
-                                     'startTime'      : 1355663249.0,
-                                     'endTime'        : 1355749690.0,
-                                     'condDict'       : { 'EventType' : 'Full stream' }
+                                      'groupingFields' : ( '%s', [ 'EventType' ] ),
+                                      'startTime'      : 1355663249.0,
+                                      'endTime'        : 1355749690.0,
+                                      'condDict'       : { 'EventType' : 'Full stream' }
                                     } )
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'graphDataDict' : { 'Full stream' : { 1355616000L : 42.47885754501202,
                                                                               1355702400L : 38.35170637810842 }
-                                                           },
+                                                          },
                                         'data'          : { 'Full stream' : { 1355616000L : 42.47885754501202,
                                                                               1355702400L : 38.35170637810842 }
-                                                           },
+                                                          },
                                         'unit'          : 'files',
                                         'granularity'   : 86400
-                                        } )
+                                       } )
 
 # ...............................................................................
 
@@ -657,4 +660,13 @@ class DataStoragePlotterUnitTestCrashes( DataStoragePlotterTestCase ):
                                                            'graphDataDict' : 'graphDataDict' }, None )
 
 ################################################################################
+#############################################################################
+
+if __name__ == '__main__':
+  suite = unittest.defaultTestLoader.loadTestsFromTestCase( DataStoragePlotterTestCase )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( DataStoragePlotterTestCase ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( DataStoragePlotterUnitTestCrashes ) )
+  testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
+
+
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
