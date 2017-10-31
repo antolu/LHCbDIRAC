@@ -105,7 +105,7 @@ def helloWorldTestCLOUD():
   job = baseToAllJobs( 'helloWorld-test-CLOUD', jobClass )
   job.setInputSandbox( [find_all( 'exe-script.py', '..', '/LHCbDIRAC/tests/System/GridTestSubmission' )[0]] )
   job.setExecutable( "exe-script.py", "", "helloWorld.log" )
-  job.setDestination( ['CLOUD.CERN.cern', 'CLOUD.EGI.eu'] )
+  job.setDestination( ['CLOUD.CERN.cern', 'CLOUD.YANDEX.ru'] )
   return endOfAllJobs( job )
 
 @executeWithUserProxy
