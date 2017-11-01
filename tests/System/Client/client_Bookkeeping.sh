@@ -144,6 +144,13 @@ version=$(echo $PYTHONPATH | tr ":" "\n" | grep \/DIRAC_v | sed 's/.*DIRAC_//') 
 tdate=$(date +"20%y-%m-%d")
 ttime=$(date +"%R")
 
+#if we have a specific client installation (not AFS,CVMFS), the directory structure can be different.
+#I decided to use a default version. 
+if [ -z "$version" ]
+then
+version="v0r0"
+fi;
+
 for file in $files
 do
   # Names of files
