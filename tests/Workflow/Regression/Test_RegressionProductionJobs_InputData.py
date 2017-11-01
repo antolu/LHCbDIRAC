@@ -5,6 +5,7 @@
 
 #pylint: disable=missing-docstring,invalid-name,wrong-import-position
 
+import os
 import unittest
 
 from DIRAC.Core.Base.Script import parseCommandLine
@@ -27,6 +28,7 @@ class RegressionTestCase( IntegrationTest ):
 
     self.diracLHCb = DiracLHCb()
     self.bkkClient = BookkeepingClient()
+    os.chdir(os.environ['PILOTINSTALLDIR'])
 
 #   def tearDown( self ):
 #     pass
