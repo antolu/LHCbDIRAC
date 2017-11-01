@@ -112,6 +112,9 @@ class MCSimulationTestingAgent ( AgentModule ):
             for d in tasks:
               if d.get( "ExternalStatus" ) == "Done":
                 doneTasks.append( d )
+            if not doneTasks:
+              self.log.info("No tasks done for Transformation %d" %transID)
+              continue
             res = self._activateTransformation( transID, doneTasks )
             if not res['OK']:
               self.log.error( "Error Activating Production", res['Message'] )
