@@ -11,9 +11,10 @@ from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Base import Script
 
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
+from DIRAC.Resources.Storage.StorageElement import StorageElement
 
 
-class SpaceTokenUsage:
+class SpaceTokenUsage(object):
   """
   Class used to get information about Space token occupancy
   """
