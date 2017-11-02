@@ -23,7 +23,7 @@ for root, dirs, files in os.walk( os.path.join( prjroot, 'LHCbDIRAC' ) ):
     # Loop over the files in the scripts directory
     for f in files:
       # Remove extension if it exists and replace underscore with dash
-      dst = os.path.join( os.path.splitext( f )[0].replace( '_', '-' ) )
+      dst = os.path.join( scripts_dir, os.path.splitext( f )[0].replace( '_', '-' ) )
       # Only create a symlink if it doesn't exist or it is broken
       if not os.path.exists( dst ):
         # If the link however exists but is broken, remove it
