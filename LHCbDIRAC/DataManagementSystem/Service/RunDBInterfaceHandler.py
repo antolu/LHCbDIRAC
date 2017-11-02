@@ -8,7 +8,7 @@
 import os
 import time
 import sys
-from types import DictType, ListType, IntType, StringTypes
+
 ## from DIRAC
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -31,7 +31,7 @@ def initializeRunDBInterfaceHandler( serviceInfo ):
   #sys.path.insert(0, '/home/rainer/projects/RunDatabase/python')
   #sys.path.append( '/group/online/rundb/RunDatabase/python' )
   sys.path.append( '/admin/RunDatabase/python' )
-  from path import SQL_ALCHEMY_PATH #pylint: disable=import-error
+  from path import SQL_ALCHEMY_PATH #pylint: disable=import-error,no-name-in-module
   sys.path.append( SQL_ALCHEMY_PATH )
   try:
     ORACLE_HOME = os.environ['ORACLE_HOME']
@@ -71,7 +71,7 @@ class RunDBInterfaceHandler( RequestHandler ):
   """
   .. class:: RunDBInterfaceHandler
   """
-  types_getFilesSummaryWeb = [ DictType, ListType, IntType, IntType ]
+  types_getFilesSummaryWeb = [ dict, list, int, int ]
   def export_getFilesSummaryWeb( self, selectDict, sortList, startItem, maxItems ):
     """ export of getFilesSummaryWeb """
     paramString = ''
@@ -83,7 +83,7 @@ class RunDBInterfaceHandler( RequestHandler ):
           for strState in selectValue:
             intStates.append( fileStateRev[strState] )
           selectValue = intStates
-        if type( selectValue ) in StringTypes:
+        if isinstance(selectValue, basestring):
           paramString = "%s,%s='%s'" % ( paramString, selectParam, selectValue )
         else:
           paramString = "%s,%s=%s" % ( paramString, selectParam, selectValue )
@@ -172,7 +172,7 @@ class RunDBInterfaceHandler( RequestHandler ):
   def export_getFileSelections( self ):
     pass
 
-  types_getRunsSummaryWeb = [DictType, ListType, IntType, IntType]
+  types_getRunsSummaryWeb = [dict, list, int, int]
   def export_getRunsSummaryWeb( self, selectDict, sortList, startItem, maxItems ):
     """ export of getRunsSummaryWeb """
     paramString = ''
@@ -184,7 +184,7 @@ class RunDBInterfaceHandler( RequestHandler ):
           for strState in selectValue:
             intStates.append( runStateRev[strState] )
           selectValue = intStates
-        if type( selectValue ) in StringTypes:
+        if isinstance(selectValue, basestring):
           paramString = "%s,%s='%s'" % ( paramString, selectParam, selectValue )
         else:
           paramString = "%s,%s=%s" % ( paramString, selectParam, selectValue )
@@ -326,7 +326,7 @@ class RunDBInterfaceHandler( RequestHandler ):
       gLogger.exception( errStr, '', x )
       return S_ERROR( "%s %s" % ( errStr, x ) )
 
-  types_getRunParams = [IntType]
+  types_getRunParams = [int]
   def export_getRunParams( self, runID ):
     """ export of getRunParams """
     success, result = server.getRunParams( runID )

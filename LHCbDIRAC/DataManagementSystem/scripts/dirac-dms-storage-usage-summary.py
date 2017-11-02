@@ -8,8 +8,11 @@ __RCSID__ = "$Id$"
 import DIRAC
 from DIRAC.Core.Base import Script
 from DIRAC import gConfig, gLogger
-from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC.Core.Utilities.SiteSEMapping import getSitesForSE
+from DIRAC.Resources.Storage.StorageElement import StorageElement
+
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 
 seSvcClassDict = {}
 
@@ -18,7 +21,7 @@ def seSvcClass( se ):
     from DIRAC.Resources.Storage.StorageElement import StorageElement
     try:
       if se.endswith( 'HIST' ):
-        seSvcClass[se] = 'Hist'
+        seSvcClassDict[se] = 'Hist'
       else:
         status = StorageElement( se ).getStatus()
         if status['OK']:
@@ -129,7 +132,7 @@ def writeInfo( str ):
   infoStringLength = len( str ) + 1
 
 def browseBK( bkQuery, ses, scaleFactor ):
-  from DIRAC.Core.Utilities.SiteSEMapping                                import getSitesForSE
+
   bkPath = bkQuery.getPath()
   if not bkQuery.getConfiguration():
     print "The Configuration should be specified in the --BKQuery option: %s" % bkPath
@@ -417,7 +420,7 @@ def execute( unit, minimum, depth ):
           totalUsage, grandTotal = getStorageSummary( totalUsage, grandTotal, dirName, fileType, prodID, ses )
 
   if lcg:
-    from DIRAC.Resources.Storage.StorageElement                    import StorageElement
+
     tapeTotalFiles = 0
     diskTotalFiles = 0
     tapeTotalSize = 0

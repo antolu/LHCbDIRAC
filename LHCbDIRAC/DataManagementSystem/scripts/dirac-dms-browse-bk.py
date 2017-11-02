@@ -8,7 +8,9 @@
 
 __RCSID__ = "$Id$"
 
-import os, sys, datetime
+import os
+import sys
+import datetime
 
 import DIRAC
 from DIRAC.Core.Base import Script
@@ -25,7 +27,7 @@ def printTree( tree, tabs = 0, depth = sys.maxint ):
   prStr = tabs * '   '
   tabs += 1
   newTabs = tabs
-  if type( tree ) == type( {} ) and tabs < depth:
+  if isinstance( tree, dict ) and tabs < depth:
     for key in keys:
       print prStr + str( key )
       newTabs = printTree( tree[key], tabs = tabs, depth = depth )
@@ -34,7 +36,7 @@ def printTree( tree, tabs = 0, depth = sys.maxint ):
   return newTabs
 
 def makeDataset( configuration, condition, processingPass, eventTypes, separator = '|' ):
-  if type( eventTypes ) == type( 0 ):
+  if isinstance( eventTypes, int ):
     eventTypes = [eventTypes]
   eventTypes = ','.join( sorted( set( [str( evtType ) for evtType in eventTypes] ) ) )
   return separator.join( [configuration, condition, processingPass, eventTypes] )
@@ -119,14 +121,12 @@ def execute():
   configuration = bkQuery.getConfiguration()
   confName, confVersion = configuration.split( '/' )[1:]
 
-  toKeep = {}
   toKeepTree = {}
   toRemoveTree = {}
   if toKeepFile:
     try:
-      f = open( toKeepFile, 'r' )
-      content = f.readlines()
-      f.close()
+      with open( toKeepFile, 'r' ) as tkf:
+        content = tkf.readlines()
     except:
       print "Failed to open", toKeepFile
       DIRAC.exit( 2 )
@@ -180,7 +180,7 @@ def execute():
     printTree( toRemoveTree )
 
   print "Browsing BK..."
-  bkTree = bkQuery.browseBK()
+  bkTree = bkQuery.browseBK() #FIXME: this does not exist and I don't know how to fix it!
   if ( not toKeepFile and not printBKPath and not printProductions ) or verbose:
     printTree( bkTree, depth = depth )
 
@@ -218,13 +218,12 @@ def execute():
       print ','.join( [str( pr ) for pr in sorted( productions )] )
 
 if __name__ == "__main__":
-  import time
   dmScript = DMScript()
   dmScript.registerBKSwitches()
 
   Script.setUsageMessage( '\n'.join( __doc__.split( '\n' ) + [
-                                       'Usage:',
-                                       '  %s [option|cfgfile] [<LFN>] [<LFN>...]' % Script.scriptName, ] ) )
+      'Usage:',
+      '  %s [option|cfgfile] [<LFN>] [<LFN>...]' % Script.scriptName, ] ) )
 
   Script.registerSwitch( "", "ToKeep=", "   File containing the twiki source of the retention table" )
   Script.registerSwitch( "", "PrintBKPath", "   Print the BKPaths of datasets (that can be removed if --ToKeep)" )
@@ -234,6 +233,3 @@ if __name__ == "__main__":
 
   Script.parseCommandLine( ignoreErrors = True )
   execute()
-
-
-

@@ -14,7 +14,11 @@
 '''
 __RCSID__ = "$Id$"
 
+from DIRAC import gLogger
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
+
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, Script
+from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
 
 
 def __getSEsFromOptions(dmScript):
@@ -35,7 +39,6 @@ def __getSEsFromOptions(dmScript):
 if __name__ == '__main__':
 
   # Script initialization
-  from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, Script
 
   Script.setUsageMessage('\n'.join([__doc__,
                                     'Usage:',
@@ -71,8 +74,6 @@ if __name__ == '__main__':
         pass
 
   # imports
-  from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
-  from DIRAC import gLogger
   if verbose:
     gLogger.setLevel('INFO')
   cc = ConsistencyChecks()

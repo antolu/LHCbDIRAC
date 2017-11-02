@@ -163,12 +163,13 @@ class BKQuery():
     runs = runs if runs is not None else []
     fileTypes = fileTypes if fileTypes is not None else []
 
-    gLogger.verbose( "BKQUERY.buildBKQuery: Path %s, Dict %s, Prods %s, Runs %s, FileTypes %s, Visible %s" % ( bkPath,
-                                                                                         str( bkQueryDict ),
-                                                                                         str( prods ),
-                                                                                         str( runs ),
-                                                                                         str( fileTypes ),
-                                                                                         visible ) )
+    gLogger.verbose( "BKQUERY.buildBKQuery: Path %s, Dict %s, \
+      Prods %s, Runs %s, FileTypes %s, Visible %s" % ( bkPath,
+                                                       str( bkQueryDict ),
+                                                       str( prods ),
+                                                       str( runs ),
+                                                       str( fileTypes ),
+                                                       visible ) )
     self.__bkQueryDict = {}
     if not bkPath and not prods and not runs and not bkQueryDict and not fileTypes:
       return {}
@@ -313,8 +314,8 @@ class BKQuery():
     self.setConditions( bkQuery.get( 'ConditionDescription',
                                      bkQuery.get( 'DataTakingConditions',
                                                   bkQuery.get( 'SimulationConditions' )
-                                                  )
-                                    ) )
+                                                )
+                                   ) )
     # print self.__bkQueryDict
     return self.__bkQueryDict
 
