@@ -1,3 +1,29 @@
+[v9r0-pre12]
+use DIRAC v6r19p3
+
+* Inherit from object and add StorageElement import
+* return an error message when the following patameters are not provided: jobId,lfn,jobName
+* fix the bookkeeping report
+* use rootPath
+* if no doneTasks, continue
+* path fixes
+* just replacing old CLOUD site
+* removing faulty lines
+* ignoring pylintrc
+* use protocol access for tests
+* RAWIntegrity: add a sleep in the test
+* fixed test
+* pylint
+* fix test
+* fixed Accounting tests
+* Move SpaceTokenUsage to a separate module
+* Fix spaceTokenUsage and make it finally work
+* fix few exceptions
+* Fix the throttling of staging in getMaxFilesAtSE
+* fix teh list of directories used to limit the number of staged files
+* Move spaceTokenOccupancy to ScriptExecutors and do pylint cleaning
+* Add info in transformation-debug
+
 [v9r0-pre11]
 use DIRAC v6r19p3
 
