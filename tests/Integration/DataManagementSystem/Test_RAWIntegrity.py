@@ -25,11 +25,9 @@ class RAWIntegrityDBTest(unittest.TestCase):
     self.db = RAWIntegrityDB()
 
   def tearDown(self):
-
     # Only one file is before 'now' and 'after'
     res = self.db.selectFiles({})
     lfns = [fTuple[0] for fTuple in res['Value']]
-
     # clean after us
     for lfn in lfns:
       self.db.removeFile(lfn)
@@ -322,6 +320,10 @@ class RAWIntegrityDBTest(unittest.TestCase):
                             'Checksum%s' % i)
       self.assertTrue(res['OK'], res)
     insertTime = time.time() - startTime
+
+    # Sleep 2 seconds so that the DB has
+    # a consistant commited state
+    time.sleep(2)
 
     # getting all of them
     startTime = time.time()
