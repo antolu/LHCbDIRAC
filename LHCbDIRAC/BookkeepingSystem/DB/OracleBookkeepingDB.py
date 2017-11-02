@@ -1259,12 +1259,16 @@ class OracleBookkeepingDB( object ):
     data = []
     if 'lfn' in in_dict:
       data = in_dict['lfn']
+      if not data:
+        return S_ERROR( "Please give at least one lfn" )
       retVal = self.dbR_.executeStoredProcedure( packageName = 'BOOKKEEPINGORACLEDB.bulkJobInfo',
                                                  parameters = [],
                                                  output = True,
                                                  array = data )
     elif 'jobId' in in_dict:
       data = in_dict['jobId']
+      if not data:
+        return S_ERROR( "Please give at least one jobId" )
       retVal = self.dbR_.executeStoredProcedure( packageName = 'BOOKKEEPINGORACLEDB.bulkJobInfoForJobId',
                                                  parameters = [],
                                                  output = True,
@@ -1272,6 +1276,8 @@ class OracleBookkeepingDB( object ):
 
     elif 'jobName' in in_dict:
       data = in_dict['jobName']
+      if not data:
+        return S_ERROR( "Please give at least one jobName" )
       retVal = self.dbR_.executeStoredProcedure( packageName = 'BOOKKEEPINGORACLEDB.bulkJobInfoForJobName',
                                                  parameters = [],
                                                  output = True,
