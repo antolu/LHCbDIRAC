@@ -118,7 +118,7 @@ class PluginsBaseSuccess( PluginsTestCase ):
     pluginStandard.setParameters( params )
     res = pluginStandard.run()
     self.assertTrue(res['OK'])
-    self.assertTrue( len( res['Value'] ) == 5 )
+    self.assertTrue( len( res['Value'] ) == 6 )
     for t in res['Value']:
       self.assertTrue( len( t[1] ) <= 2 )
 

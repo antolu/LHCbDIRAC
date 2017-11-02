@@ -79,27 +79,11 @@ class MCSuccess( ProductionJobTestCase ):
                     'fileTypesIn':['DIGI'],
                     'fileTypesOut':['DST'],
                     'visibilityFlag':[{'Visible': 'N', 'FileType': 'DST'}]},
-                   {'StepId': 131193, 'StepName': 'Turbo lines (MC), Turbo 2016 - uDST', 'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v41r2p5',
-                    'ExtraPackages': 'AppConfig.v3r322;TurboStreamProd.v4r1p4', 'ProcessingPass': 'Turbo03', 'Visible': 'N', 'Usable': 'Yes',
-                    'DDDB': 'dddb-20150724', 'CONDDB': 'sim-20161124-2-vc-md100', 'DQTag': '', 'OptionsFormat': 'Tesla',
-                    'OptionFiles': '$APPCONFIGOPTS/Turbo/Tesla_2016_LinesFromStreams_MC.py;$APPCONFIGOPTS/Turbo/Tesla_PR_Truth_2016.py;$APPCONFIGOPTS/Turbo/Tesla_Simulation_2016.py;$APPCONFIGOPTS/Turbo/Tesla_FilterMC.py',
-                    'isMulticore': 'N', 'SystemConfig': 'x86_64-slc6-gcc48-opt', 'mcTCK': '', 'ExtraOptions': '',
-                    'fileTypesIn':['DST'],
-                    'fileTypesOut':['DST'],
-                    'visibilityFlag':[{'Visible': 'N', 'FileType': 'DST'}]},
-                   {'StepId': 131191, 'StepName': 'Stripping26-NoPrescalingFlagged for Sim09 - pp at 13 TeV (muDST)', 'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v41r2p5',
-                    'ExtraPackages': 'AppConfig.v3r322', 'ProcessingPass': 'Stripping26NoPrescalingFlagged', 'Visible': 'N', 'Usable': 'Yes',
-                    'DDDB': 'dddb-20150724', 'CONDDB': 'sim-20161124-2-vc-md100', 'DQTag': '', 'OptionsFormat': 'Tesla',
-                    'OptionFiles': '$APPCONFIGOPTS/DaVinci/DV-Stripping26-Stripping-MC-NoPrescaling-DST.py;$APPCONFIGOPTS/DaVinci/DataType-2016.py;APPCONFIGOPTS/DaVinci/InputType-DST.py;$APPCONFIGOPTS/DaVinci/DV-Stripping-MC-muDST.py',
-                    'isMulticore': 'N', 'SystemConfig': 'x86_64-slc6-gcc48-opt', 'mcTCK': '', 'ExtraOptions': '',
-                    'fileTypesIn':['DST'],
-                    'fileTypesOut':['ALLSTREAMS.MDST'],
-                    'visibilityFlag':[{'Visible': 'Y', 'FileType': 'ALLSTREAMS.MDST'}]},
                   ]
 
     # First create the production object
-    prod = self.pr._buildProduction( prodType = 'MCSimulation', stepsInProd = stepsInProd, outputSE = {'ALLSTREAMS.MDST': 'Tier1_MC-DST'},
-                                     priority = 0, cpu = 100, outputFileMask = 'ALLSTREAMS.MDST' )
+    prod = self.pr._buildProduction( prodType = 'MCSimulation', stepsInProd = stepsInProd, outputSE = {'DST': 'Tier1_MC-DST'},
+                                     priority = 0, cpu = 100, outputFileMask = 'DST' )
     prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
     prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
     prod.setParameter( 'numberOfEvents', 'string', 2, 'Number of events to test' )

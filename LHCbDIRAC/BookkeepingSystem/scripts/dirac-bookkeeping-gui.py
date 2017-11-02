@@ -8,22 +8,23 @@
 """
 __RCSID__ = "$Id$"
 
+import sys
+from PyQt4.QtGui import QApplication #pylint: disable=import-error
+
 from DIRAC.Core.Base import Script
 
 Script.setUsageMessage('\n'.join([ __doc__.split('\n')[1],
-                                     'Usage:',
-                                     '  %s [option|cfgfile] ...' % Script.scriptName ]))
+                                   'Usage:',
+                                   '  %s [option|cfgfile] ...' % Script.scriptName ]))
 
 Script.parseCommandLine(ignoreErrors=True)
 
+from DIRAC                                                     import gLogger
 from DIRAC.Core.Security.ProxyInfo                             import getProxyInfo
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry         import getDNForUsername
-from DIRAC                                                     import gLogger
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.MainWidget         import MainWidget
-from PyQt4.QtGui import QApplication
 
 
-import sys
 
 class BookkeepingApplication(QApplication):
   """
@@ -68,4 +69,3 @@ if __name__ == "__main__":
 
   application = BookkeepingApplication(sys.argv)
   sys.exit(application.exec_())
-
