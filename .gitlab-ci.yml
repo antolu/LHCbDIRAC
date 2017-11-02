@@ -19,7 +19,7 @@ run_pytest:
   before_script:
     # If we are in a pre release branch we use integration of DIRAC, otherwise master
     # We do the head first because of limitations of grep when running in containers
-    - diracBranch=$(head -n 50 LHCbDIRAC/releases.cfg | grep -E ' *v' | head -n 1 | grep -q pre; if [ $? -eq 0 ]; then echo "integration"; else echo "master"; fi)
+    - diracBranch=$(head -n 50 LHCbDIRAC/releases.cfg | grep -E ' *v' | head -n 1 | grep -qE '(pre|^v0r)'; if [ $? -eq 0 ]; then echo "integration"; else echo "master"; fi)
     - echo "Using DIRAC branch $diracBranch"
     - git clone https://github.com/DIRACGrid/DIRAC.git
     - cd DIRAC
@@ -102,7 +102,7 @@ create_tarball:
 
     # Choose from which branch we should get the releases.cfg file
     # We take it from devel if it is a pre release, otherwise master
-    - BRANCH=$(echo $CI_COMMIT_TAG | grep -q pre; if [ $? -eq 0 ]; then echo "devel"; else echo "master"; fi)
+    - BRANCH=$(echo $CI_COMMIT_TAG | grep -qE '(pre|^v0r)'; if [ $? -eq 0 ]; then echo "devel"; else echo "master"; fi)
     # Get the releases.cfg from the devel branch
     - curl -L https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/raw/$BRANCH/LHCbDIRAC/releases.cfg > releases.cfg
     # This is how it was originaly retrieved....
