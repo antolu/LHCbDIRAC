@@ -9,14 +9,14 @@ import os
 import time
 import sys
 
-## from DIRAC
+# from DIRAC
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
 
 __RCSID__ = "$Id$"
 
-allRunFields = [ 'runID', 'fillID', 'state', 'runType', 'partitionName', 'partitionID',
-                 'startTime', 'endTime', 'destination', 'startLumi', 'endLumi', 'beamEnergy']
+allRunFields = ['runID', 'fillID', 'state', 'runType', 'partitionName', 'partitionID',
+                'startTime', 'endTime', 'destination', 'startLumi', 'endLumi', 'beamEnergy']
 allFileFields = ['fileID', 'runID', 'name', 'state', 'bytes',
                  'events', 'stream', 'creationTime', 'timeStamp', 'refCount']
 
@@ -26,23 +26,24 @@ runStateRev = {}
 fileStates = {}
 fileStateRev = {}
 
-def initializeRunDBInterfaceHandler( serviceInfo ):
+
+def initializeRunDBInterfaceHandler(serviceInfo):
   global server
   #sys.path.insert(0, '/home/rainer/projects/RunDatabase/python')
   #sys.path.append( '/group/online/rundb/RunDatabase/python' )
-  sys.path.append( '/admin/RunDatabase/python' )
-  from path import SQL_ALCHEMY_PATH #pylint: disable=import-error,no-name-in-module
-  sys.path.append( SQL_ALCHEMY_PATH )
+  sys.path.append('/admin/RunDatabase/python')
+  from path import SQL_ALCHEMY_PATH  # pylint: disable=import-error,no-name-in-module
+  sys.path.append(SQL_ALCHEMY_PATH)
   try:
     ORACLE_HOME = os.environ['ORACLE_HOME']
-  except:
+  except BaseException:
     print 'ERROR: ORACLE_HOME environment variable should be set'
-  sys.path.append( "%s" % str( ORACLE_HOME ) )
-  import RunDatabase_Defines #pylint: disable=import-error
-  #print dir(RunDatabase_Defines)
-  #print RunDatabase_Defines.FileFields
+  sys.path.append("%s" % str(ORACLE_HOME))
+  import RunDatabase_Defines  # pylint: disable=import-error
+  # print dir(RunDatabase_Defines)
+  # print RunDatabase_Defines.FileFields
 
-  from RunDatabase_Defines import RUN_STATE_TRANSLATION, FILE_STATE_TRANSLATION #pylint: disable=import-error
+  from RunDatabase_Defines import RUN_STATE_TRANSLATION, FILE_STATE_TRANSLATION  # pylint: disable=import-error
 
   global fileStates
   global fileStateRev
@@ -57,60 +58,62 @@ def initializeRunDBInterfaceHandler( serviceInfo ):
   for key, value in runStates.items():
     runStateRev[value] = key
 
-  im = __import__( 'RunDatabase', globals(), locals(), ['*'] )
-  import RunDatabase #pylint: disable=import-error
+  im = __import__('RunDatabase', globals(), locals(), ['*'])
+  import RunDatabase  # pylint: disable=import-error
   print im
-  from DbModel import createEngine_Oracle #pylint: disable=import-error
+  from DbModel import createEngine_Oracle  # pylint: disable=import-error
   try:
-    server = RunDatabase.RunDbServer( engine = createEngine_Oracle() )
-  except:
+    server = RunDatabase.RunDbServer(engine=createEngine_Oracle())
+  except BaseException:
     print 'Failed to make an instance of runDB server'
   return S_OK()
 
-class RunDBInterfaceHandler( RequestHandler ):
+
+class RunDBInterfaceHandler(RequestHandler):
   """
   .. class:: RunDBInterfaceHandler
   """
-  types_getFilesSummaryWeb = [ dict, list, int, int ]
-  def export_getFilesSummaryWeb( self, selectDict, sortList, startItem, maxItems ):
+  types_getFilesSummaryWeb = [dict, list, int, int]
+
+  def export_getFilesSummaryWeb(self, selectDict, sortList, startItem, maxItems):
     """ export of getFilesSummaryWeb """
     paramString = ''
     for selectParam in allFileFields:
-      if selectDict.has_key( selectParam ):
+      if selectParam in selectDict:
         selectValue = selectDict[selectParam]
         if selectParam == 'state':
           intStates = []
           for strState in selectValue:
-            intStates.append( fileStateRev[strState] )
+            intStates.append(fileStateRev[strState])
           selectValue = intStates
         if isinstance(selectValue, basestring):
-          paramString = "%s,%s='%s'" % ( paramString, selectParam, selectValue )
+          paramString = "%s,%s='%s'" % (paramString, selectParam, selectValue)
         else:
-          paramString = "%s,%s=%s" % ( paramString, selectParam, selectValue )
+          paramString = "%s,%s=%s" % (paramString, selectParam, selectValue)
     decending = False
     if sortList:
-      paramString = "%s,orderBy='%s'" % ( paramString, sortList[0][0] )
+      paramString = "%s,orderBy='%s'" % (paramString, sortList[0][0])
       if sortList[0][1] == 'DESC':
         decending = True
-    paramString = "%s,no=%s" % ( paramString, sys.maxint )
+    paramString = "%s,no=%s" % (paramString, sys.maxsize)
     if paramString:
       filesQueryString = "success,result = server.getFilesDirac(fields=allFileFields%s)" % paramString
     else:
       filesQueryString = "success,result = server.getFilesDirac(fields=allFileFields)"
     print filesQueryString
-    exec( filesQueryString )
-    if not success: #using exec statement above -> pylint: disable=undefined-variable
-      return S_ERROR( result ) #using exec statement above -> pylint: disable=undefined-variable
+    exec(filesQueryString)
+    if not success:  # using exec statement above -> pylint: disable=undefined-variable
+      return S_ERROR(result)  # using exec statement above -> pylint: disable=undefined-variable
     resultDict = {}
-    nFiles = len( result ) #using exec statement above -> pylint: disable=undefined-variable
+    nFiles = len(result)  # using exec statement above -> pylint: disable=undefined-variable
     resultDict['TotalRecords'] = nFiles
     if nFiles == 0:
-      return S_OK( resultDict )
+      return S_OK(resultDict)
     if decending:
-      result.reverse() #using exec statement above -> pylint: disable=undefined-variable
+      result.reverse()  # using exec statement above -> pylint: disable=undefined-variable
 
     statusCountDict = {}
-    for res in result: #using exec statement above -> pylint: disable=undefined-variable
+    for res in result:  # using exec statement above -> pylint: disable=undefined-variable
       state = res[3]
       if state in fileStates:
         state = fileStates[state]
@@ -124,10 +127,10 @@ class RunDBInterfaceHandler( RequestHandler ):
     iniFile = startItem
     lastFile = iniFile + maxItems
     if iniFile >= nFiles:
-      return S_ERROR( 'Item number out of range' )
+      return S_ERROR('Item number out of range')
     if lastFile > nFiles:
       lastFile = nFiles
-    fileList = result[iniFile:lastFile] #using exec statement above -> pylint: disable=undefined-variable
+    fileList = result[iniFile:lastFile]  # using exec statement above -> pylint: disable=undefined-variable
 
     # prepare the standard structure now
     resultDict['ParameterNames'] = allFileFields
@@ -135,17 +138,17 @@ class RunDBInterfaceHandler( RequestHandler ):
     for fileTuple in fileList:
       ['fileID', 'runID', 'name', 'state', 'bytes', 'events', 'stream', 'creationTime', 'timeStamp', 'refCount']
       fileID, runID, name, state, bytes, events, stream, creationTime, timeStamp, refCount = fileTuple
-      timeStamp = str( timeStamp )
-      creationTime = str( creationTime )
-      if fileStates.has_key( state ):
+      timeStamp = str(timeStamp)
+      creationTime = str(creationTime)
+      if state in fileStates:
         state = fileStates[state]
       else:
         state = 'UNKNOWN'
-      records.append( ( fileID, runID, name, state, bytes, events, stream, creationTime, timeStamp, refCount ) )
+      records.append((fileID, runID, name, state, bytes, events, stream, creationTime, timeStamp, refCount))
 
     resultDict['Records'] = records
     print resultDict
-    return S_OK( resultDict )
+    return S_OK(resultDict)
 
   """
   getFiles(self, fields        = ['name'],
@@ -169,44 +172,46 @@ class RunDBInterfaceHandler( RequestHandler ):
   """
 
   types_getFileSelections = []
-  def export_getFileSelections( self ):
+
+  def export_getFileSelections(self):
     pass
 
   types_getRunsSummaryWeb = [dict, list, int, int]
-  def export_getRunsSummaryWeb( self, selectDict, sortList, startItem, maxItems ):
+
+  def export_getRunsSummaryWeb(self, selectDict, sortList, startItem, maxItems):
     """ export of getRunsSummaryWeb """
     paramString = ''
     for selectParam in allRunFields:
-      if selectDict.has_key( selectParam ):
+      if selectParam in selectDict:
         selectValue = selectDict[selectParam]
         if selectParam == 'state':
           intStates = []
           for strState in selectValue:
-            intStates.append( runStateRev[strState] )
+            intStates.append(runStateRev[strState])
           selectValue = intStates
         if isinstance(selectValue, basestring):
-          paramString = "%s,%s='%s'" % ( paramString, selectParam, selectValue )
+          paramString = "%s,%s='%s'" % (paramString, selectParam, selectValue)
         else:
-          paramString = "%s,%s=%s" % ( paramString, selectParam, selectValue )
+          paramString = "%s,%s=%s" % (paramString, selectParam, selectValue)
     decending = False
     if sortList:
-      paramString = "%s,orderBy='%s'" % ( paramString, sortList[0][0] )
+      paramString = "%s,orderBy='%s'" % (paramString, sortList[0][0])
       if sortList[0][1] == 'DESC':
         decending = True
-    paramString = "%s,no=%s" % ( paramString, sys.maxint )
+    paramString = "%s,no=%s" % (paramString, sys.maxsize)
     if paramString:
       jobsQueryString = "success,result = server.getRunsDirac(fields=allRunFields,runExtraParams=['magnetCurrent','magnetState']%s)" % paramString
     else:
       jobsQueryString = "success,result = server.getRunsDirac(fields=allRunFields,runExtraParams=['magnetCurrent','magnetState'])"
     print jobsQueryString
-    exec( jobsQueryString )
-    if not success:  #using exec statement above -> pylint: disable=E0601
-      return S_ERROR( result ) #using exec statement above -> pylint: disable=E0601
+    exec(jobsQueryString)
+    if not success:  # using exec statement above -> pylint: disable=E0601
+      return S_ERROR(result)  # using exec statement above -> pylint: disable=E0601
     resultDict = {}
-    nRuns = len( result )
+    nRuns = len(result)
     resultDict['TotalRecords'] = nRuns
     if nRuns == 0:
-      return S_OK( resultDict )
+      return S_OK(resultDict)
 
     if decending:
       result.reverse()
@@ -226,7 +231,7 @@ class RunDBInterfaceHandler( RequestHandler ):
     iniRun = startItem
     lastRun = iniRun + maxItems
     if iniRun >= nRuns:
-      return S_ERROR( 'Item number out of range' )
+      return S_ERROR('Item number out of range')
     if lastRun > nRuns:
       lastRun = nRuns
     runList = result[iniRun:lastRun]
@@ -235,13 +240,14 @@ class RunDBInterfaceHandler( RequestHandler ):
     runCounters = {}
     for runTuple in runList:
       runID, fillID, state, runType, partitionName, partitionID, startTime, endTime, destination, startLumi, endLumi, beamEnergy, magnetCurrent, magnetState = runTuple
-      runCounters[runID] = {'Size':0, 'Events':0, 'Files':0}
+      runCounters[runID] = {'Size': 0, 'Events': 0, 'Files': 0}
 
     # Now sum the number of events and files in the run
     if runCounters:
-      success, result = server.getFilesDirac( fields = allFileFields, runID = runCounters.keys(), orderBy = 'runID', no = sys.maxint )
+      success, result = server.getFilesDirac(
+          fields=allFileFields, runID=runCounters.keys(), orderBy='runID', no=sys.maxsize)
       if not success:
-        return S_ERROR( result )
+        return S_ERROR(result)
       for item in result:
         runID = item[1]
         size = item[4]
@@ -258,78 +264,104 @@ class RunDBInterfaceHandler( RequestHandler ):
       totalFiles += runCounters[runID]['Files']
       totalEvents += runCounters[runID]['Events']
       totalSize += runCounters[runID]['Size']
-      size = "%.2f" % ( runCounters[runID]['Size'] / ( 1000 * 1000 * 1000.0 ) )
+      size = "%.2f" % (runCounters[runID]['Size'] / (1000 * 1000 * 1000.0))
       runCounters[runID]['Size'] = size
-    resultDict['Counters'] = {'Files':totalFiles, 'Events':totalEvents, 'Size':"%.2f" % ( totalSize / ( 1000 * 1000 * 1000.0 ) )}
+    resultDict['Counters'] = {'Files': totalFiles, 'Events': totalEvents,
+                              'Size': "%.2f" % (totalSize / (1000 * 1000 * 1000.0))}
 
     records = []
     for runTuple in runList:
       runID, fillID, state, runType, partitionName, partitionID, startTime, endTime, destination, startLumi, endLumi, beamEnergy, magnetCurrent, magnetState = runTuple
-      startTime = str( startTime )
-      endTime = str( endTime )
+      startTime = str(startTime)
+      endTime = str(endTime)
       if state in runStates:
         state = runStates[state]
       else:
         state = 'UNKNOWN'
       try:
         integratedLumi = endLumi - startLumi
-      except:
+      except BaseException:
         integratedLumi = 'na'
-      records.append( ( runID, fillID, state, runType, partitionName, partitionID, startTime, endTime, destination, startLumi, endLumi, beamEnergy, runCounters[runID]['Files'], runCounters[runID]['Events'], runCounters[runID]['Size'], magnetCurrent, magnetState, integratedLumi ) )
+      records.append(
+          (runID,
+           fillID,
+           state,
+           runType,
+           partitionName,
+           partitionID,
+           startTime,
+           endTime,
+           destination,
+           startLumi,
+           endLumi,
+           beamEnergy,
+           runCounters[runID]['Files'],
+           runCounters[runID]['Events'],
+           runCounters[runID]['Size'],
+           magnetCurrent,
+           magnetState,
+           integratedLumi))
     resultDict['Records'] = records
-    resultDict['ParameterNames'] = allRunFields + ['files', 'events', 'size', 'magnetCurrent', 'magnetState', 'integratedLumi']
-    print 'parameter names: ' , resultDict['ParameterNames']
+    resultDict['ParameterNames'] = allRunFields + ['files', 'events',
+                                                   'size', 'magnetCurrent', 'magnetState', 'integratedLumi']
+    print 'parameter names: ', resultDict['ParameterNames']
     print resultDict
-    return S_OK( resultDict )
+    return S_OK(resultDict)
 
   types_getRunSelections = []
-  def export_getRunSelections( self ):
+
+  def export_getRunSelections(self):
     """ export of getRunSelections """
     try:
       paramDict = {}
 
-      queries = [( 'PartitionName', 'getPartitionNames' ),
-                 ( 'RunType', 'getRunTypes' ),
-                 ( 'FillID', 'getFillIDs' ),
-                 ( 'Destination', 'getDestinations' ),
-                 ( 'StartLumi', 'getStartLumis' ),
-                 ( 'EndLumi', 'getEndLumis' ),
-                 ( 'BeamEnergy', 'getBeamEnergies' )]
+      queries = [('PartitionName', 'getPartitionNames'),
+                 ('RunType', 'getRunTypes'),
+                 ('FillID', 'getFillIDs'),
+                 ('Destination', 'getDestinations'),
+                 ('StartLumi', 'getStartLumis'),
+                 ('EndLumi', 'getEndLumis'),
+                 ('BeamEnergy', 'getBeamEnergies')]
 
       for key, query in queries:
         startTime = time.time()
         execString = "success,result = server.%s()" % query
         print execString
-        exec( execString ) # pylint: disable=exec-used
-        gLogger.debug( "RunDBInterfaceHandler.getSelections: server.%s() took %.2f seconds." % ( query, time.time() - startTime ) )
-        if not success: #using exec statement above -> pylint: disable=used-before-assignment
+        exec(execString)  # pylint: disable=exec-used
+        gLogger.debug(
+            "RunDBInterfaceHandler.getSelections: server.%s() took %.2f seconds." %
+            (query, time.time() - startTime))
+        if not success:  # using exec statement above -> pylint: disable=used-before-assignment
           errStr = "RunDBInterfaceHandler.getSelections: Failed to get distinct %s." % key
-          gLogger.error( errStr, result ) #using exec statement above -> pylint: disable=E0601
-          return S_ERROR( errStr )
-        paramDict[key] = [ res for res in result if res ]
+          gLogger.error(errStr, result)  # using exec statement above -> pylint: disable=E0601
+          return S_ERROR(errStr)
+        paramDict[key] = [res for res in result if res]
 
       startTime = time.time()
       success, result = server.getRunStates()
-      gLogger.debug( "RunDBInterfaceHandler.getSelections: server.getRunStates() took %.2f seconds." % ( time.time() - startTime ) )
+      gLogger.debug(
+          "RunDBInterfaceHandler.getSelections: server.getRunStates() took %.2f seconds." %
+          (time.time() - startTime))
       if not success:
         errStr = "RunDBInterfaceHandler.getSelections: Failed to get distinct run States."
-        gLogger.error( errStr, result )
-        return S_ERROR( errStr )
+        gLogger.error(errStr, result)
+        return S_ERROR(errStr)
       states = []
       for runStat in result:
-        if runStates.has_key( runStat ):
-          states.append( runStates[runStat] )
+        if runStat in runStates:
+          states.append(runStates[runStat])
       paramDict['State'] = states
-      return S_OK( paramDict )
+      return S_OK(paramDict)
     except Exception as x:
       errStr = "RunDBInterfaceHandler.getSelections: Exception while obtaining possible run configurations."
-      gLogger.exception( errStr, '', x )
-      return S_ERROR( "%s %s" % ( errStr, x ) )
+      gLogger.exception(errStr, '', x)
+      return S_ERROR("%s %s" % (errStr, x))
 
   types_getRunParams = [int]
-  def export_getRunParams( self, runID ):
+
+  def export_getRunParams(self, runID):
     """ export of getRunParams """
-    success, result = server.getRunParams( runID )
+    success, result = server.getRunParams(runID)
     if not success:
-      return S_ERROR( result )
-    return S_OK( result )
+      return S_ERROR(result)
+    return S_OK(result)
