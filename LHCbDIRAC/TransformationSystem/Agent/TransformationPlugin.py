@@ -21,7 +21,7 @@ from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery, makeBKPath
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
-from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities import PluginUtilities, getActiveSEs
+from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities import PluginUtilities, getActiveSEs, stripDirectory
 
 __RCSID__ = "$Id$"
 
@@ -456,7 +456,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
     try:
       return self.__byRun(param=param, plugin=plugin, requireFlush=requireFlush, forceFlush=forceFlush)
     except Exception as x:
-      self.util.logException("Exception in _ByRun plugin:", '', x)
+      self.util.logException("Exception in _ByRun plugin:", '', lException=x)
       return S_ERROR([])
 
   # @timeThis
@@ -1494,7 +1494,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
             storageElementGroups.setdefault(stringTargetSEs, []).extend(lfnsProcessed)
       if not storageElementGroups:
         return S_OK([])
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-except
       self.util.logException('Exception while executing the plugin', '', lException=e)
       return S_ERROR(e)
     finally:
@@ -1577,7 +1577,8 @@ class TransformationPlugin(DIRACTransformationPlugin):
     # if there is a maximum number of files to get at destination, get the current usage
     if targetFilesAtDestination:
       self.util.readCacheFile(self.workDirectory)
-      directories = set(os.path.dirname(lfn) for lfn in self.transReplicas)
+      # Directories limited to the top 4 directories
+      directories = stripDirectory(self.transReplicas)
       # Get the maximum number of files that are allowed to be copied at this round (for prestaging mainly)
       maxFilesAtSE = self.util.getMaxFilesAtSE(targetFilesAtDestination, directories, destSEs)
       if not maxFilesAtSE['OK']:
@@ -1592,8 +1593,8 @@ class TransformationPlugin(DIRACTransformationPlugin):
     storageElementGroups = {}
 
     for replicaSE, lfns in getFileGroups(self.transReplicas).iteritems():
-      replicaSEs = set(se for se in replicaSE.split(',')
-                       if not self.util.dmsHelper.isSEFailover(se) and not self.util.dmsHelper.isSEArchive(se))
+      replicaSEs = set(se for se in replicaSE.split(',') if not self.util.dmsHelper.isSEFailover(se)
+                       and not self.util.dmsHelper.isSEArchive(se))
       if not replicaSEs:
         continue
       okSEs = replicaSEs & destSEs
@@ -1612,7 +1613,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
       candidateSEs = self.util.closerSEs(replicaSEs, targetSEs, local=True)
       if candidateSEs:
         # If the max number of files to copy is negative, stop
-        shortSEs = [se for se in candidateSEs if maxFilesAtSE.get(se, sys.maxint) == 0]
+        shortSEs = [se for se in candidateSEs if maxFilesAtSE.get(se, sys.maxsize) == 0]
         candidateSEs = [se for se in candidateSEs if se not in shortSEs]
         if not candidateSEs:
           self.util.logVerbose("No candidate SE where files are accepted (%s not allowed)" % ','.join(shortSEs))
@@ -1626,7 +1627,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
           else:
             # Select a single SE out of candidates; in most cases there is one only
             candidateSE = candidateSEs[0]
-            maxToReplicate = maxFilesAtSE.get(candidateSE, sys.maxint)
+            maxToReplicate = maxFilesAtSE.get(candidateSE, sys.maxsize)
             if maxToReplicate < len(lfns):
               self.util.logVerbose("Limit number of files for %s to %d (out of %d)" %
                                    (candidateSE, maxToReplicate, len(lfns)))
@@ -1693,7 +1694,9 @@ class TransformationPlugin(DIRACTransformationPlugin):
                                                                                                str(self.transID),
                                                                                                res['Message']))
       if noMissingSE:
-        self.util.logInfo("Found %d files that are already present in the destination SEs (set Processed)" % len(noMissingSE))
+        self.util.logInfo(
+            "Found %d files that are already present in the destination SEs (set Processed)" %
+            len(noMissingSE))
         res = self.transClient.setFileStatusForTransformation(self.transID, 'Processed', noMissingSE)
         if not res['OK']:
           self.util.logError("Can't set %d files of transformation %s to 'Processed': %s" % (len(noMissingSE),

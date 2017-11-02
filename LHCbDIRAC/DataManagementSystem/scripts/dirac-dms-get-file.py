@@ -7,22 +7,22 @@
   Retrieve a single file or list of files from Grid storage to the current directory.
 """
 __RCSID__ = "$Id$"
-from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
-from DIRAC.Core.Base import Script
 import os
+
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, Script
 
 if __name__ == "__main__":
 
   dmScript = DMScript()
   dmScript.registerFileSwitches()
-  dmScript.registerNamespaceSwitches( 'download to (default = %s)' % os.path.realpath( '.' ) )
+  dmScript.registerNamespaceSwitches('download to (default = %s)' % os.path.realpath('.'))
 
-  Script.setUsageMessage( '\n'.join( [ __doc__,
-                                       'Usage:',
-                                       '  %s [option|cfgfile] [<LFN>] [<LFN>...] [SourceSE]' % Script.scriptName, ] ) )
+  Script.setUsageMessage('\n'.join([__doc__,
+                                    'Usage:',
+                                    '  %s [option|cfgfile] [<LFN>] [<LFN>...] [SourceSE]' % Script.scriptName, ]))
 
-  Script.parseCommandLine( ignoreErrors = False )
+  Script.parseCommandLine(ignoreErrors=False)
 
   from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executeGetFile
   from DIRAC import exit
-  exit( executeGetFile( dmScript ) )
+  exit(executeGetFile(dmScript))
