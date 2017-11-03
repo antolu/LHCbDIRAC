@@ -55,23 +55,18 @@ class NagiosTopologyAgent(AgentModule):
 
     return S_OK()
 
-  def contains(w, t):
-    """ A simple test to check for a string in a nested set of tuples"""
-    return any(w in str(x) for x in t)
-
   def isHostIPV6(host):
     """ Test if the given host is ipv6 capable. 0:ipv6 capable. 1:ipv4 only. -1:Not a valid host (no DNS record?)
     """
-    adrinfo = socket.getaddrinfo(host, None)
-    try :
-      if contains(":", adrinfo) : # ipv6 addresses are separated by ":", also see https://tools.ietf.org/html/rfc4291#section-2.2
-        return 0
-      elif contains(".", adrinfo) : # ipv4 addresses are separated by "."
+    try: # First try IPV6
+      adrinfo = socket.getaddrinfo(host, None, socket.AF_INET6)
+      return 0
+    except socket.gaierror: No IPv6 address
+      try: # Next try IPv4
+        adrinfo = socket.getaddrinfo(host, None, socket.AF_INET) 
         return 1
-      return -1
-    except: # The information returned by the socket method is some simple non-iterable garbage, assume invalid machine
-      return -1
-
+      except socket.gaierror: # The host does not exist (no IPv6 or IPv4 address)
+        return -1
 
   def execute(self):
     """ Let's generate the xml file with the topology.
