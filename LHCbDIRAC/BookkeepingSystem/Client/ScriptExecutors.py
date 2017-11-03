@@ -1211,7 +1211,8 @@ def executeGetStats(dmScript):
             gLogger.notice('%s: %.2f events/s/bunch' % ('Trigger per bunch'.ljust(tab), triggerRate / collBunches))
         if listFills:
           gLogger.notice('List of fills: ', ','.join("%d (%d runs, %.1f hours)" %
-                                                     (fill, len(fills[fill]), fillDuration[fill]) for fill in sorted(fills)))
+                                                     (fill, len(fills[fill]), fillDuration[fill])
+                                                     for fill in sorted(fills)))
         if listRuns:
           for fill in sorted(fills):
             gLogger.notice('Fill %d (%s, %.1f hours):' % (fill, '%4d bunches' %
