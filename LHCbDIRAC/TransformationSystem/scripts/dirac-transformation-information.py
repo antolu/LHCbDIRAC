@@ -17,7 +17,9 @@ if __name__ == "__main__":
                                     'Usage:',
                                     '  %s [options] transID1 [transID2 ...]' % Script.scriptName,
                                     'Arguments:',
-                                    ' transID1,... : transformantion IDs'
+                                    '\ttransID1,... : transformantion IDs',
+                                    'Possible informations:',
+                                    '\t%s' % ', '.join(sorted(informations))
                                     ])
                          )
   Script.parseCommandLine(ignoreErrors=True)
