@@ -11,6 +11,7 @@ import time
 import xml.dom.minidom
 import urllib
 import json
+import socket
 from DIRAC import S_OK, rootPath, gLogger, gConfig
 from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
@@ -54,18 +55,23 @@ class NagiosTopologyAgent(AgentModule):
 
     return S_OK()
 
+  def contains(w, t):
+    """ A simple test to check for a string in a nested set of tuples"""
+    return any(w in str(x) for x in t)
+
   def isHostIPV6(host):
     """ Test if the given host is ipv6 capable. 0:ipv6 capable. 1:ipv4 only. -1:Not a valid host (no DNS record?)
     """
-    command = "host -t AAAA " + host + " | grep -v alias"
-    jj = os.popen(command, "r")
-    kk = jj.read().split("\n")[0]
-    jj.close()
-    if "IPv6" in kk :
-      return 0
-    elif "AAAA" in kk:
-      return 1
-    return -1
+    adrinfo = socket.getaddrinfo(host, None)
+    try :
+      if contains(":", adrinfo) : # ipv6 addresses are separated by ":", also see https://tools.ietf.org/html/rfc4291#section-2.2
+        return 0
+      elif contains(".", adrinfo) : # ipv4 addresses are separated by "."
+        return 1
+      return -1
+    except: # The information returned by the socket method is some simple non-iterable garbage, assume invalid machine
+      return -1
+
 
   def execute(self):
     """ Let's generate the xml file with the topology.
@@ -370,7 +376,7 @@ class NagiosTopologyAgent(AgentModule):
                  path=site_se_path)
 
       # ipv6 status of the SE
-      i6Status = isHostIPV6(site_ce_name)
+      i6Status = isHostIPV6(site_se_name)
       i6Comment = ""
       if i6Status == -1:
         i6Comment = "Maybe DIRAC Service, not a valid machine"
