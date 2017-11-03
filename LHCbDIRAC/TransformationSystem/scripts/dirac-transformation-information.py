@@ -39,15 +39,15 @@ if __name__ == "__main__":
   if 'body' not in infoList and 'Body' in requestedInfo:
     requestedInfo.remove('Body')
 
-  args = Script.getPositionalArgs()
+  transIDs = Script.getPositionalArgs()
 
-  for arg in args:
+  for transID in transIDs:
     try:
-      res = tr.getTransformation(int(arg))
-      gLogger.notice("==== Transformation %s ====" % arg)
+      res = tr.getTransformation(int(transID))
+      gLogger.notice("==== Transformation %s ====" % transID)
       for info in requestedInfo:
         getInfo = info if info != 'Request' else 'TransformationFamily'
         gLogger.notice("\t%s: %s" %
                        (info, res.get('Value', {}).get(getInfo, 'Unknown')))
     except Exception:
-      gLogger.error("Invalid transformation ID: '%s'" % arg)
+      gLogger.error("Invalid transformation ID: '%s'" % transID)
