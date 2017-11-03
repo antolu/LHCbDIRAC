@@ -5,7 +5,8 @@ This script allows to print information about a (list of) transformations
 
 from DIRAC.Core.Base import Script
 
-if __name__ == "__main__":
+
+def main():
 
   informations = ['AuthorDN', 'AuthorGroup', 'Body', 'CreationDate',
                   'Description', 'EventsPerTask', 'FileMask', 'GroupSize', 'Hot',
@@ -51,3 +52,7 @@ if __name__ == "__main__":
                        (info, res.get('Value', {}).get(getInfo, 'Unknown')))
     except Exception:
       gLogger.error("Invalid transformation ID: '%s'" % transID)
+
+
+if __name__ == "__main__":
+  main()
