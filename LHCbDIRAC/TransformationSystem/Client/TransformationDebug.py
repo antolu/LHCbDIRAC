@@ -1201,7 +1201,7 @@ class TransformationDebug(object):
                 if job in exitedJobs:
                   exitStatus = exitedJobs[job].split('status ')
                   if len(exitStatus) == 2:
-                    reason += ' (exit code %s)' % exitStatus[1]
+                    reason = ' (exit code %s) ' % exitStatus[1] + reason
                 failedLfns.setdefault((lfn, reason), []).append(job)
             else:
               gLogger.notice("No common error was found in all XML summary files")
@@ -1224,9 +1224,9 @@ class TransformationDebug(object):
 
       for (lfn, reason), jobs in failedLfns.iteritems():
         jobs = sorted(set(jobs))
-        sites = sorted(jobSites.get(str(job), 'Unknown') for job in jobs)
-        gLogger.notice("ERROR ==> %s was %s during processing from jobs %s (sites %s): " %
-                       (lfn, reason, ','.join(str(job) for job in jobs), ','.join(sites)))
+        gLogger.notice("\nERROR ==> %s was %s during processing from jobs: %s" %
+                       (lfn, reason, ', '.join("%d (%s)" % (job, jobSites.get(job, 'Unknown'))
+                                               for job in jobs)))
         # Get an example log if possible
         if checkLogs:
           logDump = _checkLog(jobLogURL[jobs[0]])
