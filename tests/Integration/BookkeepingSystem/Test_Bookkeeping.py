@@ -92,7 +92,7 @@ class RAWDataInsert( DataInsertTestCase ):
     """
     
     retVal = self.bk.echo( "Test" )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( retVal['Value'], "Test" )
 
   def test_sendXMLBookkeepingReport( self ):
@@ -111,7 +111,7 @@ class RAWDataInsert( DataInsertTestCase ):
     
     xmlReport += self.dqCond
     retVal = self.bk.sendXMLBookkeepingReport( xmlReport )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
   
   
 class TestMethods( DataInsertTestCase ):
@@ -122,13 +122,13 @@ class TestMethods( DataInsertTestCase ):
     add replica flag 
     """
     retVal = self.bk.addFiles( self.files )
-    self.assert_( retVal['OK'] )
-    self.assert_( retVal['Value']['Successful'] )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( retVal['Value']['Successful'] )
     self.assertEqual( retVal['Value']['Failed'], [] )
     self.assertEqual( retVal['Value']['Successful'], self.files )
     
     retVal = self.bk.addFiles( 'test.txt' )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( retVal['Value']['Successful'], [] )
     self.assertEqual( retVal['Value']['Failed'], ['test.txt'] )
     
@@ -142,8 +142,8 @@ class TestMethods( DataInsertTestCase ):
                   'CreationDate', 'InstLuminosity', 'DataqualityFlag']
     retVal = self.bk.getFileMetadata( self.files )
     
-    self.assert_( retVal['OK'] )
-    self.assert_( retVal['Value']['Successful'] )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( retVal['Value']['Successful'] )
     self.assertEqual( retVal['Value']['Failed'], [] )
     self.assertEqual( len( retVal['Value']['Successful'].keys() ), len( self.files ) )
     self.assertEqual( sorted( retVal['Value']['Successful'].keys() ), sorted( self.files ) )
@@ -152,7 +152,7 @@ class TestMethods( DataInsertTestCase ):
       self.assertEqual( sorted( retVal['Value']['Successful'][fName] ), sorted( fileParams ) )
     
     retVal = self.bk.getFileMetadata( 'test.txt' )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( retVal['Value']['Successful'], {} )
     self.assertEqual( retVal['Value']['Failed'], ['test.txt'] )
   
@@ -162,7 +162,7 @@ class TestMethods( DataInsertTestCase ):
     """
     fileParams = ['FullStat', 'Luminosity', 'FileSize', 'EventStat', 'GotReplica', 'GUID', 'InstLuminosity']
     retVal = self.bk.getRunFiles( int( self.runnb ) )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( sorted( retVal['Value'].keys() ), sorted( self.files ) )
     for fName in retVal['Value']:
       self.assertEqual( sorted( retVal['Value'][fName].keys() ), sorted( fileParams ) )
@@ -175,7 +175,7 @@ class TestMethods( DataInsertTestCase ):
                                          "ApplicationVersion":"v0r111",
                                          "ProcessingPadd":"/Real Data"} )
     
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( retVal['Value']['TotalRecords'], 1 )
     self.assertEqual( sorted( retVal['Value']['ParameterNames'] ), sorted( ['StepId', 'StepName', 'ApplicationName', 'ApplicationVersion',
                                                                             'OptionFiles', 'DDDB', 'CONDDB', 'ExtraPackages', 'Visible',
@@ -188,8 +188,8 @@ class TestMethods( DataInsertTestCase ):
     """
     
     retVal = self.bk.getAvailableFileTypes()
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value'] ) > 0 )
     
   def test_Steps( self ):
     """
@@ -209,8 +209,8 @@ class TestMethods( DataInsertTestCase ):
              'InputFileTypes': [{'Visible': 'Y', 'FileType': 'CHARM.DST'}]}
     
     retVal = self.bk.insertStep( step1 )
-    self.assert_( retVal['OK'] )
-    self.assert_( retVal['Value'] > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( retVal['Value'] > 0 )
     stepid1 = retVal['Value']
     
     step2 = {'Step': {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': '',
@@ -223,12 +223,12 @@ class TestMethods( DataInsertTestCase ):
              'RuntimeProjects':[{'StepId':stepid1}]}
     
     retVal = self.bk.insertStep( step2 )
-    self.assert_( retVal['OK'] )
-    self.assert_( retVal['Value'] > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( retVal['Value'] > 0 )
     stepid2 = retVal['Value']
     
     retVal = self.bk.getAvailableSteps( {"StepId":stepid1} )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( retVal['Value']['TotalRecords'], 1 )
     self.assertEqual( sorted( retVal['Value']['ParameterNames'] ), sorted( paramNames ) )
     
@@ -241,7 +241,7 @@ class TestMethods( DataInsertTestCase ):
         self.assertEqual( record[stepParams], None )
     
     retVal = self.bk.getAvailableSteps( {"StepId":stepid2} )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( retVal['Value']['TotalRecords'], 1 )
     self.assertEqual( len( retVal['Value']['Records'] ), 1 )
     self.assertEqual( sorted( retVal['Value']['ParameterNames'] ), sorted( paramNames ) )
@@ -254,27 +254,27 @@ class TestMethods( DataInsertTestCase ):
     
     
     retVal = self.bk.getStepInputFiles( stepid1 )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( retVal['Value']['TotalRecords'], 1 )
     self.assertEqual( sorted( retVal['Value']['ParameterNames'] ), sorted( ['FileType', 'Visible'] ) )
         
     retVal = self.bk.getStepOutputFiles( stepid1 )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( retVal['Value']['TotalRecords'], 1 )
     self.assertEqual( sorted( retVal['Value']['ParameterNames'] ), sorted( ['FileType', 'Visible'] ) )
     
     retVal = self.bk.setStepInputFiles( stepid1, [{"FileType":"Test.DST", "Visible":"Y"}] )
-    self.assert_( retVal['OK'] )  # make sure the change works
+    self.assertTrue( retVal['OK'] )  # make sure the change works
     retVal = self.bk.getStepInputFiles( stepid1 )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( retVal['Value']['TotalRecords'], 1 )
     self.assertEqual( sorted( retVal['Value']['ParameterNames'] ), sorted( ['FileType', 'Visible'] ) )
     self.assertEqual( retVal['Value']['Records'], [['Test.DST', 'Y']] )
     
     retVal = self.bk.setStepOutputFiles( stepid2, [{"FileType":"Test.DST", "Visible":"Y"}] )
-    self.assert_( retVal['OK'] )  # make sure the change works
+    self.assertTrue( retVal['OK'] )  # make sure the change works
     retVal = self.bk.getStepOutputFiles( stepid2 )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( retVal['Value']['TotalRecords'], 1 )
     self.assertEqual( sorted( retVal['Value']['ParameterNames'] ), sorted( ['FileType', 'Visible'] ) )
     self.assertEqual( retVal['Value']['Records'], [['Test.DST', 'Y']] )
@@ -282,10 +282,10 @@ class TestMethods( DataInsertTestCase ):
     step1['Step']['StepName'] = 'test1'
     step1['Step']['StepId'] = stepid1
     retVal = self.bk.updateStep( {'StepId':stepid1, 'StepName': 'test1'} )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     # check after the modification
     retVal = self.bk.getAvailableSteps( {"StepId":stepid1} )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( retVal['Value']['TotalRecords'], 1 )
     self.assertEqual( sorted( retVal['Value']['ParameterNames'] ), sorted( paramNames ) )
     self.assertEqual( len( retVal['Value']['Records'] ), 1 )
@@ -299,26 +299,26 @@ class TestMethods( DataInsertTestCase ):
     
     # at the end delete the steps
     retVal = self.bk.deleteStep( stepid2 )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     
     retVal = self.bk.deleteStep( stepid1 )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     
   def test_getAvailableConfigNames( self ):
     """
     Must have one configuration name
     """
     retVal = self.bk.getAvailableConfigNames()
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value'] ) > 0 )
   
   def test_getConfigVersions( self ):
     """
     The bookkeeping view is isued, we can not use the newly inserted configuration name: Test
     """
     retVal = self.bk.getConfigVersions( {"ConfigName":"MC"} )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value'] ) > 0 )
     self.assertEqual( retVal['Value']['TotalRecords'], 14 )
   
   def test_getConditions( self ):
@@ -332,12 +332,12 @@ class TestMethods( DataInsertTestCase ):
                   'MUON', 'L0', 'HLT', 'VeloPosition']
     
     retVal = self.bk.getConditions( {"ConfigName":"MC", "ConfigVersion":"2012"} )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value'] ) > 0 )
     self.assertEqual( len( retVal['Value'] ), 2 )
     self.assertEqual( retVal['Value'][1]['TotalRecords'], 0 )
     self.assertEqual( retVal['Value'][1]['ParameterNames'], dataParams )
-    self.assert_( retVal['Value'][0]['TotalRecords'] > 0 )
+    self.assertTrue( retVal['Value'][0]['TotalRecords'] > 0 )
     self.assertEqual( retVal['Value'][0]['ParameterNames'], simParams )
     
     
@@ -349,10 +349,10 @@ class TestMethods( DataInsertTestCase ):
     """
     
     retVal = self.bk.getProcessingPass( {"ConfigName":"MC", "ConfigVersion":"2012", } )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value'] ) > 0 )
     self.assertEqual( len( retVal['Value'] ), 2 )
-    self.assert_( retVal['Value'][0]['TotalRecords'] > 0 )
+    self.assertTrue( retVal['Value'][0]['TotalRecords'] > 0 )
   
   def test_bookkeepingtree( self ):
     """
@@ -360,66 +360,66 @@ class TestMethods( DataInsertTestCase ):
     """
     bkQuery = {"ConfigName":"MC"}
     retVal = self.bk.getAvailableConfigNames()
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value'] ) > 0 )
-    self.assert_( bkQuery['ConfigName'] in [cName[0] for cName in retVal['Value']['Records']] ) 
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value'] ) > 0 )
+    self.assertTrue( bkQuery['ConfigName'] in [cName[0] for cName in retVal['Value']['Records']] ) 
     
     retVal = self.bk.getConfigVersions( {"ConfigName":"MC"} )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value'] ) > 0 )
     self.assertEqual( retVal['Value']['TotalRecords'], 14 )
     
     retVal = self.bk.getConditions( {"ConfigName":"MC",
                                      "ConfigVersion":"2012"} )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value'] ) > 0 )
     self.assertEqual( retVal['Value'][0]['TotalRecords'], 2 )
     
     retVal = self.bk.getProcessingPass( {"ConfigName":"MC",
                                          "ConfigVersion":"2012",
                                          "ConditionDescription":"Beam4000GeV-2012-MagUp-Nu2.5-Pythia8"} )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value'] ) > 0 )
     self.assertEqual( retVal['Value'][0]['Records'][0][0], "Sim08a" )
     
     retVal = self.bk.getProcessingPass( {"ConfigName":"MC",
                                          "ConfigVersion":"2012",
                                          "ConditionDescription":"Beam4000GeV-2012-MagUp-Nu2.5-Pythia8"},
                                         "/Sim08a" )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value'] ) > 0 )
     self.assertEqual( retVal['Value'][0]['Records'][0][0], "Digi13" )
     
     retVal = self.bk.getProcessingPass( {"ConfigName":"MC",
                                          "ConfigVersion":"2012",
                                          "ConditionDescription":"Beam4000GeV-2012-MagUp-Nu2.5-Pythia8"},
                                         "/Sim08a/Digi13" )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value'] ) > 0 )
     self.assertEqual( retVal['Value'][0]['Records'][0][0], "Trig0x409f0045" )
     
     retVal = self.bk.getProcessingPass( {"ConfigName":"MC",
                                          "ConfigVersion":"2012",
                                          "ConditionDescription":"Beam4000GeV-2012-MagUp-Nu2.5-Pythia8"},
                                         "/Sim08a/Digi13/Trig0x409f0045" )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value'] ) > 0 )
     self.assertEqual( retVal['Value'][0]['Records'][0][0], "Reco14a" )
     
     retVal = self.bk.getProcessingPass( {"ConfigName":"MC",
                                          "ConfigVersion":"2012",
                                          "ConditionDescription":"Beam4000GeV-2012-MagUp-Nu2.5-Pythia8"},
                                         "/Sim08a/Digi13/Trig0x409f0045/Reco14a" )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value'] ) > 0 )
     self.assertEqual( retVal['Value'][0]['Records'][0][0], "Stripping20NoPrescalingFlagged" )
     
     retVal = self.bk.getProcessingPass( {"ConfigName":"MC",
                                          "ConfigVersion":"2012",
                                          "ConditionDescription":"Beam4000GeV-2012-MagUp-Nu2.5-Pythia8"},
                                         "/Sim08a/Digi13/Trig0x409f0045/Reco14a/Stripping20NoPrescalingFlagged" )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value'] ) > 0 )
     self.assertEqual( retVal['Value'][1]['Records'][0][0], 12442001 )
     
     retVal = self.bk.getFileTypes( {"ConfigName":"MC",
@@ -427,8 +427,8 @@ class TestMethods( DataInsertTestCase ):
                                     "ConditionDescription":"Beam4000GeV-2012-MagUp-Nu2.5-Pythia8",
                                     "ProcessingPass":"/Sim08a/Digi13/Trig0x409f0045/Reco14a/Stripping20NoPrescalingFlagged"} )
     
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value'] ) > 0 )
     self.assertEqual( retVal['Value']['TotalRecords'], 1 )
     self.assertEqual( retVal['Value']['Records'][0][0], 'ALLSTREAMS.DST' )
     
@@ -438,7 +438,7 @@ class TestMethods( DataInsertTestCase ):
                                 "ProcessingPass":"/Sim08a/Digi13/Trig0x409f0045/Reco14a/Stripping20NoPrescalingFlagged",
                                 "FileType":"ALLSTREAMS.DST"} )
     
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( len( retVal['Value'] ), 10 )
     
     retVal = self.bk.getFiles( {"ConfigName":"MC",
@@ -448,7 +448,7 @@ class TestMethods( DataInsertTestCase ):
                                 "FileType":"ALLSTREAMS.DST",
                                 "EventType":12442001} )
     
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( len( retVal['Value'] ), 10 )
     
     retVal = self.bk.getFiles( {"ConfigName":"MC",
@@ -458,7 +458,7 @@ class TestMethods( DataInsertTestCase ):
                                 "FileType":"ALLSTREAMS.DST",
                                 "EventType":12442001,
                                 "Visible": "N"} )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( len( retVal['Value'] ), 0 )
     
     retVal = self.bk.getFiles( {"ConfigName":"MC",
@@ -468,7 +468,7 @@ class TestMethods( DataInsertTestCase ):
                                 "FileType":"ALLSTREAMS.DST",
                                 "EventType":12442001,
                                 "Visible": "All"} )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( len( retVal['Value'] ), 10 )
   
   def test_getFiles1( self ):
@@ -485,7 +485,7 @@ class TestMethods( DataInsertTestCase ):
                'Quality': []}
     
     retVal = self.bk.getFiles( bkQuery )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( len( retVal['Value'] ), 301 )
     
     bkQuery = {'ConfigName': 'MC',
@@ -498,7 +498,7 @@ class TestMethods( DataInsertTestCase ):
                'Quality': "ALL"}
     
     retVal = self.bk.getFiles( bkQuery )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( len( retVal['Value'] ), 301 )
   
   def test_getFiles2( self ):
@@ -512,12 +512,12 @@ class TestMethods( DataInsertTestCase ):
                'Quality': 'OK'}
     
     retVal = self.bk.getFiles( bkQuery )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( len( retVal['Value'] ), 301 )
     
     bkQuery.pop( 'Visible' )
     retVal = self.bk.getFiles( bkQuery )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( len( retVal['Value'] ), 301 )
     
     
@@ -534,7 +534,7 @@ class TestMethods( DataInsertTestCase ):
                'ConfigVersion': 'MC10',
                'Quality': []}
     retVal = self.bk.getFiles( bkQuery )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( len( retVal['Value'] ), 200 )
     
   def test_getFiles4( self ):
@@ -546,12 +546,12 @@ class TestMethods( DataInsertTestCase ):
                'ConfigVersion': 'MC10'}
     
     retVal = self.bk.getFiles( bkQuery )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( len( retVal['Value'] ), 605 )
     
     bkQuery['Visible'] = 'Y'
     retVal = self.bk.getFileTypes( bkQuery )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( retVal['Value']['TotalRecords'], 1 )
     self.assertEqual( retVal['Value']['Records'][0][0], 'DST' )
   
@@ -564,12 +564,12 @@ class TestMethods( DataInsertTestCase ):
                'ConfigVersion': 'MC10'}
     
     retVal = self.bk.getProductions( bkQuery )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( retVal['Value']['TotalRecords'], 1 )
     self.assertEqual( retVal['Value']['Records'][0][0], 10713 )
     
     bkQuery['Visible'] = 'Y'
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( retVal['Value']['TotalRecords'], 1 )
     self.assertEqual( retVal['Value']['Records'][0][0], 10713 )
     
@@ -588,7 +588,7 @@ class TestMethods( DataInsertTestCase ):
     
     
     retVal = self.bk.getFiles( bkQuery )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( len( retVal['Value'] ), 200 )
   
   def test_getProductions1( self ):
@@ -605,7 +605,7 @@ class TestMethods( DataInsertTestCase ):
                'Quality': []}
     
     retVal = self.bk.getProductions( bkQuery )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( retVal['Value']['TotalRecords'], 1 )
     self.assertEqual( retVal['Value']['Records'][0][0], 10917 )
   
@@ -634,36 +634,36 @@ class TestMethods( DataInsertTestCase ):
     paramNames = ['TotalLuminosity', 'Luminosity', 'Fillnumber', 'EventInputStat', 'FileSize', 'EventStat', 'Runnumber', 'InstLuminosity', 'TCK']
     
     retVal = self.bk.getVisibleFilesWithMetadata( bkQuery )
-    self.assert_( retVal['OK'] )
-    self.assert_( retVal['Value']['Summary'] )
-    self.assert_( retVal['Value']['LFNs'] )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( retVal['Value']['Summary'] )
+    self.assertTrue( retVal['Value']['LFNs'] )
     
     self.assertEqual( retVal['Value']['Summary'], summary )
     self.assertEqual( len( retVal['Value']['LFNs'] ), 439 )
     self.assertEqual( retVal['Value']['LFNs'][retVal['Value']['LFNs'].keys()[0]].keys(), paramNames )
                      
     retVal = self.bk.getVisibleFilesWithMetadata( bkQuery )
-    self.assert_( retVal['OK'] )
-    self.assert_( retVal['Value']['Summary'] )
-    self.assert_( retVal['Value']['LFNs'] )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( retVal['Value']['Summary'] )
+    self.assertTrue( retVal['Value']['LFNs'] )
     
     self.assertEqual( retVal['Value']['Summary'], summary )
     self.assertEqual( len( retVal['Value']['LFNs'] ), 439 )
     
     bkQuery['RunNumber'] = [115055],
     retVal = self.bk.getVisibleFilesWithMetadata( bkQuery )
-    self.assert_( retVal['OK'] )
-    self.assert_( retVal['Value']['Summary'] )
-    self.assert_( retVal['Value']['LFNs'] )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( retVal['Value']['Summary'] )
+    self.assertTrue( retVal['Value']['LFNs'] )
     
     self.assertEqual( retVal['Value']['Summary'], summary )
     self.assertEqual( len( retVal['Value']['LFNs'] ), 439 )
     
     bkQuery['TCK'] = ['0x95003d']
     retVal = self.bk.getVisibleFilesWithMetadata( bkQuery )
-    self.assert_( retVal['OK'] )
-    self.assert_( retVal['Value']['Summary'] )
-    self.assert_( retVal['Value']['LFNs'] )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( retVal['Value']['Summary'] )
+    self.assertTrue( retVal['Value']['LFNs'] )
     self.assertEqual( retVal['Value']['Summary'], summary )
     self.assertEqual( len( retVal['Value']['LFNs'] ), 439 )
     
@@ -694,9 +694,9 @@ class TestMethods( DataInsertTestCase ):
     paramNames = ['TotalLuminosity', 'Luminosity', 'Fillnumber', 'EventInputStat', 'FileSize', 'EventStat', 'Runnumber', 'InstLuminosity', 'TCK']
     
     retVal = self.bk.getVisibleFilesWithMetadata( bkQuery )
-    self.assert_( retVal['OK'] )
-    self.assert_( retVal['Value']['Summary'] )
-    self.assert_( retVal['Value']['LFNs'] )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( retVal['Value']['Summary'] )
+    self.assertTrue( retVal['Value']['LFNs'] )
     
     self.assertEqual( retVal['Value']['Summary'], summary )
     self.assertEqual( len( retVal['Value']['LFNs'] ), 2316 )
@@ -712,9 +712,9 @@ class TestMethods( DataInsertTestCase ):
                'InstLuminosity': 0}
     
     retVal = self.bk.getVisibleFilesWithMetadata( bkQuery )
-    self.assert_( retVal['OK'] )
-    self.assert_( retVal['Value']['Summary'] )
-    self.assert_( retVal['Value']['LFNs'] )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( retVal['Value']['Summary'] )
+    self.assertTrue( retVal['Value']['LFNs'] )
     
     self.assertEqual( retVal['Value']['Summary'], summary )
     self.assertEqual( len( retVal['Value']['LFNs'] ), 2 )
@@ -731,9 +731,9 @@ class TestMethods( DataInsertTestCase ):
                 'InstLuminosity': 0}
     
     retVal = self.bk.getVisibleFilesWithMetadata( bkQuery )
-    self.assert_( retVal['OK'] )
-    self.assert_( retVal['Value']['Summary'] )
-    self.assert_( retVal['Value']['LFNs'] )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( retVal['Value']['Summary'] )
+    self.assertTrue( retVal['Value']['LFNs'] )
     self.assertEqual( retVal['Value']['Summary'], summary )
     self.assertEqual( len( retVal['Value']['LFNs'] ), 178 )
     
@@ -749,9 +749,9 @@ class TestMethods( DataInsertTestCase ):
                 'InstLuminosity': 0}
     
     retVal = self.bk.getVisibleFilesWithMetadata( bkQuery )
-    self.assert_( retVal['OK'] )
-    self.assert_( retVal['Value']['Summary'] )
-    self.assert_( retVal['Value']['LFNs'] )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( retVal['Value']['Summary'] )
+    self.assertTrue( retVal['Value']['LFNs'] )
     self.assertEqual( retVal['Value']['Summary'], summary )
     self.assertEqual( len( retVal['Value']['LFNs'] ), 127 )
     
@@ -764,9 +764,9 @@ class TestMethods( DataInsertTestCase ):
                'FileSize': 449.439082551,
                'InstLuminosity': 0}
     retVal = self.bk.getVisibleFilesWithMetadata( bkQuery )
-    self.assert_( retVal['OK'] )
-    self.assert_( retVal['Value']['Summary'] )
-    self.assert_( retVal['Value']['LFNs'] )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( retVal['Value']['Summary'] )
+    self.assertTrue( retVal['Value']['LFNs'] )
     self.assertEqual( retVal['Value']['Summary'], summary )
     self.assertEqual( len( retVal['Value']['LFNs'] ), 125 )
   
@@ -792,9 +792,9 @@ class TestMethods( DataInsertTestCase ):
                'Number of Events': 6020000,
                'TotalLuminosity': 0}
     retVal = self.bk.getVisibleFilesWithMetadata( bkQuery )
-    self.assert_( retVal['OK'] )
-    self.assert_( retVal['Value']['Summary'] )
-    self.assert_( retVal['Value']['LFNs'] )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( retVal['Value']['Summary'] )
+    self.assertTrue( retVal['Value']['LFNs'] )
     self.assertEqual( retVal['Value']['Summary'], summary )
     self.assertEqual( len( retVal['Value']['LFNs'] ), 301 )
   
@@ -814,23 +814,23 @@ class TestMethods( DataInsertTestCase ):
     
     
     retVal = self.bk.getFiles( bkQuery )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( len( retVal['Value'] ), 439 )
                          
     # now test the data datakingcondition
     bkQuery.pop( 'ConditionDescription' )
     bkQuery['DataTakingConditions'] = 'Beam4000GeV-VeloClosed-MagDown'
     retVal = self.bk.getFiles( bkQuery )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( len( retVal['Value'] ), 439 )
     
     bkQuery['RunNumber'] = [115055]
     retVal = self.bk.getFiles( bkQuery )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( len( retVal['Value'] ), 439 )
     
     bkQuery['TCK'] = ['0x95003d']
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( len( retVal['Value'] ), 439 )
    
   def test_getFiles7( self ):
@@ -860,7 +860,7 @@ class TestMethods( DataInsertTestCase ):
     bkQuery['EndRun'] = 93407
     
     retVal = self.bk.getFiles( bkQuery )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( len( retVal['Value'] ), 187 )
     
     bkQuery.pop( 'StartRun' )
@@ -868,12 +868,12 @@ class TestMethods( DataInsertTestCase ):
     bkQuery['StartDate'] = "2011-06-15 19:15:25"
     
     retVal = self.bk.getFiles( bkQuery )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( len( retVal['Value'] ), 135 )
     
     bkQuery['EndDate'] = "2011-06-16 19:15:25"
     retVal = self.bk.getFiles( bkQuery )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( len( retVal['Value'] ), 127 )
   
   def test_getFiles8( self ):
@@ -892,7 +892,7 @@ class TestMethods( DataInsertTestCase ):
     
    
     retVal = self.bk.getFiles( bkQuery )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( len( retVal['Value'] ), 301 )
   
   def getFilesWithMetadata1( self ):
@@ -913,8 +913,8 @@ class TestMethods( DataInsertTestCase ):
                   'FullStat', 'DataqualityFlag', 'EventInputStat', 'TotalLuminosity', 'Luminosity', 'InstLuminosity', 'TCK', 'GUID',
                   'ADLER32', 'EventType', 'MD5SUM', 'VisibilityFlag', 'JobId', 'GotReplica', 'InsertTimeStamp']
     retVal = self.bk.getFilesWithMetadata( bkQuery )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value'] ) > 0 )
     self.assertEqual( retVal['Value']['TotalRecords'], 439 )
     self.assertEqual( len( retVal['Value']['Records'] ), 439 )
     self.assertEqual( retVal['Value']['ParameterNames'], paramNames )                         
@@ -923,23 +923,23 @@ class TestMethods( DataInsertTestCase ):
     bkQuery.pop( 'ConditionDescription' )
     bkQuery['DataTakingConditions'] = 'Beam4000GeV-VeloClosed-MagDown'
     retVal = self.bk.getFilesWithMetadata( bkQuery )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value'] ) > 0 )
     self.assertEqual( retVal['Value']['TotalRecords'], 439 )
     self.assertEqual( len( retVal['Value']['Records'] ), 439 )
     self.assertEqual( retVal['Value']['ParameterNames'], paramNames )  
         
     bkQuery['RunNumber'] = [115055]
     retVal = self.bk.getFilesWithMetadata( bkQuery )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value'] ) > 0 )
     self.assertEqual( retVal['Value']['TotalRecords'], 439 )
     self.assertEqual( len( retVal['Value']['Records'] ), 439 )
     self.assertEqual( len( retVal['Value']['ParameterNames'] ), paramNames )  
         
     bkQuery['TCK'] = ['0x95003d']
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value'] ) > 0 )
     self.assertEqual( retVal['Value']['TotalRecords'], 439 )
     self.assertEqual( len( retVal['Value']['Records'] ), 439 )
     self.assertEqual( retVal['Value']['ParameterNames'], paramNames )  
@@ -964,15 +964,15 @@ class TestMethods( DataInsertTestCase ):
                   'ADLER32', 'EventType', 'MD5SUM', 'VisibilityFlag', 'JobId', 'GotReplica', 'InsertTimeStamp']
     
     retVal = self.bk.getFilesWithMetadata( bkQuery )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value'] ) > 0 )
     self.assertEqual( retVal['Value']['TotalRecords'], 2314 )
     self.assertEqual( len( retVal['Value']['Records'] ), 2314 )
     self.assertEqual( retVal['Value']['ParameterNames'], paramNames ) 
         
     bkQuery['RunNumber'] = [90104, 92048, 87851]
     retVal = self.bk.getFilesWithMetadata( bkQuery )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( retVal['Value']['TotalRecords'], 2 )
     self.assertEqual( len( retVal['Value']['Records'] ), 2 )
     self.assertEqual( retVal['Value']['ParameterNames'], paramNames ) 
@@ -983,7 +983,7 @@ class TestMethods( DataInsertTestCase ):
     bkQuery['EndRun'] = 93407
     
     retVal = self.bk.getFilesWithMetadata( bkQuery )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( retVal['Value']['TotalRecords'], 178 )
     self.assertEqual( len( retVal['Value']['Records'] ), 178 )
     self.assertEqual( retVal['Value']['ParameterNames'], paramNames ) 
@@ -993,7 +993,7 @@ class TestMethods( DataInsertTestCase ):
     bkQuery['StartDate'] = "2011-06-15 19:15:25"
     
     retVal = self.bk.getFilesWithMetadata( bkQuery )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( retVal['Value']['TotalRecords'], 125 )
     self.assertEqual( len( retVal['Value']['Records'] ), 125 )
     self.assertEqual( retVal['Value']['ParameterNames'], paramNames ) 
@@ -1001,7 +1001,7 @@ class TestMethods( DataInsertTestCase ):
     
     bkQuery['EndDate'] = "2011-06-16 19:15:25"
     retVal = self.bk.getFilesWithMetadata( bkQuery )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( retVal['Value']['TotalRecords'], 125 )
     self.assertEqual( len( retVal['Value']['Records'] ), 125 )
     self.assertEqual( retVal['Value']['ParameterNames'], paramNames ) 
@@ -1026,7 +1026,7 @@ class TestMethods( DataInsertTestCase ):
                   'ADLER32', 'EventType', 'MD5SUM', 'VisibilityFlag', 'JobId', 'GotReplica', 'InsertTimeStamp']
    
     retVal = self.bk.getFilesWithMetadata( bkQuery )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( retVal['Value']['TotalRecords'], 301 )
     self.assertEqual( len( retVal['Value']['Records'] ), 301 )
     self.assertEqual( retVal['Value']['ParameterNames'], paramNames )
@@ -1036,8 +1036,8 @@ class TestMethods( DataInsertTestCase ):
     Test the run metadata
     """     
     retVal = self.bk.getRunInformation( {'RunNumber':self.runnb} )
-    self.assert_( retVal['OK'] )
-    self.assert_( self.runnb not in retVal['Value'] )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( self.runnb not in retVal['Value'] )
     self.assertEqual( sorted( retVal['Value'][int( self.runnb )].keys() ), sorted( ['ConfigName', 'JobEnd', 'ConditionDescription', 'ProcessingPass', 'FillNumber', 'DDDB', 'JobStart', 'TCK', 'CONDDB', 'ConfigVersion'] ) )
     result = dict( retVal['Value'][int( self.runnb )] )
     result.pop( 'JobStart' )
@@ -1059,13 +1059,13 @@ class TestRemoveFiles( DataInsertTestCase ):
     """
     
     retVal = self.bk.removeFiles( self.files )
-    self.assert_( retVal['OK'] )
-    self.assert_( retVal['Value']['Successful'] )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( retVal['Value']['Successful'] )
     self.assertEqual( retVal['Value']['Failed'], [] )
     self.assertEqual( retVal['Value']['Successful'], self.files )
     
     retVal = self.bk.removeFiles( 'test.txt' )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( retVal['Value']['Successful'], [] )
     self.assertEqual( retVal['Value']['Failed'], ['test.txt'] )
 
@@ -1078,7 +1078,7 @@ class TestDestoryDataset( DataInsertTestCase ):
     after the test the data will be destroyed
     """
     retVal = self.bk.deleteCertificationData()
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
 
 class MCInsertTestCase( unittest.TestCase ):
   """ Tests for the DB part of the RAWIntegrity system
@@ -1451,7 +1451,7 @@ class MCProductionRegistration ( MCInsertTestCase ):
     """
     
     retVal = self.bk.echo( "Test" )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( retVal['Value'], "Test" )
   
   def test_insertSimConditions( self ):
@@ -1460,9 +1460,9 @@ class MCProductionRegistration ( MCInsertTestCase ):
     """
     retVal = self.bk.insertSimConditions( self.simCondDict )
     if retVal["OK"]:
-      self.assert_( retVal['OK'] )
+      self.assertTrue( retVal['OK'] )
     else:
-      self.assert_( 'unique constraint' in retVal["Message"] )
+      self.assertTrue( 'unique constraint' in retVal["Message"] )
   
   def test_registerProduction( self ):
     """
@@ -1484,8 +1484,8 @@ class MCProductionRegistration ( MCInsertTestCase ):
                                            'CONDDB': 'sim-20160321-2-vc-mu100'},
                                   'OutputFileTypes': [{'Visible': 'N', 'FileType': 'SIM'}]} )
     
-    self.assert_( retVal['OK'] )
-    self.assert_( retVal['Value'] > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( retVal['Value'] > 0 )
     self.productionSteps['Steps'].append( {'StepId':retVal['Value'], 'Visible':'Y'} )
     
     retVal = self.bk.insertStep( {'Step': {'ApplicationName': 'Boole',
@@ -1504,8 +1504,8 @@ class MCProductionRegistration ( MCInsertTestCase ):
                                   'InputFileTypes': [{'Visible': 'N', 'FileType': 'SIM'}],
                                   'OutputFileTypes': [{'Visible': 'N', 'FileType': 'DIGI'}]} )
     
-    self.assert_( retVal['OK'] )
-    self.assert_( retVal['Value'] > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( retVal['Value'] > 0 )
     self.productionSteps['Steps'].append( {'StepId':retVal['Value'], 'Visible':'N', 'OutputFileTypes': [{'Visible': 'N', 'FileType': 'DIGI'}]} )
     
     retVal = self.bk.insertStep( {'Step': {'ApplicationName': 'Moore',
@@ -1525,8 +1525,8 @@ class MCProductionRegistration ( MCInsertTestCase ):
                                   'InputFileTypes': [{'Visible': 'N', 'FileType': 'DIGI'}],
                                   'OutputFileTypes': [{'Visible': 'N', 'FileType': 'DIGI'}]} )
     
-    self.assert_( retVal['OK'] )
-    self.assert_( retVal['Value'] > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( retVal['Value'] > 0 )
     self.productionSteps['Steps'].append( {'StepId':retVal['Value'], 'Visible':'N', 'OutputFileTypes': [{'Visible': 'N', 'FileType': 'DIGI'}]} )
     
     retVal = self.bk.insertStep( {'Step': {'ApplicationName': 'Moore',
@@ -1544,8 +1544,8 @@ class MCProductionRegistration ( MCInsertTestCase ):
                                   'InputFileTypes': [{'Visible': 'N', 'FileType': 'DIGI'}],
                                   'OutputFileTypes': [{'Visible': 'N', 'FileType': 'DIGI'}]} )
     
-    self.assert_( retVal['OK'] )
-    self.assert_( retVal['Value'] > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( retVal['Value'] > 0 )
     self.productionSteps['Steps'].append( {'StepId':retVal['Value'], 'Visible':'N', 'OutputFileTypes': [{'Visible': 'N', 'FileType': 'DIGI'}]} )
     
     retVal = self.bk.insertStep( {'Step': {'ApplicationName': 'Noether',
@@ -1563,8 +1563,8 @@ class MCProductionRegistration ( MCInsertTestCase ):
                                   'InputFileTypes': [{'Visible': 'N', 'FileType': 'DIGI'}],
                                   'OutputFileTypes': [{'Visible': 'N', 'FileType': 'DIGI'}]} )
     
-    self.assert_( retVal['OK'] )
-    self.assert_( retVal['Value'] > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( retVal['Value'] > 0 )
     self.productionSteps['Steps'].append( {'StepId':retVal['Value'], 'Visible':'N', 'OutputFileTypes': [{'Visible': 'N', 'FileType': 'DIGI'}]} )
     
     retVal = self.bk.insertStep( {'Step': {'ApplicationName': 'Moore',
@@ -1583,8 +1583,8 @@ class MCProductionRegistration ( MCInsertTestCase ):
                                   'InputFileTypes': [{'Visible': 'N', 'FileType': 'DIGI'}],
                                   'OutputFileTypes': [{'Visible': 'N', 'FileType': 'DIGI'}]} )
     
-    self.assert_( retVal['OK'] )
-    self.assert_( retVal['Value'] > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( retVal['Value'] > 0 )
     self.productionSteps['Steps'].append( {'StepId':retVal['Value'], 'Visible':'N', 'OutputFileTypes': [{'Visible': 'N', 'FileType': 'DIGI'}]} )
     
     retVal = self.bk.insertStep( {'Step': {'ApplicationName': 'Moore',
@@ -1603,8 +1603,8 @@ class MCProductionRegistration ( MCInsertTestCase ):
                                   'InputFileTypes': [{'Visible': 'N', 'FileType': 'DIGI'}],
                                   'OutputFileTypes': [{'Visible': 'N', 'FileType': 'DIGI'}]} )
     
-    self.assert_( retVal['OK'] )
-    self.assert_( retVal['Value'] > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( retVal['Value'] > 0 )
     self.productionSteps['Steps'].append( {'StepId':retVal['Value'], 'Visible':'N', 'OutputFileTypes': [{'Visible': 'N', 'FileType': 'DIGI'}]} )
     
     retVal = self.bk.insertStep( {'Step': {'ApplicationName': 'Noether',
@@ -1623,12 +1623,12 @@ class MCProductionRegistration ( MCInsertTestCase ):
                                   'InputFileTypes': [{'Visible': 'N', 'FileType': 'DIGI'}],
                                   'OutputFileTypes': [{'Visible': 'N', 'FileType': 'DIGI'}]} )
     
-    self.assert_( retVal['OK'] )
-    self.assert_( retVal['Value'] > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( retVal['Value'] > 0 )
     self.productionSteps['Steps'].append( {'StepId':retVal['Value'], 'Visible':'N', 'OutputFileTypes': [{'Visible': 'N', 'FileType': 'DIGI'}]} )
     self.productionSteps['EventType'] = 11104131
     retVal = self.bk.addProduction( self.productionSteps )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     
 class MCXMLReportInsert( MCInsertTestCase ):
   
@@ -1642,7 +1642,7 @@ class MCXMLReportInsert( MCInsertTestCase ):
     """
     
     retVal = self.bk.echo( "Test" )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertEqual( retVal['Value'], "Test" )
 
   def test_sendXMLBookkeepingReport( self ):
@@ -1658,11 +1658,11 @@ class MCXMLReportInsert( MCInsertTestCase ):
     step1 = step1.replace( "%jEnd%", self.jobEnd.strftime( '%Y-%m-%d %H:%M' ) )
     step1 = step1.replace( "%jProduction%", str( self.production ) )
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Sim09b - 2012 - MU - Pythia8'} )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value']['Records'] ) > 0 )
     step1 = step1.replace( "%jStepid%", str( retVal['Value']['Records'][0][0] ) )
     retVal = self.bk.sendXMLBookkeepingReport( step1 )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     
     currentTime = datetime.datetime.now()
     step2 = self.xmlStep2.replace( "%jDate%", currentTime.strftime( '%Y-%m-%d' ) )
@@ -1671,11 +1671,11 @@ class MCXMLReportInsert( MCInsertTestCase ):
     step2 = step2.replace( "%jEnd%", self.jobEnd.strftime( '%Y-%m-%d %H:%M' ) )
     step2 = step2.replace( "%jProduction%", str( self.production ) )
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Digi14a for 2012 (to use w Sim09)'} )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value']['Records'] ) > 0 )
     step2 = step2.replace( "%jStepid%", str( retVal['Value']['Records'][0][0] ) )
     retVal = self.bk.sendXMLBookkeepingReport( step2 )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     
     currentTime = datetime.datetime.now()
     step3 = self.xmlStep3.replace( "%jDate%", currentTime.strftime( '%Y-%m-%d' ) )
@@ -1684,11 +1684,11 @@ class MCXMLReportInsert( MCInsertTestCase ):
     step3 = step3.replace( "%jEnd%", self.jobEnd.strftime( '%Y-%m-%d %H:%M' ) )
     step3 = step3.replace( "%jProduction%", str( self.production ) )
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-L0 emulation - TCK 003d'} )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value']['Records'] ) > 0 )
     step3 = step3.replace( "%jStepid%", str( retVal['Value']['Records'][0][0] ) )
     retVal = self.bk.sendXMLBookkeepingReport( step3 )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     
     currentTime = datetime.datetime.now()
     step4 = self.xmlStep4.replace( "%jDate%", currentTime.strftime( '%Y-%m-%d' ) )
@@ -1697,11 +1697,11 @@ class MCXMLReportInsert( MCInsertTestCase ):
     step4 = step4.replace( "%jEnd%", self.jobEnd.strftime( '%Y-%m-%d %H:%M' ) )
     step4 = step4.replace( "%jProduction%", str( self.production ) )
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-TCK-0x4097003d Flagged MC - 2012 - to be used in multipleTCKs'} )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value']['Records'] ) > 0 )
     step4 = step4.replace( "%jStepid%", str( retVal['Value']['Records'][0][0] ) )
     retVal = self.bk.sendXMLBookkeepingReport( step4 )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     
     currentTime = datetime.datetime.now()
     step5 = self.xmlStep5.replace( "%jDate%", currentTime.strftime( '%Y-%m-%d' ) )
@@ -1710,11 +1710,11 @@ class MCXMLReportInsert( MCInsertTestCase ):
     step5 = step5.replace( "%jEnd%", self.jobEnd.strftime( '%Y-%m-%d %H:%M' ) )
     step5 = step5.replace( "%jProduction%", str( self.production ) )
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Move TCK-0x4097003d from default location'} )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value']['Records'] ) > 0 )
     step5 = step5.replace( "%jStepid%", str( retVal['Value']['Records'][0][0] ) )
     retVal = self.bk.sendXMLBookkeepingReport( step5 )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     
     currentTime = datetime.datetime.now()
     step6 = self.xmlStep6.replace( "%jDate%", currentTime.strftime( '%Y-%m-%d' ) )
@@ -1723,11 +1723,11 @@ class MCXMLReportInsert( MCInsertTestCase ):
     step6 = step6.replace( "%jEnd%", self.jobEnd.strftime( '%Y-%m-%d %H:%M' ) )
     step6 = step6.replace( "%jProduction%", str( self.production ) )
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-L0 emulation - TCK 0042'} )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value']['Records'] ) > 0 )
     step6 = step6.replace( "%jStepid%", str( retVal['Value']['Records'][0][0] ) )
     retVal = self.bk.sendXMLBookkeepingReport( step6 )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     
     currentTime = datetime.datetime.now()
     step7 = self.xmlStep7.replace( "%jDate%", currentTime.strftime( '%Y-%m-%d' ) )
@@ -1736,11 +1736,11 @@ class MCXMLReportInsert( MCInsertTestCase ):
     step7 = step7.replace( "%jEnd%", self.jobEnd.strftime( '%Y-%m-%d %H:%M' ) )
     step7 = step7.replace( "%jProduction%", str( self.production ) )
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-TCK-0x40990042 Flagged MC - 2012 - to be used in multipleTCKs'} )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value']['Records'] ) > 0 )
     step7 = step7.replace( "%jStepid%", str( retVal['Value']['Records'][0][0] ) )
     retVal = self.bk.sendXMLBookkeepingReport( step7 )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     
     currentTime = datetime.datetime.now()
     step8 = self.xmlStep8.replace( "%jDate%", currentTime.strftime( '%Y-%m-%d' ) )
@@ -1749,11 +1749,11 @@ class MCXMLReportInsert( MCInsertTestCase ):
     step8 = step8.replace( "%jEnd%", self.jobEnd.strftime( '%Y-%m-%d %H:%M' ) )
     step8 = step8.replace( "%jProduction%", str( self.production ) )
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Move TCK-0x40990042 from default location'} )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value']['Records'] ) > 0 )
     step8 = step8.replace( "%jStepid%", str( retVal['Value']['Records'][0][0] ) )
     retVal = self.bk.sendXMLBookkeepingReport( step8 )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     
 class MCProductionTest ( MCXMLReportInsert ):
   
@@ -1772,8 +1772,8 @@ class MCProductionTest ( MCXMLReportInsert ):
                  "EventType": 11104131,
                  "Steps":[]}
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Sim09b - 2012 - MU - Pythia8'} )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value']['Records'] ) > 0 )
     step = {}
     step['StepId'] = retVal['Value']['Records'][0][0]
     step['OutputFileTypes'] = [{'Visible': 'N', 'FileType': 'SIM'}]
@@ -1781,8 +1781,8 @@ class MCProductionTest ( MCXMLReportInsert ):
     prodSteps['Steps'].append( step )
     
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Digi14a for 2012 (to use w Sim09)'} )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value']['Records'] ) > 0 )
     step = {}
     step['StepId'] = retVal['Value']['Records'][0][0]
     step['OutputFileTypes'] = [{'Visible': 'N', 'FileType': 'DIGI'}]
@@ -1790,8 +1790,8 @@ class MCProductionTest ( MCXMLReportInsert ):
     prodSteps['Steps'].append( step )
     
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-TCK-0x40990042 Flagged MC - 2012 - to be used in multipleTCKs'} )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value']['Records'] ) > 0 )
     step = {}
     step['StepId'] = retVal['Value']['Records'][0][0]
     step['OutputFileTypes'] = [{'Visible': 'Y', 'FileType': 'DIGI'}, {'Visible': 'Y', 'FileType': 'XDIGI'}]
@@ -1799,23 +1799,23 @@ class MCProductionTest ( MCXMLReportInsert ):
     prodSteps['Steps'].append( step )
         
     retVal = self.bk.addProduction( prodSteps )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     
   def test_getSimConditions( self ):
     """
     check the existence of the sim cond
     """
     retVal = self.bk.getSimConditions()
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value'] ) > 1 )
-    self.assert_( self.simCondDict['SimDescription'] in ( i[1] for i in retVal['Value'] ) )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value'] ) > 1 )
+    self.assertTrue( self.simCondDict['SimDescription'] in ( i[1] for i in retVal['Value'] ) )
   
   def test_getJobInformation( self ):
     """
     test the job information method
     """
     retVal = self.bk.getJobInformation( {'LFN':['/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_8.digi', '/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_7.digi']} )
-    self.assert_( len( retVal['Value'] ) == 2 )
+    self.assertTrue( len( retVal['Value'] ) == 2 )
     params = ['WNMJFHS06', 'WNCPUPower', 'JobName', 'Production', 'EventInputStat', 'Location', 'TotalLuminosity', 'WNCPUHS06', 'StatisticsRequested', 'Exectime', 'JobId',
               'DiracVersion', 'WNCache', 'WNModel', 'NumberOfEvents', 'ConfigName', 'WNMemory', 'RunNumber',
               'FirstEventNumber', 'CPUTime', 'FillNumber', 'WorkerNode', 'ConfigVersion', 'JobStart', 'StepId', 'JobEnd', 'Tck', 'DiracJobId']
@@ -1885,106 +1885,106 @@ class MCProductionTest ( MCXMLReportInsert ):
       elif record['CPUTime'] == d2['CPUTime']:
         self.assertEqual( sorted( record.iteritems() ), sorted( d2.items() ) )
       else:
-        self.assert_( False, "The XML report has not registered correctly" )
+        self.assertTrue( False, "The XML report has not registered correctly" )
    
     retVal = self.bk.getJobInformation( {'Production':2} )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value'] ) == 8 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value'] ) == 8 )
     
     retVal = self.bk.getJobInformation( {'DiracJobId':147844677} )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value'] ) == 8 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value'] ) == 8 )
     
     retVal = self.bk.getJobInformation( {'DiracJobId':[147844677]} )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value'] ) == 8 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value'] ) == 8 )
     
     retVal = self.bk.getJobInformation( {'DiracJobId':[147844677, 147844677]} )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value'] ) == 8 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value'] ) == 8 )
     
   def test_getFileTypeVersion( self ):
     """
     test the file type version
     """
     retVal = self.bk.getFileTypeVersion( ['/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_8.digi', '/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_7.digi'] )
-    self.assert_( retVal['OK'] )
-    self.assert_( retVal['Value']['/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_8.digi'] )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( retVal['Value']['/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_8.digi'] )
     self.assertEqual( retVal['Value']['/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_8.digi'], 'ROOT' )
     
-    self.assert_( retVal['Value']['/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_7.digi'] )
+    self.assertTrue( retVal['Value']['/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_7.digi'] )
     self.assertEqual( retVal['Value']['/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_7.digi'], 'ROOT' )
   
   def test_getProductionOutputFileTypes1( self ):
     """test the visibility of the file types for a given production
     """
     retVal = self.bk.getProductionOutputFileTypes( {"Production" : self.production} )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertDictEqual( retVal['Value'], {'DIGI': 'N'} )
     
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Sim09b - 2012 - MU - Pythia8'} )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value']['Records'] ) > 0 )
     stepid = retVal['Value']['Records'][0][0] 
     retVal = self.bk.getProductionOutputFileTypes( {"Production" : self.production, "StepId":stepid} )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertDictEqual( retVal['Value'], {'SIM': 'N'} )
     
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Digi14a for 2012 (to use w Sim09)'} )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value']['Records'] ) > 0 )
     stepid = retVal['Value']['Records'][0][0]
     retVal = self.bk.getProductionOutputFileTypes( {"Production" : self.production, "StepId":stepid} )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertDictEqual( retVal['Value'], {'DIGI': 'N'} )
     
     
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-L0 emulation - TCK 003d'} )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value']['Records'] ) > 0 )
     stepid = retVal['Value']['Records'][0][0]
     retVal = self.bk.getProductionOutputFileTypes( {"Production" : self.production, "StepId":stepid} )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertDictEqual( retVal['Value'], {'DIGI': 'N'} )
     
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-TCK-0x4097003d Flagged MC - 2012 - to be used in multipleTCKs'} )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value']['Records'] ) > 0 )
     stepid = retVal['Value']['Records'][0][0]
     retVal = self.bk.getProductionOutputFileTypes( {"Production" : self.production, "StepId":stepid} )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertDictEqual( retVal['Value'], {'DIGI': 'N'} )
     
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Move TCK-0x4097003d from default location'} )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value']['Records'] ) > 0 )
     stepid = retVal['Value']['Records'][0][0]
     retVal = self.bk.getProductionOutputFileTypes( {"Production" : self.production, "StepId":stepid} )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertDictEqual( retVal['Value'], {'DIGI': 'N'} )
     
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-L0 emulation - TCK 0042'} )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value']['Records'] ) > 0 )
     stepid = retVal['Value']['Records'][0][0]
     retVal = self.bk.getProductionOutputFileTypes( {"Production" : self.production, "StepId":stepid} )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertDictEqual( retVal['Value'], {'DIGI': 'N'} )
     
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-TCK-0x40990042 Flagged MC - 2012 - to be used in multipleTCKs'} )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value']['Records'] ) > 0 )
     stepid = retVal['Value']['Records'][0][0]
     retVal = self.bk.getProductionOutputFileTypes( {"Production" : self.production, "StepId":stepid} )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertDictEqual( retVal['Value'], {'DIGI': 'N'} )
     
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Move TCK-0x40990042 from default location'} )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value']['Records'] ) > 0 )
     stepid = retVal['Value']['Records'][0][0]
     retVal = self.bk.getProductionOutputFileTypes( {"Production" : self.production, "StepId":stepid} )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertDictEqual( retVal['Value'], {'DIGI': 'N'} )
     
   def test_getProductionOutputFileTypes2( self ):
@@ -1992,26 +1992,26 @@ class MCProductionTest ( MCXMLReportInsert ):
     """
     
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Sim09b - 2012 - MU - Pythia8'} )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value']['Records'] ) > 0 )
     retVal = self.bk.getProductionOutputFileTypes( {"Production" : 3, 'StepId':retVal['Value']['Records'][0][0]} )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertDictEqual( retVal['Value'], {'SIM':'N'} )
     
     
     
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Digi14a for 2012 (to use w Sim09)'} )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value']['Records'] ) > 0 )
     retVal = self.bk.getProductionOutputFileTypes( {"Production" : 3, 'StepId':retVal['Value']['Records'][0][0]} )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertDictEqual( retVal['Value'], {'DIGI':'N'} )
     
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-TCK-0x40990042 Flagged MC - 2012 - to be used in multipleTCKs'} )
-    self.assert_( retVal['OK'] )
-    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    self.assertTrue( retVal['OK'] )
+    self.assertTrue( len( retVal['Value']['Records'] ) > 0 )
     retVal = self.bk.getProductionOutputFileTypes( {"Production" : 3, 'StepId':retVal['Value']['Records'][0][0]} )
-    self.assert_( retVal['OK'] )
+    self.assertTrue( retVal['OK'] )
     self.assertDictEqual( retVal['Value'], {'DIGI':'Y', 'XDIGI':'Y'} )
   
         

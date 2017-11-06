@@ -3,20 +3,21 @@
   The module also provides a function for printing pretty results from DMS queries
 """
 
-import DIRAC
-from DIRAC           import gLogger, gConfig
-from DIRAC.Core.Base import Script
 import os
 import sys
 import time
 
+import DIRAC
+from DIRAC import gLogger, gConfig
+from DIRAC.Core.Base import Script
+from DIRAC.DataManagementSystem.Utilities.DMSHelpers import resolveSEGroup
+
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
-from DIRAC.DataManagementSystem.Utilities.DMSHelpers import resolveSEGroup
 
 __RCSID__ = "$Id$"
 
-def __printDictionary( dictionary, offset = 0, shift = 0, empty = "Empty directory", depth = 9999 ):
+def __printDictionary( dictionary, offset=0, shift=0, empty="Empty directory", depth=9999 ):
   """ Dictionary pretty printing """
   key_max = 0
   value_max = 0
@@ -32,7 +33,7 @@ def __printDictionary( dictionary, offset = 0, shift = 0, empty = "Empty directo
         value = value.keys()
       elif value != {}:
         gLogger.notice( '%s%s : ' % ( offset * ' ', key ) )
-        __printDictionary( value, offset = newOffset, shift = shift, empty = empty, depth = depth - 1 )
+        __printDictionary( value, offset=newOffset, shift=shift, empty=empty, depth=depth - 1 )
       elif key not in ( 'Failed', 'Successful' ):
         gLogger.notice( '%s%s : %s' % ( offset * ' ', key, empty ) )
     if isinstance( value, ( list, set ) ):
@@ -45,24 +46,42 @@ def __printDictionary( dictionary, offset = 0, shift = 0, empty = "Empty directo
     elif not isinstance( value, dict ):
       gLogger.notice( '%s : %s' % ( str( key ).rjust( center ), str( value ) ) )
 
-def printDMResult( result, shift = 4, empty = "Empty directory", script = None, depth = 999, offset = 0 ):
+def printDMResult( result, shift=4, empty="Empty directory", script=None, depth=999, offset=0 ):
   """ Printing results returned with 'Successful' and 'Failed' items """
   if not script:
     script = Script.scriptName
   try:
     if result['OK']:
-      __printDictionary( result['Value'], offset = offset, shift = shift, empty = empty, depth = depth )
+      __printDictionary( result['Value'], offset=offset, shift=shift, empty=empty, depth=depth )
       return 0
     else:
       gLogger.notice( "Error in %s :" % script, result['Message'] )
       return 2
-  except:
-    gLogger.notice( "Exception while printing results in %s - Results:" % script )
+  except Exception as e:  # pylint: disable=broad-except
+    gLogger.notice( "Exception while printing results in %s - Results:" % script, repr( e ) )
     gLogger.notice( result )
     return 2
 
 class ProgressBar( object ):
-  def __init__( self, items, width = None, title = None, chunk = None, step = None, interactive = None ):
+  """
+  This object prints a title and a progress bar on stderr
+  """
+  def __init__( self, items, width=None, title=None, chunk=None, step=None, interactive=None ):
+    """
+
+    :param items: Number of items to enumerate
+    :type items: integer
+    :param width: width in co.lumns of the progress bar
+    :type width: int
+    :param title: Title of the progress bar
+    :type title: string
+    :param chunk: incremental value by which the counter is incremented (in number of items)
+    :type chunk: int
+    :param step: frequency at which the bar is updated
+    :type step: int
+    :param interactive: if False, no printout
+    :type interactive: boolean
+    """
     if title is None:
       title = ''
     else:
@@ -89,6 +108,9 @@ class ProgressBar( object ):
     self._backspace = 0
     self._writeTitle()
   def _writeTitle( self ):
+    """
+    Write the progress bar title to stderr
+    """
     if not self._interactive:
       return
     if self._showBar:
@@ -97,7 +119,12 @@ class ProgressBar( object ):
     else:
       sys.stderr.write( self._title )
     sys.stderr.flush()
-  def loop( self, increment = True ):
+  def loop( self, increment=True ):
+    """
+    Called at each iteration of the loop
+    If the iteration modulo "step" is 0, update the bar
+    Increment the counter of items by "chunk"
+    """
     if not self._interactive:
       return
     showBar = self._showBar and ( self._loopNumber % self._step ) == 0
@@ -125,7 +152,10 @@ class ProgressBar( object ):
       self._backspace = self._width + 8 - progress + len( estimate )
       self._progress = progress
       sys.stderr.flush()
-  def endLoop( self, message = None, timing = True ):
+  def endLoop( self, message=None, timing=True ):
+    """
+    Closes the progress bar, printing a message and/or the timing since the bar was created
+    """
     if not self._interactive:
       return
     if message is None:
@@ -139,51 +169,11 @@ class ProgressBar( object ):
       sys.stderr.write( ' in %.1f seconds' % ( time.time() - self._startTime ) )
     sys.stderr.write( '\n' )
     sys.stderr.flush()
-  def comment( self, message, optMsg = '' ):
+  def comment( self, message, optMsg='' ):
     fullMsg = '\n' + message + ' %s' % optMsg if optMsg else ''
     gLogger.notice( fullMsg )
     self._writeTitle()
-    self.loop( increment = False )
-
-
-class WithDots( object ):
-  """
-  WithDots class allows to print a message and a series of dots that are erased every 'chunk' times the loop() method is called.
-  The endLoop method prints out a completion message and possibly the timing between the creation of the object and now
-  """
-  def __init__( self, items, title = None, chunk = None, mindots = None ):
-    if title is None:
-      title = ''
-    else:
-      title += ' '
-    if chunk is None:
-      chunk = 1
-    if mindots is None:
-      mindots = 0
-    self._chunk = chunk
-    self._startTime = time.time()
-    ndots = int( ( items - 1 ) / chunk + 1 )
-    self._writeDots = bool( ndots > mindots )
-    if self._writeDots:
-      sys.stderr.write( '%s%s' % ( title, ndots * '.' ) )
-      sys.stderr.flush()
-    elif title:
-      gLogger.notice( title )
-    self._loopNumber = self._chunk
-  def loop( self ):
-    if self._writeDots:
-      if self._loopNumber == self._chunk:
-        self._loopNumber = 0
-        sys.stderr.write( '\b\033[K' )
-        sys.stderr.flush()
-      self._loopNumber += 1
-  def endLoop( self, timing = True ):
-    if self._writeDots:
-      sys.stderr.write( 'completed' )
-      if timing:
-        sys.stderr.write( ' (%.1f seconds)' % ( time.time() - self._startTime ) )
-      sys.stderr.write( '\n' )
-      sys.stderr.flush()
+    self.loop( increment=False )
 
 class DMScript( object ):
   """ DMScript is a class that creates default switches for DM scripts, decodes them and sets flags
@@ -192,32 +182,37 @@ class DMScript( object ):
   def __init__( self ):
     """ c'tor
     """
-    self.bkFields = [ "ConfigName", "ConfigVersion", "ConditionDescription", "ProcessingPass", "EventType", "FileType" ]
-    self.extraBKitems = [ "StartRun", "EndRun", "ProductionID" ]
-    self.bk = BookkeepingClient()
-    self.bkFileTypes = []
+    self.bkClient = BookkeepingClient()
     self.exceptFileTypes = []
-    self.prodCacheForBKQuery = {}
-    self.bkQuery = None
-    self.bkQueryDict = {}
+    self.bkClientQuery = None
+    self.bkClientQueryDict = {}
     self.options = {}
     self.lastFile = os.path.join( os.environ.get( 'TMPDIR', '/tmp' ), '%d.lastLFNs' % os.getppid() )
     self.setLastFile = False
     self.voName = None
 
   def __voName( self ):
+    """
+    Returns the name of the VO
+    """
     if self.voName is None:
       self.voName = gConfig.getValue( '/DIRAC/VirtualOrganization', '' )
     gLogger.verbose( 'VO', self.voName )
     return self.voName
 
   def registerDMSwitches( self ) :
+    """
+    Register switches related to data management, including BK
+    """
     self.registerBKSwitches()
     self.registerNamespaceSwitches()
     self.registerSiteSwitches()
     self.registerFileSwitches()
 
   def registerBKSwitches( self ):
+    """
+    Register switches related to bookkeeping
+    """
     # BK query switches
     Script.registerSwitch( "P:", "Productions=",
                            "   Production ID to search (comma separated list)", self.setProductions )
@@ -235,30 +230,35 @@ class DMScript( object ):
     Script.registerSwitch( '', 'TCK=', '   Get files with a given TCK', self.setTCK )
 
 
-  def registerNamespaceSwitches( self, action = 'search [ALL]' ):
-    ''' namespace switches '''
+  def registerNamespaceSwitches( self, action='search [ALL]' ):
+    """
+    Register namespace switches
+    """
     Script.registerSwitch( "D:", "Directory=", "   Directory to " + action, self.setDirectory )
 
   def registerSiteSwitches( self ):
-    ''' SE switches '''
+    """ SE switches """
     Script.registerSwitch( "g:", "Sites=", "  Sites to consider [ALL] (comma separated list)", self.setSites )
     Script.registerSwitch( "S:", "SEs=", "  SEs to consider [ALL] (comma separated list)", self.setSEs )
 
   def registerFileSwitches( self ):
-    ''' File switches '''
+    """ File switches """
     Script.registerSwitch( "", "File=", "File containing list of LFNs", self.setLFNsFromFile )
     Script.registerSwitch( "l:", "LFNs=", "List of LFNs (comma separated)", self.setLFNs )
     Script.registerSwitch( "", "Terminal", "LFNs are entered from stdin (--File /dev/stdin)", self.setLFNsFromTerm )
     Script.registerSwitch( "", "LastLFNs", "Use last set of LFNs", self.setLFNsFromLast )
 
   def registerJobsSwitches( self ):
-    ''' Job switches '''
+    """ Job switches """
     Script.registerSwitch( "", "File=", "File containing list of DIRAC jobIds", self.setJobidsFromFile )
     Script.registerSwitch( "j:", "DIRACJobids=", "List of DIRAC Jobids (comma separated)", self.setJobids )
     Script.registerSwitch( "", "Terminal",
                            "DIRAC Jobids are entered from stdin (--File /dev/stdin)", self.setJobidsFromTerm )
 
   def setProductions( self, arg ):
+    """
+    Parse production numbers
+    """
     prods = []
     if arg.upper() == "ALL":
       self.options['Productions'] = arg
@@ -272,51 +272,60 @@ class DMScript( object ):
         else:
           prods.append( prod )
       self.options['Productions'] = [int( prod ) for prod in prods]
-    except:
-      gLogger.error( "Invalid production switch value: %s" % arg )
+    except ValueError as e:
+      gLogger.error( "Invalid production switch value: %s" % arg, repr( e ) )
       self.options['Productions'] = ['Invalid']
       return DIRAC.S_ERROR()
     return DIRAC.S_OK()
 
   def setStartDate( self, arg ):
+    """ Setter """
     self.options['StartDate'] = arg
     return DIRAC.S_OK()
 
   def setEndDate( self, arg ):
+    """ Setter """
     self.options['EndDate'] = arg
     return DIRAC.S_OK()
 
   def setFileType( self, arg ):
+    """ Setter """
     fileTypes = arg.split( ',' )
     self.options['FileType'] = fileTypes
     return DIRAC.S_OK()
 
   def setExceptFileTypes( self, arg ):
+    """ Setter """
     self.exceptFileTypes += arg.split( ',' )
     return DIRAC.S_OK()
 
   def setBKQuery( self, arg ):
+    """ Setter """
     # BKQuery could either be a BK path or a file path that contains the BK items
-    self.bkQuery = None
-    self.bkQueryDict = {}
+    self.bkClientQuery = None
+    self.bkClientQueryDict = {}
     self.options['BKPath'] = arg
     return DIRAC.S_OK()
 
   def setRuns( self, arg ):
+    """ Setter """
     self.options['Runs'] = arg
     return DIRAC.S_OK()
 
   def setDQFlags( self, arg ):
+    """ Setter """
     dqFlags = arg.split( ',' )
     self.options['DQFlags'] = dqFlags
     return DIRAC.S_OK()
 
   def setTCK( self, arg ):
+    """ Setter """
     tcks = arg.split( ',' )
     self.options['TCK'] = tcks
     return DIRAC.S_OK()
 
   def setVisibility( self, arg ):
+    """ Setter """
     if arg.lower() in ( 'yes', 'no', 'all' ):
       self.options['Visibility'] = arg
     else:
@@ -325,6 +334,7 @@ class DMScript( object ):
     return DIRAC.S_OK()
 
   def setReplicaFlag( self, arg ):
+    """ Setter """
     if arg.lower() in ( 'yes', 'no', 'all' ):
       self.options['ReplicaFlag'] = arg
     else:
@@ -333,20 +343,20 @@ class DMScript( object ):
     return DIRAC.S_OK()
 
   def setDirectory( self, arg ):
+    """ Setter """
     if os.path.exists( arg ) and not os.path.isdir( arg ):
-      f = open( arg, 'r' )
-      directories = [line.split()[0] for line in f.read().splitlines() if line.strip()]
-      if arg:
-        f.close()
+      with open( arg, 'r' ) as inFile:
+        directories = [line.split()[0] for line in inFile.read().splitlines() if line.strip()]
     else:
       directories = arg.split( ',' )
     self.options.setdefault( 'Directory', set() ).update( directories )
     return DIRAC.S_OK()
 
   def setSites( self, arg ):
+    """ Setter """
     from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
     try:
-      siteShortNames = DMSHelpers().getShortSiteNames( withStorage = False, tier = ( 0, 1 ) )
+      siteShortNames = DMSHelpers().getShortSiteNames( withStorage=False, tier=( 0, 1 ) )
     except AttributeError:
       siteShortNames = { 'CERN':'LCG.CERN.cern', 'CNAF':'LCG.CNAF.it', 'GRIDKA':'LCG.GRIDKA.de',
                          'NIKHEF':'LCG.NIKHEF.nl', 'SARA':'LCG.SARA.nl', 'PIC':'LCG.PIC.es',
@@ -356,20 +366,28 @@ class DMScript( object ):
     return DIRAC.S_OK()
 
   def setSEs( self, arg ):
+    """ Setter """
     self.options['SEs'] = arg.split( ',' )
     return DIRAC.S_OK()
 
   def setLFNs( self, arg ):
+    """ Setter """
     if arg:
       self.options.setdefault( 'LFNs', set() ).update( arg.split( ',' ) )
     return DIRAC.S_OK()
 
-  def setLFNsFromTerm( self, arg = None ):
+  def setLFNsFromTerm( self, arg=None ):
+    """ Setter """
     return self.setLFNsFromFile( arg )
 
-  def getLFNsFromList( self, lfns, directories = False ):
+  def getLFNsFromList( self, lfns, directories=False ):
+    """
+    Returns a list of LFNs from a list of strings
+    LFNs start with the last occurence of /<vo>/ in the file name and ends with a set of delimiters
+    If directories is True, only normalized directories (ending with a "/" are returned
+    """
     if isinstance( lfns, basestring ):
-      lfnList = lfns.split( ',' )
+      lfnList = lfns.strip().split( ',' )
     elif isinstance( lfns , ( list, set, dict ) ):
       lfnList = [lfn.strip() for lfn1 in lfns for lfn in lfn1.split( ',' )]
     else:
@@ -381,7 +399,10 @@ class DMScript( object ):
       lfnList = [l.split( 'LFN:' )[-1].strip() for l in lfnList]
       for sep in ( '"', ',', "'", ':', '(', ')', ';', '|' ):
         lfnList = [l.replace( sep, ' ' ) for l in lfnList]
-      lfnList = [ vo + lfn.split( vo )[-1].split()[0] if vo in lfn else lfn if lfn == vo[:-1] else '' for lfn in lfnList]
+      lfnList = [ vo + lfn.split( vo )[-1].split()[0]
+                 if vo in lfn
+                 else lfn if lfn == vo[:-1] else ''
+                 for lfn in lfnList]
       lfnList = [lfn.split( '?' )[0] for lfn in lfnList]
       lfnList = [lfn for lfn in lfnList if lfn.endswith( '/' )] if directories else \
                 [lfn for lfn in lfnList if not lfn.endswith( '/' )]
@@ -394,17 +415,24 @@ class DMScript( object ):
     if isinstance( jobids, basestring ):
       jobidsList = jobids.split( ',' )
     elif isinstance( jobids, list ):
-      jobidsList = [lfn for lfn1 in jobids for lfn in lfn1.split( ',' )]
-    jobidsList = [ jobid for jobid in jobidsList if jobid != '']
+      jobidsList = [jobid for jobid1 in jobids for jobid in jobid1.split( ',' )]
+    jobidsList = [ jobid for jobid in jobidsList if jobid]
     return jobidsList
 
   def setLFNsFromLast( self, _val ):
+    """
+    Setter when --Last is used
+    """
     if os.path.exists( self.lastFile ):
       return self.setLFNsFromFile( self.lastFile )
     gLogger.fatal( 'Last file %s does not exist' % self.lastFile )
     DIRAC.exit( 2 )
 
   def setLFNsFromFile( self, arg ):
+    """
+    Reads the content of a file or from stdin (in which case a temporary file will be created)
+    LFNs are not parsed at this stage
+    """
     if isinstance( arg, basestring ) and arg.lower() == 'last':
       arg = self.lastFile
     # Make a list of files
@@ -417,12 +445,10 @@ class DMScript( object ):
     nfiles = 0
     for fName in files:
       try:
-        f = open( fName, 'r' ) if fName else sys.stdin
-        lfns = f.read().splitlines()
-        if fName:
-          f.close()
+        with open( fName if fName else '/dev/stdin', 'r' ) as inFile:
+          lfns = inFile.read().splitlines()
         nfiles += len( lfns )
-      except:
+      except ( EOFError, IOError ):
         lfns = fName.split( ',' )
       self.options.setdefault( 'LFNs', set() ).update( lfns )
     if nfiles:
@@ -430,61 +456,76 @@ class DMScript( object ):
     return DIRAC.S_OK()
 
   def getOptions( self ):
+    """ Returns all options """
     return self.options
 
-  def getOption( self, switch, default = None ):
+  def getOption( self, switch, default=None ):
+    """
+    Get a specific items set by the setters
+    """
     if switch == 'SEs':
+      # SEs have to be resolved recursively using StorageElementGroups
       return resolveSEGroup( self.options.get( switch, default ) )
     value = self.options.get( switch, default )
     if switch in ( 'LFNs', 'Directory' ):
+      # Special case for getting LFNs or directories: parse the option
       if value == default and switch == 'Directory':
         value = self.options.get( 'LFNs', default )
       if not value:
         if not sys.stdin.isatty():
+          # If the input file is a pipe, no need to specify it
           self.setLFNsFromTerm()
           value = self.options.get( 'LFNs', default )
       if value:
-        value = self.getLFNsFromList( value, directories = switch == 'Directory' )
+        # Parse the LFNs out of the "LFNs" option list
+        value = self.getLFNsFromList( value, directories=switch == 'Directory' )
       if value and self.setLastFile and switch == 'LFNs':
+        # Storethe list of LFNs in a temporary file
         gLogger.always( "Got %d LFNs" % len( value ) )
         if self.setLastFile != self.lastFile:
           self. setLastFile = False
-          open( self.lastFile, 'w' ).write( '\n'.join( sorted( value ) ) )
+          with open( self.lastFile, 'w' ) as tmpFile:
+            tmpFile.write( '\n'.join( sorted( value ) ) )
     if isinstance( value, set ):
+      # Return a sorted list from a set
       value = sorted( value )
     return value
 
-  def getBKQuery( self, visible = None ):
+  def getBKQuery( self, visible=None ):
+    """
+    Returns a BKQuery object from the requested BK information
+    """
     mandatoryKeys = { 'ConfigName', 'ConfigVersion', 'Production' }
-    if self.bkQuery:
-      return self.bkQuery
-    if self.bkQueryDict:
-      self.bkQuery = BKQuery( self.bkQueryDict )
+    if self.bkClientQuery:
+      return self.bkClientQuery
+    if self.bkClientQueryDict:
+      self.bkClientQuery = BKQuery( self.bkClientQueryDict )
     else:
-      visible = self.options.get( 'Visibility', 'Yes' ) if visible == None else visible
+      visible = self.options.get( 'Visibility', 'Yes' ) if visible is None else visible
       bkPath = self.options.get( 'BKPath' )
       prods = self.options.get( 'Productions' )
       runs = self.options.get( 'Runs' )
       fileTypes = self.options.get( 'FileType' )
-      self.bkQuery = BKQuery( bkPath, prods, runs, fileTypes, visible )
-    bkQueryDict = self.bkQuery.getQueryDict()
+      self.bkClientQuery = BKQuery( bkPath, prods, runs, fileTypes, visible )
+    bkQueryDict = self.bkClientQuery.getQueryDict()
     if not set( bkQueryDict ) & mandatoryKeys:
-      self.bkQuery = None
+      self.bkClientQuery = None
       return None
-    self.bkQuery.setExceptFileTypes( self.exceptFileTypes )
+    # Add extra requirements
+    self.bkClientQuery.setExceptFileTypes( self.exceptFileTypes )
     if 'DQFlags' in self.options:
-      self.bkQuery.setDQFlag( self.options['DQFlags'] )
+      self.bkClientQuery.setDQFlag( self.options['DQFlags'] )
     if 'StartDate' in self.options:
-      self.bkQuery.setOption( 'StartDate', self.options['StartDate'] )
+      self.bkClientQuery.setOption( 'StartDate', self.options['StartDate'] )
     if 'EndDate' in self.options:
-      self.bkQuery.setOption( 'EndDate', self.options['EndDate'] )
+      self.bkClientQuery.setOption( 'EndDate', self.options['EndDate'] )
     if 'ReplicaFlag' in self.options:
-      self.bkQuery.setOption( 'ReplicaFlag', self.options['ReplicaFlag'] )
+      self.bkClientQuery.setOption( 'ReplicaFlag', self.options['ReplicaFlag'] )
     if 'TCK' in self.options:
-      self.bkQuery.setOption( 'TCK', self.options['TCK'] )
-    return self.bkQuery
+      self.bkClientQuery.setOption( 'TCK', self.options['TCK'] )
+    return self.bkClientQuery
 
-  def getRequestID( self, prod = None ):
+  def getRequestID( self, prod=None ):
     """ Get the request ID for a single production """
     from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
     if not prod:
@@ -505,12 +546,10 @@ class DMScript( object ):
     NOTE: The file format is equivalent to the file format when the content is
     a list of LFNs."""
     try:
-      in_file = open( arg, 'r' ) if arg else sys.stdin
-      jobids = self.getJobIDsFromList( in_file.read().splitlines() )
-      if arg:
-        in_file.close()
-    except IOError, error:
-      gLogger.exception( 'Reading jobids from a file is failed with exception: "%s"' % error )
+      with open( arg if arg else '/dev/stdin', 'r' ) as inFile:
+        jobids = self.getJobIDsFromList( inFile.read().splitlines() )
+    except IOError as error:
+      gLogger.exception( 'Reading jobids from a file is failed with exception:', repr( error ) )
       jobids = self.getJobIDsFromList( arg )
     self.options.setdefault( 'JobIDs', set() ).update( jobids )
     return DIRAC.S_OK()

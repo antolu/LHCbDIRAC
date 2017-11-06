@@ -37,7 +37,7 @@ class JobStepPlotterTestCase( unittest.TestCase ):
     
     # And then makes its own mock
     class MockJobStep:
-      #pylint: disable=missing-docstring,min-public-methods,no-init
+      #pylint: disable=missing-docstring,no-init
       definitionKeyFields = ( 'JobGroup', 'RunNumber', 'EventType', 'ProcessingType',
                               'ProcessingStep', 'Site', 'FinalStepState' )
     
@@ -279,4 +279,10 @@ class JobStepPlotterUnitTest( JobStepPlotterTestCase ):
   #FIXME: add crashes !
 
 ################################################################################
+
+if __name__ == '__main__':
+  suite = unittest.defaultTestLoader.loadTestsFromTestCase( JobStepPlotterTestCase )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( JobStepPlotterUnitTest ) )
+  testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
+
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

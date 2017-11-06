@@ -11,7 +11,7 @@ import datetime
 import pickle
 import Queue
 
-from DIRAC                                                                import S_OK, gLogger
+from DIRAC                                                                import S_OK
 from DIRAC.Core.Base.AgentModule                                          import AgentModule
 from DIRAC.Core.Utilities.ThreadPool                                      import ThreadPool
 from DIRAC.Core.Utilities.ThreadSafe                                      import Synchronizer
@@ -77,7 +77,8 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
     self.pickleFile = os.path.join( self.am_getWorkDirectory(), self.pickleFile )
     self.chunkSize = self.am_getOption( 'maxFilesPerChunk', self.chunkSize )
 
-    self.pluginsWithNoRunInfo = Operations().getValue( 'TransformationPlugins/PluginsWithNoRunInfo', self.pluginsWithNoRunInfo )
+    self.pluginsWithNoRunInfo = Operations().getValue( 'TransformationPlugins/PluginsWithNoRunInfo',
+                                                       self.pluginsWithNoRunInfo )
 
     self._logInfo( 'Full Update Period: %d seconds' % self.fullUpdatePeriod )
     self._logInfo( 'BK update latency : %d seconds' % self.bkUpdateLatency )
@@ -92,7 +93,7 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
         self.fullTimeLog = pickle.load( pf )
         self.bkQueries = pickle.load( pf )
       self._logInfo( "successfully loaded Log from", self.pickleFile, "initialize" )
-    except:
+    except ( EOFError, IOError ):
       self._logInfo( "failed loading Log from", self.pickleFile, "initialize" )
       self.timeLog = {}
       self.fullTimeLog = {}
@@ -133,7 +134,7 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
 
     gMonitor.addMark( 'Iteration', 1 )
     # Get all the transformations
-    result = self.transClient.getTransformations( condDict = {'Status':['Active', 'Idle']} )
+    result = self.transClient.getTransformations( condDict={'Status':['Active', 'Idle']} )
     if not result['OK']:
       self._logError( "Failed to get transformations.", result['Message'] )
       return S_OK()
@@ -172,17 +173,17 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
         self.transInThread[transID] = ' [Thread%d] [%s] ' % ( threadID, str( transID ) )
 
         startTime = time.time()
-        self._logInfo( "Processing transformation %s." % transID, transID = transID )
+        self._logInfo( "Processing transformation %s." % transID, transID=transID )
 
-        res = self.transClient.getTransformation( transID, extraParams = False )
+        res = self.transClient.getTransformation( transID, extraParams=False )
         if not res['OK']:
-          self._logError( "Failed to get transformation", res['Message'], transID = transID )
+          self._logError( "Failed to get transformation", res['Message'], transID=transID )
           continue
         transPlugin = res['Value']['Plugin']
 
         res = self.transClient.getBookkeepingQuery( transID )
         if not res['OK']:
-          self._logError( "Failed to get BkQuery", res['Message'], transID = transID )
+          self._logError( "Failed to get BkQuery", res['Message'], transID=transID )
           continue
         bkQuery = res[ 'Value' ]
 
@@ -205,10 +206,10 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
         for lfnChunk in breakListIntoChunks( files, self.chunkSize ):
           start = time.time()
           res = self.bkClient.getFileMetadata( lfnChunk )
-          self._logVerbose( "Got metadata from BK for %d files" % len( lfnChunk ), transID = transID, reftime = start )
+          self._logVerbose( "Got metadata from BK for %d files" % len( lfnChunk ), transID=transID, reftime=start )
           if not res['OK']:
             self._logError( "Failed to get BK metadata for %d files" % len( lfnChunk ),
-                            res['Message'], transID = transID )
+                            res['Message'], transID=transID )
             # No need to return as we only consider files that are successful...
           else:
             filesMetadata.update( res['Value']['Successful'] )
@@ -222,7 +223,10 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
           try:
             self.__addRunsMetadata( transID, runDict.keys() )
           except RuntimeError as e:
-            self._logException( "Failure adding runs metadata", method = "__addRunsMetadata", lException = e, transID = transID )
+            self._logException( "Failure adding runs metadata",
+                                method="__addRunsMetadata",
+                                lException=e,
+                                transID=transID )
         else:
           runDict[None] = filesMetadata.keys()
 
@@ -233,11 +237,11 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
           lfnChunks = [lfnList] if runID else breakListIntoChunks( lfnList, self.chunkSize )
           for lfnChunk in lfnChunks:
             # Add the files to the transformation
-            self._logVerbose( 'Adding %d lfns for transformation' % len( lfnChunk ), transID = transID )
+            self._logVerbose( 'Adding %d lfns for transformation' % len( lfnChunk ), transID=transID )
             result = self.transClient.addFilesToTransformation( transID, lfnChunk )
             if not result['OK']:
               self._logError( "Failed to add %d lfns to transformation" % len( lfnChunk ), result['Message'],
-                             transID = transID )
+                             transID=transID )
               return result
             else:
               # Handle errors
@@ -245,13 +249,15 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
               for lfn, error in result['Value']['Failed'].iteritems():
                 errors.setdefault( error, [] ).append( lfn )
               for error, lfns in errors.iteritems():
-                self._logWarn( "Failed to add files to transformation", error, transID = transID )
+                self._logWarn( "Failed to add files to transformation", error, transID=transID )
                 self._logVerbose( "\n\t".join( [''] + lfns ) )
               # Add the metadata and RunNumber to the newly inserted files
               addedLfns = [lfn for ( lfn, status ) in result['Value']['Successful'].iteritems() if status == 'Added']
               if addedLfns:
                 # Add files metadata: size and file type
-                lfnDict = dict( ( lfn, {'Size':filesMetadata[lfn]['FileSize'], 'FileType':filesMetadata[lfn]['FileType']} ) for lfn in addedLfns )
+                lfnDict = dict( ( lfn, {'Size':filesMetadata[lfn]['FileSize'],
+                                        'FileType':filesMetadata[lfn]['FileType']} )
+                               for lfn in addedLfns )
                 res = self.transClient.setParameterToTransformationFiles( transID, lfnDict )
                 if not res['OK']:
                   self._logError( "Failed to set transformation files metadata", res['Message'] )
@@ -259,20 +265,23 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
                 # Add run information if it exists
                 if runID:
                   self._logInfo( "Added %d files to transformation for run %d, now including run information"
-                                 % ( len( addedLfns ), runID ) , transID = transID )
-                  self._logVerbose( "Associating %d files to run %d" % ( len( addedLfns ), runID ), transID = transID )
+                                 % ( len( addedLfns ), runID ) , transID=transID )
+                  self._logVerbose( "Associating %d files to run %d" % ( len( addedLfns ), runID ), transID=transID )
                   res = self.transClient.addTransformationRunFiles( transID, runID, addedLfns )
                   if not res['OK']:
                     self._logError( "Failed to associate %d files to run %d" % ( len( addedLfns ), runID ),
-                                   res['Message'], transID = transID )
+                                   res['Message'], transID=transID )
                     return res
                 else:
-                  self._logInfo( "Added %d files to transformation" % len( addedLfns ) , transID = transID )
+                  self._logInfo( "Added %d files to transformation" % len( addedLfns ) , transID=transID )
 
       except Exception as x:  # pylint: disable=broad-except
-        self._logException( 'Exception while adding files to transformation', lException = x, method = '_execute', transID = transID )
+        self._logException( 'Exception while adding files to transformation',
+                            lException=x,
+                            method='_execute',
+                            transID=transID )
       finally:
-        self._logInfo( "Processed transformation", transID = transID, reftime = startTime )
+        self._logInfo( "Processed transformation", transID=transID, reftime=startTime )
         if transID in self.bkQueriesInCheck:
           self.bkQueriesInCheck.remove( transID )
         self.transInThread.pop( transID, None )
@@ -291,30 +300,34 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
     self.bkQueries[transID] = bkQuery.copy()
     if transID in self.timeLog \
     and bkQueryLog == bkQuery \
-    and  ( now - fullTimeLog ) < datetime.timedelta( seconds = self.fullUpdatePeriod ):
+    and  ( now - fullTimeLog ) < datetime.timedelta( seconds=self.fullUpdatePeriod ):
       # If it is more than a day since the last reduced query, make a full query just in case
       timeStamp = self.timeLog[transID]
-      bkQuery['StartDate'] = ( timeStamp - datetime.timedelta( seconds = self.bkUpdateLatency ) ).strftime( '%Y-%m-%d %H:%M:%S' )
+      delta = datetime.timedelta( seconds=self.bkUpdateLatency )
+      bkQuery['StartDate'] = ( timeStamp - delta ).strftime( '%Y-%m-%d %H:%M:%S' )
     if 'StartDate' not in bkQuery:
       self.fullTimeLog[transID] = now
 
   def __getFiles( self, transID, bkQuery, now ):
     """ Perform the query to the Bookkeeping
     """
-    self._logInfo( "Using BK query for transformation: %s" % str( bkQuery ), transID = transID )
+    self._logInfo( "Using BK query for transformation: %s" % str( bkQuery ), transID=transID )
     start = time.time()
     result = self.bkClient.getFiles( bkQuery )
-    self._logVerbose( "BK query time: %.2f seconds." % ( time.time() - start ), transID = transID )
+    self._logVerbose( "BK query time: %.2f seconds." % ( time.time() - start ), transID=transID )
     if not result['OK']:
       raise RuntimeError( result['Message'] )
     else:
       self.__updateTimeStamp( transID, now )
       if result['Value']:
-        self._logInfo( "Obtained %d files from BK" % len( result['Value'] ), transID = transID )
+        self._logInfo( "Obtained %d files from BK" % len( result['Value'] ), transID=transID )
       return result['Value']
 
   @gSynchro
   def __updateTimeStamp( self, transID, now ):
+    """
+    Update time stamp for current transformation to now
+    """
     self.timeLog[transID] = now
 
   def __addRunsMetadata( self, transID, runsList ):
@@ -325,7 +338,7 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
       raise RuntimeError( runsInCache['Message'] )
     newRuns = list( set( runsList ) - set( runsInCache['Value'] ) )
     if newRuns:
-      self._logVerbose( "Associating run metadata to %d runs" % len( newRuns ), transID = transID )
+      self._logVerbose( "Associating run metadata to %d runs" % len( newRuns ), transID=transID )
       res = self.bkClient.getRunInformation( {'RunNumber':newRuns, 'Fields':['TCK', 'CondDb', 'DDDB']} )
       if not res['OK']:
         raise RuntimeError( res['Message'] )
@@ -340,7 +353,7 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
       raise RuntimeError( runsInCache['Message'] )
     newRuns = list( set( runsList ) - set( runsInCache['Value'] ) )
     if newRuns:
-      self._logVerbose( "Associating run duration to %d runs" % len( newRuns ), transID = transID )
+      self._logVerbose( "Associating run duration to %d runs" % len( newRuns ), transID=transID )
       res = self.bkClient.getRunInformation( {'RunNumber':newRuns, 'Fields':['JobStart', 'JobEnd']} )
       if not res['OK']:
         raise RuntimeError( res['Message'] )

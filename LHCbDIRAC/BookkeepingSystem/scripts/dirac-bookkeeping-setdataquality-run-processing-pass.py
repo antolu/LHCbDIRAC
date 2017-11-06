@@ -8,24 +8,26 @@ Parameters:
 """
 
 import DIRAC
-from DIRAC           import gLogger
+from DIRAC import gLogger
 from DIRAC.Core.Base import Script
 
 ################################################################################
 #                                                                              #
-# GetProcessingPasses:                                                         #
+# getProcessingPasses:                                                         #
 #                                                                              #
 # Find all known processing passes for the selected configurations.            #
 #                                                                              #
 ################################################################################
-def GetProcessingPasses( bkDict, headPass ):
+
+
+def getProcessingPasses(bkDict, headPass):
   passes = {}
-  res = bkClient.getProcessingPass( bkDict, headPass )
+  res = bkClient.getProcessingPass(bkDict, headPass)
   if not res['OK']:
-    gLogger.error( 'Cannot load the processing passes for head % in Version %s Data taking condition %s' % ( 
-      headPass, bkDict['ConfigVersion'], bkDict['ConditionDescription'] ) )
-    gLogger.error( res['Message'] )
-    DIRAC.exit( 2 )
+    gLogger.error('Cannot load the processing passes for head % in Version %s Data taking condition %s' % (
+        headPass, bkDict['ConfigVersion'], bkDict['ConditionDescription']))
+    gLogger.error(res['Message'])
+    DIRAC.exit(2)
 
   for recordList in res['Value']:
     if recordList['TotalRecords'] == 0:
@@ -33,7 +35,7 @@ def GetProcessingPasses( bkDict, headPass ):
     parNames = recordList['ParameterNames']
 
     found = False
-    for thisId in xrange( len( parNames ) ):
+    for thisId in xrange(len(parNames)):
       parName = parNames[thisId]
       if parName == 'Name':
           found = True
@@ -42,7 +44,7 @@ def GetProcessingPasses( bkDict, headPass ):
       for reco in recordList['Records']:
         recoName = headPass + '/' + reco[0]
         passes[recoName] = True
-        passes.update( GetProcessingPasses( bkDict, recoName ) )
+        passes.update(getProcessingPasses(bkDict, recoName))
 
   return passes
 ################################################################################
@@ -51,17 +53,18 @@ def GetProcessingPasses( bkDict, headPass ):
 #                                                                              #
 ################################################################################
 
-Script.setUsageMessage( 'Usage: %s <Processing Pass> <run> <status> <flag>' % ( Script.scriptName ) )
+
+Script.setUsageMessage('Usage: %s <Processing Pass> <run> <status> <flag>' % (Script.scriptName))
 Script.parseCommandLine()
 args = Script.getPositionalArgs()
-if len( args ) < 3:
+if len(args) < 3:
   Script.showHelp()
-  DIRAC.exit( 2 )
+  DIRAC.exit(2)
 
 exitCode = 0
 
 realData = '/Real Data'
-processing = args[0].replace( '/RealData', realData )
+processing = args[0].replace('/RealData', realData)
 if processing == '':
   processing = realData
 run = args[1]
@@ -77,57 +80,56 @@ flag = args[2]
 
 if realData not in processing:
   print 'You forgot /Real Data in the processing pass:  ', processing
-  DIRAC.exit( 2 )
+  DIRAC.exit(2)
 #
 # Make sure it is a known processing pass
 #
-irun = int( run )
+irun = int(run)
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 bkClient = BookkeepingClient()
-res = bkClient.getRunInformations( irun )
+res = bkClient.getRunInformations(irun)
 if not res['OK']:
-  gLogger.error( 'Cannot load the information for run %s' % ( run ) )
-  gLogger.error( res['Message'] )
-  DIRAC.exit( 2 )
+  gLogger.error('Cannot load the information for run %s' % (run))
+  gLogger.error(res['Message'])
+  DIRAC.exit(2)
 
 dtd = res['Value']['DataTakingDescription']
 configName = res['Value']['Configuration Name']
 configVersion = res['Value']['Configuration Version']
 
-bkDict = {'ConfigName'           : configName,
-          'ConfigVersion'        : configVersion,
-          'ConditionDescription' : dtd}
+bkDict = {'ConfigName': configName,
+          'ConfigVersion': configVersion,
+          'ConditionDescription': dtd}
 
 if processing != realData:
-  knownPasses = GetProcessingPasses( bkDict, '' )
+  knownPasses = getProcessingPasses(bkDict, '')
   if processing not in knownPasses:
-    gLogger.error( "%s is not a valid processing pass." % ( processing ) )
-    DIRAC.exit( 2 )
+    gLogger.error("%s is not a valid processing pass." % (processing))
+    DIRAC.exit(2)
 
-recoPasses = GetProcessingPasses( bkDict, processing )
+recoPasses = getProcessingPasses(bkDict, processing)
 if realData in recoPasses:
-  recoPasses.remove( realData )
+  recoPasses.pop(realData)
 
 # Flag the run realData first
 
-res = bkClient.setRunAndProcessingPassDataQuality( run, realData, flag )
+res = bkClient.setRunAndProcessingPassDataQuality(run, realData, flag)
 
 if not res['OK']:
   print res['Message']
-  DIRAC.exit( 2 )
+  DIRAC.exit(2)
 else:
-  print 'Run %s RAW files flagged %s' % ( run, flag )
+  print 'Run %s RAW files flagged %s' % (run, flag)
 
 # Now the reconstruction and stripping processing passes
 for thisPass in recoPasses:
-  res = bkClient.setRunAndProcessingPassDataQuality( run, thisPass, flag )
+  res = bkClient.setRunAndProcessingPassDataQuality(run, thisPass, flag)
 
   if not res['OK']:
     print res['Message']
-    DIRAC.exit( 2 )
+    DIRAC.exit(2)
   else:
-    print 'Run %s Processing Pass %s flagged %s' % ( run, thisPass, flag )
+    print 'Run %s Processing Pass %s flagged %s' % (run, thisPass, flag)
 
-DIRAC.exit( 0 )
-
+DIRAC.exit(0)

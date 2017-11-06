@@ -136,6 +136,70 @@ function findRelease(){
 }
 
 
+
+#-------------------------------------------------------------------------------
+# diracServices:
+#
+#   specialized, for fixing BKK DB
+#
+#-------------------------------------------------------------------------------
+
+diracServices(){
+  echo '==> [diracServices]'
+
+  services=`cat services | cut -d '.' -f 1 | grep -v IRODSStorageElementHandler | grep -v ^ConfigurationSystem | grep -v Plotting | grep -v RAWIntegrity | grep -v RunDBInterface | grep -v ComponentMonitoring | grep -v WMSSecureGW | sed 's/System / /g' | sed 's/Handler//g' | sed 's/ /\//g'`
+
+  for serv in $services
+  do
+
+    if [ "$serv" == "Bookkeeping/BookkeepingManager" ]
+    then
+      # start BKK DB setup
+      setupBKKDB
+      wget http://lhcb-portal-dirac.cern.ch/defaults/cx_Oracle-5.1.tar.gz -O cx_Oracle-5.1.tar.gz
+      source /afs/cern.ch/project/oracle/script/setoraenv.sh
+      # -s 11203
+      export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/afs/cern.ch/project/oracle/amd64_linux26/prod/lib/
+      python `which easy_install` cx_Oracle-5.1.tar.gz
+      # end BKK DB setup
+    fi
+
+    echo '==> calling dirac-install-component' $serv $DEBUG
+    dirac-install-component $serv $DEBUG
+  done
+
+}
+
+
+#-------------------------------------------------------------------------------
+# diracAgents:
+#
+#   specialized, just adding some more agents to exclude
+#
+#-------------------------------------------------------------------------------
+
+diracAgents(){
+  echo '==> [diracAgents]'
+
+  agents=`cat agents | cut -d '.' -f 1 | grep -v LFC | grep -v MyProxy | grep -v CAUpdate | grep -v CE2CSAgent.py | grep -v GOCDB2CS | grep -v Bdii2CS | grep -v CacheFeeder | grep -v NetworkAgent | grep -v FrameworkSystem | grep -v DiracSiteAgent | grep -v StatesMonitoringAgent | grep -v DataProcessingProgressAgent | grep -v RAWIntegrityAgent  | grep -v GridSiteWMSMonitoringAgent | grep -v HCAgent | grep -v GridCollectorAgent | grep -v HCProxyAgent | grep -v Nagios | grep -v AncestorFiles | grep -v BKInputData | grep -v LHCbPRProxyAgent | grep -v StorageUsageAgent | grep -v PopularityAnalysisAgent | grep -v SEUsageAgent | grep -v NotifyAgent | grep -v TargzJobLogAgent | grep -v ShiftDBAgent | sed 's/System / /g' | sed 's/ /\//g'`
+
+  for agent in $agents
+  do
+    if [[ $agent == *" JobAgent"* ]]
+    then
+      echo '==> '
+    else
+      echo '==> calling dirac-cfg-add-option agent' $agent
+      python $TESTCODE/DIRAC/tests/Jenkins/dirac-cfg-add-option.py agent $agent
+      echo '==> calling dirac-agent' $agent -o MaxCycles=1 $DEBUG
+      dirac-agent $agent  -o MaxCycles=1 $DEBUG
+    fi
+  done
+
+}
+
+
+
 #.............................................................................
 #
 # diracInstallCommand:
@@ -146,7 +210,7 @@ function findRelease(){
 #.............................................................................
 
 function diracInstallCommand(){
-  $SERVERINSTALLDIR/dirac-install -l LHCb -r `cat project.version` -e LHCb -t server $DEBUG
+  $SERVERINSTALLDIR/dirac-install -l LHCb -r `cat project.version` -e LHCb -t fullserver $DEBUG
 }
 
 # Getting a CFG file for the installation: Specialized command

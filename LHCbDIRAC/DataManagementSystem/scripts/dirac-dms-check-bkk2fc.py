@@ -19,19 +19,18 @@ __RCSID__ = "$Id$"
 if __name__ == '__main__':
 
   # Script initialization
-  from DIRAC.Core.Base import Script
-  from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
+  from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, Script
   from DIRAC import gLogger
 
-  Script.setUsageMessage( '\n'.join( [ __doc__,
-                                       'Usage:',
-                                       '  %s [option|cfgfile] [values]' % Script.scriptName, ] ) )
+  Script.setUsageMessage('\n'.join([__doc__,
+                                    'Usage:',
+                                    '  %s [option|cfgfile] [values]' % Script.scriptName, ]))
   dmScript = DMScript()
   dmScript.registerBKSwitches()
   dmScript.registerFileSwitches()
-  Script.registerSwitch( '', 'FixIt', '   Take action to fix the catalogs' )
-  Script.registerSwitch( '', 'CheckAllFlags', '   Consider also files with replica flag NO' )
-  Script.parseCommandLine( ignoreErrors = True )
+  Script.registerSwitch('', 'FixIt', '   Take action to fix the catalogs')
+  Script.registerSwitch('', 'CheckAllFlags', '   Consider also files with replica flag NO')
+  Script.parseCommandLine(ignoreErrors=True)
 
   fixIt = False
   checkAll = False
@@ -44,19 +43,19 @@ if __name__ == '__main__':
 
   # imports
   from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
-  gLogger.setLevel( 'INFO' )
+  gLogger.setLevel('INFO')
   cc = ConsistencyChecks()
-  bkQuery = dmScript.getBKQuery( visible = 'All' )
+  bkQuery = dmScript.getBKQuery(visible='All')
   cc.bkQuery = bkQuery
-  cc.lfns = dmScript.getOption( 'LFNs', [] )
-  productions = dmScript.getOption( 'Productions', [] )
+  cc.lfns = dmScript.getOption('LFNs', [])
+  productions = dmScript.getOption('Productions', [])
 
   from LHCbDIRAC.DataManagementSystem.Client.CheckExecutors import doCheckBK2FC
   if productions:
     for prod in productions:
       cc.prod = prod
-      gLogger.always( "Processing production %d" % cc.prod )
-      doCheckBK2FC( cc, checkAll, fixIt )
-      gLogger.always( "Processed production %d" % cc.prod )
+      gLogger.always("Processing production %d" % cc.prod)
+      doCheckBK2FC(cc, checkAll, fixIt)
+      gLogger.always("Processed production %d" % cc.prod)
   else:
-    doCheckBK2FC( cc, checkAll, fixIt )
+    doCheckBK2FC(cc, checkAll, fixIt)

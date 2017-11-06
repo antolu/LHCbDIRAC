@@ -40,9 +40,8 @@ class NotifyAgent( AgentModule ):
     ''' NotifyAgent initialization
     '''
 
-    with sqlite3.connect(self.cacheFile) as conn:
-
-      try:
+    try:
+      with sqlite3.connect(self.cacheFile) as conn:
         conn.execute('''CREATE TABLE IF NOT EXISTS ProductionManagementCache(
                       reqId VARCHAR(64) NOT NULL DEFAULT "",
                       reqType VARCHAR(64) NOT NULL DEFAULT "",
@@ -53,9 +52,8 @@ class NotifyAgent( AgentModule ):
                       thegroup VARCHAR(64) NOT NULL DEFAULT "",
                       reqInform VARCHAR(64) NOT NULL DEFAULT ""
                      );''')
-
-      except sqlite3.OperationalError:
-        self.log.error('Email cache database is locked')
+    except sqlite3.OperationalError:
+      self.log.error('Email cache database is locked')
 
     self.diracAdmin = DiracAdmin()
 

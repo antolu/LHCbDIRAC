@@ -59,7 +59,7 @@ def __getTransformations( args ):
           else:
             gLogger.error( "Transformation not found", r[0] )
     except Exception as e:
-      gLogger.exception( "Invalid transformation", lException = e )
+      gLogger.exception( "Invalid transformation", lException=e )
       transList = []
   return transList
 
@@ -76,7 +76,7 @@ if __name__ == "__main__":
   Script.registerSwitch( '', 'NoRunInfo', '   Use if no run information is required' )
   Script.registerSwitch( "", "Chown=", "   Give user/group for chown of the directories of files in the FC" )
 
-  Script.parseCommandLine( ignoreErrors = True )
+  Script.parseCommandLine( ignoreErrors=True )
 
   Script.setUsageMessage( '\n'.join( [ __doc__,
                                        'Usage:',
@@ -121,7 +121,7 @@ if __name__ == "__main__":
 
   if userGroup:
     directories = set( [os.path.dirname( lfn ) for lfn in requestedLFNs] )
-    res = chown( directories, user = userGroup[0], group = userGroup[1] )
+    res = chown( directories, user=userGroup[0], group=userGroup[1] )
     if not res['OK']:
       gLogger.fatal( "Error changing ownership", res['Message'] )
       DIRAC.exit( 3 )
@@ -129,7 +129,7 @@ if __name__ == "__main__":
 
   rc = 0
   for transID in transList:
-    res = addFilesToTransformation( transID, requestedLFNs, addRunInfo = runInfo )
+    res = addFilesToTransformation( transID, requestedLFNs, addRunInfo=runInfo )
     if res['OK']:
       gLogger.always( 'Successfully added %d files to transformation %d' % ( len( res['Value'] ), transID ) )
     else:

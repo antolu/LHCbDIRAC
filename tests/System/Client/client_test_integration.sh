@@ -15,9 +15,9 @@ then
 fi
 echo " "
 
-echo "====== dirac-dms-add-replication --BKQuery=/validation/MC11a/Beam3500GeV-2011-MagDown-Nu2-EmNoCuts/Sim05/Trig0x40760037Flagged/Reco12a/Stripping17Flagged/12463412/ALLSTREAMS.DST --Plugin=ReplicateDataset --NumberOfReplicas=2 --SecondarySEs Tier1-DST --Start"
-#dirac-dms-add-replication --BKQuery=/LHCb/Collision12//RealData/Reco13a/Stripping19a//PID.MDST --Plugin=ReplicateDataset --NumberOfReplicas=2 --SecondarySEs Tier1-DST --Start
-dirac-dms-add-replication --BKQuery=/validation/MC11a/Beam3500GeV-2011-MagDown-Nu2-EmNoCuts/Sim05/Trig0x40760037Flagged/Reco12a/Stripping17Flagged/12463412/ALLSTREAMS.DST --Plugin=ReplicateDataset --NumberOfReplicas=2 --SecondarySEs Tier1-DST --Start
+echo "====== dirac-dms-add-transformation --BKQuery=/validation/MC11a/Beam3500GeV-2011-MagDown-Nu2-EmNoCuts/Sim05/Trig0x40760037Flagged/Reco12a/Stripping17Flagged/12463412/ALLSTREAMS.DST --Plugin=ReplicateDataset --NumberOfReplicas=2 --SecondarySEs Tier1-DST --Start"
+#dirac-dms-add-transformation --BKQuery=/LHCb/Collision12//RealData/Reco13a/Stripping19a//PID.MDST --Plugin=ReplicateDataset --NumberOfReplicas=2 --SecondarySEs Tier1-DST --Start
+dirac-dms-add-transformation --BKQuery=/validation/MC11a/Beam3500GeV-2011-MagDown-Nu2-EmNoCuts/Sim05/Trig0x40760037Flagged/Reco12a/Stripping17Flagged/12463412/ALLSTREAMS.DST --Plugin=ReplicateDataset --NumberOfReplicas=2 --SecondarySEs Tier1-DST --Start
 if [ $? -ne 0 ]
 then
    exit $?
@@ -40,8 +40,8 @@ then
 else
    echo $result
    reqID=`echo $result | awk -F ' ' '{print $2}'`
-   echo "===== dirac-rms-show-request $reqID"
-   dirac-rms-show-request $reqID
+   echo "===== dirac-rms-request $reqID"
+   dirac-rms-request $reqID
    if [ $? -ne 0 ]
    then
      exit $?
@@ -54,8 +54,8 @@ if [ $? -ne 0 ]
 then
    exit $?
 fi
-echo "==== dirac-dms-add-replication --BKQuery=/validation/MC11a/Beam3500GeV-2011-MagDown-Nu2-EmNoCuts/Sim05/Trig0x40760037Flagged/Reco12a/Stripping17Flagged/12463412/ALLSTREAMS.DST --Plugin=ReplicateDataset --Test"
-dirac-dms-add-replication --BKQuery=/validation/MC11a/Beam3500GeV-2011-MagDown-Nu2-EmNoCuts/Sim05/Trig0x40760037Flagged/Reco12a/Stripping17Flagged/12463412/ALLSTREAMS.DST --Plugin=ReplicateDataset --Test
+echo "==== dirac-dms-add-transformation --BKQuery=/validation/MC11a/Beam3500GeV-2011-MagDown-Nu2-EmNoCuts/Sim05/Trig0x40760037Flagged/Reco12a/Stripping17Flagged/12463412/ALLSTREAMS.DST --Plugin=ReplicateDataset --Test"
+dirac-dms-add-transformation --BKQuery=/validation/MC11a/Beam3500GeV-2011-MagDown-Nu2-EmNoCuts/Sim05/Trig0x40760037Flagged/Reco12a/Stripping17Flagged/12463412/ALLSTREAMS.DST --Plugin=ReplicateDataset --Test
 if [ $? -ne 0 ]
 then
    exit $?

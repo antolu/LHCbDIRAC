@@ -46,9 +46,9 @@ class ModulesUtilitiesSuccess( ModulesUtilitiesTestCase ):
 
     lowerExtension()
 
-    self.assert_( 'foo.txt' in os.listdir( '.' ) )
-    self.assert_( 'BAR.txt' in os.listdir( '.' ) )
-    self.assert_( 'FooBAR.ext.txt' in os.listdir( '.' ) )
+    self.assertTrue( 'foo.txt' in os.listdir( '.' ) )
+    self.assertTrue( 'BAR.txt' in os.listdir( '.' ) )
+    self.assertTrue( 'FooBAR.ext.txt' in os.listdir( '.' ) )
 
   #################################################
 

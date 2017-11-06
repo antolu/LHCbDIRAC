@@ -40,8 +40,7 @@ if __name__ == "__main__":
                                        'dirac-transformation-debug [options] transID[,transID2[,transID3[,...]]]'] ) )
 
 
-  Script.parseCommandLine( ignoreErrors = True )
+  Script.parseCommandLine( ignoreErrors=True )
 
   from LHCbDIRAC.TransformationSystem.Client.TransformationDebug import TransformationDebug
   TransformationDebug().debugTransformation( dmScript, infoList, statusList )
-

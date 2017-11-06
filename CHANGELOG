@@ -1,3 +1,119 @@
+[v9r0-pre12]
+use DIRAC v6r19p3
+
+* Inherit from object and add StorageElement import
+* return an error message when the following patameters are not provided: jobId,lfn,jobName
+* fix the bookkeeping report
+* use rootPath
+* if no doneTasks, continue
+* path fixes
+* just replacing old CLOUD site
+* removing faulty lines
+* ignoring pylintrc
+* use protocol access for tests
+* RAWIntegrity: add a sleep in the test
+* fixed test
+* pylint
+* fix test
+* fixed Accounting tests
+* Move SpaceTokenUsage to a separate module
+* Fix spaceTokenUsage and make it finally work
+* fix few exceptions
+* Fix the throttling of staging in getMaxFilesAtSE
+* fix teh list of directories used to limit the number of staged files
+* Move spaceTokenOccupancy to ScriptExecutors and do pylint cleaning
+* Add info in transformation-debug
+
+[v9r0-pre11]
+use DIRAC v6r19p3
+
+* DOC: improve BOINC doc
+* Remove unnecessary cast
+* use DIRAC.rootPath
+* Fix format using autopep8
+* don't use dm and fc as data member
+* finders
+* try...except import
+* removed deprecated option
+* removed invokation of AnalyseLogFile
+* Add full BOINC documentation
+* "with " cannot be used with urlopen
+* Function names should not start wit __
+* remove -> pop as it was a dict
+* Fix function name and loop on list with remove()
+* fix rubbish
+* Rename scripts with hyphens instead of underscores
+* fix typos
+* remove stupid instruction added for tests earlier
+
+[v9r0-pre10]
+use DIRAC v6r19p2
+
+* Attempt to rename, add __init__.py for pylint
+* make scripts symlinks relative to the scripts directory
+* making pylint happy
+* trying with explicit set
+* pylint changes
+* installing fullserver for test purposes
+* minor assert fix
+* moved out of deprecated alises
+* moved tests to DIRAC
+* removed old tests unused
+* pylint changes
+* Add reason for FTSClient import failure
+* add option --NoParse to take full line as argument and escape spaces
+* Use LHCbConfig rather than Config
+* Port to devel changes for platforms in master
+* different state machine, DIRAC test overwritten
+* saving from paths
+
+[v9r0-pre9]
+use DIRAC v6r19p1
+
+* upload a tar of everything
+* handle the case when DIRAC and LHCbDIRAC is not installed to the same directory
+* only release for gcc49
+* backporting of calling -c best
+* pylints
+* use rootPath for the base path
+* correct indent
+* LHCbScript instead of Script
+* fix unit tests
+* correct integration tests
+* integration tests: use the correct comamnd
+
+[v9r0-pre8]
+use DIRAC v6r19
+
+* more agents excluded
+* addin Resources/FileCatalogs/BookkeepingDB
+* setting BookkeepingDB catalog
+* added histoMerge regression test
+* added root merge integration test
+* extend diracAgents (list of agents)
+* removed WMSSecureGW
+* correct location
+* extended diracServices
+* added specialized installation
+* at some places jobID is a string
+* removed pylintrc
+* fixed indentatation
+* using -c best
+* avoid choosing a keepSE as destinationSE
+* setting slc6-gcc49 by default
+* removing X509_USER_PROXY from env file
+* just preparation
+* using the correct import
+* fixing for mySQL 5.7 GROUP BY
+* increase the size of the ProcessingPass column
+* corrected try-except
+* correct call
+* just logging
+* check raise of application error
+* removed policy moved to vanilla DIRAC
+* 4 bug fixes and some pylint fixes
+* 1 bug fix and some pylint fixes
+
 [v9r0-pre7]
 use DIRAC v6r19-pre13
 
@@ -95,6 +211,13 @@ use DIRAC v6r19-pre4
 * updated Reco, removed outdated tests
 * removing old tests
 * added reco17
+
+[v8r8p20]
+use DIRAC v6r17p33
+
+* backporting of calling -c best
+* at some places jobID is a string
+* avoid choosing a keepSE as destinationSE
 
 [v8r8p19]
 use DIRAC v6r17p33

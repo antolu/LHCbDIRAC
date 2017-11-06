@@ -27,7 +27,7 @@ class TestProductionRequestTestCaseChain( TestProductionRequestTestCase ):
 
     # this, does not exist yet
     res = self.reqClient.getProductionList( 1L )
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     self.assertEqual( res['Value'], [] )
 
     # add
@@ -40,7 +40,7 @@ class TestProductionRequestTestCaseChain( TestProductionRequestTestCase ):
                                                    'EventType':'900000', 'NumberOfEvents':'-1',
                                                    'Description':'Description', 'Comments':'Comments',
                                                    'Inform':'', 'RealNumberOfEvents':'', 'IsModel':0, 'Extra':''} )
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     firstReq = res['Value']
 
     res = self.reqClient.createProductionRequest( {'ParentID':'', 'MasterID':'', 'RequestAuthor': 'adminusername',
@@ -52,15 +52,22 @@ class TestProductionRequestTestCaseChain( TestProductionRequestTestCase ):
                                                    'EventType':'900000', 'NumberOfEvents':'-1',
                                                    'Description':'Description', 'Comments':'Comments',
                                                    'Inform':'', 'RealNumberOfEvents':'', 'IsModel':0, 'Extra':''} )
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     self.assertEqual( res['Value'], firstReq + 1 )
+
+    # Querying
+    res = self.reqClient.getProductionList( 1L )
+    self.assertTrue(res['OK'])
+
+    res = self.reqClient.getProductionRequestList( 0, '', 'ASC', 0, 0, { 'RequestState':'Active' } )
+    self.assertTrue(res['OK'])
 
     # Adding production
     res = self.reqClient.addProductionToRequest( {'ProductionID': 123,
                                                   'RequestID':firstReq,
                                                   'Used':0,
                                                   'BkEvents':0} )
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     self.assertEqual( res['Value'], 123 )
     res = self.reqClient.removeProductionFromRequest( 123 )
 
@@ -68,14 +75,14 @@ class TestProductionRequestTestCaseChain( TestProductionRequestTestCase ):
                                                   'RequestID':firstReq + 1,
                                                   'Used':1,
                                                   'BkEvents':0} )
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     self.assertEqual( res['Value'], 456 )
 
     # delete
     res = self.reqClient.deleteProductionRequest( firstReq )
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     res = self.reqClient.deleteProductionRequest( firstReq + 1 )
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
 
 
 

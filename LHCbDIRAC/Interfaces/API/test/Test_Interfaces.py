@@ -57,11 +57,11 @@ class LHCbJobSuccess( APITestCase ):
     """
     open( 'optionsFiles', 'a' ).close()
     res = self.lj.setApplication( 'appName', 'v1r0', 'optionsFiles', systemConfig = 'x86_64-slc6-gcc-44-opt' )
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     res = self.lj.setApplication( 'appName', 'v1r0', 'optionsFiles', systemConfig = 'x86_64-slc5-gcc-41-opt' )
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     res = self.lj.setApplication( 'appName', 'v1r0', 'optionsFiles', systemConfig = 'x86_64-slc5-gcc-43-opt' )
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     os.remove( 'optionsFiles' )
 
 ################################################################################

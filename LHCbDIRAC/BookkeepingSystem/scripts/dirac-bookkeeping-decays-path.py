@@ -9,22 +9,22 @@ __RCSID__ = "$Id$"
 
 import ast
 import DIRAC
-from DIRAC  import gLogger
+from DIRAC import gLogger
 from DIRAC.Core.Base import Script
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
 
-Script.setUsageMessage('\n'.join([ __doc__.split( '\n' )[1],
-                                   'Usage:',
-                                   '  %s eventType  ' % Script.scriptName ]))
+Script.setUsageMessage('\n'.join([__doc__.split('\n')[1],
+                                  'Usage:',
+                                  '  %s eventType  ' % Script.scriptName]))
 
-Script.registerSwitch( 'p', 'production' , "Obtain the paths in ``Production format'' for Ganga" )
-Script.parseCommandLine( ignoreErrors = True )
+Script.registerSwitch('p', 'production', "Obtain the paths in ``Production format'' for Ganga")
+Script.parseCommandLine(ignoreErrors=True)
 
 productionFormat = False
-for p,_v in Script.getUnprocessedSwitches() :
+for p, _v in Script.getUnprocessedSwitches():
   if p.lower() in ('p', 'production'):
     productionFormat = True
   break
@@ -38,26 +38,26 @@ eventType = args[0]
 
 bkClient = BookkeepingClient()
 
-## get productions for given event type
-res = bkClient.getProductionSummaryFromView({'EventType':eventType,'Visible':True})
-if not res['OK'] :
-  gLogger.error( 'Could not retrieve production summary for event %s' % eventType, res['Message'] )
+# # get productions for given event type
+res = bkClient.getProductionSummaryFromView({'EventType': eventType, 'Visible': True})
+if not res['OK']:
+  gLogger.error('Could not retrieve production summary for event %s' % eventType, res['Message'])
   DIRAC.exit(1)
 prods = res['Value']
 
-## get production-IDs
-prodIDs = [ p['Production'] for p in prods]
+# # get production-IDs
+prodIDs = [p['Production'] for p in prods]
 
-## loop over all productions
+# # loop over all productions
 for prodID in sorted(prodIDs):
 
   res = bkClient.getProductionInformations(prodID)
   if not res['OK']:
-    gLogger.error( 'Could not retrieve production infos for production %s' % prodID, res['Message'] )
+    gLogger.error('Could not retrieve production infos for production %s' % prodID, res['Message'])
     continue
   prodInfo = res['Value']
   steps = prodInfo['Steps']
-  if isinstance ( steps , str ):
+  if isinstance(steps, str):
     continue
   files = prodInfo["Number of files"]
   events = prodInfo["Number of events"]
@@ -72,9 +72,9 @@ for prodID in sorted(prodIDs):
     if step[5] and step[5].lower() != 'frompreviousstep':
       conddb = step[5]
 
-  result = TransformationClient().getTransformation( prodID, True )
+  result = TransformationClient().getTransformation(prodID, True)
   if not result['OK']:
-    gLogger.error( 'Could not retrieve parameters for production %d:' % prodID, result['Message'] )
+    gLogger.error('Could not retrieve parameters for production %d:' % prodID, result['Message'])
     continue
   parameters = result['Value']
 
@@ -83,51 +83,49 @@ for prodID in sorted(prodIDs):
   if not conddb:
     conddb = parameters.get('CondDBTag')
 
-  if not (dddb and conddb): #probably the production above was not a MCSimulation
+  if not (dddb and conddb):  # probably the production above was not a MCSimulation
     reqID = int(parameters.get('RequestID'))
-    res = RPCClient( 'ProductionManagement/ProductionRequest' ).getProductionList ( reqID )
+    res = RPCClient('ProductionManagement/ProductionRequest').getProductionList(reqID)
     if not res['OK']:
-      gLogger.error( 'Could not retrieve productions list for request %d:' % reqID, result['Message'] )
+      gLogger.error('Could not retrieve productions list for request %d:' % reqID, result['Message'])
       continue
-    simProdID = res['Value'][0] #this should be the MCSimulation
-    res = TransformationClient().getTransformation( simProdID, True )
+    simProdID = res['Value'][0]  # this should be the MCSimulation
+    res = TransformationClient().getTransformation(simProdID, True)
     if not res['OK']:
-      gLogger.error( 'Could not retrieve parameters for production %d:' % simProdID, result['Message'] )
+      gLogger.error('Could not retrieve parameters for production %d:' % simProdID, result['Message'])
       continue
     if not dddb:
       dddb = res['Value'].get('DDDBTag', 0)
     if not conddb:
       conddb = res['Value'].get('CondDBTag', 0)
 
-  if not (dddb and conddb): #this is for more recent productions (in fact, most of them)
+  if not (dddb and conddb):  # this is for more recent productions (in fact, most of them)
     dddb = ast.literal_eval(res['Value']['BKProcessingPass'])['Step0']['DDDb']
     conddb = ast.literal_eval(res['Value']['BKProcessingPass'])['Step0']['CondDb']
 
-
   evts = 0
   ftype = None
-  for i in events :
-    if i[0]  in ['GAUSSHIST', 'LOG', 'SIM', 'DIGI']:
+  for i in events:
+    if i[0] in ['GAUSSHIST', 'LOG', 'SIM', 'DIGI']:
       continue
     evts += i[1]
     if not ftype:
       ftype = i[0]
 
   nfiles = 0
-  for f in files :
-    if f[1]  in ['GAUSSHIST', 'LOG', 'SIM', 'DIGI']:
+  for f in files:
+    if f[1] in ['GAUSSHIST', 'LOG', 'SIM', 'DIGI']:
       continue
     if f[1] != ftype:
       continue
     nfiles += f[0]
 
-
-  p0,n,p1 = path.partition('\n')
+  p0, n, p1 = path.partition('\n')
   if n:
     path = p1
 
-  if productionFormat :
-    p,s,e = path.rpartition('/')
+  if productionFormat:
+    p, s, e = path.rpartition('/')
     if s and e:
-      path = '/%d/%d/%s' % ( prodID , int(eventType) , e )
+      path = '/%d/%d/%s' % (prodID, int(eventType), e)
   print (path, dddb, conddb, nfiles, evts, prodID)

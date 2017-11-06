@@ -15,7 +15,7 @@
 <Parameter name="StdOutput" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Standard output file"><value><![CDATA[std.out]]></value></Parameter>
 <Parameter name="StdError" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Standard error file"><value><![CDATA[std.err]]></value></Parameter>
 <Parameter name="InputData" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Default null input data value"><value><![CDATA[]]></value></Parameter>
-<Parameter name="LogLevel" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Job Logging Level"><value><![CDATA[info]]></value></Parameter>
+<Parameter name="LogLevel" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Job Logging Level"><value><![CDATA[debug]]></value></Parameter>
 <Parameter name="ParametricInputData" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Default null parametric input data value"><value><![CDATA[]]></value></Parameter>
 <Parameter name="ParametricInputSandbox" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Default null parametric input sandbox value"><value><![CDATA[]]></value></Parameter>
 <Parameter name="ParametricParameters" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Default null parametric input parameters value"><value><![CDATA[]]></value></Parameter>
@@ -63,7 +63,7 @@ from LHCbDIRAC.Workflow.Modules.FileUsage import FileUsage
 </ModuleDefinition>
 <ModuleDefinition>
 <body><![CDATA[
-from DIRAC.Workflow.Modules.Script import Script
+from LHCbDIRAC.Workflow.Modules.LHCbScript import LHCbScript
 ]]></body>
 <origin></origin>
 <description><![CDATA[ The Script class provides a simple way for users to specify an executable
@@ -72,7 +72,7 @@ from DIRAC.Workflow.Modules.Script import Script
 <descr_short></descr_short>
 <required></required>
 <version>0.0</version>
-<type>Script</type>
+<type>LHCbScript</type>
 </ModuleDefinition>
 <StepDefinition>
 <origin></origin>
@@ -90,8 +90,8 @@ from DIRAC.Workflow.Modules.Script import Script
 <descr_short></descr_short>
 </ModuleInstance>
 <ModuleInstance>
-<type>Script</type>
-<name>Script</name>
+<type>LHCbScript</type>
+<name>LHCbScript</name>
 <descr_short></descr_short>
 </ModuleInstance>
 <ModuleInstance>

@@ -32,7 +32,7 @@ class RunApplication(object):
     """
     # Standard LHCb scripts
     self.runApp = 'lb-run'
-    self.lhcbEnvironment = None # This may be added (the result of LbLogin), but by default it won't be
+    self.lhcbEnvironment = None # This may be added (the result of LbLogin)
 
     # What to run
     self.applicationName = '' # e.g. Gauss
@@ -95,7 +95,11 @@ class RunApplication(object):
                               runtimeProjectString, externalsString,
                               app, command] )
 
-    # Run it!
+    # get the environment
+    # if self.lhcbEnvironment is None:
+    #   self.lhcbEnvironment = getLHCbEnvironment()
+
+    # then run it!
     runResult = self._runApp( finalCommand, self.lhcbEnvironment )
     if not runResult['OK']:
       self.log.error( "Problem executing lb-run: %s" % runResult['Message'] )
@@ -107,8 +111,14 @@ class RunApplication(object):
 
     if runResult['Value'][0]: # if exit status != 0
       self.log.error( "lb-run or its application exited with status %d" % runResult['Value'][0] )
+
       if runResult['Value'][0] & 0x40: # this is an lb-run specific error, available from LbScripts v9r1p8
+        self.log.error( "Status %d is an lb-run specific error" % runResult['Value'][0] )
         raise LbRunError( "Problem setting the environment: lb-run exited with status %d" % runResult['Value'][0] )
+
+      self.log.error( "Status %d is an application (%s %s) error" % ( runResult['Value'][0], 
+                                                                      self.applicationName,
+                                                                      self.applicationVersion) )
       raise LHCbApplicationError( "%s %s exited with status %d" % ( self.applicationName,
                                                                     self.applicationVersion,
                                                                     runResult['Value'][0] ) )
@@ -253,4 +263,19 @@ def getLHCbEnvironment():
   """ Run LbLogin and returns the environment created.
       If LbLogin has run before and saved the environment (like for pilots), we use that.
   """
-  pass
+  # if os.path.exists('environmentLbLogin'): # this we would need anyway to find
+  #   environment = {}
+  #   with open( 'environmentLbLogin', 'r' ) as fp:
+  #     for line in fp:
+  #       try:
+  #         var = line.split( '=' )[0].strip()
+  #         value = '='.join( line.split( "=" )[1:] ).strip()
+  #         if '{' in value: # horrible hack... (there's a function that ends in the next line...)
+  #           value = value + '\n}'
+  #         if value:
+  #           environment[var] = value
+  #       except IndexError:
+  #         continue
+  #     fp.close()
+  #   return environment
+  return None

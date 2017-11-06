@@ -186,7 +186,8 @@ def executeFilePath( dmScript ):
         continue
       if '/RAW/' not in dirName:
         # If it is is RAW, we already had the correct path.
-        # for example: os.path.dirname('/lhcb/data/2016/RAW/TURBO/LHCb/COLLISION16/176059/176059_0000003101.raw') returns /lhcb/data/2016/RAW/TURBO/LHCb/COLLISION16/176059
+        # for example: os.path.dirname('/lhcb/data/2016/RAW/TURBO/LHCb/COLLISION16/176059/176059_0000003101.raw')
+        #    returns /lhcb/data/2016/RAW/TURBO/LHCb/COLLISION16/176059
         tail = os.path.basename( dirName )
         # Eliminate the tailing '/0000'
         if len( tail ) == 4 and tail.isdigit():
@@ -194,15 +195,15 @@ def executeFilePath( dmScript ):
       directories.setdefault( dirName, [] ).append( lfn )
 
     chunkSize = 2
-    progressBar = ProgressBar( len( directories ), title = 'Getting metadata for %d directories' % len( directories ),
-                               chunk = chunkSize )
+    progressBar = ProgressBar( len( directories ), title='Getting metadata for %d directories' % len( directories ),
+                               chunk=chunkSize )
     success = {}
     failed = set()
     for dirChunk in breakListIntoChunks( directories, chunkSize ):
       progressBar.loop()
       res = bkClient.getDirectoryMetadata( dirChunk )
       if not res['OK']:
-        progressBar.endLoop( message = 'Error getting directory metadata' )
+        progressBar.endLoop( message='Error getting directory metadata' )
         printDMResult( res )
         diracExit( 1 )
       success.update( res['Value']['Successful'] )
@@ -253,14 +254,14 @@ def executeFilePath( dmScript ):
           paths['Failed'].update( dict.fromkeys( directories[dirName], 'Directory not in BK' ) )
         res = S_OK( paths )
 
-  printDMResult( res, empty = 'None', script = 'dirac-bookkeeping-file-path' )
+  printDMResult( res, empty='None', script='dirac-bookkeeping-file-path' )
   if printList:
     gLogger.notice( '\nList of %s values' % groupBy )
     gLogger.notice( ','.join( sorted( [item.replace( '%s ' % groupBy, '' ) for item in res['Value']['Successful']] ) ) )
 
 #==================================================================================
 
-def _updateFileLumi( fileDict, retries = 5 ):
+def _updateFileLumi( fileDict, retries=5 ):
   '''
   Update the luminosity of a list of files in the BK
 
@@ -269,7 +270,7 @@ def _updateFileLumi( fileDict, retries = 5 ):
   :return: bool reporting error
   '''
   error = False
-  progressBar = ProgressBar( len( fileDict ), title = 'Updating luminosity', step = 10 )
+  progressBar = ProgressBar( len( fileDict ), title='Updating luminosity', step=10 )
   for lfn in fileDict:
     progressBar.loop()
     # retry 5 times
@@ -283,7 +284,7 @@ def _updateFileLumi( fileDict, retries = 5 ):
   progressBar.endLoop()
   return error
 
-def _updateDescendantsLumi( parentLumi, doIt = False, force = False ):
+def _updateDescendantsLumi( parentLumi, doIt=False, force=False ):
   '''
   Get file descendants and update their luminosity if necessary (if doIt == True)
   This function does it recursively to all descendants
@@ -298,7 +299,7 @@ def _updateDescendantsLumi( parentLumi, doIt = False, force = False ):
     return None
   # Get descendants:
   error = False
-  res = bkClient.getFileDescendants( parentLumi.keys(), depth = 1, checkreplica = False )
+  res = bkClient.getFileDescendants( parentLumi.keys(), depth=1, checkreplica=False )
   if not res['OK']:
     gLogger.error( 'Error getting descendants', res['Message'] )
     return True
@@ -333,10 +334,10 @@ def _updateDescendantsLumi( parentLumi, doIt = False, force = False ):
       return None
   if doIt:
     error = _updateFileLumi( descLumi )
-  result = _updateDescendantsLumi( descLumi if not force else saveLumi, doIt = doIt, force = force )
+  result = _updateDescendantsLumi( descLumi if not force else saveLumi, doIt=doIt, force=force )
   return error or bool( result )
 
-def _updateRunLumi( run, evtType, fileInfo, doIt = False, force = False ):
+def _updateRunLumi( run, evtType, fileInfo, doIt=False, force=False ):
   '''
   Updates the files luminosity from the run nformation and the files statistics
   run : run number (int)
@@ -371,7 +372,7 @@ def _updateRunLumi( run, evtType, fileInfo, doIt = False, force = False ):
 
   # Now update descendants
   fileLumi = dict( [( lfn, lumi ) for lfn, _evts, lumi in fileInfo] )
-  result = _updateDescendantsLumi( fileLumi, doIt = doIt, force = force )
+  result = _updateDescendantsLumi( fileLumi, doIt=doIt, force=force )
   return error or result
 
 def executeFixLuminosity( dmScript ):
@@ -435,14 +436,14 @@ def executeFixLuminosity( dmScript ):
         gLogger.notice( 'No Finished run found' )
         diracExit( 0 )
     for run in runFinished:
-      result = _updateRunLumi( run, int( evtType ), runFiles[run], doIt = doIt, force = force )
+      result = _updateRunLumi( run, int( evtType ), runFiles[run], doIt=doIt, force=force )
       if doIt:
         if result is not None:
           gLogger.notice( 'Update done %s' % ( 'with errors' if result else 'successfully' ) )
 
 #==================================================================================
 
-def executeFileAncestors( dmScript, level = 1 ):
+def executeFileAncestors( dmScript, level=1 ):
   '''
   Gets a list of LFNs and obtains from BK the list of ancestors at a certain depth and/or for a certain Production
 
@@ -462,7 +463,7 @@ def executeFileAncestors( dmScript, level = 1 ):
       try:
         level = int( switch[1] )
       except ValueError as e:
-        gLogger.exception( "Invalid value for --Depth:", switch[1], lException = e )
+        gLogger.exception( "Invalid value for --Depth:", switch[1], lException=e )
 
   args = Script.getPositionalArgs()
 
@@ -477,12 +478,12 @@ def executeFileAncestors( dmScript, level = 1 ):
   lfnList = dmScript.getOption( 'LFNs', [] )
 
   chunkSize = 50
-  progressBar = ProgressBar( len( lfnList ), chunk = chunkSize,
-                             title = 'Getting ancestors for %d files (depth %d)' % ( len( lfnList ), level ) )
+  progressBar = ProgressBar( len( lfnList ), chunk=chunkSize,
+                             title='Getting ancestors for %d files (depth %d)' % ( len( lfnList ), level ) )
   fullResult = S_OK( {} )
   for lfnChunk in breakListIntoChunks( lfnList, 50 ):
     progressBar.loop()
-    result = bkClient.getFileAncestors( lfnChunk, level, replica = checkreplica )
+    result = bkClient.getFileAncestors( lfnChunk, level, replica=checkreplica )
 
     if result['OK']:
       for lfn in set( lfnChunk ) - set( result['Value']['Successful'] ) - set( result['Value']['Failed'] ):
@@ -500,11 +501,11 @@ def executeFileAncestors( dmScript, level = 1 ):
       break
   progressBar.endLoop()
 
-  diracExit( printDMResult( fullResult, empty = "None", script = "dirac-bookkeeping-get-file-ancestors" ) )
+  diracExit( printDMResult( fullResult, empty="None", script="dirac-bookkeeping-get-file-ancestors" ) )
 
 #==================================================================================
 
-def executeFileDescendants( dmScript, level = 1 ):
+def executeFileDescendants( dmScript, level=1 ):
   '''
   Gets a list of LFNs and obtains from BK the list of descendants at a certain depth and/or for a certain Production
 
@@ -523,12 +524,12 @@ def executeFileDescendants( dmScript, level = 1 ):
       try:
         level = int( switch[1] )
       except ValueError as e:
-        gLogger.exception( "Invalid value for --Depth: %s", switch[1], lException = e )
+        gLogger.exception( "Invalid value for --Depth: %s", switch[1], lException=e )
     elif switch[0] == 'Production':
       try:
         prod = int( switch[1] )
       except ValueError as e:
-        gLogger.exception( "Invalid production", switch[1], lException = e )
+        gLogger.exception( "Invalid production", switch[1], lException=e )
         prod = 0
     elif switch[0] == 'Full':
       full = True
@@ -546,13 +547,13 @@ def executeFileDescendants( dmScript, level = 1 ):
   lfnList = dmScript.getOption( 'LFNs', [] )
 
   chunkSize = int( 20 / level )
-  progressBar = ProgressBar( len( lfnList ), chunk = chunkSize,
-                             title = 'Getting descendants for %d files (depth %d)' %
+  progressBar = ProgressBar( len( lfnList ), chunk=chunkSize,
+                             title='Getting descendants for %d files (depth %d)' %
                              ( len( lfnList ), level ) + ( ' for production %d' % prod if prod else '' ) )
   fullResult = S_OK( {} )
   for lfnChunk in breakListIntoChunks( lfnList, 50 ):
     progressBar.loop()
-    result = bkClient.getFileDescendants( lfnChunk, depth = level, production = prod, checkreplica = checkreplica )
+    result = bkClient.getFileDescendants( lfnChunk, depth=level, production=prod, checkreplica=checkreplica )
     if result['OK']:
       noDescendants = set( lfnChunk ) - set( result['Value']['Successful'] ) - set( result['Value']['Failed'] ) - \
                       set( result['Value']['NotProcessed'] )
@@ -572,11 +573,11 @@ def executeFileDescendants( dmScript, level = 1 ):
       break
   progressBar.endLoop()
 
-  diracExit( printDMResult( fullResult, empty = "None", script = "dirac-bookkeeping-get-file-descendants" ) )
+  diracExit( printDMResult( fullResult, empty="None", script="dirac-bookkeeping-get-file-descendants" ) )
 
 #==================================================================================
 
-def executeGetFiles( dmScript, maxFiles = 20 ):
+def executeGetFiles( dmScript, maxFiles=20 ):
   '''
   Get files given a BK query
 
@@ -629,7 +630,7 @@ def executeGetFiles( dmScript, maxFiles = 20 ):
         fileDict[lfn] = dd
 
     else:
-      lfns = bkQuery.getLFNs( printSEUsage = False, printOutput = False )
+      lfns = bkQuery.getLFNs( printSEUsage=False, printOutput=False )
 
       for lfnChunk in breakListIntoChunks( lfns, 1000 ):
         res = bkClient.getFileMetadata( lfnChunk )
@@ -682,7 +683,7 @@ def executeGetFiles( dmScript, maxFiles = 20 ):
 
 #==================================================================================
 
-def executeFileSisters( dmScript, level = 1 ):
+def executeFileSisters( dmScript, level=1 ):
   '''
   Gets a list of files and extract from BK the sisters (i.e. files with same parent in the same production
 
@@ -702,12 +703,12 @@ def executeFileSisters( dmScript, level = 1 ):
       try:
         level = int( switch[1] )
       except ValueError as e:
-        gLogger.exception( "Invalid value for --Depth:", switch[1], lException = e )
+        gLogger.exception( "Invalid value for --Depth:", switch[1], lException=e )
     elif switch[0] == 'Production':
       try:
         prod = int( switch[1] )
       except ValueError as e:
-        gLogger.exception( "Invalid value for --Production:", switch[1], lException = e )
+        gLogger.exception( "Invalid value for --Production:", switch[1], lException=e )
         prod = 0
     elif switch[0] == 'Full':
       full = True
@@ -773,7 +774,7 @@ def executeFileSisters( dmScript, level = 1 ):
       lfnTypes = dict.fromkeys( lfnList, None )
 
     # First get ancestors
-    result = bkClient.getFileAncestors( lfnTypes.keys(), level, replica = False )
+    result = bkClient.getFileAncestors( lfnTypes.keys(), level, replica=False )
     if not result['OK']:
       gLogger.error( "Error getting ancestors:", res['Message'] )
       diracExit( 1 )
@@ -785,7 +786,7 @@ def executeFileSisters( dmScript, level = 1 ):
         ancestors.setdefault( anc['FileName'], [] ).append( lfn )
     # print ancestors
 
-    res = bkClient.getFileDescendants( ancestors.keys(), depth = 999999, production = prod, checkreplica = checkreplica )
+    res = bkClient.getFileDescendants( ancestors.keys(), depth=999999, production=prod, checkreplica=checkreplica )
     # print res
 
     fullResult['OK'] = res['OK']
@@ -814,11 +815,11 @@ def executeFileSisters( dmScript, level = 1 ):
     else:
       break
 
-  diracExit( printDMResult( fullResult, empty = "None", script = "dirac-bookkeeping-get-file-sisters" ) )
+  diracExit( printDMResult( fullResult, empty="None", script="dirac-bookkeeping-get-file-sisters" ) )
 
 #==================================================================================
 
-def _intWithQuotes( val, quote = "'" ):
+def _intWithQuotes( val, quote="'" ):
   '''
   Print numbers with a character separating each thousand
 
@@ -887,7 +888,7 @@ def _getCollidingBunches( fills ):
       fillInfo = json.load( urllib2.urlopen( runDbUrl ) )
       result[fill] = int( fillInfo['nCollidingBunches'] )
     except ( KeyError, ValueError ) as e:
-      gLogger.exception( "Exception getting info for fill", str( fill ), lException = e )
+      gLogger.exception( "Exception getting info for fill", str( fill ), lException=e )
     except urllib2.HTTPError as e:
       pass
   return result
@@ -941,7 +942,7 @@ def executeGetStats( dmScript ):
       if queryDict.get( 'Visible', 'All' ).lower() in ( 'no', 'all' ):
         bkQuery.setOption( 'ReplicaFlag', 'ALL' )
     if prod:
-      res = transClient.getTransformation( prod, extraParams = False )
+      res = transClient.getTransformation( prod, extraParams=False )
       if not res['OK']:
         continue
       prodName = res['Value']['TransformationName']
@@ -972,9 +973,9 @@ def executeGetStats( dmScript ):
         nDatasets *= len( eventTypes )
       nPasses = len( processingPasses )
       progressBar = ProgressBar( nPasses,
-                                 title = 'Getting info from filesSummary' + ( ' for %d processing passes...' %
+                                 title='Getting info from filesSummary' + ( ' for %d processing passes...' %
                                                                               nPasses if nPasses > 1 else '...' ),
-                                 step = 1 )
+                                 step=1 )
       for processingPass in processingPasses:
         # Loop on all processing passes if needed
         if processingPass:
@@ -1020,8 +1021,8 @@ def executeGetStats( dmScript ):
       runList = {}
       if not lfns:
         nPasses = len( processingPasses )
-        progressBar = ProgressBar( nPasses, title = 'Getting info from files' + \
-                                   ( ' for %d processing passes...' % nPasses if nPasses > 1 else '...' ), step = 1 )
+        progressBar = ProgressBar( nPasses, title='Getting info from files' + \
+                                   ( ' for %d processing passes...' % nPasses if nPasses > 1 else '...' ), step=1 )
         for processingPass in processingPasses:
           if processingPass:
             queryDict['ProcessingPass'] = processingPass
@@ -1063,12 +1064,12 @@ def executeGetStats( dmScript ):
               runList[run][2] += metadata['FileSize']
               nbFiles += 1
             except Exception as e:
-              gLogger.exception( 'Exception for %s' % str( metadata.keys() ), lException = e )
+              gLogger.exception( 'Exception for %s' % str( metadata.keys() ), lException=e )
         progressBar.endLoop()
       if lfns:
         gLogger.notice( "Getting info from files..." )
         lfnChunks = breakListIntoChunks( lfns, 1000 )
-        progressBar = ProgressBar( len( lfns ), title = "Get metadata from BK", chunk = 1000 )
+        progressBar = ProgressBar( len( lfns ), title="Get metadata from BK", chunk=1000 )
         for lfnChunk in lfnChunks:
           progressBar.loop()
           res = bkClient.getFileMetadata( lfnChunk )
@@ -1087,7 +1088,7 @@ def executeGetStats( dmScript ):
                 runList[run][2] += metadata['FileSize']
                 nbFiles += 1
               except Exception as e:
-                gLogger.exception( 'Exception for %s' % lfn, str( metadata.keys() ), lException = e )
+                gLogger.exception( 'Exception for %s' % lfn, str( metadata.keys() ), lException=e )
           else:
             gLogger.error( "Error getting files metadata:", res['Message'] )
             continue
@@ -1249,9 +1250,9 @@ def executeRunInfo( item ):
     runGap = 100000000
     timeGap = 365
   if activity:
-    progressBar = ProgressBar( 1, title = "Getting run list for activity %s" % activity, step = 20 )
+    progressBar = ProgressBar( 1, title="Getting run list for activity %s" % activity, step=20 )
     runsList = BKQuery( "/LHCb/%s//Real Data//RAW" % activity ).getBKRuns()
-    progressBar.endLoop( message = 'Obtained %d runs' % len( runsList ) )
+    progressBar.endLoop( message='Obtained %d runs' % len( runsList ) )
     if runsDict:
       runsList = sorted( set( runsList ) & set( runsDict['RunNumber'] ) )
       gLogger.notice( "Only %d runs in range %s" % ( len( runsList ), runRange ) )
@@ -1263,9 +1264,9 @@ def executeRunInfo( item ):
     # Remove the fake run number
     runsList.remove( 0 )
     if len( runRange ) < 30:
-      progressBar = ProgressBar( 1, title = "Getting runs for run range %s " % runRange, step = 20 )
+      progressBar = ProgressBar( 1, title="Getting runs for run range %s " % runRange, step=20 )
     else:
-      progressBar = ProgressBar( 1, title = "Getting runs for %d runs " % len( runsList ), step = 20 )
+      progressBar = ProgressBar( 1, title="Getting runs for %d runs " % len( runsList ), step=20 )
     res = bkClient.getRunStatus( runsList )
     progressBar.endLoop()
     if not res['OK']:
@@ -1276,7 +1277,7 @@ def executeRunInfo( item ):
   if dqFlag:
     nruns = len( runsList )
     chunkSize = 10
-    progressBar = ProgressBar( len( runsList ), title = "Getting DQFlag for %d runs " % len( runsList ), chunk = chunkSize )
+    progressBar = ProgressBar( len( runsList ), title="Getting DQFlag for %d runs " % len( runsList ), chunk=chunkSize )
     for runChunk in breakListIntoChunks( runsList, chunkSize ):
       progressBar.loop()
       res = bkClient.getRunFilesDataQuality( runChunk )
@@ -1298,7 +1299,7 @@ def executeRunInfo( item ):
   else:
     counted = 'files'
     runDict = {}
-    progressBar = ProgressBar( len( runsList ), title = "Getting %s for %d runs " % ( item, len( runsList ) ), step = 20 )
+    progressBar = ProgressBar( len( runsList ), title="Getting %s for %d runs " % ( item, len( runsList ) ), step=20 )
     for run in sorted( runsList ):
       progressBar.loop()
       res = bkClient.getRunInformations( run )
@@ -1354,7 +1355,7 @@ def executeRunInfo( item ):
         gap = ( runDesc != lastRunDesc )
       if not gap and runStart and lastRunEnd:
         runDiff = runStart - lastRunEnd
-        gap = ( runDiff > datetime.timedelta( days = timeGap ) )
+        gap = ( runDiff > datetime.timedelta( days=timeGap ) )
       if not gap and lastRun and run:
         gap = ( abs( lastRun - run ) > runGap )
 
@@ -1419,7 +1420,7 @@ def _getJobsEISFromAncestors( lfnList ):
   ancestors = {}
   topFiles = 0
   for lfnChunk in breakListIntoChunks( lfnList, 100 ):
-    res = bkClient.getFileAncestors( lfnChunk, depth = 1, replica = False )
+    res = bkClient.getFileAncestors( lfnChunk, depth=1, replica=False )
     if not res['OK']:
       return res
     ancWithMetadata = res['Value']['WithMetadata']
@@ -1454,7 +1455,7 @@ def _getJobsEISFromAncestors( lfnList ):
           # This ancestor job is  already known
           jobEventInputStat[job] = sum( jobEventInputStat[ancJob] for ancJob in ancJobs )
         except KeyError as e:
-          gLogger.exception( "ERROR: ancestor job not found in table", lException = e )
+          gLogger.exception( "ERROR: ancestor job not found in table", lException=e )
 
   return S_OK()
 
@@ -1471,7 +1472,7 @@ def _getEventInputStat( lfns ):
   # These are the final LFNs, but we must get to the top ancestors to get it right
   # Let's do it job by job
   if jobLfns:
-    progressBar = ProgressBar( len( jobLfns ), title = "Getting ancestors for %d jobs" % len( jobLfns ), chunk = 1 )
+    progressBar = ProgressBar( len( jobLfns ), title="Getting ancestors for %d jobs" % len( jobLfns ), chunk=1 )
     for lfns in jobLfns.itervalues():
       progressBar.loop()
       res = _getJobsEISFromAncestors( lfns )
@@ -1484,11 +1485,11 @@ def _checkEventInputStat( lfn ):
   """
   Check if EventInputStat is correct
   """
-  progressBar = ProgressBar( 1, title = "Checking if BK EventInputStat is reliable...", chunk = 1 )
+  progressBar = ProgressBar( 1, title="Checking if BK EventInputStat is reliable...", chunk=1 )
   # Get EventInputStat from ancestors
   res = _getJobsEISFromAncestors( [lfn] )
   if not res['OK']:
-    progressBar.endLoop( message = "*** Error in _getJobsEISFromAncestors: " + res['Message'] + "***" )
+    progressBar.endLoop( message="*** Error in _getJobsEISFromAncestors: " + res['Message'] + "***" )
     return res
   # Get EventInputStat for one file and keep the information in case it is useful
   topInputStat = jobEventInputStat[ _jobFromLfn( lfn ) ]
@@ -1502,7 +1503,7 @@ def _checkEventInputStat( lfn ):
     result = False
   else:
     result = True
-  progressBar.endLoop( message = "OK" if result else "not OK, get info from ancestors" )
+  progressBar.endLoop( message="OK" if result else "not OK, get info from ancestors" )
   return S_OK( result )
 
 def executeRejectionStats( dmScript ):
@@ -1548,7 +1549,7 @@ def executeRejectionStats( dmScript ):
     if bkQuery:
       if byStream:
         bkQuery.setFileType( stream )
-      lfns = bkQuery.getLFNs( printSEUsage = False, printOutput = False )
+      lfns = bkQuery.getLFNs( printSEUsage=False, printOutput=False )
 
     if not lfns:
       gLogger.notice ( "No files found" )
@@ -1564,8 +1565,8 @@ def executeRejectionStats( dmScript ):
     evtInputStatOK = res['Value']
 
     lfnsByStream[stream] = lfns
-    progressBar = ProgressBar( len( lfns ), title = "Getting metadata for %d files %s" %
-                               ( len( lfns ), ( "(stream %s)" % stream ) if byStream else "" ), chunk = chunkSize )
+    progressBar = ProgressBar( len( lfns ), title="Getting metadata for %d files %s" %
+                               ( len( lfns ), ( "(stream %s)" % stream ) if byStream else "" ), chunk=chunkSize )
     eventStat = 0
     for lfnChunk in breakListIntoChunks( lfns, chunkSize ):
       progressBar.loop()
@@ -1590,7 +1591,7 @@ def executeRejectionStats( dmScript ):
           gLogger.fatal( "Error getting ancestors EventStat", res['Message'] )
           diracExit( 1 )
       else:
-        progressBar = ProgressBar( len( lfns ), title = "Getting metadata for %d jobs" % len( jobLfns ), chunk = chunkSize )
+        progressBar = ProgressBar( len( lfns ), title="Getting metadata for %d jobs" % len( jobLfns ), chunk=chunkSize )
         for lfnChunk in breakListIntoChunks( jobLfns, chunkSize ):
           res = bkClient.bulkJobInfo( lfnChunk )
           if not res['OK']:

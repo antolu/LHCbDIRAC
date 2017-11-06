@@ -57,6 +57,9 @@ nosetests.xml
 coverage.xml
 *.gz
 
+#remove in case we want a specific LHCb one
+.pylintrc 
+
 # CMT junk
 /*/*/x86_64-*-*-*/
 */*/cmt/Makefile

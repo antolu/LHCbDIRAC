@@ -160,7 +160,7 @@ class ProductionRequestSuccess( ClientTestCase ):
       if par.getName() == 'numberOfEvents':
         self.assertEqual( par.value, 'testValue' )
       if par.getName() == 'listoutput':
-        self.assert_( 'gausshist' in dict( par.value ).values() )
+        self.assertTrue( 'gausshist' in dict( par.value ).values() )
       if par.getName() == 'outputDataStep':
         self.assertEqual( par.value, '1;4' )
       if par.getName() == 'outputDataFileMask':
@@ -189,7 +189,7 @@ class ProductionRequestSuccess( ClientTestCase ):
       if par.getName() == 'Site':
         self.assertEqual( par.value, 'ANY' )
       if par.getName() == 'listoutput':
-        self.assert_( 'gausshist' not in dict( par.value ).values() )
+        self.assertTrue( 'gausshist' not in dict( par.value ).values() )
       if par.getName() == 'outputDataStep':
         self.assertEqual( par.value, '4' )
       if par.getName() == 'outputDataFileMask':
@@ -218,7 +218,7 @@ class ProductionRequestSuccess( ClientTestCase ):
       if par.getName() == 'Site':
         self.assertEqual( par.value, 'ANY' )
       if par.getName() == 'listoutput':
-        self.assert_( 'gausshist' not in dict( par.value ).values() )
+        self.assertTrue( 'gausshist' not in dict( par.value ).values() )
       if par.getName() == 'outputDataFileMask':
         self.assertEqual( par.value, '' )
       if par.getName() == 'Priority':
@@ -350,7 +350,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.stepsListDict, [{'StepId': 999, 'StepName':'Stripping28',
                                           'ApplicationName':'DaVinci', 'ApplicationVersion':'v41r3', 'ExtraOptions': '',
                                           # 'OptionFiles':'$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py',
-					  # 'OptionFiles':'$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py',
+                                          # 'OptionFiles':'$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py',
                                           'OptionFiles':'',
                                           'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc5-gcc49-opt',
                                           'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"999['SDST']",

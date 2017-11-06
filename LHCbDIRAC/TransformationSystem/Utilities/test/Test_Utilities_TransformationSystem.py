@@ -15,30 +15,30 @@ class tsfmSuccess( UtilitiesTestCase ):
   def test_setState( self ):
     tsfm = TransformationFilesStateMachine( 'Unused' )
     res = tsfm.setState( 'Assigned' )
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     self.assertEqual( res['Value'], 'Assigned' )
 
     tsfm = TransformationFilesStateMachine( 'Unused' )
     res = tsfm.setState( 'Unused' )
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     self.assertEqual( res['Value'], 'Unused' )
 
     tsfm = TransformationFilesStateMachine( 'Unused' )
     res = tsfm.setState( 'MissingInFC' )
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     self.assertEqual( res['Value'], 'MissingInFC' )
 
     tsfm = TransformationFilesStateMachine( 'Unused' )
     res = tsfm.setState( 'Processed' )
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     self.assertEqual( res['Value'], 'Processed' )
 
     tsfm = TransformationFilesStateMachine( 'Unused' )
     res = tsfm.setState( 'Processed' )
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     self.assertEqual( res['Value'], 'Processed' )
     res = tsfm.setState( 'Processed' )
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     self.assertEqual( res['Value'], 'Processed' )
 
 class tsfmFailure( UtilitiesTestCase ):
@@ -53,16 +53,16 @@ class tsfmFailure( UtilitiesTestCase ):
 
     tsfm = TransformationFilesStateMachine( 'Processed' )
     res = tsfm.setState( 'Processed' )
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
 
     tsfm = TransformationFilesStateMachine( 'Processed' )
     res = tsfm.setState( 'Unused' )
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     self.assertEqual( res['Value'], 'Processed' )
 
     tsfm = TransformationFilesStateMachine( 'MaxReset' )
     res = tsfm.setState( 'Processed' )
-    self.assert_( res['OK'] )
+    self.assertTrue(res['OK'])
     self.assertEqual( res['Value'], 'MaxReset' )
 
 if __name__ == '__main__':
