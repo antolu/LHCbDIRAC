@@ -11,6 +11,7 @@ import time
 import xml.dom.minidom
 import urllib
 import json
+import socket
 from DIRAC import S_OK, rootPath, gLogger, gConfig
 from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
@@ -53,6 +54,19 @@ class NagiosTopologyAgent(AgentModule):
       pass  # The dirs exist already, or cannot be created: do nothing
 
     return S_OK()
+
+  def isHostIPV6(host):
+    """ Test if the given host is ipv6 capable. 0:ipv6 capable. 1:ipv4 only. -1:Not a valid host (no DNS record?)
+    """
+    try: # First try IPV6
+      adrinfo = socket.getaddrinfo(host, None, socket.AF_INET6)
+      return 0
+    except socket.gaierror: No IPv6 address
+      try: # Next try IPv4
+        adrinfo = socket.getaddrinfo(host, None, socket.AF_INET) 
+        return 1
+      except socket.gaierror: # The host does not exist (no IPv6 or IPv4 address)
+        return -1
 
   def execute(self):
     """ Let's generate the xml file with the topology.
@@ -305,6 +319,15 @@ class NagiosTopologyAgent(AgentModule):
       #   mandatory at the momment
       #ce_batch = ldapCEState(site_ce_name, site_ce_opts['VO'])
       #ce_batch = ce_batch['Value'][0]['GlueCEInfoJobManager'] if (ce_batch['OK'] and ce_batch['Value']) else None
+
+      # ipv6 status of the CE
+      i6Status = isHostIPV6(site_ce_name)
+      i6Comment = ""
+      if i6Status == -1:
+        i6Comment = "Maybe DIRAC Service, not a valid machine"
+      xml_append(xml_doc, xml_ce, 'queues', ipv6_status=i6Status, ipv6_comment=i6Comment)
+
+
       for queue in ce_queues:
         queue_information = gConfig.getOptionsDict(
             'Resources/Sites/%s/%s/CEs/%s/Queues/%s' % (grid, site, site_ce_name, queue))
@@ -341,11 +364,18 @@ class NagiosTopologyAgent(AgentModule):
       mappingSEFlavour = {'srm': 'SRMv2',
                           'root': 'XROOTD', 'http': 'HTTPS'}
 
-      xml_append(xml_doc, xml_site, 'service',
+      xml_se = xml_append(xml_doc, xml_site, 'service',
                  endpoint=site_se_endpoint,
                  flavour=mappingSEFlavour.get(site_se_flavour, 'UNDEFINED'),
                  hostname=site_se_name,
                  path=site_se_path)
+
+      # ipv6 status of the SE
+      i6Status = isHostIPV6(site_se_name)
+      i6Comment = ""
+      if i6Status == -1:
+        i6Comment = "Maybe DIRAC Service, not a valid machine"
+      xml_append(xml_doc, xml_se, 'queues', ipv6_status=i6Status, ipv6_comment=i6Comment)
 
     has_grid_elem = True
 
