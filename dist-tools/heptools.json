@@ -9,9 +9,6 @@
       [ "libtool", "2.4.2",
         [ "bin", "python", "lib" ]
       ],
-      [ "pygsi", "0.6.5",
-        [ "bin", "python", "lib" ]
-      ],
       [ "pygraphics", "2.0",
         [ "bin", "python", "lib" ]
       ],
