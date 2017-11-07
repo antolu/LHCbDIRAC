@@ -34,7 +34,6 @@ if __name__ == "__main__":
   Script.registerSwitch('', 'DumpAtSite=', '   print files present at a (list of) sites')
 
   Script.parseCommandLine(ignoreErrors=False)
-  print 'script', gLogger.getLevel()
 
   from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executeReplicaStats
   exit(executeReplicaStats(dmScript))
