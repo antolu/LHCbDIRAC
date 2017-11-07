@@ -10,8 +10,6 @@ from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, Script
 
 if __name__ == "__main__":
 
-  from DIRAC import exit, gLogger
-
   dmScript = DMScript()
   dmScript.registerBKSwitches()
   dmScript.registerNamespaceSwitches()
@@ -36,4 +34,5 @@ if __name__ == "__main__":
   Script.parseCommandLine(ignoreErrors=False)
 
   from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executeReplicaStats
+  from DIRAC import exit
   exit(executeReplicaStats(dmScript))
