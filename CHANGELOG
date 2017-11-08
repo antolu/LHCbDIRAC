@@ -1,3 +1,24 @@
+[v9r0-pre13]
+use DIRAC v6r19p4
+
+* fix DB fields
+* NagiosTopology: fix new ipv6 methods
+* Gitlab-ci: run pylint and fail if there is an error
+* Doc: link boinc
+* remove import
+* remove print
+* remove addDefaultOptionValue call
+* remove script
+* Small fixes in transformationDebug
+* Fix checkJobs in case of multiple errors
+* keep script minimal
+* use transID instead or arg
+* cut long line
+* improve help
+* remove __init__ from scripts
+* New script to get transformation information
+* Fix rejections-stats to get all invisible files
+
 [v9r0-pre12]
 use DIRAC v6r19p3
 
