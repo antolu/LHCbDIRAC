@@ -55,15 +55,16 @@ class NagiosTopologyAgent(AgentModule):
 
     return S_OK()
 
+  @staticmethod
   def isHostIPV6(host):
     """ Test if the given host is ipv6 capable. 0:ipv6 capable. 1:ipv4 only. -1:Not a valid host (no DNS record?)
     """
     try: # First try IPV6
       adrinfo = socket.getaddrinfo(host, None, socket.AF_INET6)
       return 0
-    except socket.gaierror: No IPv6 address
+    except socket.gaierror: #No IPv6 address
       try: # Next try IPv4
-        adrinfo = socket.getaddrinfo(host, None, socket.AF_INET) 
+        adrinfo = socket.getaddrinfo(host, None, socket.AF_INET)
         return 1
       except socket.gaierror: # The host does not exist (no IPv6 or IPv4 address)
         return -1
@@ -191,7 +192,7 @@ class NagiosTopologyAgent(AgentModule):
       # produce the xml
       # XML file Name must be modified uppon next update back to :
       #with open(self.xmlPath + "lhcb_topology.xml", 'w') as xmlf:
-      with open(self.xmlPath + "lhcb_topology_Generated.xml", 'w') as xmlf: 
+      with open(self.xmlPath + "lhcb_topology_Generated.xml", 'w') as xmlf:
         xmlf.write(xml_doc.toxml())
 
       self.log.info("XML file created Successfully")
@@ -204,12 +205,12 @@ class NagiosTopologyAgent(AgentModule):
   def __site_parameters(sites, wlcg):
     """Function that returns the sites parameters.
 
-      :param list sites: 
-        List of sites or single site with same site name (e.g ['LCG.CERN.cern'] or 
+      :param list sites:
+        List of sites or single site with same site name (e.g ['LCG.CERN.cern'] or
         [LCG.Manchester.uk, VAC.Manchester.uk])
 
       :param dict wlcg:
-        It's a dictionary with the WLCG parameters from all sites grabbed from 
+        It's a dictionary with the WLCG parameters from all sites grabbed from
         https://wlcg-rebus.cern.ch/apps/topology/all/json
 
       Keys:
@@ -321,7 +322,7 @@ class NagiosTopologyAgent(AgentModule):
       #ce_batch = ce_batch['Value'][0]['GlueCEInfoJobManager'] if (ce_batch['OK'] and ce_batch['Value']) else None
 
       # ipv6 status of the CE
-      i6Status = isHostIPV6(site_ce_name)
+      i6Status = NagiosTopologyAgent.isHostIPV6(site_ce_name)
       i6Comment = ""
       if i6Status == -1:
         i6Comment = "Maybe DIRAC Service, not a valid machine"
@@ -371,7 +372,7 @@ class NagiosTopologyAgent(AgentModule):
                  path=site_se_path)
 
       # ipv6 status of the SE
-      i6Status = isHostIPV6(site_se_name)
+      i6Status = NagiosTopologyAgent.isHostIPV6(site_se_name)
       i6Comment = ""
       if i6Status == -1:
         i6Comment = "Maybe DIRAC Service, not a valid machine"

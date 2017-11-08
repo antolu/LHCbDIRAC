@@ -13,6 +13,30 @@ stages:
   - release_docker
 
 
+# This runs pylint and fails if there are errors
+run_pylint:
+  image:  gitlab-registry.cern.ch/ci-tools/ci-worker:cc7
+  before_script:
+    # If we are in a pre release branch we use integration of DIRAC, otherwise master
+    # We do the head first because of limitations of grep when running in containers
+    - diracBranch=$(head -n 50 LHCbDIRAC/releases.cfg | grep -E ' *v' | head -n 1 | grep -q pre; if [ $? -eq 0 ]; then echo "integration"; else echo "master"; fi)
+    - echo "Using DIRAC branch $diracBranch"
+    - git clone https://github.com/DIRACGrid/DIRAC.git
+    - cd DIRAC
+    - git checkout $diracBranch
+    - cd ..
+    - yum install -y mysql mysql-libs mysql-devel make ncurses-devel
+    - pip install --upgrade setuptools
+    - pip install --upgrade pip
+    - pip install -r DIRAC/requirements.txt
+
+  stage: test
+  only:
+    - branches
+  script:
+    - cd LHCbDIRAC
+    - 'find . -name "*.py" -and -not -name "NotForJenkins_Test_BKK_DB_OracleBookkeepingDB.py" -exec pylint -E --rcfile=$CI_PROJECT_DIR/DIRAC/.pylintrc --msg-template="{path}:{line}: [{msg_id}({symbol}), {obj}] {msg}" --extension-pkg-whitelist=GSI,numpy {} +'
+
 # This runs py.test and generates the coverage report
 run_pytest:
   image:  gitlab-registry.cern.ch/ci-tools/ci-worker:cc7
