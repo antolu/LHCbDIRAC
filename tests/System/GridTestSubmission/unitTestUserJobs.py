@@ -16,7 +16,10 @@ from DIRAC.DataManagementSystem.Client.DataManager import DataManager
 from DIRAC.tests.System.unitTestUserJobs import GridSubmissionTestCase as DIRACGridSubmissionTestCase
 
 from DIRAC.tests.Utilities.testJobDefinitions import *
-from LHCbDIRAC.tests.Utilities.testJobDefinitions import *
+try:
+  from LHCbDIRAC.tests.Utilities.testJobDefinitions import *
+except ImportError:
+  from tests.Utilities.testJobDefinitions import *
 
 gLogger.setLevel( 'VERBOSE' )
 
