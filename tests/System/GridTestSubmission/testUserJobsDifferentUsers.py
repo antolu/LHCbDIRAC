@@ -20,7 +20,10 @@ from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 
 # from DIRAC.tests.Utilities.utils import find_all
 
-from LHCbDIRAC.tests.Utilities.testJobDefinitions import *
+try:
+  from LHCbDIRAC.tests.Utilities.testJobDefinitions import *
+except ImportError:
+  from tests.Utilities.testJobDefinitions import *
 
 gLogger.setLevel( 'VERBOSE' )
 
