@@ -16,3 +16,4 @@ This page is the work in progress. See more material here soon !
    bookkeeping/adminisrate_oracle.rst
    dataDistribution.rst
    flushing.rst
+   BOINC/index.rst
