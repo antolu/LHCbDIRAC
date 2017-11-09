@@ -75,6 +75,9 @@ class DataRecoveryAgent( AgentModule ):
     # Configuration settings
     self.enableFlag = self.am_getOption( 'EnableFlag', True )
     self.log.verbose( 'Enable flag is %s' % self.enableFlag )
+    if not self.transformationTypes:
+      self.log.warn("No transformation types to look for... aborting")
+      return S_OK()
 
     transformationStatus = self.am_getOption( 'TransformationStatus', ['Active', 'Completing'] )
     fileSelectionStatus = self.am_getOption( 'FileSelectionStatus', ['Assigned', 'MaxReset'] )
