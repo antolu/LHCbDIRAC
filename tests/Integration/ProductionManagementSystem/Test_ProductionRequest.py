@@ -16,6 +16,7 @@ class TestProductionRequestTestCase( unittest.TestCase ):
 
   def setUp( self ):
     self.reqClient = RPCClient( 'ProductionManagement/ProductionRequest' )
+    self.reqIds = [] #this request will be deleted
 
   def tearDown( self ):
     pass
@@ -42,7 +43,8 @@ class TestProductionRequestTestCaseChain( TestProductionRequestTestCase ):
                                                    'Inform':'', 'RealNumberOfEvents':'', 'IsModel':0, 'Extra':''} )
     self.assertTrue(res['OK'])
     firstReq = res['Value']
-
+    self.reqIds.append( res['Value'] )
+    
     res = self.reqClient.createProductionRequest( {'ParentID':'', 'MasterID':'', 'RequestAuthor': 'adminusername',
                                                    'RequestName': 'RequestName - new', 'RequestType': 'RequestType',
                                                    'RequestState': 'New', 'RequestPriority': '2b', 'RequestPDG':'',
@@ -54,7 +56,7 @@ class TestProductionRequestTestCaseChain( TestProductionRequestTestCase ):
                                                    'Inform':'', 'RealNumberOfEvents':'', 'IsModel':0, 'Extra':''} )
     self.assertTrue(res['OK'])
     self.assertEqual( res['Value'], firstReq + 1 )
-
+    self.reqIds.append( res['Value'] )
     # Querying
     res = self.reqClient.getProductionList( 1L )
     self.assertTrue(res['OK'])
@@ -78,12 +80,12 @@ class TestProductionRequestTestCaseChain( TestProductionRequestTestCase ):
     self.assertTrue(res['OK'])
     self.assertEqual( res['Value'], 456 )
 
+    
     # delete
-    res = self.reqClient.deleteProductionRequest( firstReq )
-    self.assertTrue(res['OK'])
-    res = self.reqClient.deleteProductionRequest( firstReq + 1 )
-    self.assertTrue(res['OK'])
-
+    for reqId in self.reqIds:
+      res = self.reqClient.deleteProductionRequest( reqId )
+      self.assertTrue(res['OK'])
+      
 
 
 if __name__ == '__main__':

@@ -20,7 +20,6 @@ if __name__ == "__main__":
                                        'Usage:',
                                        '  %s [option|cfgfile]' % Script.scriptName, ] ) )
 
-  Script.addDefaultOptionValue( 'LogLevel', 'error' )
   Script.parseCommandLine( ignoreErrors = False )
 
   from LHCbDIRAC.BookkeepingSystem.Client.ScriptExecutors import executeGetStats

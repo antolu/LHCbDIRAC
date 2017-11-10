@@ -20,7 +20,10 @@ from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 
 # from DIRAC.tests.Utilities.utils import find_all
 
-from LHCbDIRAC.tests.Utilities.testJobDefinitions import *
+try:
+  from LHCbDIRAC.tests.Utilities.testJobDefinitions import *
+except ImportError:
+  from tests.Utilities.testJobDefinitions import *
 
 gLogger.setLevel( 'VERBOSE' )
 
@@ -33,7 +36,7 @@ class GridSubmissionTestCase( unittest.TestCase ):
     self.dirac = DiracLHCb()
 
     result = getProxyInfo()
-    if result['Value']['group'] not in ['diracAdmin']:
+    if result['Value']['group'] not in ['lhcb_admin']:
       print "GET A ADMIN GROUP"
       exit( 1 )
 
@@ -64,7 +67,7 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
 
   def test_LHCbsubmit( self ):
 
-    for uName, uGroup in [( 'cluzzi', 'lhcb_user' ), ( 'joel', 'lhcb_admin' )]:
+    for uName, uGroup in [( 'chaen', 'lhcb_user' ), ( 'fstagni', 'lhcb_admin' )]:
 
       res = helloWorldTestT2s( proxyUserName = uName, proxyUserGroup = uGroup ) # pylint: disable=unexpected-keyword-arg
       self.assertTrue(res['OK'])

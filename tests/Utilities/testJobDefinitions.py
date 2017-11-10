@@ -13,7 +13,10 @@ from DIRAC.tests.Utilities.testJobDefinitions import *
 from DIRAC.Core.Utilities.Proxy import executeWithUserProxy
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
-from LHCbDIRAC.tests.Workflow.Integration.Test_UserJobs import createJob
+try:
+  from LHCbDIRAC.tests.Workflow.Integration.Test_UserJobs import createJob
+except ImportError:
+  from tests.Workflow.Integration.Test_UserJobs import createJob
 
 from LHCbDIRAC import rootPath
 
@@ -450,13 +453,13 @@ def booleJobWithConf():
 def gaudiApplicationScriptJob():
 
   job = baseToAllJobs( 'gaudiApplicationScriptJob', jobClass )
-  job.setInputSandbox( [find_all( '_input_sandbox_1324_master.tgz', wdir, 'GridTestSubmission' )[0]] \
-                     + [find_all( 'runToys.C', wdir, 'GridTestSubmission' )[0]] \
-                     + [find_all( 'script_wrapper.py', wdir, 'GridTestSubmission' )[0]] )
-  job.setApplicationScript( 'root', '6.06.02', find_all( 'script_wrapper.py', wdir, 'GridTestSubmission' )[0], # pylint: disable=no-member
+  job.setInputSandbox( [find_all( '_input_sandbox_1324_master.tgz', wdir, 'tests/System/GridTestSubmission' )[0]] \
+                     + [find_all( 'runToys.C', wdir, 'tests/System/GridTestSubmission' )[0]] \
+                     + [find_all( 'script_wrapper.py', wdir, 'tests/System/GridTestSubmission' )[0]] )
+  job.setApplicationScript( 'root', '6.06.02', find_all( 'script_wrapper.py', wdir, 'tests/System/GridTestSubmission/script_wrapper.py' )[0], # pylint: disable=no-member
                             systemConfig = 'x86_64-slc6-gcc49-opt' )
   job.setOutputSandbox( 'FitResultsToyData*.root' )
-  job.setDIRACPlatform()  # pylint: disable=no-member
+  #job.setDIRACPlatform()  # pylint: disable=no-member
   job.setCPUTime( 172800 )
   res = endOfAllJobs( job )
   return res

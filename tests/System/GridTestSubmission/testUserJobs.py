@@ -12,7 +12,10 @@ from LHCbDIRAC import rootPath
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
-from LHCbDIRAC.tests.Workflow.Integration.Test_UserJobs import createJob
+try:
+  from LHCbDIRAC.tests.Workflow.Integration.Test_UserJobs import createJob
+except ImportError:
+  from tests.Workflow.Integration.Test_UserJobs import createJob
 
 gLogger.setLevel( 'DEBUG' )
 
