@@ -391,12 +391,14 @@ function installLHCbDIRACClient(){
     echo 'ERROR: cannot change to ' $CLIENTINSTALLDIR
     return
   fi
-  ./dirac-install -l LHCb -r `cat $WORKSPACE/project.version` -e LHCb -t client $DEBUG
-
-  mkdir $CLIENTINSTALLDIR/etc
-  ln -s /cvmfs/lhcb.cern.ch/lib/lhcb/DIRAC/etc/dirac.cfg $CLIENTINSTALLDIR/etc/dirac.cfg
+  ./dirac-install -l LHCb -r `cat $WORKSPACE/project.version` -e LHCb -t client -g `cat $WORKSPACE/lcg.version` $DEBUG
 
   source bashrc
+
+  #mkdir $CLIENTINSTALLDIR/etc
+  #ln -s /cvmfs/lhcb.cern.ch/lib/lhcb/DIRAC/etc/dirac.cfg $CLIENTINSTALLDIR/etc/dirac.cfg
+
+  dirac-configure --UseServerCertificate -o /DIRAC/Security/CertFile=/home/dirac/certs/hostcert.pem -o /DIRAC/Security/KeyFile=/home/dirac/certs/hostkey.pem -S $DIRACSETUP -C $CSURL -e LHCb -ddd
 
 }
 
