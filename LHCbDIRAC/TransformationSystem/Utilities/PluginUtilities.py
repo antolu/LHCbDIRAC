@@ -1124,14 +1124,17 @@ get from BK" % (param, self.paramName))
 
   def selectProcessedFiles(self, lfns, prodList):
     """
-    Select only the files that are Processed in a list of productions
+    Select only the files that are not in a status other than Processed in a list of productions
+    Beware: this is not the same as Processed files as some files may not be in any production
+            because they are intermediate files
     """
     res = self.transClient.getTransformationFiles(
-        {'LFN': list(lfns), 'TransformationID': prodList, 'Status': 'Processed'})
+        {'LFN': list(lfns), 'TransformationID': prodList})
     if not res['OK']:
       self.logError("Error getting transformation files", res['Message'])
       return []
-    processedLfns = set(fDict['LFN'] for fDict in res['Value'])
+    unProcessedLfns = set(fDict['LFN'] for fDict in res['Value'] if fDict['Status'] != 'Processed')
+    processedLfns = set(lfns) - set(unProcessedLfns)
     if len(processedLfns) != len(lfns):
       self.logVerbose('Reduce files from %d to %d (removing pending files)' % (len(lfns), len(processedLfns)))
     return processedLfns
