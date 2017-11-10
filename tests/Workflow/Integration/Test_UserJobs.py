@@ -32,8 +32,8 @@ class UserJobTestCase( IntegrationTest ):
     print "\n \n ********************************* \n   Running a new test \n *********************************"
 
     self.dLHCb = DiracLHCb()
-    self.exeScriptLocation = find_all( 'exe-script.py', rootPath, '/LHCbDIRAC/tests/Workflow' )[0]
-    self.exeScriptFromDIRACLocation = find_all( 'exe-script-fromDIRAC.py', rootPath, '/LHCbDIRAC/tests/Workflow' )[0]
+    self.exeScriptLocation = find_all( 'exe-script.py', rootPath, '/LHCbDIRAC/tests/Workflow/Integration' )[0]
+    self.exeScriptFromDIRACLocation = find_all( 'exe-script-fromDIRAC.py', rootPath, '/LHCbDIRAC/tests/Workflow/Integration' )[0]
     self.lhcbJobTemplate = LHCbJob()
     self.lhcbJobTemplate.setLogLevel( 'DEBUG' )
     self.lhcbJobTemplate.setInputSandbox( find_all( 'pilot.cfg', rootPath )[0] )

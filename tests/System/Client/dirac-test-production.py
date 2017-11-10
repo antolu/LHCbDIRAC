@@ -22,7 +22,7 @@ prod.setParameter( 'numberOfEvents', 'string', '-1', 'Number of events requested
 prod.setParameter( 'ProcessingType', 'JDL', str( 'Test' ), 'ProductionGroupOrType' )
 prod.setParameter( 'Priority', 'JDL', str( 9 ), 'UserPriority' )
 prod.setBKParameters( configName = 'outConfigName', configVersion = 'configVersion',
-                      groupDescription = 'Test', conditions = 'dataTakingConditions' )
+                      groupDescriptionOrStepsList = 'Test', conditions = 'dataTakingConditions' )
 prod.LHCbJob.setType( prodType )
 prod.LHCbJob.workflow.setName(transName)
 prod.LHCbJob.workflow.setDescrShort( desc )
@@ -35,6 +35,7 @@ stepsInProd = [{'StepId': 123897, 'StepName': 'MergeMDF', 'ApplicationName': 'Me
                 'DDDB': '', 'CONDDB': '', 'DQTag': '', 'OptionsFormat': '',
                 'OptionFiles': '', 'SystemConfig': '', 'mcTCK': '', 'ExtraOptions': '',
                 'isMulticore': 'N',
+                'visibilityFlag': [{'Visible': 'Y', 'FileType': 'TXT'}],
                 'fileTypesIn':['TXT'],
                 'fileTypesOut':['TXT']}]
 stepName = prod.addApplicationStep( stepDict = stepsInProd[0],

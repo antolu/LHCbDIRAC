@@ -61,19 +61,5 @@ then
    exit $?
 fi
 echo " "
-echo "======  dirac-bookkeeping-run-files 81789"
-dirac-bookkeeping-run-files 81789
-if [ $? -ne 0 ]
-then
-   exit $?
-fi
-echo " "
-echo "======  dirac-bookkeeping-gui"
-dirac-bookkeeping-gui
-if [ $? -ne 0 ]
-then
-   exit $?
-fi
-echo " "
 echo " if 2 replicas exists you can run "
 echo "====== dirac-dms-add-replication --BKQuery=/LHCb/Collision12//RealData/Reco13a/Stripping19a//PID.MDST --Plugin=DeleteReplicas --NumberOfReplicas=1 --Start
