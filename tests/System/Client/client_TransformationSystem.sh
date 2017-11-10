@@ -47,10 +47,8 @@ transID=`cat TransformationID`
 # Create unique files and adding entry to the bkk"
 echo ""
 echo "Creating unique test files and adding entry to the bkk"
-# ./random_files_creator.sh --Files=5 --Name="Test_Transformation_System_" \
-#   --Path=$PWD/TransformationSystemTest/
-./client_Bookkeeping.sh --Files=5 --Name="Test_Transformation_System_" \
-  --Path=$PWD/TransformationSystemTest/
+# ./random_files_creator.sh --Files=5 --Name="Test_Transformation_System_" --Path=$PWD/TransformationSystemTest/
+./client_Bookkeeping.sh --Files=5 --Name="Test_Transformation_System_" --Path=$PWD/TransformationSystemTest/
 
 # Add the random files to the transformation
 echo ""
@@ -58,18 +56,18 @@ echo "Adding files to Storage Element $randomSE"
 # filesToUpload=$(ls TransformationSystemTest/)
 # for file in $filesToUpload
 # do
-# 	random=$[ $RANDOM % $x ]
-# 	randomSE=${arrSE[$random]}
-# 	echo "$directory/$file \
-# 	     ./TransformationSystemTest/$file $randomSE" \
-# 	     >> TransformationSystemTest/LFNlist.txt
+#   random=$[ $RANDOM % $x ]
+#   randomSE=${arrSE[$random]}
+#   echo "$directory/$file \
+#        ./TransformationSystemTest/$file $randomSE" \
+#        >> TransformationSystemTest/LFNlist.txt
 # done
 
 while IFS= read -r line
-do 
-    random=$[ $RANDOM % $x ]
-    randomSE=${arrSE[$random]}
-    echo "$line $randomSE"
+do
+  random=$[ $RANDOM % $x ]
+  randomSE=${arrSE[$random]}
+  echo "$line $randomSE"
 done < LFNlist.txt >> ./LFNlistNew.txt
 
 dirac-dms-add-file LFNlistNew.txt
@@ -82,10 +80,7 @@ dirac-transformation-add-files $transID --LFNs=$LFNlist
 
 if [ $? -ne 0 ]
 then
-   exit $?
+  exit $?
 fi
 
-
-
-
-# ___ Use Ramdom SEs___
+# TODO: ___ Use Ramdom SEs___

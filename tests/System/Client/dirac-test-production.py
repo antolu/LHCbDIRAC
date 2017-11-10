@@ -35,6 +35,7 @@ stepsInProd = [{'StepId': 123897, 'StepName': 'MergeMDF', 'ApplicationName': 'Me
                 'DDDB': '', 'CONDDB': '', 'DQTag': '', 'OptionsFormat': '',
                 'OptionFiles': '', 'SystemConfig': '', 'mcTCK': '', 'ExtraOptions': '',
                 'isMulticore': 'N',
+                'visibilityFlag': [{'Visible': 'Y', 'FileType': 'TXT'}],
                 'fileTypesIn':['TXT'],
                 'fileTypesOut':['TXT']}]
 stepName = prod.addApplicationStep( stepDict = stepsInProd[0],
