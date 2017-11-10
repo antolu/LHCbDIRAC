@@ -45,7 +45,7 @@ class ProductionRequestDB( DB ):
                     'ProPath', 'ProID', 'ProDetail',
                     'EventType', 'NumberOfEvents', 'Description', 'Comments',
                     'Inform', 'RealNumberOfEvents', 'IsModel', 'Extra',
-                    'HasSubrequest', 'bk', 'bkTotal', # runtime
+                    'HasSubrequest', 'bk', 'bkSrTotal', 'bkTotal', # runtime
                     'rqTotal', 'crTime', 'upTime' ] # runtime
 
   historyFields = [ 'RequestID', 'RequestState', 'RequestUser', 'TimeStamp' ]
@@ -263,35 +263,8 @@ class ProductionRequestDB( DB ):
     rQuery += "                COALESCE(t.RealNumberOfEvents,0) AS SIGNED)"
     rQuery += "           AS rqTotal "
     rQuery += " FROM "
-    rQuery += """
-    (SELECT 
-      t.RequestID,
-      t.ParentID,
-      t.MasterID,
-      t.RequestAuthor,
-      t.RequestName,
-      t.RequestType,
-      t.RequestState,
-      t.RequestPriority,
-      t.RequestPDG,
-      t.RequestWG,
-      t.SimCondition,
-      t.SimCondID,
-      t.SimCondDetail,
-      t.ProPath,
-      t.ProID,
-      t.ProDetail,
-      t.EventType,
-      t.NumberOfEvents,
-      t.Description,
-      t.Comments,
-      t.Inform,
-      t.RealNumberOfEvents,
-      t.IsModel,
-      t.Extra,
-      t.HasSubrequest,
-      t.bk,
-      CAST(COALESCE(SUM(t.bkSrTotal),0)+ COALESCE(t.bk,0) AS SIGNED) AS bkTotal FROM """
+    rQuery += " (SELECT t.*,CAST(COALESCE(SUM(t.bkSrTotal),0)+"
+    rQuery += "                  COALESCE(t.bk,0) AS SIGNED) AS bkTotal FROM "
     rQuery += "  (SELECT t.*,CAST(LEAST(COALESCE(SUM(pp.BkEvents),0),"
     rQuery += "                   COALESCE(sr.RealNumberOfEvents,0)) AS SIGNED)"
     rQuery += "              AS bkSrTotal FROM "
@@ -302,11 +275,11 @@ class ProductionRequestDB( DB ):
     rQuery += "   LEFT JOIN ProductionRequests AS sr ON t.RequestID=sr.MasterID "
     rQuery += "   LEFT JOIN ProductionProgress AS pp ON (sr.RequestID=pp.RequestID "
     rQuery += "   AND pp.Used=1) GROUP BY t.RequestID,sr.RequestID) AS t"
-    rQuery += "  GROUP BY t.RequestID) AS t"
+    rQuery += "  GROUP BY t.RequestID, t.bkSrTotal) AS t"
     rQuery += " LEFT JOIN ProductionRequests as sr ON sr.MasterID=t.RequestID "
-    rQuery += " GROUP BY t.RequestID) as t"
+    rQuery += " GROUP BY t.RequestID, t.bkSrTotal) as t"
     rQuery += " LEFT JOIN RequestHistory as rh ON rh.RequestID=t.RequestID "
-    rQuery += " GROUP BY t.RequestID"
+    rQuery += " GROUP BY t.RequestID, t.bkSrTotal"
     return rQuery + order
 
   def getProductionRequest( self, requestIDList, subrequestsFor = 0,
