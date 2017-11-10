@@ -140,7 +140,7 @@ class ProductionRequestDB( DB ):
         TODO: Complete check of content
     '''
 
-    rec = dict.fromkeys( self.requestFields[1:-6], None )
+    rec = dict.fromkeys( self.requestFields[1:-7], None )
     for x in requestDict:
       if x in rec and str( requestDict[x] ) != '':
         rec[x] = requestDict[x] # set only known not empty fields
@@ -174,7 +174,7 @@ class ProductionRequestDB( DB ):
     rec['IsModel'] = 0
 
 
-    recl = [ rec[x] for x in self.requestFields[1:-6] ]
+    recl = [ rec[x] for x in self.requestFields[1:-7] ]
     result = self._fixedEscapeValues( recl )
     if not result['OK']:
       return result
@@ -224,7 +224,7 @@ class ProductionRequestDB( DB ):
       if not result['OK']:
         return result
 
-    req = "INSERT INTO ProductionRequests ( " + ','.join( self.requestFields[1:-6] )
+    req = "INSERT INTO ProductionRequests ( " + ','.join( self.requestFields[1:-7] )
     req += " ) VALUES ( %s );" % ','.join( recls )
     result = self._update( req, connection )
     if not result['OK']:
@@ -280,6 +280,7 @@ class ProductionRequestDB( DB ):
     rQuery += " GROUP BY t.RequestID, t.bkSrTotal) as t"
     rQuery += " LEFT JOIN RequestHistory as rh ON rh.RequestID=t.RequestID "
     rQuery += " GROUP BY t.RequestID, t.bkSrTotal"
+
     return rQuery + order
 
   def getProductionRequest( self, requestIDList, subrequestsFor = 0,
@@ -300,7 +301,7 @@ class ProductionRequestDB( DB ):
     try: # test filters
       sfilter = []
       for x in filterIn:
-        if not x in self.requestFields[:-6]:
+        if not x in self.requestFields[:-7]:
           return S_ERROR( "bad field in filterIn" )
         val = str( filterIn[x] )
         if val:
@@ -328,12 +329,12 @@ class ProductionRequestDB( DB ):
       return S_ERROR( "Bad filter content " + str( e ) )
 
     if sortBy:
-      if not sortBy in self.requestFields[:-6]:
+      if not sortBy in self.requestFields[:-7]:
         return S_ERROR( "sortBy field does not exist" )
       if sortOrder != 'ASC':
         sortOrder = 'DESC'
 
-    fields = ','.join( ['t.' + x for x in self.requestFields[:-6]] )
+    fields = ','.join( ['t.' + x for x in self.requestFields[:-7]] )
     req = "SELECT %s ,COUNT(sr.RequestID) AS HasSubrequest " % fields
     req += "FROM ProductionRequests as t "
     req += "LEFT JOIN ProductionRequests AS sr ON t.RequestID=sr.ParentID "
@@ -622,7 +623,7 @@ class ProductionRequestDB( DB ):
         TODO: RequestPDG change in ??? state
               Protect fields in subrequests
     '''
-    fdict = dict.fromkeys( self.requestFields[4:-6], None )
+    fdict = dict.fromkeys( self.requestFields[4:-7], None )
     rec = {}
     for x in requestDict:
       if x in fdict:
@@ -639,7 +640,7 @@ class ProductionRequestDB( DB ):
     connection = result['Value']
 
 
-    fields = ','.join( ['t.' + x for x in self.requestFields[:-6]] )
+    fields = ','.join( ['t.' + x for x in self.requestFields[:-7]] )
     req = "SELECT %s " % fields
     req += "FROM ProductionRequests as t "
     req += "WHERE t.RequestID=%s" % requestID
@@ -651,7 +652,7 @@ class ProductionRequestDB( DB ):
       self.lock.release()
       return S_ERROR( 'The request is no longer exist' )
 
-    old = dict( zip( self.requestFields[:-6], result['Value'][0] ) )
+    old = dict( zip( self.requestFields[:-7], result['Value'][0] ) )
 
     update = {}     # Decide what to update (and if that is required)
     for x in rec:
@@ -853,7 +854,7 @@ class ProductionRequestDB( DB ):
     ''' retrive complete request record.
         NOTE: unlock in case of errors
     '''
-    fields = ','.join( ['t.' + x for x in self.requestFields[:-6]] )
+    fields = ','.join( ['t.' + x for x in self.requestFields[:-7]] )
     req = "SELECT %s " % fields
     req += "FROM ProductionRequests as t "
     req += "WHERE t.RequestID=%s" % requestID
@@ -864,7 +865,7 @@ class ProductionRequestDB( DB ):
     if not result['Value']:
       self.lock.release()
       return S_ERROR( 'The request is no longer exist' )
-    rec = dict( zip( self.requestFields[:-6], result['Value'][0] ) )
+    rec = dict( zip( self.requestFields[:-7], result['Value'][0] ) )
     return S_OK( rec )
 
   @staticmethod
@@ -914,14 +915,14 @@ class ProductionRequestDB( DB ):
       gLogger.warn( "NumberOfEvents is not defined for %s" % requestID )
     rec['RealNumberOfEvents'] = str( num )
 
-    recl = [ rec[x] for x in self.requestFields[1:-6] ]
+    recl = [ rec[x] for x in self.requestFields[1:-7] ]
     result = self._fixedEscapeValues( recl )
     if not result['OK']:
       self.lock.release()
       return result
     recls = result['Value']
 
-    req = "INSERT INTO ProductionRequests ( " + ','.join( self.requestFields[1:-6] )
+    req = "INSERT INTO ProductionRequests ( " + ','.join( self.requestFields[1:-7] )
     req += " ) VALUES ( %s );" % ','.join( recls )
     result = self._update( req, connection )
     if not result['OK']:
@@ -1110,13 +1111,13 @@ class ProductionRequestDB( DB ):
       return S_ERROR( 'You have to keep at least one subrequest' )
 
     # Now copy the master
-    recl = [ rec[x] for x in self.requestFields[1:-6] ]
+    recl = [ rec[x] for x in self.requestFields[1:-7] ]
     result = self._fixedEscapeValues( recl )
     if not result['OK']:
       self.lock.release()
       return result
     recls = result['Value']
-    req = "INSERT INTO ProductionRequests ( " + ','.join( self.requestFields[1:-6] )
+    req = "INSERT INTO ProductionRequests ( " + ','.join( self.requestFields[1:-7] )
     req += " ) VALUES ( %s );" % ','.join( recls )
     result = self._update( req, connection )
     if not result['OK']:
@@ -1298,13 +1299,13 @@ class ProductionRequestDB( DB ):
         in 'Active' or 'Completed' states
     '''
 
-    fields = ','.join( ['t.' + x for x in self.requestFields[:-6]] )
+    fields = ','.join( ['t.' + x for x in self.requestFields[:-7]] )
     result = self.__trackedInputSQL( fields )
     if not result['OK']:
       return result
     rec = []
     for x in result['Value']:
-      res = dict( zip( self.requestFields[:-6], x ) )
+      res = dict( zip( self.requestFields[:-7], x ) )
       if res['SimCondDetail']:
         res.update( cPickle.loads( res['SimCondDetail'] ) )
       else:
