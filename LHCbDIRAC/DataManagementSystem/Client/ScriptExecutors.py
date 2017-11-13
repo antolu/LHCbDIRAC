@@ -918,6 +918,7 @@ def executeReplicaStats(dmScript):
       dumpAtSE = True
     elif switch[0] == 'DumpAtSite':
       dmScript.setSites(switch[1])
+      dumpAtSE = True
     elif switch[0] == 'DumpNotAtSE':
       dmScript.setSEs(switch[1])
       dumpNotAtSE = True
@@ -1012,11 +1013,14 @@ def printReplicaStats(directories, lfnList, getSize=False, prNoReplicas=False,
   for lfn, replicas in lfnReplicas.iteritems():
     seList = set(replicas)
     dumpSE = seList & prSEList
-    if dumpSE and not notAtSE:
-      seStr = ','.join(sorted(dumpSE))
-      dumpFromSE.setdefault(seStr, set()).add(lfn)
-    elif not dumpSE and notAtSE:
-      dumpFromSE.setdefault('any', set()).add(lfn)
+    if ((not isinstance(prWithReplicas, list) and not prFailover) or
+        (isinstance(prWithReplicas, list) and len(replicas) in prWithReplicas) or
+            (prFailover and prFailover in set(dmsHelper.isSEFailover(se) for se in replicas))):
+      if dumpSE and not notAtSE:
+        seStr = ','.join(sorted(dumpSE))
+        dumpFromSE.setdefault(seStr, set()).add(lfn)
+      elif not dumpSE and notAtSE:
+        dumpFromSE.setdefault('any', set()).add(lfn)
     nrep = len(replicas)
     narchive = -1
     for se in set(seList):
@@ -1116,29 +1120,41 @@ def printReplicaStats(directories, lfnList, getSize=False, prNoReplicas=False,
       for rep in sorted(withArchives[nb]):
         gLogger.notice(rep)
 
-  if isinstance(prWithReplicas, list):
-    for nb in [m for m in prWithReplicas if m in withReplicas]:
-      gLogger.notice('\nFiles with %d disk replicas:' % nb)
-      if prFailover:
-        prList = withReplicas[nb] & withFailover
-      else:
-        prList = withReplicas[nb]
-      for rep in sorted(prList):
-        gLogger.notice(rep)
-  elif not prNoReplicas and prFailover and withFailover:
-    for rep in sorted(withFailover):
-      gLogger.notice(rep)
-
   if prSEList:
+    # Requested set of SEs
     atOrNot = 'not ' if notAtSE else ''
-    gLogger.notice('\nFiles %spresent at %s' % (atOrNot, ','.join(sorted(prSEList))))
     if not dumpFromSE:
-      gLogger.notice("No files found %sat these SEs" % atOrNot)
+      prStr = "\nNo files found %sat %s" % (atOrNot, ','.join(sorted((prSEList))))
+    else:
+      prStr = '\nFiles %spresent at %s' % (atOrNot, ','.join(sorted(dumpFromSE)))
+    if prWithReplicas:
+      if len(prWithReplicas) == 1:
+        prStr += ' with %d non-archive replicas' % prWithReplicas[0]
+      else:
+        prStr += ' with # of non-archive replicas in %s' % str(prWithReplicas)
+    elif prFailover:
+      prStr += ' with replicas in Failover'
+    gLogger.notice(prStr)
     for se in dumpFromSE:
       if not notAtSE:
         gLogger.notice('At %s' % se)
       for lfn in dumpFromSE[se]:
         gLogger.notice('\t%s' % lfn)
+  else:
+    # No list of SEs: dump as requested for replicas
+    if isinstance(prWithReplicas, list):
+      for nb in [m for m in prWithReplicas if m in withReplicas]:
+        gLogger.notice('\nFiles with %d non-archive replicas:' % nb)
+        if prFailover:
+          prList = withReplicas[nb] & withFailover
+        else:
+          prList = withReplicas[nb]
+        for rep in sorted(prList):
+          gLogger.notice(rep)
+    elif not prNoReplicas and prFailover and withFailover:
+      for rep in sorted(withFailover):
+        gLogger.notice(rep)
+
   return 0
 
 
