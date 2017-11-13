@@ -1,6 +1,6 @@
 {
   "name": "LHCbDirac",
-  "version": "v9r0-pre14",
+  "version": "v0r9015",
   "used_projects": {
     "project": [
       [ "Dirac", "v6r19p5",
