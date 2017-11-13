@@ -13,6 +13,7 @@ from DIRAC import gLogger
 
 from DIRAC.tests.Utilities.utils import find_all
 
+from LHCbDIRAC import rootPath
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 #from tests.Workflow.Integration.Test_UserJobs import createJob
@@ -27,7 +28,7 @@ dirac = DiracLHCb()
 gLogger.info( "\n Submitting hello world job targeting DIRAC.Jenkins.ch" )
 helloJ = LHCbJob()
 helloJ.setName( "helloWorld-TEST-TO-Jenkins" )
-helloJ.setInputSandbox( [find_all( 'exe-script.py', '..', '/DIRAC/tests/Workflow/' )[0]] )
+helloJ.setInputSandbox( [find_all( 'exe-script.py', rootPath, '/DIRAC/tests/Workflow/' )[0]] )
 helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 helloJ.setCPUTime( 17800 )
 helloJ.setDestination( 'DIRAC.Jenkins.ch' )
@@ -42,7 +43,7 @@ if not result['OK']:
 gLogger.info( "\n Submitting hello world job, with input, targeting DIRAC.Jenkins.ch" )
 inputJ = LHCbJob()
 inputJ.setName( "helloWorld-TEST-INPUT-TO-Jenkins" )
-inputJ.setInputSandbox( [find_all( 'exe-script-with-input-jenkins.py', '..', '/DIRAC/tests/GridTestSubmission' )[0]] )
+inputJ.setInputSandbox( [find_all( 'exe-script-with-input-jenkins.py', rootPath, '/DIRAC/tests/GridTestSubmission' )[0]] )
 inputJ.setExecutable( "exe-script-with-input-jenkins.py", "", "exeWithInput.log" )
 inputJ.setInputData( '/lhcb/test/DIRAC/Jenkins/jenkinsInputTestFile.txt' )  # this file should be at CERN-SWTEST only
 inputJ.setInputDataPolicy( 'download' )
@@ -59,7 +60,7 @@ if not result['OK']:
 gLogger.info( "\n Submitting hello world job targeting DIRAC.Jenkins.ch and a MP WN" )
 helloJMP = LHCbJob()
 helloJMP.setName( "helloWorld-TEST-TO-Jenkins-MP" )
-helloJMP.setInputSandbox( [find_all( 'exe-script.py', '..', '/DIRAC/tests/GridTestSubmission' )[0]] )
+helloJMP.setInputSandbox( [find_all( 'exe-script.py', rootPath, '/DIRAC/tests/GridTestSubmission' )[0]] )
 helloJMP.setExecutable( "exe-script.py", "", "helloWorld.log" )
 helloJMP.setCPUTime( 17800 )
 helloJMP.setDestination( 'DIRAC.Jenkins.ch' )
