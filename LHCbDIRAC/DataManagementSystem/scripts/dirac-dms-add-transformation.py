@@ -7,7 +7,6 @@
 __RCSID__ = "$Id$"
 
 from LHCbDIRAC.TransformationSystem.Utilities.PluginScript import PluginScript, Script
-from LHCbDIRAC.DataManagementSystem.Client.AddTransformation import executeAddTransformation
 
 if __name__ == "__main__":
 
@@ -35,4 +34,5 @@ if __name__ == "__main__":
                                     'Usage:',
                                     '  %s [option|cfgfile] ...' % Script.scriptName, ]))
 
+  from LHCbDIRAC.DataManagementSystem.Client.AddTransformation import executeAddTransformation
   executeAddTransformation(pluginScript)

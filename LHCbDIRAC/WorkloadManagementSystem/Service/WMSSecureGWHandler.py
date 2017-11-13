@@ -78,7 +78,7 @@ class WMSSecureGWHandler( RequestHandler ):
     return S_OK()
 
 
-  types_requestJob = [ list( StringTypes ) + [DictType] ]
+  types_requestJob = [ [basestring, dict] ]
   def export_requestJob( self, resourceDescription ):
     """ Serve a job to the request of an agent which is the highest priority
         one matching the agent's site capacity
@@ -299,5 +299,3 @@ class WMSSecureGWHandler( RequestHandler ):
     defaultGroup = result['Value']
     userGroup = opsHelper.getValue( cfgPath( 'BoincShifter', shifterType, 'Group' ), defaultGroup )
     return userDN, userGroup, userName
-
-
