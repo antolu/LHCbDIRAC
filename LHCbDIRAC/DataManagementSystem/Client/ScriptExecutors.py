@@ -1106,7 +1106,7 @@ def printReplicaStats(directories, lfnList, getSize=False, prNoReplicas=False,
     gLogger.notice(string)
 
   if prNoReplicas and noReplicas:
-    gLogger.notice("\nFiles without a disk replica:")
+    gLogger.notice("\nFiles without a non-archive replica:")
     if prFailover:
       prList = set(noReplicas) & withFailover
     else:
@@ -1143,17 +1143,29 @@ def printReplicaStats(directories, lfnList, getSize=False, prNoReplicas=False,
   else:
     # No list of SEs: dump as requested for replicas
     if isinstance(prWithReplicas, list):
-      for nb in [m for m in prWithReplicas if m in withReplicas]:
-        gLogger.notice('\nFiles with %d non-archive replicas:' % nb)
-        if prFailover:
-          prList = withReplicas[nb] & withFailover
+      nbRepList = [m for m in prWithReplicas if m in withReplicas]
+      if nbRepList:
+        for nb in nbRepList:
+          gLogger.notice('\nFiles with %d non-archive replicas:' % nb)
+          if prFailover:
+            prList = withReplicas[nb] & withFailover
+          else:
+            prList = withReplicas[nb]
+          for rep in sorted(prList):
+            gLogger.notice(rep)
+      else:
+        prStr = '\nNo files found'
+        if len(prWithReplicas) == 1:
+          prStr += ' with %d non-archive replicas' % prWithReplicas[0]
         else:
-          prList = withReplicas[nb]
-        for rep in sorted(prList):
+          prStr += ' with # of non-archive replicas in %s' % str(prWithReplicas)
+        gLogger.notice(prStr)
+    elif not prNoReplicas and prFailover:
+      if withFailover:
+        for rep in sorted(withFailover):
           gLogger.notice(rep)
-    elif not prNoReplicas and prFailover and withFailover:
-      for rep in sorted(withFailover):
-        gLogger.notice(rep)
+      else:
+        gLogger.notice('\nNo files found in Failover')
 
   return 0
 
