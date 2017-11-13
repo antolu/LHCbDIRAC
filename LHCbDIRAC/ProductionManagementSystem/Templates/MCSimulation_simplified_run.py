@@ -187,11 +187,11 @@ elif w3:
 
 
 numberOfSteps = len( pr.stepsList )
-#pr.compressionLvl = [lowCompressionLvl] * numberOfSteps 
+#pr.compressionLvl = [lowCompressionLvl] * numberOfSteps
 #pr.compressionLvl[-1] = highCompressionLvl
-pr.compressionLvl = ["LOW"] * numberOfSteps 
+pr.compressionLvl = ["LOW"] * numberOfSteps
 pr.compressionLvl[-1] = "HIGH"
-  
+
 vis = dict( [str(i),"N"] for i in range(1,numberOfSteps))
 vis[str(numberOfSteps)] = "Y"
 
