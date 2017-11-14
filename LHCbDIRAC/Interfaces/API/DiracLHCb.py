@@ -39,7 +39,7 @@ def getSiteForSE( se ):
     return S_OK( result['Value'][0] )
   return S_OK( '' )
 
-def __translateBKPath( bkPath, procPassID = 3 ):
+def translateBKPath( bkPath, procPassID = 3 ):
   bk = filter( None, bkPath.split( '/' ) )
   if procPassID < 0:
     return bk
@@ -334,7 +334,7 @@ class DiracLHCb( Dirac ):
 
     # remove any double slashes, spaces must be preserved
     # remove any empty components from leading and trailing slashes
-    bkPath = __translateBKPath( bkPath, procPassID = 1 )
+    bkPath = translateBKPath( bkPath, procPassID = 1 )
     if not len( bkPath ) == 4:
       return S_ERROR( 'Expected 4 components to the BK path: /<Run Number>/<Processing Pass>/<Event Type>/<File Type>' )
 
@@ -409,7 +409,7 @@ class DiracLHCb( Dirac ):
 
     # remove any double slashes, spaces must be preserved
     # remove any empty components from leading and trailing slashes
-    bkPath = __translateBKPath( bkPath, procPassID = 1 )
+    bkPath = translateBKPath( bkPath, procPassID = 1 )
     if len( bkPath ) < 2:
       return S_ERROR( 'Invalid bkPath: should at least contain /ProductionID/FileType' )
     query = self.bkQueryTemplate.copy()
@@ -467,7 +467,7 @@ class DiracLHCb( Dirac ):
 
     # remove any double slashes, spaces must be preserved
     # remove any empty components from leading and trailing slashes
-    bkPath = __translateBKPath( bkPath, procPassID = 3 )
+    bkPath = translateBKPath( bkPath, procPassID = 3 )
     if not len( bkPath ) == 6:
       return S_ERROR( 'Expected 6 components to the BK path: \
       /<ConfigurationName>/<Configuration Version>/<Sim or Data Taking Condition>/<Processing Pass>/<Event Type>/<File Type>' )
