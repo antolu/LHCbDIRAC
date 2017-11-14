@@ -11,7 +11,7 @@ It is based on script outputs and exit codes
 '
 
 echo -e "\n\n TESTING: dirac-rss-query-db --name=test123 --status=Banned --statusType=ReadAccess --reason=test add resource status"
-dirac-rss-query-db --name=test123 --status=Banned --statusType=ReadAccess --elementType=StorageElement --reason=test add resource status -dd
+dirac-rss-query-db --name=test123 --status=Banned --statusType=ReadAccess --elementType=StorageElement --reason=test add resource status
 if [ $? -ne 0 ]
 then
   echo -e "Script dirac-rss-query-db did not get executed successfully \n"

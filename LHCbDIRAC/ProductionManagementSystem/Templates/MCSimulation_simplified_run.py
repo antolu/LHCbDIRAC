@@ -25,44 +25,6 @@ from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import Produc
 
 __RCSID__ = "$Id$"
 
-#
-# Link compression level to the output file visibility. If any file types is visible, the corresponding
-# step takes the maximum compression level
-# Input : dicts including the visibility of output files per step
-# Output: modified list of compression levels
-#
-def modifyCompression( dict1, dict2, lis1 ):
-
-  for k, v in dict1.items():
-    if v == 'Y':
-      lis1[int( k ) - 1] = 'HIGH'
-
-    else:
-      if k in dict2.keys():
-        for _, v2 in dict2[k].items():
-          if v2 == 'Y':
-            lis1[int( k ) - 1] = 'HIGH'
-  return lis1
-
-#
-# Simple "check" in case the visibility includes only one element
-# Input : dict of visibility
-# Output: modified dict of visibility
-#
-def fillVisList( vdict, num ):
-
-  # Assuming that, if there's only one element in the list of output visibility flags, every step will catch that flag
-  if len( vdict ) == 1:
-    # '1' key is given by default by the template
-    val = vdict['1']
-    vdict = dict( [( str( i ), val ) for i in range(num[0] + 1) if i] )
-  # Another assumption: if the number of steps is bigger than that of vis flags, then extend the list with the last flag available
-  # to fill the "holes"
-  # if len(vlist) < len(slist):
-  #  vlist.extend( vlist[-1] * (len(slist) - len(vlist)) )
-
-  return vdict
-
 gLogger = gLogger.getSubLogger( 'MCSimulation_run.py' )
 currentSetup = gConfig.getValue( 'DIRAC/Setup' )
 
@@ -110,12 +72,7 @@ extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepID:opti
 targets = '{{Target#PROD-1:MC: Target for MC (e.g. Tier2, ALL, LCG.CERN.cern#ALL}}'
 MCPriority = '{{MCPriority#PROD-1:MC: Production priority#0}}'
 MCmulticoreFlag = '{{MCMulticoreFLag#PROD-1: multicore flag#True}}'
-simulationCompressionLvl = '{{simulationCompressionLvl#PROD-1: Compression level#LOW}}'
-simulationOutputVisFlag = ast.literal_eval( '{{simulationOutputVisFlag#PROD-1: Simulation visibility flag dictionary (one flag per step {"step":"Y|N"}) # {} }}' )
-try:
-  simulationOutputVisFlagSpecial = ast.literal_eval( '{{simulationOutputVisFlagSpecial#PROD-1: Special Visibility flag of output files (a dictionary {"step n":{("FType":flag)}} )#}}' )
-except SyntaxError:
-  simulationOutputVisFlagSpecial = {}
+simulationOutputVisFlagSpecial = {}
 
 selectionPlugin = '{{selectionPlugin#PROD-2:Selection: plugin e.g. Standard, BySize#BySize}}'
 selectionGroupSize = '{{selectionGroupSize#PROD-2:Selection: input files total size (we\'ll download)#5}}'
@@ -123,12 +80,7 @@ selectionPriority = '{{selectionPriority#PROD-2:Selection: Job Priority e.g. 8 b
 selectionCPU = '{{selectionCPU#PROD-2:Selection: Max CPU time in secs#100000}}'
 removeInputSelection = '{{removeInputSelection#PROD-2:Selection: remove inputs#True}}'
 selmulticoreFlag = '{{selMulticoreFLag#PROD-2:Selection: multicore flag#True}}'
-selectionCompressionLvl = '{{selectionCompressionLvl#PROD-2:Selection: Compression level#LOW}}'
-selectionOutputVisFlag = ast.literal_eval( '{{selectionOutputVisFlag#PROD-2: Selection visibility flag dictionary ({"step n": "Y|N"})# {} }}' )
-try:
-  selectionOutputVisFlagSpecial = ast.literal_eval( '{{selectionOutputVisFlagSpecial#PROD-2: Special Visibility flag of output files (a dictionary {"step n":{"FType":flag}} )#}}' )
-except SyntaxError:
-  selectionOutputVisFlagSpecial = {}
+selectionOutputVisFlagSpecial = {}
 
 mergingPlugin = '{{MergingPlugin#PROD-3:Merging: plugin e.g. Standard, BySize#BySize}}'
 mergingGroupSize = '{{MergingGroupSize#PROD-3:Merging: Group Size e.g. BySize = GB file size#5}}'
@@ -136,13 +88,7 @@ mergingPriority = '{{MergingPriority#PROD-3:Merging: Job Priority e.g. 8 by defa
 mergingCPU = '{{mergingCPU#PROD-3:Merging: Max CPU time in secs#100000}}'
 removeInputMerge = '{{removeInputMerge#PROD-3:Merging: remove inputs#True}}'
 mergemulticoreFlag = '{{mergeMulticoreFLag#PROD-3:Merging: multicore flag#True}}'
-
-mergeCompressionLvl = '{{mergeCompressionLvl#PROD-3:Merging: Compression level#HIGH}}'
-mergeOutputVisFlag = ast.literal_eval( '{{mergeOutputVisFlag#PROD-3: Merge visibility flag dictionary ({"step":"Y|N"}) # {} }}' )
-try:
-  mergeOutputVisFlagSpecial = ast.literal_eval( '{{mergeOutputVisFlagSpecial#PROD-3: Special Visibility flag of output files (a dictionary {"step n":{"FType":flag}} )#}}' )
-except SyntaxError:
-  mergeOutputVisFlagSpecial = {}
+mergeOutputVisFlagSpecial = {}
 
 pr.configVersion = '{{mcConfigVersion}}'
 pr.eventType = '{{eventType}}'
@@ -202,20 +148,12 @@ elif w1:
   pr.bkQueries = ['']
   pr.multicore = [MCmulticoreFlag]
 
-  pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] )
-  simulationOutputVisFlag = fillVisList( simulationOutputVisFlag, pr.stepsInProds[0] )
-  pr.compressionLvl = modifyCompression( simulationOutputVisFlag, simulationOutputVisFlagSpecial, pr.compressionLvl )
-
-  pr.outputVisFlag = [simulationOutputVisFlag]
-  pr.specialOutputVisFlag = [simulationOutputVisFlagSpecial]
-
-  # pr.resolveSteps()
 
 elif w2:
   pr.prodsTypeList = ['MCSimulation', 'MCReconstruction']
   pr.outputSEs = ['Tier1-Buffer', 'Tier1_MC-DST']
 
-  pr.stepsInProds = [[1, ] , xrange( 2, len( pr.stepsList ) + 1 )]
+  pr.stepsInProds = [[1,] , xrange( 2, len( pr.stepsList ) + 1 )]
   pr.outputFileSteps = [str( len( pr.stepsInProds[0] ) ),
                         str( len( pr.stepsInProds[1] ) )]
 
@@ -228,31 +166,13 @@ elif w2:
   pr.inputDataPolicies = ['', 'download']
   pr.bkQueries = ['', 'fromPreviousProd']
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag]
-  pr.compressionLvl = [simulationCompressionLvl] * len( pr.stepsInProds[0] ) + \
-                      [selectionCompressionLvl] * len( pr.stepsInProds[1] )
 
-  simulationOutputVisFlag = fillVisList( simulationOutputVisFlag, pr.stepsInProds[0] )
-  selectionOutputVisFlag = fillVisList( selectionOutputVisFlag, pr.stepsInProds[1] )
-
-  temp1 = simulationOutputVisFlag
-  temp1.update( selectionOutputVisFlag )
-  temp2 = simulationOutputVisFlagSpecial
-  temp2.update( selectionOutputVisFlagSpecial )
-  pr.compressionLvl = modifyCompression( temp1, temp2, pr.compressionLvl )
-
-  # pr.compressionLvl[0] = modifyCompression(simulationOutputVisFlag, simulationOutputVisFlagSpecial, pr.compressionLvl[0])
-  # pr.compressionLvl[1] = modifyCompression(selectionOutputVisFlag, selectionOutputVisFlagSpecial, pr.compressionLvl[1])
-
-  pr.outputVisFlag = [simulationOutputVisFlag, selectionOutputVisFlag]
-  pr.specialOutputVisFlag = [simulationOutputVisFlagSpecial, selectionOutputVisFlagSpecial]
-
-  # pr.resolveSteps()
 
 elif w3:
   pr.prodsTypeList = ['MCSimulation', 'MCReconstruction', 'MCMerge']
   pr.outputSEs = ['Tier1-Buffer', 'Tier1-Buffer', 'Tier1_MC-DST']
 
-  pr.stepsInProds = [ [1, ], xrange( 2, len( pr.stepsList ) ), [len( pr.stepsList )]]
+  pr.stepsInProds = [ [1,], xrange( 2, len( pr.stepsList ) ), [len( pr.stepsList )]]
   pr.outputFileSteps = [ '1', str( len( pr.stepsInProds[1] ) ), '1']
 
   pr.removeInputsFlags = [False, removeInputSelection, removeInputMerge]
@@ -265,27 +185,19 @@ elif w3:
   pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag, mergemulticoreFlag]
 
-# Temporary solution: should depend from the output file visibility
-  # pr.compressionLvl = [compressionLvlDefault]*(len( pr.stepsList )-1) + [compressionLvlLast]
 
-  simulationOutputVisFlag = fillVisList( simulationOutputVisFlag, pr.stepsInProds[0] )
-  selectionOutputVisFlag = fillVisList( selectionOutputVisFlag, pr.stepsInProds[1] )
-  mergeOutputVisFlag = fillVisList( mergeOutputVisFlag, pr.stepsInProds[2] )
+numberOfSteps = len( pr.stepsList )
+#pr.compressionLvl = [lowCompressionLvl] * numberOfSteps
+#pr.compressionLvl[-1] = highCompressionLvl
+pr.compressionLvl = ["LOW"] * numberOfSteps
+pr.compressionLvl[-1] = "HIGH"
 
-  temp1 = simulationOutputVisFlag
-  temp1.update( selectionOutputVisFlag )
-  temp1.update( mergeOutputVisFlag )
-  temp2 = simulationOutputVisFlagSpecial
-  temp1.update( selectionOutputVisFlagSpecial )
-  temp1.update( mergeOutputVisFlagSpecial )
-  pr.compressionLvl = modifyCompression( temp1, temp2, pr.compressionLvl )
+vis = dict( [str(i),"N"] for i in range(1,numberOfSteps))
+vis[str(numberOfSteps)] = "Y"
 
-  # pr.compressionLvl[0] = modifyCompression(simulationOutputVisFlag, simulationOutputVisFlagSpecial, pr.compressionLvl[0])
-  # pr.compressionLvl[1] = modifyCompression(selectionOutputVisFlag, selectionOutputVisFlagSpecial, pr.compressionLvl[1])
-  # pr.compressionLvl[2] = modifyCompression(mergeOutputVisFlag, mergeOutputVisFlagSpecial, pr.compressionLvl[2])
+pr.outputVisFlag = [vis]
+pr.specialOutputVisFlag = [{}]
 
-  pr.outputVisFlag = [simulationOutputVisFlag, selectionOutputVisFlag, mergeOutputVisFlag]
-  pr.specialOutputVisFlag = [simulationOutputVisFlagSpecial, selectionOutputVisFlagSpecial, mergeOutputVisFlagSpecial]
 
 # In case we want just to test, we publish in the certification/test part of the BKK
 if currentSetup == 'LHCb-Certification' or pr.testFlag:
