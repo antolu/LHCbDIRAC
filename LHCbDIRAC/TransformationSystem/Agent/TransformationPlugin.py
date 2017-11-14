@@ -16,6 +16,7 @@ from DIRAC.DataManagementSystem.Utilities.DMSHelpers import resolveSEGroup
 from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
 from DIRAC.TransformationSystem.Agent.TransformationPlugin import TransformationPlugin as DIRACTransformationPlugin
 from DIRAC.TransformationSystem.Client.Utilities import getFileGroups, sortExistingSEs
+from DIRAC.Resources.Storage.StorageElement import StorageElement
 
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery, makeBKPath
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
@@ -307,9 +308,11 @@ class TransformationPlugin(DIRACTransformationPlugin):
     """
     Create tasks for RAW data processing using the run destination table
     """
-    fromSEs = set(resolveSEGroup(self.util.getPluginParam('FromSEs', [])))
+    # Let's create jobs only at active SEs
+    fromSEs = set(se for se in resolveSEGroup(self.util.getPluginParam('FromSEs', []))
+                  if StorageElement(se).status()['Read'])
     if not fromSEs:
-      self.util.logWarn('No processing SEs are provided')
+      self.util.logWarn('No processing active SEs are provided')
       return S_OK([])
 
     # Split the files in run groups
@@ -476,7 +479,9 @@ class TransformationPlugin(DIRACTransformationPlugin):
     groupSize = self.util.getPluginParam('GroupSize')
     typesWithNoCheck = self.util.getPluginParam('NoCheckTypes',
                                                 ['Merge', 'MCMerge', 'HistoMerge', 'Replication', 'Removal'])
-    fromSEs = set(resolveSEGroup(self.util.getPluginParam('FromSEs', [])))
+    # Only consider active SEs for read
+    fromSEs = set(se for se in resolveSEGroup(self.util.getPluginParam('FromSEs', []))
+                  if StorageElement(se).status()['Read'])
     maxTime = self.util.getPluginParam('MaxTimeAllowed', 0)
 
     # Check if ancestors are required: this flag defaults to True for DataStripping transformations
