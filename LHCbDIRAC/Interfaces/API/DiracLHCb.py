@@ -1042,7 +1042,7 @@ class DiracLHCb( Dirac ):
     """
     inputData = parameters.get( 'InputData' )
     if inputData:
-      ancestorsDepth = parameters.get('AncestorDepth', 0)
+      ancestorsDepth = int(parameters.get('AncestorDepth', 0))
       if ancestorsDepth:
         res = self.bk.getFileAncestors( inputData, ancestorsDepth )
         if not res['OK']:
@@ -1052,4 +1052,4 @@ class DiracLHCb( Dirac ):
           ancestorsLFNs += [ i['FileName'] for i in ancestorsLFN]
         inputData += ancestorsLFNs
 
-    return inputData
+    return S_OK(inputData)

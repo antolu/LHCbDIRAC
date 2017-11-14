@@ -57,12 +57,13 @@ class RequestTrackingAgent( AgentModule ):
   def bkInputNumberOfEvents( self, request ):
     """ Extremely dirty way...
     """
-    condition = {'ProcessingPass'  : str( request['inProPass'] ).replace( ' ', '' ),
-                 'FileType'        : str( request['inFileType'] ).replace( ' ', '' ).split( ',' ),
+    condition = {'ProcessingPass'  : str( request['inProPass'] ).strip(),
+                 'FileType'        : [str(ift) for ift in request['inFileType'].replace(' ', '').split(',')],
                  'EventType'       : str( request['EventType'] ).replace( ' ', '' ),
                  'ConfigName'      : str( request['configName'] ).replace( ' ', '' ),
                  'ConfigVersion'   : str( request['configVersion'] ).replace( ' ', '' ),
-                 'DataQualityFlag' : str( request['inDataQualityFlag'] ).replace( ' ', '' )}
+                 'DataQualityFlag' : [str(idq) for idq in request['inDataQualityFlag'].replace(' ', '').split(',')]
+                }
     if 'condType' in request and request['condType'] == 'Run':
       condition['DataTakingConditions'] = str( request['SimCondition'] )
     else:
@@ -73,12 +74,13 @@ class RequestTrackingAgent( AgentModule ):
       condition['TCK'] = [str( x ) for x in str( request['inTCKs'] ).split( ',' )]
     condition['NbOfEvents'] = True
 
-    gLogger.debug( "Requesting: ", str( condition ) )
+    gLogger.verbose( "Requesting: ", str( condition ) )
     result = self.bkClient.getFiles( condition )
     if not result['OK']:
+      gLogger.error("Error requesting files from BK", result['Message'])
       return result
     if not result['Value'][0]:
-      return S_OK( 0 )
+      return S_OK(0)
     try:
       sum_nr = long( result['Value'][0] )
     except ValueError as e:
