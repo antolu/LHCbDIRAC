@@ -1,6 +1,16 @@
-[v9r0-pre14]
+[v9r0]
 use DIRAC v6r19p5
 
+* the test directory must be in the directory which set by rootPath
+* also take only active SEs for _byRun
+* test fixes
+* print out LFNs even if --FixIt is used
+* consider dumpWithReplicas and dumpAtSE as an AND
+* cumulate dump with replicas and dump at SE
+* fix path
+* fix path
+* added WGProds template
+* added simplified MC simulation template
 * Tests: add BOINC tests to Jenkins
 * BOINC: update requestJob signature
 * Tests/Docs: replicate ProtocolName with PluginName
@@ -22,10 +32,6 @@ use DIRAC v6r19p5
 * change user name
 * tests: use the correct directory for job submission
 * CI: factorize tests
-
-[v9r0-pre13]
-use DIRAC v6r19p4
-
 * fix DB fields
 * NagiosTopology: fix new ipv6 methods
 * Gitlab-ci: run pylint and fail if there is an error
@@ -43,10 +49,6 @@ use DIRAC v6r19p4
 * remove __init__ from scripts
 * New script to get transformation information
 * Fix rejections-stats to get all invisible files
-
-[v9r0-pre12]
-use DIRAC v6r19p3
-
 * Inherit from object and add StorageElement import
 * return an error message when the following patameters are not provided: jobId,lfn,jobName
 * fix the bookkeeping report
@@ -69,10 +71,6 @@ use DIRAC v6r19p3
 * fix teh list of directories used to limit the number of staged files
 * Move spaceTokenOccupancy to ScriptExecutors and do pylint cleaning
 * Add info in transformation-debug
-
-[v9r0-pre11]
-use DIRAC v6r19p3
-
 * DOC: improve BOINC doc
 * Remove unnecessary cast
 * use DIRAC.rootPath
@@ -91,10 +89,6 @@ use DIRAC v6r19p3
 * Rename scripts with hyphens instead of underscores
 * fix typos
 * remove stupid instruction added for tests earlier
-
-[v9r0-pre10]
-use DIRAC v6r19p2
-
 * Attempt to rename, add __init__.py for pylint
 * make scripts symlinks relative to the scripts directory
 * making pylint happy
@@ -112,10 +106,6 @@ use DIRAC v6r19p2
 * Port to devel changes for platforms in master
 * different state machine, DIRAC test overwritten
 * saving from paths
-
-[v9r0-pre9]
-use DIRAC v6r19p1
-
 * upload a tar of everything
 * handle the case when DIRAC and LHCbDIRAC is not installed to the same directory
 * only release for gcc49
@@ -127,10 +117,6 @@ use DIRAC v6r19p1
 * fix unit tests
 * correct integration tests
 * integration tests: use the correct comamnd
-
-[v9r0-pre8]
-use DIRAC v6r19
-
 * more agents excluded
 * addin Resources/FileCatalogs/BookkeepingDB
 * setting BookkeepingDB catalog
@@ -159,10 +145,6 @@ use DIRAC v6r19
 * removed policy moved to vanilla DIRAC
 * 4 bug fixes and some pylint fixes
 * 1 bug fix and some pylint fixes
-
-[v9r0-pre7]
-use DIRAC v6r19-pre13
-
 * add Instructions for running MC on HTLFarm
 * moved some columns from DOUBLE to INTEGER
 * removed obsolete module
@@ -240,10 +222,6 @@ use DIRAC v6r19-pre13
 * Removed spaces
 * Changed column order
 * Moved RMS db to sqlalchemy
-
-[v9r0-pre6]
-use DIRAC v6r19-pre4
-
 * use the latest verdsion of pyGSI (0.6.5)
 * just fixed list of ST
 * removing M_DST
