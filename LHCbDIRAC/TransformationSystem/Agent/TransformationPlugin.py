@@ -596,6 +596,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
             notAtSEs += 1
             del runParamReplicas[lfn]
         if notAtSEs:
+          missingAtSEs = True
           self.util.logInfo("For run %d, %d files are not at required SEs: tasks cannot be created" % (runID,
                                                                                                        notAtSEs))
 
