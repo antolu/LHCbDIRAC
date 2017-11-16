@@ -611,7 +611,8 @@ get from BK" % (param, self.paramName))
     alreadyCompleted = []
     fileTargetSEs = {}
     for lfn in lfns:
-      existingSEs = [se for se in replicas.get(lfn, []) if not isFailover(se)]
+      # At this stage, protection against Failover has been done
+      existingSEs = replicas.get(lfn, [])
       if not existingSEs:
         self.logWarn('File found without replicas', lfn)
         continue
