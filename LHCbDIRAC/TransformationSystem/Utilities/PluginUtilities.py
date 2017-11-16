@@ -16,7 +16,7 @@ from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Resources.Storage.StorageElement import StorageElement
 
 from DIRAC.TransformationSystem.Client.Utilities import PluginUtilities as DIRACPluginUtilities
-from DIRAC.TransformationSystem.Client.Utilities import isArchive, isFailover, getActiveSEs
+from DIRAC.TransformationSystem.Client.Utilities import isArchive, getActiveSEs
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient, BKClientWithRetry
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
@@ -611,7 +611,8 @@ get from BK" % (param, self.paramName))
     alreadyCompleted = []
     fileTargetSEs = {}
     for lfn in lfns:
-      existingSEs = [se for se in replicas.get(lfn, []) if not isFailover(se)]
+      # At this stage, protection against Failover has been done
+      existingSEs = replicas.get(lfn, [])
       if not existingSEs:
         self.logWarn('File found without replicas', lfn)
         continue
