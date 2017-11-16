@@ -16,7 +16,7 @@ from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Resources.Storage.StorageElement import StorageElement
 
 from DIRAC.TransformationSystem.Client.Utilities import PluginUtilities as DIRACPluginUtilities
-from DIRAC.TransformationSystem.Client.Utilities import isArchive, isFailover, getActiveSEs
+from DIRAC.TransformationSystem.Client.Utilities import isArchive, getActiveSEs
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient, BKClientWithRetry
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
