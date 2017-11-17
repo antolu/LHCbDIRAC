@@ -34,11 +34,11 @@ Nonetheless, we have created a tool to easily identify all new exceptions and er
 
 ::
 
-	codeLocation=https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/raw/devel/tests/System/LogsParser/
-	mkdir /tmp/logTest
-	cd /tmp/logTest
-	wget -r -np -nH --cut-dirs=7 $codeLocation
-	/bin/bash logParser.sh
+    codeLocation=https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/raw/devel/tests/System/LogsParser/
+    mkdir /tmp/logTest
+    cd /tmp/logTest
+    wget -r -np -nH --cut-dirs=7 $codeLocation
+    /bin/bash logParser.sh
 
 
 For testing that the RMS works, there is an ad-hoc test:
@@ -104,53 +104,53 @@ You can monitor the advancement using:
 Which should tell you the replica statistics, something like:
 ::
 
-	[fstagni@lxplus0032 ~]$ dirac-dms-replica-stats --BKQuery=/validation/MC11a/Beam3500GeV-2011-MagDown-Nu2-EmNoCuts/Sim05/Trig0x40760037Flagged/Reco12a/Stripping17Flagged/12463412/ALLSTREAMS.DST
-	Executing BK query: {'Visible': 'Yes', 'ConfigName': 'validation', 'ConditionDescription': 'Beam3500GeV-2011-MagDown-Nu2-EmNoCuts', 'EventType': '12463412', 'FileType': 'ALLSTREAMS.DST', 'ConfigVersion': 'MC11a', 'ProcessingPass': '/Sim05/Trig0x40760037Flagged/Reco12a/Stripping17Flagged', 'SimulationConditions': 'Beam3500GeV-2011-MagDown-Nu2-EmNoCuts'}
+    [fstagni@lxplus0032 ~]$ dirac-dms-replica-stats --BKQuery=/validation/MC11a/Beam3500GeV-2011-MagDown-Nu2-EmNoCuts/Sim05/Trig0x40760037Flagged/Reco12a/Stripping17Flagged/12463412/ALLSTREAMS.DST
+    Executing BK query: {'Visible': 'Yes', 'ConfigName': 'validation', 'ConditionDescription': 'Beam3500GeV-2011-MagDown-Nu2-EmNoCuts', 'EventType': '12463412', 'FileType': 'ALLSTREAMS.DST', 'ConfigVersion': 'MC11a', 'ProcessingPass': '/Sim05/Trig0x40760037Flagged/Reco12a/Stripping17Flagged', 'SimulationConditions': 'Beam3500GeV-2011-MagDown-Nu2-EmNoCuts'}
 
-	34 files (0.0 TB) in directories:
-	/lhcb/validation/MC11a/ALLSTREAMS.DST/00000654/0000 34 files
-	34 files found with replicas
+    34 files (0.0 TB) in directories:
+    /lhcb/validation/MC11a/ALLSTREAMS.DST/00000654/0000 34 files
+    34 files found with replicas
 
-	Replica statistics:
-	0 archives: 0 files
-	1 archives: 25 files
-	2 archives: 9 files
-	0 replicas: 0 files
-	1 replicas: 0 files
-	2 replicas: 0 files
-	3 replicas: 33 files
-	4 replicas: 0 files
-	5 replicas: 1 files
+    Replica statistics:
+    0 archives: 0 files
+    1 archives: 25 files
+    2 archives: 9 files
+    0 replicas: 0 files
+    1 replicas: 0 files
+    2 replicas: 0 files
+    3 replicas: 33 files
+    4 replicas: 0 files
+    5 replicas: 1 files
 
-	SE statistics:
-	    CERN-ARCHIVE: 15 files
-	    CNAF-ARCHIVE: 5 files
-	  GRIDKA-ARCHIVE: 11 files
-	   IN2P3-ARCHIVE: 1 files
-	     RAL-ARCHIVE: 8 files
-	    SARA-ARCHIVE: 3 files
-	   CERN_MC_M-DST: 34 files
-	     CNAF_MC-DST: 4 files
-	   CNAF_MC_M-DST: 8 files
-	   GRIDKA_MC-DST: 1 files
-	 GRIDKA_MC_M-DST: 3 files
-	    IN2P3_MC-DST: 9 files
-	  IN2P3_MC_M-DST: 6 files
-	      PIC_MC-DST: 5 files
-	    PIC_MC_M-DST: 4 files
-	      RAL_MC-DST: 20 files
-	    RAL_MC_M-DST: 6 files
-	     SARA_MC-DST: 3 files
-	   SARA_MC_M-DST: 1 files
+    SE statistics:
+        CERN-ARCHIVE: 15 files
+        CNAF-ARCHIVE: 5 files
+      GRIDKA-ARCHIVE: 11 files
+       IN2P3-ARCHIVE: 1 files
+         RAL-ARCHIVE: 8 files
+        SARA-ARCHIVE: 3 files
+       CERN_MC_M-DST: 34 files
+         CNAF_MC-DST: 4 files
+       CNAF_MC_M-DST: 8 files
+       GRIDKA_MC-DST: 1 files
+     GRIDKA_MC_M-DST: 3 files
+        IN2P3_MC-DST: 9 files
+      IN2P3_MC_M-DST: 6 files
+          PIC_MC-DST: 5 files
+        PIC_MC_M-DST: 4 files
+          RAL_MC-DST: 20 files
+        RAL_MC_M-DST: 6 files
+         SARA_MC-DST: 3 files
+       SARA_MC_M-DST: 1 files
 
-	Sites statistics:
-	     LCG.CERN.ch: 34 files
-	     LCG.CNAF.it: 12 files
-	   LCG.GRIDKA.de: 4 files
-	    LCG.IN2P3.fr: 15 files
-	      LCG.PIC.es: 9 files
-	      LCG.RAL.uk: 26 files
-	     LCG.SARA.nl: 4 files
+    Sites statistics:
+         LCG.CERN.ch: 34 files
+         LCG.CNAF.it: 12 files
+       LCG.GRIDKA.de: 4 files
+        LCG.IN2P3.fr: 15 files
+          LCG.PIC.es: 9 files
+          LCG.RAL.uk: 26 files
+         LCG.SARA.nl: 4 files
 
 
 Later, when you see that at least 2 replicas exist, you can issue
@@ -306,86 +306,86 @@ dirac-bookkeeping-production-informations 830 -o /DIRAC/Setup=LHCb-Certification
 
 ::
 
-	lxplus448] x86_64-slc5-gcc46-opt /afs/cern.ch/user/j/joel> dirac-bookkeeping-production-informations 830 -o /DIRAC/Setup=LHCb-Certification
-	Production Info:
-	Configuration Name: LHCb
-	Configuration Version: Collision11
-	Event type: 91000000
-	-----------------------
-	StepName: merging MDF
-	ApplicationName    : mergeMDF
-	ApplicationVersion : None
-	OptionFiles        : None
-	DDDB                : None
-	CONDDB             : None
-	ExtraPackages      :None
-	-----------------------
-	Number of Steps   1
-	Total number of files: 2
-	     LOG:1
-	     RAW:1
-	Number of events
-	File Type           Number of events    Event Type          EventInputStat
-	RAW                 30988               91000000            30988
-	Path:  /LHCb/Collision11/Beam3500GeV-VeloClosed-MagDown/Real Data/Merging
-	/LHCb/Collision11/Beam3500GeV-VeloClosed-MagDown/Real Data/Merging/91000000/RAW
+    lxplus448] x86_64-slc5-gcc46-opt /afs/cern.ch/user/j/joel> dirac-bookkeeping-production-informations 830 -o /DIRAC/Setup=LHCb-Certification
+    Production Info:
+    Configuration Name: LHCb
+    Configuration Version: Collision11
+    Event type: 91000000
+    -----------------------
+    StepName: merging MDF
+    ApplicationName    : mergeMDF
+    ApplicationVersion : None
+    OptionFiles        : None
+    DDDB                : None
+    CONDDB             : None
+    ExtraPackages      :None
+    -----------------------
+    Number of Steps   1
+    Total number of files: 2
+         LOG:1
+         RAW:1
+    Number of events
+    File Type           Number of events    Event Type          EventInputStat
+    RAW                 30988               91000000            30988
+    Path:  /LHCb/Collision11/Beam3500GeV-VeloClosed-MagDown/Real Data/Merging
+    /LHCb/Collision11/Beam3500GeV-VeloClosed-MagDown/Real Data/Merging/91000000/RAW
 
 
 You can then check the produced files:
 
 ::
 
-	nsls -l /castor/cern.ch/grid/lhcb/certification/test/ALLSTREAMS.DST/00000225/0000
-	dirac-dms-lfn-replicas /lhcb/certification/test/ALLSTREAMS.DST/00000225/0000/00000225_00000001_1.allstreams.dst
-	dirac-dms-add-replication --Production 259:268 --FileType RADIATIVE.DST --Plugin LHCbMCDSTBroadcastRandom --Request 30
-	dirac-dms-add-replication --Production 239 --FileType ALLSTREAMS.DST --Plugin LHCbMCDSTBroadcastRandom --Request 29
-	Transformation 273 created
-	Name: Replication-ALLSTREAMS.DST-239-Request29 , Description: LHCbMCDSTBroadcastRandom of ALLSTREAMS.DST for productions 239
-	BK Query: {'FileType': ['ALLSTREAMS.DST'], 'ProductionID': ['239'], 'Visibility': 'Yes'}
-	3 files found for that query
-	Plugin: LHCbMCDSTBroadcastRandom
-	RequestID: 29
-	[lxplus433] x86_64-slc5-gcc43-opt /afs/cern.ch/lhcb/software/DEV/LHCBDIRAC/LHCBDIRAC_v6r0-pre12> dirac-bookkeeping-production-informations 239Production Info::
-	    Configuration Name: certification
-	    Configuration Version: test
-	    Event type: 12143001
+    nsls -l /castor/cern.ch/grid/lhcb/certification/test/ALLSTREAMS.DST/00000225/0000
+    dirac-dms-lfn-replicas /lhcb/certification/test/ALLSTREAMS.DST/00000225/0000/00000225_00000001_1.allstreams.dst
+    dirac-dms-add-replication --Production 259:268 --FileType RADIATIVE.DST --Plugin LHCbMCDSTBroadcastRandom --Request 30
+    dirac-dms-add-replication --Production 239 --FileType ALLSTREAMS.DST --Plugin LHCbMCDSTBroadcastRandom --Request 29
+    Transformation 273 created
+    Name: Replication-ALLSTREAMS.DST-239-Request29 , Description: LHCbMCDSTBroadcastRandom of ALLSTREAMS.DST for productions 239
+    BK Query: {'FileType': ['ALLSTREAMS.DST'], 'ProductionID': ['239'], 'Visibility': 'Yes'}
+    3 files found for that query
+    Plugin: LHCbMCDSTBroadcastRandom
+    RequestID: 29
+    [lxplus433] x86_64-slc5-gcc43-opt /afs/cern.ch/lhcb/software/DEV/LHCBDIRAC/LHCBDIRAC_v6r0-pre12> dirac-bookkeeping-production-informations 239Production Info::
+        Configuration Name: certification
+        Configuration Version: test
+        Event type: 12143001
 
-	 StepName: MCMerging10
-	    ApplicationName    : LHCb
-	    ApplicationVersion : v31r7
-	    OptionFiles        : $STDOPTS/PoolCopy.opts
-	    DDB                : head-20101206
-	    CONDDB             : sim-20101210-vc-md100
-	    ExtraPackages      :None
+     StepName: MCMerging10
+        ApplicationName    : LHCb
+        ApplicationVersion : v31r7
+        OptionFiles        : $STDOPTS/PoolCopy.opts
+        DDB                : head-20101206
+        CONDDB             : sim-20101210-vc-md100
+        ExtraPackages      :None
 
-	Number of Steps   4
-	Total number of files: 8
-	         LOG:4
-	         ALLSTREAMS.DST:4
-	Number of events
-	File Type           Number of events    Event Type          EventInputStat
-	ALLSTREAMS.DST      540                 12143001            540
-	Path:  /certification/test/Beam3500GeV-VeloClosed-MagDown-Nu3/MC10Sim01-Trig0x002e002aFlagged/Reco08/Stripping12Flagged
-	/certification/test/Beam3500GeV-VeloClosed-MagDown-Nu3/MC10Sim01-Trig0x002e002aFlagged/Reco08/Stripping12Flagged/12143001/ALLSTREAMS.DST
-	 dirac-bookkeeping-production-files 239 ALLSTREAMS.DST
-	FileName                                                                                             Size       GUID                                     Replica
-	/lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000044_1.allstreams.dst             14515993   165DD5A9-1D40-E011-AD80-003048F1E1E0     Yes
-	/lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000045_1.allstreams.dst             2971054    988731FC-1C40-E011-AFCD-90E6BA442F3B     Yes
-	/lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000074_1.allstreams.dst             202748580  E2BAF0A1-A340-E011-BF97-003048F1B834     Yes
-	/lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000076_1.allstreams.dst             2804277    F086C525-EB43-E011-96F9-001EC9D8B181     Yes
+    Number of Steps   4
+    Total number of files: 8
+             LOG:4
+             ALLSTREAMS.DST:4
+    Number of events
+    File Type           Number of events    Event Type          EventInputStat
+    ALLSTREAMS.DST      540                 12143001            540
+    Path:  /certification/test/Beam3500GeV-VeloClosed-MagDown-Nu3/MC10Sim01-Trig0x002e002aFlagged/Reco08/Stripping12Flagged
+    /certification/test/Beam3500GeV-VeloClosed-MagDown-Nu3/MC10Sim01-Trig0x002e002aFlagged/Reco08/Stripping12Flagged/12143001/ALLSTREAMS.DST
+     dirac-bookkeeping-production-files 239 ALLSTREAMS.DST
+    FileName                                                                                             Size       GUID                                     Replica
+    /lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000044_1.allstreams.dst             14515993   165DD5A9-1D40-E011-AD80-003048F1E1E0     Yes
+    /lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000045_1.allstreams.dst             2971054    988731FC-1C40-E011-AFCD-90E6BA442F3B     Yes
+    /lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000074_1.allstreams.dst             202748580  E2BAF0A1-A340-E011-BF97-003048F1B834     Yes
+    /lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000076_1.allstreams.dst             2804277    F086C525-EB43-E011-96F9-001EC9D8B181     Yes
 
-	[lxplus433] x86_64-slc5-gcc43-opt /afs/cern.ch/lhcb/software/DEV/LHCBDIRAC/LHCBDIRAC_v6r0-pre12> dirac-dms-lfn-replicas /lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000044_1.allstreams.dst
-	{'Failed': {},
-	 'Successful': {'/lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000044_1.allstreams.dst': {'CERN_MC_M-DST': 'srm://srm-lhcb.cern.ch/castor/cern.ch/grid/lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000044_1.allstreams.dst'}}}
-	[lxplus433] x86_64-slc5-gcc43-opt /afs/cern.ch/lhcb/software/DEV/LHCBDIRAC/LHCBDIRAC_v6r0-pre12> dirac-dms-lfn-replicas /lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000045_1.allstreams.dst
-	{'Failed': {},
-	 'Successful': {'/lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000045_1.allstreams.dst': {'CNAF_MC_M-DST': 'srm://storm-fe-lhcb.cr.cnaf.infn.it/t1d1/lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000045_1.allstreams.dst'}}}
-	[lxplus433] x86_64-slc5-gcc43-opt /afs/cern.ch/lhcb/software/DEV/LHCBDIRAC/LHCBDIRAC_v6r0-pre12> dirac-dms-lfn-replicas /lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000074_1.allstreams.dst
-	{'Failed': {},
-	 'Successful': {'/lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000074_1.allstreams.dst': {'CERN_MC_M-DST': 'srm://srm-lhcb.cern.ch/castor/cern.ch/grid/lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000074_1.allstreams.dst'}}}
-	[lxplus433] x86_64-slc5-gcc43-opt /afs/cern.ch/lhcb/software/DEV/LHCBDIRAC/LHCBDIRAC_v6r0-pre12> dirac-dms-lfn-replicas /lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000076_1.allstreams.dst
-	{'Failed': {},
-	 'Successful': {'/lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000076_1.allstreams.dst': {'CNAF_MC_M-DST': 'srm://storm-fe-lhcb.cr.cnaf.infn.it/t1d1/lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000076_1.allstreams.dst'}}}
+    [lxplus433] x86_64-slc5-gcc43-opt /afs/cern.ch/lhcb/software/DEV/LHCBDIRAC/LHCBDIRAC_v6r0-pre12> dirac-dms-lfn-replicas /lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000044_1.allstreams.dst
+    {'Failed': {},
+     'Successful': {'/lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000044_1.allstreams.dst': {'CERN_MC_M-DST': 'srm://srm-lhcb.cern.ch/castor/cern.ch/grid/lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000044_1.allstreams.dst'}}}
+    [lxplus433] x86_64-slc5-gcc43-opt /afs/cern.ch/lhcb/software/DEV/LHCBDIRAC/LHCBDIRAC_v6r0-pre12> dirac-dms-lfn-replicas /lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000045_1.allstreams.dst
+    {'Failed': {},
+     'Successful': {'/lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000045_1.allstreams.dst': {'CNAF_MC_M-DST': 'srm://storm-fe-lhcb.cr.cnaf.infn.it/t1d1/lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000045_1.allstreams.dst'}}}
+    [lxplus433] x86_64-slc5-gcc43-opt /afs/cern.ch/lhcb/software/DEV/LHCBDIRAC/LHCBDIRAC_v6r0-pre12> dirac-dms-lfn-replicas /lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000074_1.allstreams.dst
+    {'Failed': {},
+     'Successful': {'/lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000074_1.allstreams.dst': {'CERN_MC_M-DST': 'srm://srm-lhcb.cern.ch/castor/cern.ch/grid/lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000074_1.allstreams.dst'}}}
+    [lxplus433] x86_64-slc5-gcc43-opt /afs/cern.ch/lhcb/software/DEV/LHCBDIRAC/LHCBDIRAC_v6r0-pre12> dirac-dms-lfn-replicas /lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000076_1.allstreams.dst
+    {'Failed': {},
+     'Successful': {'/lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000076_1.allstreams.dst': {'CNAF_MC_M-DST': 'srm://storm-fe-lhcb.cr.cnaf.infn.it/t1d1/lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000076_1.allstreams.dst'}}}
 
 
 How to enable/disable FTS channel ? To check TFS transfer, look at the log for DataManagement/FTSSubmitAgent

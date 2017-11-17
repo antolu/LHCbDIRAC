@@ -244,7 +244,7 @@ take note of the build id (you can use the direct link icon) and make the reques
 * NOTE: If some package is already released, please do not indicate in the Jira task. For example: a Jira task when:
     * DIRAC is not released, then the message in the JIRA task: Summary:Dirac v6r14p37 and LHCbDirac v8r2p50; Description: Please release  Dirac and  LHCbDirac in  this order  based on build 1526;
     * DIRAC is released, then the message in the JIRA task: Summary:LHCbDirac v8r2p50;  Description: Please release  LHCbDirac based on build 1526;
-	* Dependency is not fulfilled for the platform: x86_64-slc6-gcc48-opt please ask to force the release using --no-strict option
+    * Dependency is not fulfilled for the platform: x86_64-slc6-gcc48-opt please ask to force the release using --no-strict option
 
 
 Once the client has been deployed, you should setup the correct environment (lb-run LHCbDIRAC/<version> bash --norc), preferably on a CERNVM, on lxplus otherwise, and run the following two scripts:
@@ -289,8 +289,8 @@ The recommended way is the following::
 
 This command will create 6 files called "vobox_update_MyLetter" then you can run in 6 windows the recipe for one single machine like that::
 
-	    ssh lxplus
-	    cd  DiracInstall ; lb-run LHCbDIRAC/prod bash -norc ; lhcb-proxy-init -g lhcb_admin; dirac-admin-sysadmin-cli
+      ssh lxplus
+      cd  DiracInstall ; lb-run LHCbDIRAC/prod bash -norc ; lhcb-proxy-init -g lhcb_admin; dirac-admin-sysadmin-cli
             and from the prompt ::
                [host] : execfile vobox_update_MyLetter
                [host] : quit
@@ -307,9 +307,9 @@ In case of failure you have to update the machine by hand.
 Example of a typical failure::
 
          --> Executing update v8r2p42
-	 Software update can take a while, please wait ...
-	 [ERROR] Failed to update the software
-	 Timeout (240 seconds) for '['dirac-install', '-r', 'v8r2p42', '-t', 'server', '-e', 'LHCb', '-e', 'LHCb', '/opt/dirac/etc/dirac.cfg']' call
+         Software update can take a while, please wait ...
+        [ERROR] Failed to update the software
+        Timeout (240 seconds) for '['dirac-install', '-r', 'v8r2p42', '-t', 'server', '-e', 'LHCb', '-e', 'LHCb', '/opt/dirac/etc/dirac.cfg']' call
 
 Login to the failing machine, become dirac, execute manually the update, and restart everything. For example::
 
