@@ -165,17 +165,17 @@ dirac_integration_scripts(){
 
 dirac_externals(){
 
-	echo "Getting dirac externals"
+  echo "Getting dirac externals"
 
-	wget --no-check-certificate -O dirac-install 'https://github.com/DIRACGrid/DIRAC/raw/integration/Core/scripts/dirac-install.py' --quiet
-	python dirac-install -X -l DIRAC -r `cat $WORKSPACE/new_tag.txt` -t server -p 'Linux_x86_64_glibc-2.12' -dd
-	#python dirac-install -X -l DIRAC -r v6r12 -i 27 -t server -p 'Linux_x86_64_glibc-2.12' -dd
-	( 
-    	cd $WORKSPACE
-    	sed -i 's/`$DIRACSCRIPTS\/dirac-platform`/Linux_x86_64_glibc-2.12/g' bashrc
-    	. bashrc
-		dirac_testing_externals
-	)
+  wget --no-check-certificate -O dirac-install 'https://github.com/DIRACGrid/DIRAC/raw/integration/Core/scripts/dirac-install.py' --quiet
+  python dirac-install -X -l DIRAC -r `cat $WORKSPACE/new_tag.txt` -t server -p 'Linux_x86_64_glibc-2.12' -dd
+  #python dirac-install -X -l DIRAC -r v6r12 -i 27 -t server -p 'Linux_x86_64_glibc-2.12' -dd
+  ( 
+      cd $WORKSPACE
+      sed -i 's/`$DIRACSCRIPTS\/dirac-platform`/Linux_x86_64_glibc-2.12/g' bashrc
+      . bashrc
+    dirac_testing_externals
+  )
 }
 
 dirac_testing_externals(){
@@ -196,9 +196,9 @@ dirac_testing_externals(){
     #wget http://download.logilab.org/pub/common/logilab-common-0.62.1.tar.gz
     #tar xfv logilab-common-0.62.1.tar.gz
     #cd logilab-common-0.62.1
-	#python setup.py install
+  #python setup.py install
 
-	cd -
+  cd -
 }
 
 

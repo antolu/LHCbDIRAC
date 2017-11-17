@@ -23,42 +23,42 @@
 #.............................................................................
 
 function diracConfigure(){
-	echo '[diracConfigure]'
+  echo '[diracConfigure]'
 
-	cd $WORKSPACE
+  cd $WORKSPACE
 
-	# Find architecture platform
-	arch=`dirac-architecture`
+  # Find architecture platform
+  arch=`dirac-architecture`
 
-	# Randomly generated passwords
-	# DB root
-	randomRoot=`tr -cd '[:alnum:]' < /dev/urandom | fold -w20 | head -n1`
-	rootPass=/LocalInstallation/Database/RootPwd=$randomRoot
-	# DB user
-	randomUser=`tr -cd '[:alnum:]' < /dev/urandom | fold -w20 | head -n1`
-	userPass=/LocalInstallation/Database/Password=$randomUser
+  # Randomly generated passwords
+  # DB root
+  randomRoot=`tr -cd '[:alnum:]' < /dev/urandom | fold -w20 | head -n1`
+  rootPass=/LocalInstallation/Database/RootPwd=$randomRoot
+  # DB user
+  randomUser=`tr -cd '[:alnum:]' < /dev/urandom | fold -w20 | head -n1`
+  userPass=/LocalInstallation/Database/Password=$randomUser
 
-	# Stores passwords on files for latter usage
-	echo $randomRoot > rootMySQL
-	echo $randomUser > userMySQL
+  # Stores passwords on files for latter usage
+  echo $randomRoot > rootMySQL
+  echo $randomUser > userMySQL
 
-	# Sets all systems on Jenkins setup
-	setups=`cat systems | sed 's/System//' | sed 's/^/-o \/DIRAC\/Setups\/Jenkins\//' | sed 's/$/=Jenkins/'` 
+  # Sets all systems on Jenkins setup
+  setups=`cat systems | sed 's/System//' | sed 's/^/-o \/DIRAC\/Setups\/Jenkins\//' | sed 's/$/=Jenkins/'` 
 
-	cp $LHCb_CI_CONFIG/install.cfg etc/install.cfg
+  cp $LHCb_CI_CONFIG/install.cfg etc/install.cfg
 
-	# Set HostDN in install.cfg
-	# We use colons instead of forward slashes in sed, otherwise we cannot scape
-	# the '/' characters in the DN
-	hostdn=`openssl x509 -noout -in etc/grid-security/hostcert.pem -subject | sed 's/subject= //g'` 
-	sed -i "s:#hostdn#:$hostdn:g" etc/install.cfg
+  # Set HostDN in install.cfg
+  # We use colons instead of forward slashes in sed, otherwise we cannot scape
+  # the '/' characters in the DN
+  hostdn=`openssl x509 -noout -in etc/grid-security/hostcert.pem -subject | sed 's/subject= //g'` 
+  sed -i "s:#hostdn#:$hostdn:g" etc/install.cfg
 
-	# Set FQDN in install.cfg
-	fqdn=`hostname --fqdn`
-	sed -i "s/#hostname#/$fqdn/g" etc/install.cfg
+  # Set FQDN in install.cfg
+  fqdn=`hostname --fqdn`
+  sed -i "s/#hostname#/$fqdn/g" etc/install.cfg
 
-	dirac-configure etc/install.cfg -A $arch -o $rootPass -o $userPass $setups $DEBUG
-	dirac-setup-site $DEBUG
+  dirac-configure etc/install.cfg -A $arch -o $rootPass -o $userPass $setups $DEBUG
+  dirac-setup-site $DEBUG
 
 }  
 
@@ -139,37 +139,37 @@ function diracConfigure(){
 
 function prepareDIRAC(){
   
-	if [ ! -z "$DEBUG" ]
-	then
-		echo 'Running in DEBUG mode'
-		export DEBUG='-ddd'
-	fi  
+  if [ ! -z "$DEBUG" ]
+  then
+    echo 'Running in DEBUG mode'
+    export DEBUG='-ddd'
+  fi  
   
-	killRunsv
+  killRunsv
   
-	findRelease
-	diracInstall
-	generateCertificates
+  findRelease
+  diracInstall
+  generateCertificates
   
-	findSystems
-	findDatabases
+  findSystems
+  findDatabases
 
-	source $WORKSPACE/bashrc
+  source $WORKSPACE/bashrc
 
-	diracConfigure
+  diracConfigure
   
-	generateUserCredentials
-	diracCredentials
+  generateUserCredentials
+  diracCredentials
 
-	diracMySQL
+  diracMySQL
   
-	dirac-install-db ProxyDB $DEBUG
-	dirac-install-service Framework/ProxyManager $DEBUG
-	ln -s $WORKSPACE/runit/Framework/ProxyManager $WORKSPACE/startup/Framework_ProxyManager
+  dirac-install-db ProxyDB $DEBUG
+  dirac-install-service Framework/ProxyManager $DEBUG
+  ln -s $WORKSPACE/runit/Framework/ProxyManager $WORKSPACE/startup/Framework_ProxyManager
   
-	# Give runit 10 secs to pick it up
-	sleep 10
-	diracProxies
+  # Give runit 10 secs to pick it up
+  sleep 10
+  diracProxies
 }
 
 
@@ -185,8 +185,8 @@ function prepareDIRAC(){
 
 function prepareTestExternals(){
 
-	source $WORKSPACE/bashrc
-	python `which easy_install` nose
+  source $WORKSPACE/bashrc
+  python `which easy_install` nose
 
 }
 
@@ -255,20 +255,20 @@ function mergeTests(){
 #-------------------------------------------------------------------------------
 
 function dumpDBs(){
-	echo '[dumpDBs]'
+  echo '[dumpDBs]'
 
-	rootPass=`cat rootMySQL`
-	sqlStatements=`mysql -u root -p$rootPass -e "show databases" | grep -v mysql | grep -v Database | grep -v information_schema | grep -v test`
-	echo "$sqlStatements" | gawk '{print "drop database " $1 ";select sleep(0.1);"}' | mysql -u root -p$rootPass 
+  rootPass=`cat rootMySQL`
+  sqlStatements=`mysql -u root -p$rootPass -e "show databases" | grep -v mysql | grep -v Database | grep -v information_schema | grep -v test`
+  echo "$sqlStatements" | gawk '{print "drop database " $1 ";select sleep(0.1);"}' | mysql -u root -p$rootPass 
 
 }
 
 
 
 function integrationTest(){
-	echo '[integrationTest]'
-	
-	nosetests --with-xunit $WORKSPACE/$1/Integration/$2 -v --xunit-file=nosetests_$1_$2.xml --with-coverage --cover-package=DIRAC,LHCbDIRAC
-	mv .coverage .coverage._$1_$2
-	
+  echo '[integrationTest]'
+  
+  nosetests --with-xunit $WORKSPACE/$1/Integration/$2 -v --xunit-file=nosetests_$1_$2.xml --with-coverage --cover-package=DIRAC,LHCbDIRAC
+  mv .coverage .coverage._$1_$2
+  
 }

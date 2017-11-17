@@ -58,7 +58,7 @@ Then we need a user certificate (MrBoinc User) self-signed by our own CA to be u
 Work into ``/path/to/boincCertificate`` and there:
 ::
 
-	mkdir MrBoinc
+    mkdir MrBoinc
 
 Create/use the ``openssl_config_user.cnf`` file (see below) in the ``MrBoinc/`` directory.
 
