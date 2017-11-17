@@ -119,7 +119,7 @@ def executeAddTransformation(pluginScript):
     if bkQuery:
       transBKQuery = bkQuery.getQueryDict()
       processingPass = transBKQuery.get('ProcessingPass', '')
-      if '...' in processingPass:
+      if '...' in processingPass or '*' in processingPass:
         if listProcessingPasses:
           gLogger.notice("List of processing passes for BK path", pluginScript.getOption('BKPath'))
         processingPasses = getProcessingPasses(bkQuery, depth=depth)
