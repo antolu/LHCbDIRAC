@@ -1,3 +1,11 @@
+[v9r0p2]
+use DIRAC v6r19p7
+
+* DMS: move import inside the code to allow CS initialization
+* When we create a major release then we should merge devel to master before the tag creation
+* using logging module for timestamp
+* replaced tabs with spaces
+
 [v9r0p1]
 use DIRAC v6r19p6
 
