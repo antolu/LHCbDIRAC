@@ -29,21 +29,15 @@ if __name__ == "__main__":
 
   from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import getProcessingPasses, BKQuery
 
-  for bkPath in bkPaths:
+  for i, bkPath in enumerate(bkPaths):
+    if i:
+      gLogger.notice('=========================')
     bkQuery = BKQuery(bkPath.replace('Real Data', 'RealData'))
-    processingPass = bkQuery.getProcessingPass()
-    if '*' in processingPass:
-      processingPass = processingPass.replace('*', '...')
-      bkQuery.setProcessingPass(processingPass)
-    if '...' in processingPass:
-      progressBar = ProgressBar(1, title="Getting processing passes for BK path %s" % bkPath)
-      processingPasses = getProcessingPasses(bkQuery)
-      progressBar.endLoop()
-      if processingPasses:
-        gLogger.notice('\n'.join([''] + [procPass.replace('Real Data', 'RealData')
-                                         for procPass in sorted(processingPasses)]))
-      else:
-        gLogger.notice("No processing passes matching the BK path")
+    progressBar = ProgressBar(1, title="Getting processing passes for BK path %s" % bkPath)
+    processingPasses = getProcessingPasses(bkQuery)
+    progressBar.endLoop()
+    if processingPasses:
+      gLogger.notice('\n'.join([''] + [procPass.replace('Real Data', 'RealData')
+                                       for procPass in sorted(processingPasses)]))
     else:
-      gLogger.notice("Processing pass for BK path %s" % bkPath,
-                     '\n%s' % processingPass.replace('Real Data', 'RealData'))
+      gLogger.notice("No processing passes matching the BK path")
