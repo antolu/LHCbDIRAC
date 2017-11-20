@@ -9,8 +9,6 @@ import DIRAC
 from DIRAC.Core.Base import Script
 from DIRAC import gConfig, gLogger
 from DIRAC.Core.DISET.RPCClient import RPCClient
-from DIRAC.Core.Utilities.SiteSEMapping import getSitesForSE
-from DIRAC.Resources.Storage.StorageElement import StorageElement
 
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 
@@ -140,6 +138,8 @@ def writeInfo(str):
 
 
 def browseBK(bkQuery, ses, scaleFactor):
+  # Cannot be imported at the top because CS init
+  from DIRAC.Core.Utilities.SiteSEMapping import getSitesForSE
 
   bkPath = bkQuery.getPath()
   if not bkQuery.getConfiguration():
@@ -429,6 +429,8 @@ def execute(unit, minimum, depth):
           totalUsage, grandTotal = getStorageSummary(totalUsage, grandTotal, dirName, fileType, prodID, ses)
 
   if lcg:
+    # Cannot be imported at the top because CS init
+    from DIRAC.Resources.Storage.StorageElement import StorageElement
 
     tapeTotalFiles = 0
     diskTotalFiles = 0
