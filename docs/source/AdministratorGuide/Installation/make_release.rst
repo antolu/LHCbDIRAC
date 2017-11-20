@@ -69,6 +69,8 @@ If there are no MRs, or none ready: please skip to the "update the CHANGELOG" su
 
 Otherwise, simply click the "Accept merge request" button for each of them.
 
+If you are making a Major release please merge devel to master follow the instruction: Basic instruction how to merging the devel branch into master (NOT for PATCH release).
+															
 Then, from the LHCbDIRAC local fork you need to update some files::
 
 
@@ -226,7 +228,7 @@ release for client
 Please refer to this `TWIKI page <https://twiki.cern.ch/twiki/bin/view/LHCb/ProjectRelease#LHCbDirac>`_
 a quick test to validate the installation is to run the SHELL script $LHCBRELEASE/LHCBDIRAC/LHCBDIRAC_vXrY/LHCbDiracSys/test/client_test.csh
 
-go to this `web page <https://jenkins-lhcb-nightlies.web.cern.ch/job/nightly-builds/job/release/build/>`_ for asking to install the client release in AFS and CVMFS:
+go to this `web page <https://jenkins-lhcb-nightlies.web.cern.ch/job/nightly-builds/job/release/build/>`_ for asking to install the client release to CVMFS:
 
 * in the field "Project list" put : "Dirac vNrMpK LHCbGrid vArB LHCbDirac vArBpC"  (NOTE: LHCbGrid version can be found: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/blob/master/dist-tools/projectConfig.json)
 * in the field "platforms" put : "x86_64-slc6-gcc49-opt"
@@ -235,7 +237,6 @@ Then click on the "BUILD" button
 
 * within 10-15 min the build should start to appear in the nightlies page https://lhcb-nightlies.cern.ch/release/
 * if there is a problem in the build, it can be re-started via the dedicated button (it will not restart by itself after a retag)
-* The build for gcc48 is known to have missing dependencies, but must be released anyway.
 
 
 If it is the production release, and only in this case, once satisfied by the build,
@@ -244,7 +245,6 @@ take note of the build id (you can use the direct link icon) and make the reques
 * NOTE: If some package is already released, please do not indicate in the Jira task. For example: a Jira task when:
     * DIRAC is not released, then the message in the JIRA task: Summary:Dirac v6r14p37 and LHCbDirac v8r2p50; Description: Please release  Dirac and  LHCbDirac in  this order  based on build 1526;
     * DIRAC is released, then the message in the JIRA task: Summary:LHCbDirac v8r2p50;  Description: Please release  LHCbDirac based on build 1526;
-    * Dependency is not fulfilled for the platform: x86_64-slc6-gcc48-opt please ask to force the release using --no-strict option
 
 
 Once the client has been deployed, you should setup the correct environment (lb-run LHCbDIRAC/<version> bash --norc), preferably on a CERNVM, on lxplus otherwise, and run the following two scripts:
@@ -260,12 +260,14 @@ ask the CVMFS librarians to change the prod version for the pilot on cvmfs. The 
   rm LHCBDIRAC_prod; ln -s LHCBDIRAC_vArBpC LHCBDIRAC_prod
 
 
-Changing the prod version for Pilot
+Changing the prod version for LHCbGrid
 ```````````````````````````````````
 
-ask the CVMFS librarians to change the prod version for the pilot on cvmfs.
-cd /cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC
-rm LHCBDIRAC_prod; ln -s LHCBDIRAC_vArBpC LHCBDIRAC_prod
+ask the CVMFS librarians to change the prod version for the LHCbGrid on cvmfs::
+	
+	cd /cvmfs/lhcb.cern.ch/lib/lhcb/LHCBGRID
+	rm LHCBGRID_prod; ln -s LHCBGRID_vArBpC LHCBGRID_prod
+
 
 Server
 ``````
@@ -388,6 +390,7 @@ merging please create a new branch based on master using the web interface of Gi
     git merge upstream/devel
     git push upstream newMaster:master
 
+After when you merged devel to master you can make the tag!
 
 5. Mesos cluster
 ========================
