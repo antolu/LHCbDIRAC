@@ -107,10 +107,10 @@ try:
     os.environ["LD_LIBRARY_PATH"]=""
   # TODO: structure the output
   print '==========================================================='
-  logger.debug('Environment of execution host\n')
+  logger.debug('Environment of execution host\\n')
   for key, val in os.environ.iteritems():
     print key + '=' + val
-  print '===========================================================\n'
+  print '===========================================================\\n'
 except Exception as x:
   print >> sys.stderr, x
   shutil.rmtree( pilotWorkingDirectory )
