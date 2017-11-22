@@ -266,7 +266,7 @@ class ProductionRequestDB( DB ):
     rQuery += " (SELECT t.*,CAST(COALESCE(SUM(t.bkSrTotal),0)+"
     rQuery += "                  COALESCE(t.bk,0) AS SIGNED) AS bkTotal FROM "
     rQuery += "  (SELECT t.*,CAST(LEAST(COALESCE(SUM(pp.BkEvents),0),"
-    rQuery += "                   COALESCE(sr.RealNumberOfEvents,0)) AS SIGNED)"
+    rQuery += "                   COALESCE(SUM(sr.RealNumberOfEvents),0)) AS SIGNED)"
     rQuery += "              AS bkSrTotal FROM "
     rQuery += "   (SELECT t.*, CAST(SUM(pp.BkEvents) AS SIGNED)"
     rQuery += "                AS bk FROM (%s) as t " % req
@@ -274,12 +274,12 @@ class ProductionRequestDB( DB ):
     rQuery += "    AND pp.Used=1) GROUP BY t.RequestID) as t "
     rQuery += "   LEFT JOIN ProductionRequests AS sr ON t.RequestID=sr.MasterID "
     rQuery += "   LEFT JOIN ProductionProgress AS pp ON (sr.RequestID=pp.RequestID "
-    rQuery += "   AND pp.Used=1) GROUP BY t.RequestID,sr.RequestID) AS t"
-    rQuery += "  GROUP BY t.RequestID, t.bkSrTotal) AS t"
+    rQuery += "   AND pp.Used=1) GROUP BY t.RequestID) AS t"
+    rQuery += "  GROUP BY t.RequestID) AS t"
     rQuery += " LEFT JOIN ProductionRequests as sr ON sr.MasterID=t.RequestID "
-    rQuery += " GROUP BY t.RequestID, t.bkSrTotal) as t"
+    rQuery += " GROUP BY t.RequestID) as t"
     rQuery += " LEFT JOIN RequestHistory as rh ON rh.RequestID=t.RequestID "
-    rQuery += " GROUP BY t.RequestID, t.bkSrTotal"
+    rQuery += " GROUP BY t.RequestID"
 
     return rQuery + order
 
