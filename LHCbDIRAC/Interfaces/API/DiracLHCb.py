@@ -71,18 +71,18 @@ class DiracLHCb(Dirac):
     else:
       self.opsH = operationsHelperIn
 
-    self._bkClientQueryTemplate = {'SimulationConditions': 'All',
-                                   'DataTakingConditions': 'All',
-                                   'ProcessingPass': 'All',
-                                   'FileType': 'All',
-                                   'EventType': 'All',
-                                   'ConfigName': 'All',
-                                   'ConfigVersion': 'All',
-                                   'Production': 0,
-                                   'StartRun': 0,
-                                   'EndRun': 0,
-                                   'DataQuality': 'All',
-                                   'Visible': 'Yes'}
+    self._bkQueryTemplate = {'SimulationConditions': 'All',
+                             'DataTakingConditions': 'All',
+                             'ProcessingPass': 'All',
+                             'FileType': 'All',
+                             'EventType': 'All',
+                             'ConfigName': 'All',
+                             'ConfigVersion': 'All',
+                             'Production': 0,
+                             'StartRun': 0,
+                             'EndRun': 0,
+                             'DataQuality': 'All',
+                             'Visible': 'Yes'}
     self._bkClient = BookkeepingClient()  # to expose all BK client methods indirectly
 
   #############################################################################
@@ -365,7 +365,7 @@ class DiracLHCb(Dirac):
       except Exception:
         return S_ERROR('Invalid run number: %s' % runNumberString)
 
-    query = self._bkClientQueryTemplate.copy()
+    query = self._bkQueryTemplate.copy()
     query['StartRun'] = startRun
     query['EndRun'] = endRun
     query['ProcessingPass'] = bkPath[1]
@@ -418,7 +418,7 @@ class DiracLHCb(Dirac):
     bkPath = translateBKPath(bkPath, procPassID=1)
     if len(bkPath) < 2:
       return S_ERROR('Invalid bkPath: should at least contain /ProductionID/FileType')
-    query = self._bkClientQueryTemplate.copy()
+    query = self._bkQueryTemplate.copy()
     try:
       query['Production'] = int(bkPath[0])
     except Exception:
@@ -480,7 +480,7 @@ class DiracLHCb(Dirac):
                      '/<ConfigurationName>/<Configuration Version>/<Sim or Data Taking Condition>'
                      '/<Processing Pass>/<Event Type>/<File Type>')
 
-    query = self._bkClientQueryTemplate.copy()
+    query = self._bkQueryTemplate.copy()
     query['ConfigName'] = bkPath[0]
     query['ConfigVersion'] = bkPath[1]
     query['ProcessingPass'] = bkPath[3]
@@ -538,7 +538,7 @@ class DiracLHCb(Dirac):
        @type SimulationConditions: string
        @return: S_OK,S_ERROR
     """
-    query = self._bkClientQueryTemplate.copy()
+    query = self._bkQueryTemplate.copy()
     query['SimulationConditions'] = SimulationConditions
     query['DataTakingConditions'] = DataTakingConditions
     query['ProcessingPass'] = ProcessingPass
@@ -568,12 +568,12 @@ class DiracLHCb(Dirac):
     # Remove the Visible flag as anyway the method is for visible files ;-)
     # bkQueryDict.setdefault( 'Visible', 'Yes' )
     for name, value in bkQueryDict.items():
-      if name not in self._bkClientQueryTemplate:
+      if name not in self._bkQueryTemplate:
         problematicFields.append(name)
 
     if problematicFields:
       msg = 'The following fields are not valid for a BK query: %s\nValid fields include: %s' % \
-            (', '.join(problematicFields), ', '.join(self._bkClientQueryTemplate.keys()))
+            (', '.join(problematicFields), ', '.join(self._bkQueryTemplate.keys()))
       return S_ERROR(msg)
 
     for name, value in bkQueryDict.items():
