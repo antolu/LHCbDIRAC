@@ -130,7 +130,7 @@ def doCheckFC2SE(cc, bkCheck=True, fixIt=False, replace=False, maxFiles=None):
     if not gLogger.info('\n'.join(cc.existLFNsNoSE)):
       if len(cc.existLFNsNoSE) > maxFiles:
         gLogger.notice('First %d files:' % maxFiles)
-      gLogger.error('\n'.join(cc.existLFNsNoSE[0:maxFiles]))
+      gLogger.error('\n'.join(cc.existLFNsNoSE.keys()[0:maxFiles]))
     if fixIt:
       gLogger.notice("Going to fix, " + fixStr)
       removeLfns = []
@@ -145,7 +145,7 @@ def doCheckFC2SE(cc, bkCheck=True, fixIt=False, replace=False, maxFiles=None):
       if replicasToRemove:
         seLFNs = __removeReplica(replicasToRemove)
         if replace:
-          __replaceReplica(cc.dm, seLFNs)
+          __replaceReplica(cc.dataManager, seLFNs)
     else:
       if not replace:
         fixStr += "; use --Replace if you want to re-replicate them"
@@ -187,7 +187,7 @@ def doCheckFC2SE(cc, bkCheck=True, fixIt=False, replace=False, maxFiles=None):
       gLogger.notice("Going to fix, " + fixStr)
       seLFNs = __removeReplica(cc.existLFNsBadReplicas)
       if replace:
-        __replaceReplica(cc.dm, seLFNs)
+        __replaceReplica(cc.dataManager, seLFNs)
     else:
       if not replace:
         fixStr += "; use --Replace if you want to re-replicate them"
