@@ -813,7 +813,9 @@ class TransformationPlugin(DIRACTransformationPlugin):
     archive1SEs = resolveSEGroup(self.util.getPluginParam('Archive1SEs', []))
     archive2SEs = resolveSEGroup(self.util.getPluginParam('Archive2SEs', []))
     mandatorySEs = resolveSEGroup(self.util.getPluginParam('MandatorySEs', []))
-    secondarySEs = resolveSEGroup(self.util.getPluginParam('SecondarySEs', []))
+    # In order to not have to change the SEGroups when excluding temporarily a site, add exclusion list...
+    excludedSEs = resolveSEGroup(self.util.getPluginParam('ExcludedSEs', []))
+    secondarySEs = list(set(resolveSEGroup(self.util.getPluginParam('SecondarySEs', []))) - set(excludedSEs))
     numberOfCopies = self.util.getPluginParam('NumberOfReplicas', 4)
 
     self.util.logInfo("Starting execution of plugin")
@@ -906,7 +908,9 @@ class TransformationPlugin(DIRACTransformationPlugin):
     archive1SEs = resolveSEGroup(self.util.getPluginParam('Archive1SEs', []))
     archive2SEs = resolveSEGroup(self.util.getPluginParam('Archive2SEs', []))
     mandatorySEs = resolveSEGroup(self.util.getPluginParam('MandatorySEs', []))
-    secondarySEs = resolveSEGroup(self.util.getPluginParam('SecondarySEs', []))
+    # In order to not have to change the SEGroups when excluding temporarily a site, add exclusion list...
+    excludedSEs = resolveSEGroup(self.util.getPluginParam('ExcludedSEs', []))
+    secondarySEs = list(set(resolveSEGroup(self.util.getPluginParam('SecondarySEs', []))) - set(excludedSEs))
     numberOfCopies = self.util.getPluginParam('NumberOfReplicas', 3)
     excludedFileTypes = self.util.getPluginParam('ExcludedFileTypes', ['GAUSSHIST', 'BRUNELHIST', 'DAVINCIHIST'])
 
