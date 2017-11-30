@@ -704,6 +704,9 @@ def printLfnReplicas(lfnList, active=True, diskOnly=False, preferDisk=False, for
       break
   if res['OK'] and not active:
     replicas = res['Value']['Successful']
+    seSet = set(se for ses in replicas.itervalues() for se in ses)
+    seStatus = dict((se, {True: 'Active', False: 'Banned'}[StorageElement(se).status()['Read']])
+                    for se in seSet)
     value = {'Failed': res['Value']['Failed'], 'Successful': {}}
     for lfn in sorted(replicas):
       value['Successful'].setdefault(lfn, {})
@@ -712,7 +715,9 @@ def printLfnReplicas(lfnList, active=True, diskOnly=False, preferDisk=False, for
         if not res['OK']:
           value['Failed'][lfn] = "Can't get replica status"
         else:
-          value['Successful'][lfn][se] = "(%s) %s" % (res['Value']['Successful'][lfn], replicas[lfn][se])
+          key = "%s (%s)" % (se, seStatus[se])
+          value['Successful'][lfn][key] = "%s (%s)" % (replicas[lfn][se],
+                                                       res['Value']['Successful'][lfn])
     res = S_OK(value)
   return printDMResult(res,
                        empty="No %sreplica found" % ('active disk ' if diskOnly else 'allowed ' if active else ''),
