@@ -15,8 +15,8 @@ import glob
 import tarfile
 from git import Repo
 
-from DIRAC                                    import gLogger, S_OK, gConfig, S_ERROR
-from DIRAC.Core.DISET.HTTPDISETConnection     import HTTPDISETConnection
+from DIRAC import gLogger, S_OK, gConfig, S_ERROR
+from DIRAC.Core.DISET.HTTPDISETConnection import HTTPDISETConnection
 
 __RCSID__ = '$Id:  $'
 
@@ -207,14 +207,14 @@ class pilotSynchronizer( object ):
                                          self.pilotScriptsPath,
                                          "dirac-install.py")):
         result = self._upload(filename = 'dirac-install.py',
-                              pilotScript = os.path.join( self.pilotLocalRepo, "Core/scripts/dirac-install.py"))
+                              pilotScript=os.path.join(self.pilotLocalRepo, "Core/scripts/dirac-install.py"))
         tarFiles.append('dirac-install.py')
 
       with tarfile.TarFile(name = 'pilot.tar', mode = 'w') as tf:
         for ptf in tarFiles:
           tf.add(ptf)
       result = self._upload(filename = 'pilot.tar',
-                            pilotScript = os.path.join( self.pilotLocalRepo, 'pilot.tar'))
+                            pilotScript='pilot.tar')
 
     except ValueError:
       gLogger.error( "Error uploading the pilot scripts: %s" % result['Message'] )
