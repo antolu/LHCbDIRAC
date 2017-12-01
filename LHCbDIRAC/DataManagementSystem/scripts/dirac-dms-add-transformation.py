@@ -14,7 +14,10 @@ if __name__ == "__main__":
   pluginScript.registerPluginSwitches()
   pluginScript.registerFileSwitches()
   Script.registerSwitch("", "Name=", "   Give a name to the transformation, only if files are given")
-  Script.registerSwitch("", "SetInvisible", "Before creating the transformation, set the files in the BKQuery as invisible (default for DeleteDataset)")
+  Script.registerSwitch(
+      "",
+      "SetInvisible",
+      "Before creating the transformation, set the files in the BKQuery as invisible (default for DeleteDataset)")
   Script.registerSwitch("S", "Start", "   If set, the transformation is set Active and Automatic [False]")
   Script.registerSwitch("", "Force", "   Force transformation to be submitted even if no files found")
   Script.registerSwitch("", "Test", "   Just print out but not submit")
@@ -29,10 +32,6 @@ if __name__ == "__main__":
                                     '  %s [option|cfgfile] ...' % Script.scriptName, ]))
 
   Script.parseCommandLine(ignoreErrors=True)
-
-  Script.setUsageMessage('\n'.join([__doc__.split('\n')[1],
-                                    'Usage:',
-                                    '  %s [option|cfgfile] ...' % Script.scriptName, ]))
 
   from LHCbDIRAC.DataManagementSystem.Client.AddTransformation import executeAddTransformation
   executeAddTransformation(pluginScript)

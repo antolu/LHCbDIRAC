@@ -10,59 +10,60 @@ import glob
 import fnmatch
 import time
 
-from DIRAC                                               import S_OK, S_ERROR, gConfig, gLogger
+from DIRAC import S_OK, S_ERROR, gConfig, gLogger
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
-from DIRAC.Core.Utilities.SiteSEMapping                  import getSEsForSite, getSitesForSE
-from DIRAC.Interfaces.API.Dirac                          import Dirac
-from DIRAC.Interfaces.API.DiracAdmin                     import DiracAdmin
-from DIRAC.ResourceStatusSystem.Client.ResourceStatus    import ResourceStatus
-from DIRAC.ResourceStatusSystem.Utilities.CSHelpers      import getSites
+from DIRAC.Core.Utilities.SiteSEMapping import getSEsForSite, getSitesForSE
+from DIRAC.Interfaces.API.Dirac import Dirac
+from DIRAC.Interfaces.API.DiracAdmin import DiracAdmin
+from DIRAC.ResourceStatusSystem.Client.ResourceStatus import ResourceStatus
+from DIRAC.ResourceStatusSystem.Utilities.CSHelpers import getSites
 
-from LHCbDIRAC.Core.Utilities.File                        import makeGuid
-from LHCbDIRAC.Core.Utilities.ClientTools                 import mergeRootFiles
+from LHCbDIRAC.Core.Utilities.File import makeGuid
+from LHCbDIRAC.Core.Utilities.ClientTools import mergeRootFiles
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
-from LHCbDIRAC.DataManagementSystem.Client.DMScript       import printDMResult
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import printDMResult
 from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import getAccessURL
 
 __RCSID__ = "$Id$"
 
 COMPONENT_NAME = 'DiracLHCb'
 
-def getSiteForSE( se ):
+
+def getSiteForSE(se):
   """ Get site name for the given SE
   """
-  result = getSitesForSE( se )
+  result = getSitesForSE(se)
   if not result['OK']:
     return result
   if result['Value']:
-    return S_OK( result['Value'][0] )
-  return S_OK( '' )
+    return S_OK(result['Value'][0])
+  return S_OK('')
 
-def translateBKPath( bkPath, procPassID = 3 ):
-  bk = filter( None, bkPath.split( '/' ) )
+
+def translateBKPath(bkPath, procPassID=3):
+  bk = filter(None, bkPath.split('/'))
   if procPassID < 0:
     return bk
   try:
     bkNodes = bk[0:procPassID]
-    bkNodes.append( '/' + '/'.join( bk[procPassID:-2] ) )
-    bkNodes.append( bk[-2] )
-    bkNodes.append( bk[-1] )
-  except:
+    bkNodes.append('/' + '/'.join(bk[procPassID:-2]))
+    bkNodes.append(bk[-2])
+    bkNodes.append(bk[-1])
+  except Exception:
     gLogger.error("Incorrect BKQuery")
     bkNodes = None
   return bkNodes
 
 
-
-class DiracLHCb( Dirac ):
+class DiracLHCb(Dirac):
 
   #############################################################################
-  def __init__( self, withRepo = False, repoLocation = '', operationsHelperIn = None ):
+  def __init__(self, withRepo=False, repoLocation='', operationsHelperIn=None):
     """Internal initialization of the DIRAC API.
     """
 
-    super( DiracLHCb, self ).__init__( withRepo = withRepo, repoLocation = repoLocation )
+    super(DiracLHCb, self).__init__(withRepo=withRepo, repoLocation=repoLocation)
     self.tier1s = []
 
     if not operationsHelperIn:
@@ -70,22 +71,22 @@ class DiracLHCb( Dirac ):
     else:
       self.opsH = operationsHelperIn
 
-    self.bkQueryTemplate = { 'SimulationConditions'     : 'All',
-                             'DataTakingConditions'     : 'All',
-                             'ProcessingPass'           : 'All',
-                             'FileType'                 : 'All',
-                             'EventType'                : 'All',
-                             'ConfigName'               : 'All',
-                             'ConfigVersion'            : 'All',
-                             'Production'               :     0,
-                             'StartRun'                 :     0,
-                             'EndRun'                   :     0,
-                             'DataQuality'              : 'All',
-                             'Visible'                  : 'Yes'}
-    self.bk = BookkeepingClient()  # to expose all BK client methods indirectly
+    self._bkQueryTemplate = {'SimulationConditions': 'All',
+                             'DataTakingConditions': 'All',
+                             'ProcessingPass': 'All',
+                             'FileType': 'All',
+                             'EventType': 'All',
+                             'ConfigName': 'All',
+                             'ConfigVersion': 'All',
+                             'Production': 0,
+                             'StartRun': 0,
+                             'EndRun': 0,
+                             'DataQuality': 'All',
+                             'Visible': 'Yes'}
+    self._bkClient = BookkeepingClient()  # to expose all BK client methods indirectly
 
   #############################################################################
-  def addRootFile( self, lfn, fullPath, diracSE, printOutput = False ):
+  def addRootFile(self, lfn, fullPath, diracSE, printOutput=False):
     """ Add a Root file to Grid storage, an attempt is made to retrieve the
         POOL GUID of the file prior to upload.
 
@@ -104,21 +105,21 @@ class DiracLHCb( Dirac ):
        @type printOutput: boolean
        @return: S_OK,S_ERROR
     """
-    return super( DiracLHCb, self ).addFile( lfn, fullPath, diracSE,
-                                             fileGuid = makeGuid( fullPath )[fullPath],
-                                             printOutput = printOutput )
+    return super(DiracLHCb, self).addFile(lfn, fullPath, diracSE,
+                                          fileGuid=makeGuid(fullPath)[fullPath],
+                                          printOutput=printOutput)
 
-  def addFile( self, lfn, fullPath, diracSE, printOutput = False ): #pylint: disable=arguments-differ
+  def addFile(self, lfn, fullPath, diracSE, printOutput=False):  # pylint: disable=arguments-differ
     """ Copy of addRootFile
     """
-    return super( DiracLHCb, self ).addFile( lfn, fullPath, diracSE,
-                                             fileGuid = makeGuid( fullPath )[fullPath],
-                                             printOutput = printOutput )
+    return super(DiracLHCb, self).addFile(lfn, fullPath, diracSE,
+                                          fileGuid=makeGuid(fullPath)[fullPath],
+                                          printOutput=printOutput)
 
   #############################################################################
-  #FIXME: Unused?
-  def rootMergeRepository( self, outputFileName, inputFileMask = '*.root',
-                           location = 'Sandbox', requestedStates = ['Done'] ):
+  # FIXME: Unused?
+  def rootMergeRepository(self, outputFileName, inputFileMask='*.root',
+                          location='Sandbox', requestedStates=['Done']):
     """ Create a merged ROOT file using root files retrived in the sandbox or output data
 
        Example Usage:
@@ -139,40 +140,40 @@ class DiracLHCb( Dirac ):
        @return: S_OK,S_ERROR
     """
     if not self.jobRepo:
-      self.log.warn( "No repository is initialised" )
+      self.log.warn("No repository is initialised")
       return S_OK()
 
     # Get the input files to be used
     jobs = self.jobRepo.readRepository()['Value']
     inputFiles = []
-    for jobID in sorted( jobs ):
+    for jobID in sorted(jobs):
       jobDict = jobs[jobID]
-      if jobDict.get( 'State' ) in requestedStates:
+      if jobDict.get('State') in requestedStates:
         if location == 'OutputFiles':
-          jobFiles = eval( jobDict[location] )
+          jobFiles = eval(jobDict[location])
           for jobFile in jobFiles:
-            fileName = os.path.basename( jobFile )
-            if fnmatch.fnmatch( fileName, inputFileMask ):
-              if os.path.exists( jobFile ):
-                inputFiles.append( jobFile )
+            fileName = os.path.basename(jobFile)
+            if fnmatch.fnmatch(fileName, inputFileMask):
+              if os.path.exists(jobFile):
+                inputFiles.append(jobFile)
               else:
-                self.log.warn( "Repository output file does not exist locally", jobFile )
+                self.log.warn("Repository output file does not exist locally", jobFile)
         elif location == 'Sandbox':
-          globStr = "%s/%s" % ( jobDict[location], inputFileMask )
-          self.log.notice(glob.glob( globStr ))
-          inputFiles.extend( glob.glob( globStr ) )
+          globStr = "%s/%s" % (jobDict[location], inputFileMask)
+          self.log.notice(glob.glob(globStr))
+          inputFiles.extend(glob.glob(globStr))
         else:
-          return self._errorReport( "Location of .root should be 'Sandbox' or 'OutputFiles'." )
+          return self._errorReport("Location of .root should be 'Sandbox' or 'OutputFiles'.")
 
     # Perform the root merger
-    res = mergeRootFiles( outputFileName, inputFiles )
+    res = mergeRootFiles(outputFileName, inputFiles)
     if not res['OK']:
-      return self._errorReport( res['Message'], "Failed to perform final ROOT merger" )
+      return self._errorReport(res['Message'], "Failed to perform final ROOT merger")
     return S_OK()
 
   #############################################################################
 
-  def getBKAncestors( self, lfns, depth = 1, replica = True ):
+  def getBKAncestors(self, lfns, depth=1, replica=True):
     """ This function allows to retrieve ancestor files from the Bookkeeping.
 
         Example Usage:
@@ -187,15 +188,15 @@ class DiracLHCb( Dirac ):
        @type depth: integer
     """
 
-    result = self.bk.getFileAncestors( lfns, depth, replica = replica )
+    result = self._bkClient.getFileAncestors(lfns, depth, replica=replica)
     if not result['OK']:
-      return S_ERROR( 'Could not get ancestors: ' + result['Message'] )
-    ancestors = set( x['FileName'] for ancestors in result['Value']['Successful'].itervalues() for x in ancestors )
+      return S_ERROR('Could not get ancestors: ' + result['Message'])
+    ancestors = set(x['FileName'] for ancestors in result['Value']['Successful'].itervalues() for x in ancestors)
 
-    return S_OK( lfns + list( ancestors ) )
+    return S_OK(lfns + list(ancestors))
 
   #############################################################################
-  def bkQueryRunsByDate( self, bkPath, startDate, endDate, dqFlag = 'All', selection = 'Runs' ):
+  def bkQueryRunsByDate(self, bkPath, startDate, endDate, dqFlag='All', selection='Runs'):
     """ This function allows to create and perform a BK query given a supplied
         BK path. The following BK path convention is expected:
 
@@ -215,10 +216,12 @@ class DiracLHCb( Dirac ):
 
        Example Usage:
 
-       >>> dirac.bkQueryRunsByDate('/LHCb/Collision16//Real Data/90000000/RAW','2016-08-20','2016-08-22',dqFlag='OK',selection='Runs')
+       >>> dirac.bkQueryRunsByDate('/LHCb/Collision16//Real Data/90000000/RAW',
+                                   '2016-08-20','2016-08-22',dqFlag='OK',selection='Runs')
        {'OK': True, 'Value': [<LFN1>,<LFN2>]}
 
-      dirac.bkQueryRunsByDate('/LHCb/Collision16/Beam6500GeV-VeloClosed-MagDown/Real Data/Reco16/Stripping26/90000000/EW.DST',
+      dirac.bkQueryRunsByDate('/LHCb/Collision16/Beam6500GeV-VeloClosed-MagDown/Real'
+                              'Data/Reco16/Stripping26/90000000/EW.DST',
                               '2016-08-20','2016-08-22',dqFlag='OK',selection='Runs')
 
        @param bkPath: BK path as described above
@@ -235,43 +238,46 @@ class DiracLHCb( Dirac ):
     """
     runSelection = ['Runs', 'ProcessedRuns', 'NotProcessed']
     if selection not in runSelection:
-      return S_ERROR( 'Expected one of %s not "%s" for selection' % ( ', '.join( runSelection ), selection ) )
+      return S_ERROR('Expected one of %s not "%s" for selection' % (', '.join(runSelection), selection))
 
-    if not isinstance( bkPath, str ):
-      return S_ERROR( 'Expected string for bkPath' )
+    if not isinstance(bkPath, str):
+      return S_ERROR('Expected string for bkPath')
 
     # remove any double slashes, spaces must be preserved
     # remove any empty components from leading and trailing slashes
-    bkQuery = BKQuery().buildBKQuery( bkPath )
+    bkQuery = BKQuery().buildBKQuery(bkPath)
     if not bkQuery:
-      return S_ERROR( 'Please provide a BK path: /<ConfigurationName>/<Configuration Version>/<Condition Description>/<Processing Pass>/<Event Type>/<File Type>' )
+      return S_ERROR(
+          'Please provide a BK path: '
+          '/<ConfigurationName>/<Configuration Version>/<Condition Description>/<Processing Pass>'
+          '/<Event Type>/<File Type>')
 
     if not startDate or not endDate:
-      return S_ERROR( 'Expected both start and end dates to be defined in format: yyyy-mm-dd' )
+      return S_ERROR('Expected both start and end dates to be defined in format: yyyy-mm-dd')
 
-    if not isinstance( startDate, str ) or not isinstance( endDate, str ):
-      return S_ERROR( 'Expected yyyy-mm-dd string for start and end dates' )
+    if not isinstance(startDate, str) or not isinstance(endDate, str):
+      return S_ERROR('Expected yyyy-mm-dd string for start and end dates')
 
-    if not len( startDate.split( '-' ) ) == 3 or not len( endDate.split( '-' ) ) == 3:
-      return S_ERROR( 'Expected yyyy-mm-dd string for start and end dates' )
+    if not len(startDate.split('-')) == 3 or not len(endDate.split('-')) == 3:
+      return S_ERROR('Expected yyyy-mm-dd string for start and end dates')
 
     start = time.time()
-    result = self.bk.getRunsForAGivenPeriod( {'StartDate':startDate, 'EndDate':endDate} )
+    result = self._bkClient.getRunsForAGivenPeriod({'StartDate': startDate, 'EndDate': endDate})
     rtime = time.time() - start
-    self.log.info( 'BK query time: %.2f sec' % rtime )
+    self.log.info('BK query time: %.2f sec' % rtime)
     if not result['OK']:
-      self.log.info( 'Could not get runs with given dates from BK with result: "%s"' % result )
+      self.log.info('Could not get runs with given dates from BK with result: "%s"' % result)
       return result
 
     if not result['Value']:
-      self.log.info( 'No runs selected from BK for specified dates' )
+      self.log.info('No runs selected from BK for specified dates')
       return result
 
     if selection not in result['Value']:
-      return S_ERROR( 'No %s runs for specified dates' % ( selection ) )
+      return S_ERROR('No %s runs for specified dates' % (selection))
 
     runs = result['Value'][selection]
-    self.log.info( 'Found the following %s runs:\n%s' % ( len( runs ), ', '.join( [str( i ) for i in runs] ) ) )
+    self.log.info('Found the following %s runs:\n%s' % (len(runs), ', '.join([str(i) for i in runs])))
     # temporary until we can query for a discrete list of runs
     selectedData = []
     for run in runs:
@@ -280,27 +286,27 @@ class DiracLHCb( Dirac ):
       query['EndRun'] = run
       query['CheckRunStatus'] = True if selection in ['ProcessedRuns', 'NotProcessed'] else False
       if dqFlag:
-        check = self.__checkDQFlags( dqFlag )
+        check = self.__checkDQFlags(dqFlag)
         if not check['OK']:
           return check
         dqFlag = check['Value']
         query['DataQuality'] = dqFlag
       start = time.time()
-      result = self.bk.getVisibleFilesWithMetadata( query )
+      result = self._bkClient.getVisibleFilesWithMetadata(query)
       rtime = time.time() - start
-      self.log.info( 'BK query time: %.2f sec' % rtime )
-      self.log.verbose( result )
+      self.log.info('BK query time: %.2f sec' % rtime)
+      self.log.verbose(result)
       if not result['OK']:
         return result
-      self.log.info( 'Selected %s files for run %s' % ( len( result['Value'] ), run ) )
+      self.log.info('Selected %s files for run %s' % (len(result['Value']), run))
       if result['Value']['LFNs']:
         selectedData += result['Value']['LFNs'].keys()
 
-    self.log.info( 'Total files selected = %s' % ( len( selectedData ) ) )
-    return S_OK( selectedData )
+    self.log.info('Total files selected = %s' % (len(selectedData)))
+    return S_OK(selectedData)
 
   #############################################################################
-  def bkQueryRun( self, bkPath, dqFlag = 'All' ):
+  def bkQueryRun(self, bkPath, dqFlag='All'):
     """ This function allows to create and perform a BK query given a supplied
         BK path. The following BK path convention is expected:
 
@@ -329,37 +335,37 @@ class DiracLHCb( Dirac ):
        @type dqFlag: string
        @return: S_OK,S_ERROR
     """
-    if not isinstance( bkPath, str ):
-      return S_ERROR( 'Expected string for bkPath' )
+    if not isinstance(bkPath, str):
+      return S_ERROR('Expected string for bkPath')
 
     # remove any double slashes, spaces must be preserved
     # remove any empty components from leading and trailing slashes
-    bkPath = translateBKPath( bkPath, procPassID = 1 )
-    if not len( bkPath ) == 4:
-      return S_ERROR( 'Expected 4 components to the BK path: /<Run Number>/<Processing Pass>/<Event Type>/<File Type>' )
+    bkPath = translateBKPath(bkPath, procPassID=1)
+    if not len(bkPath) == 4:
+      return S_ERROR('Expected 4 components to the BK path: /<Run Number>/<Processing Pass>/<Event Type>/<File Type>')
 
-    runNumberString = bkPath[0].replace( '--', '-' ).replace( ' ', '' )
+    runNumberString = bkPath[0].replace('--', '-').replace(' ', '')
     startRun = 0
     endRun = 0
     if '-' in runNumberString:
-      runs = runNumberString.split( '-' )
-      if len( runs ) != 2:
-        return S_ERROR( 'Could not determine run range from "%s", try "<Run 1> - <Run2>"' % ( runNumberString ) )
+      runs = runNumberString.split('-')
+      if len(runs) != 2:
+        return S_ERROR('Could not determine run range from "%s", try "<Run 1> - <Run2>"' % (runNumberString))
       try:
-        start = int( runs[0] )
-        end = int( runs[1] )
-      except:
-        return S_ERROR( 'Invalid run range: %s' % runNumberString )
-      startRun = min( start, end )
-      endRun = max( start, end )
+        start = int(runs[0])
+        end = int(runs[1])
+      except Exception:
+        return S_ERROR('Invalid run range: %s' % runNumberString)
+      startRun = min(start, end)
+      endRun = max(start, end)
     else:
       try:
-        startRun = int( runNumberString )
+        startRun = int(runNumberString)
         endRun = startRun
-      except:
-        return S_ERROR( 'Invalid run number: %s' % runNumberString )
+      except Exception:
+        return S_ERROR('Invalid run number: %s' % runNumberString)
 
-    query = self.bkQueryTemplate.copy()
+    query = self._bkQueryTemplate.copy()
     query['StartRun'] = startRun
     query['EndRun'] = endRun
     query['ProcessingPass'] = bkPath[1]
@@ -367,18 +373,18 @@ class DiracLHCb( Dirac ):
     query['FileType'] = bkPath[3]
 
     if dqFlag:
-      check = self.__checkDQFlags( dqFlag )
+      check = self.__checkDQFlags(dqFlag)
       if not check['OK']:
         return check
       dqFlag = check['Value']
       query['DataQuality'] = dqFlag
 
-    result = self.bkQuery( query )
-    self.log.verbose( result )
+    result = self.bkQuery(query)
+    self.log.verbose(result)
     return result
 
   #############################################################################
-  def bkQueryProduction( self, bkPath, dqFlag = 'All' ):
+  def bkQueryProduction(self, bkPath, dqFlag='All'):
     """ This function allows to create and perform a BK query given a supplied
         BK path. The following BK path convention is expected:
 
@@ -404,41 +410,42 @@ class DiracLHCb( Dirac ):
        @type dqFlag: string
        @return: S_OK,S_ERROR
     """
-    if not isinstance( bkPath, str ):
-      return S_ERROR( 'Expected string for bkPath' )
+    if not isinstance(bkPath, str):
+      return S_ERROR('Expected string for bkPath')
 
     # remove any double slashes, spaces must be preserved
     # remove any empty components from leading and trailing slashes
-    bkPath = translateBKPath( bkPath, procPassID = 1 )
-    if len( bkPath ) < 2:
-      return S_ERROR( 'Invalid bkPath: should at least contain /ProductionID/FileType' )
-    query = self.bkQueryTemplate.copy()
+    bkPath = translateBKPath(bkPath, procPassID=1)
+    if len(bkPath) < 2:
+      return S_ERROR('Invalid bkPath: should at least contain /ProductionID/FileType')
+    query = self._bkQueryTemplate.copy()
     try:
-      query['Production'] = int( bkPath[0] )
-    except:
-      return S_ERROR( 'Invalid production ID' )
+      query['Production'] = int(bkPath[0])
+    except Exception:
+      return S_ERROR('Invalid production ID')
     query['FileType'] = bkPath[-1]
 
     if dqFlag:
-      check = self.__checkDQFlags( dqFlag )
+      check = self.__checkDQFlags(dqFlag)
       if not check['OK']:
         return check
       dqFlag = check['Value']
       query['DataQuality'] = dqFlag
 
     for key, val in query.items():
-      if isinstance( val, basestring ) and val.lower() == 'all':
-        query.pop( key )
-    result = self.bkQuery( query )
-    self.log.verbose( result )
+      if isinstance(val, basestring) and val.lower() == 'all':
+        query.pop(key)
+    result = self.bkQuery(query)
+    self.log.verbose(result)
     return result
 
   #############################################################################
-  def bkQueryPath( self, bkPath, dqFlag = 'All' ):
+  def bkQueryPath(self, bkPath, dqFlag='All'):
     """ This function allows to create and perform a BK query given a supplied
         BK path. The following BK path convention is expected:
 
-       /<ConfigurationName>/<Configuration Version>/<Sim or Data Taking Condition>/<Processing Pass>/<Event Type>/<File Type>
+       /<ConfigurationName>/<Configuration Version>/<Sim or Data Taking Condition>
+       /<Processing Pass>/<Event Type>/<File Type>
 
        so an example for 2009 collsions data would be:
 
@@ -462,17 +469,18 @@ class DiracLHCb( Dirac ):
        @type dqFlag: string
        @return: S_OK,S_ERROR
     """
-    if not isinstance( bkPath, str ):
-      return S_ERROR( 'Expected string for bkPath' )
+    if not isinstance(bkPath, str):
+      return S_ERROR('Expected string for bkPath')
 
     # remove any double slashes, spaces must be preserved
     # remove any empty components from leading and trailing slashes
-    bkPath = translateBKPath( bkPath, procPassID = 3 )
-    if not len( bkPath ) == 6:
-      return S_ERROR( 'Expected 6 components to the BK path: \
-      /<ConfigurationName>/<Configuration Version>/<Sim or Data Taking Condition>/<Processing Pass>/<Event Type>/<File Type>' )
+    bkPath = translateBKPath(bkPath, procPassID=3)
+    if not len(bkPath) == 6:
+      return S_ERROR('Expected 6 components to the BK path: '
+                     '/<ConfigurationName>/<Configuration Version>/<Sim or Data Taking Condition>'
+                     '/<Processing Pass>/<Event Type>/<File Type>')
 
-    query = self.bkQueryTemplate.copy()
+    query = self._bkQueryTemplate.copy()
     query['ConfigName'] = bkPath[0]
     query['ConfigVersion'] = bkPath[1]
     query['ProcessingPass'] = bkPath[3]
@@ -480,7 +488,7 @@ class DiracLHCb( Dirac ):
     query['FileType'] = bkPath[5]
 
     if dqFlag:
-      check = self.__checkDQFlags( dqFlag )
+      check = self.__checkDQFlags(dqFlag)
       if not check['OK']:
         return check
       dqFlag = check['Value']
@@ -493,14 +501,14 @@ class DiracLHCb( Dirac ):
     else:
       query['DataTakingConditions'] = bkPath[2]
 
-    result = self.bkQuery( query )
-    self.log.verbose( result )
+    result = self.bkQuery(query)
+    self.log.verbose(result)
     return result
 
   #############################################################################
-  def bookkeepingQuery( self, SimulationConditions = 'All', DataTakingConditions = 'All',
-                        ProcessingPass = 'All', FileType = 'All', EventType = 'All', ConfigName = 'All',
-                        ConfigVersion = 'All', ProductionID = 0, DataQuality = 'ALL' ):
+  def bookkeepingQuery(self, SimulationConditions='All', DataTakingConditions='All',
+                       ProcessingPass='All', FileType='All', EventType='All', ConfigName='All',
+                       ConfigVersion='All', ProductionID=0, DataQuality='ALL'):
     """ This function will create and perform a BK query using the supplied arguments
         and return a list of LFNs.
 
@@ -530,7 +538,7 @@ class DiracLHCb( Dirac ):
        @type SimulationConditions: string
        @return: S_OK,S_ERROR
     """
-    query = self.bkQueryTemplate.copy()
+    query = self._bkQueryTemplate.copy()
     query['SimulationConditions'] = SimulationConditions
     query['DataTakingConditions'] = DataTakingConditions
     query['ProcessingPass'] = ProcessingPass
@@ -540,10 +548,10 @@ class DiracLHCb( Dirac ):
     query['ConfigVersion'] = ConfigVersion
     query['Production'] = ProductionID
     query['DataQuality'] = DataQuality
-    return self.bkQuery( query )
+    return self.bkQuery(query)
 
   #############################################################################
-  def bkQuery( self, bkQueryDict ):
+  def bkQuery(self, bkQueryDict):
     """ Developer function. Perform a query to the LHCb Bookkeeping to return
         a list of LFN(s). This method takes a BK query dictionary.
 
@@ -560,62 +568,64 @@ class DiracLHCb( Dirac ):
     # Remove the Visible flag as anyway the method is for visible files ;-)
     # bkQueryDict.setdefault( 'Visible', 'Yes' )
     for name, value in bkQueryDict.items():
-      if name not in self.bkQueryTemplate:
-        problematicFields.append( name )
+      if name not in self._bkQueryTemplate:
+        problematicFields.append(name)
 
     if problematicFields:
-      msg = 'The following fields are not valid for a BK query: %s\nValid fields include: %s' % ( ', '.join( problematicFields ),
-                                                                                                  ', '.join( self.bkQueryTemplate.keys() ) )
-      return S_ERROR( msg )
+      msg = 'The following fields are not valid for a BK query: %s\nValid fields include: %s' % \
+            (', '.join(problematicFields), ', '.join(self._bkQueryTemplate.keys()))
+      return S_ERROR(msg)
 
     for name, value in bkQueryDict.items():
       if name == "Production" or name == "EventType" or name == "StartRun" or name == "EndRun":
         if value == 0:
           del bkQueryDict[name]
         else:
-          bkQueryDict[name] = str( value )
+          bkQueryDict[name] = str(value)
       elif name == "FileType":
         if value.lower() == "all":
           bkQueryDict[name] = 'ALL'
       else:
-        if str( value ).lower() == "all":
+        if str(value).lower() == "all":
           del bkQueryDict[name]
 
     if 'Production' in bkQueryDict or 'StartRun' in bkQueryDict or 'EndRun' in bkQueryDict:
-      self.log.verbose( 'Found a specific query so loosening some restrictions to prevent BK overloading' )
+      self.log.verbose('Found a specific query so loosening some restrictions to prevent BK overloading')
     else:
       if 'SimulationConditions' not in bkQueryDict and 'DataTakingConditions' not in bkQueryDict:
-        return S_ERROR( 'A Simulation or DataTaking Condition must be specified for a BK query.' )
+        return S_ERROR('A Simulation or DataTaking Condition must be specified for a BK query.')
       if 'EventType' not in bkQueryDict and 'ConfigName' not in bkQueryDict and 'ConfigVersion' not in bkQueryDict:
-        return S_ERROR( 'The minimal set of BK fields for a query is: EventType, ConfigName and ConfigVersion in addition to a Simulation or DataTaking Condition' )
+        return S_ERROR(
+            'The minimal set of BK fields for a query is: EventType, ConfigName and ConfigVersion'
+            ' in addition to a Simulation or DataTaking Condition')
 
-    self.log.verbose( 'Final BK query dictionary is:' )
-    for n, v in bkQueryDict.items():
-      self.log.verbose( '%s : %s' % ( n, v ) )
+    self.log.verbose('Final BK query dictionary is:')
+    for item in bkQueryDict.iteritems():
+      self.log.verbose('%s : %s' % item)
 
     start = time.time()
-    result = self.bk.getVisibleFilesWithMetadata( bkQueryDict )
+    result = self._bkClient.getVisibleFilesWithMetadata(bkQueryDict)
 #    result = bk.getFilesWithGivenDataSets(bkQueryDict)
     rtime = time.time() - start
-    self.log.info( 'BK query time: %.2f sec' % rtime )
+    self.log.info('BK query time: %.2f sec' % rtime)
 
     if not result['OK']:
-      return S_ERROR( 'BK query returned an error: "%s"' % ( result['Message'] ) )
+      return S_ERROR('BK query returned an error: "%s"' % (result['Message']))
 
     if not result['Value']:
-      return self._errorReport( 'No BK files selected' )
+      return self._errorReport('No BK files selected')
 
-    returnedFiles = len( result['Value'] )
-    self.log.verbose( '%s files selected from the BK' % ( returnedFiles ) )
+    returnedFiles = len(result['Value'])
+    self.log.verbose('%s files selected from the BK' % (returnedFiles))
     return result
 
   #############################################################################
-  def __checkDQFlags( self, flags ):
+  def __checkDQFlags(self, flags):
     """ Internal function.  Checks the provided flags against the list of
         possible DQ flag statuses from the Bookkeeping.
     """
     dqFlags = []
-    if isinstance( flags, list ):
+    if isinstance(flags, list):
       dqFlags = flags
     else:
       dqFlags = [flags]
@@ -627,24 +637,24 @@ class DiracLHCb( Dirac ):
     final = []
     for flag in dqFlags:
       if flag.lower() == 'all':
-        final.append( flag.upper() )
+        final.append(flag.upper())
       else:
         flag = flag.upper()
         if not flag in bkFlags['Value']:
-          msg = 'Specified DQ flag "%s" is not in allowed list: %s' % ( flag, ', '.join( bkFlags['Value'] ) )
-          self.log.error( msg )
-          return S_ERROR( msg )
+          msg = 'Specified DQ flag "%s" is not in allowed list: %s' % (flag, ', '.join(bkFlags['Value']))
+          self.log.error(msg)
+          return S_ERROR(msg)
         else:
-          final.append( flag )
+          final.append(flag)
 
     # when first coding this it was not possible to use a list ;)
-    if len( final ) == 1:
+    if len(final) == 1:
       final = final[0]
 
-    return S_OK( final )
+    return S_OK(final)
 
   #############################################################################
-  def getAllDQFlags( self, printOutput = False ):
+  def getAllDQFlags(self, printOutput=False):
     """ Helper function.  Returns the list of possible DQ flag statuses
         from the Bookkeeping.
 
@@ -657,19 +667,19 @@ class DiracLHCb( Dirac ):
        @type printOutput: boolean
        @return: S_OK,S_ERROR
     """
-    result = self.bk.getAvailableDataQuality()
+    result = self._bkClient.getAvailableDataQuality()
     if not result['OK']:
-      self.log.error( 'Could not obtain possible DQ flags from BK with result:\n%s' % ( result ) )
+      self.log.error('Could not obtain possible DQ flags from BK with result:\n%s' % (result))
       return result
 
     if printOutput:
       flags = result['Value']
-      self.log.info( 'Possible DQ flags from BK are: %s' % ( ', '.join( flags ) ) )
+      self.log.info('Possible DQ flags from BK are: %s' % (', '.join(flags)))
 
     return result
 
   #############################################################################
-  def getDataByRun( self, lfns, printOutput = False ):
+  def getDataByRun(self, lfns, printOutput=False):
     """Sort the supplied lfn list by run. An S_OK object will be returned
        containing a dictionary of runs and the corresponding list of LFN(s)
        associated with them.
@@ -686,38 +696,38 @@ class DiracLHCb( Dirac ):
        @type printOutput: boolean
        @return: S_OK,S_ERROR
     """
-    if isinstance( lfns, str ):
-      lfns = [lfns.replace( 'LFN:', '' )]
-    elif isinstance( lfns, list ):
+    if isinstance(lfns, str):
+      lfns = [lfns.replace('LFN:', '')]
+    elif isinstance(lfns, list):
       try:
-        lfns = [str( lfn.replace( 'LFN:', '' ) ) for lfn in lfns]
+        lfns = [str(lfn.replace('LFN:', '')) for lfn in lfns]
       except ValueError as x:
-        return self._errorReport( str( x ), 'Expected strings for LFNs' )
+        return self._errorReport(str(x), 'Expected strings for LFNs')
     else:
-      return self._errorReport( 'Expected single string or list of strings for LFN(s)' )
+      return self._errorReport('Expected single string or list of strings for LFN(s)')
 
     runDict = {}
     start = time.time()
-    result = self.bk.getFileMetadata( lfns )
-    self.log.verbose( "Obtained BK file metadata in %.2f seconds" % ( time.time() - start ) )
+    result = self._bkClient.getFileMetadata(lfns)
+    self.log.verbose("Obtained BK file metadata in %.2f seconds" % (time.time() - start))
     if not result['OK']:
-      self.log.error( 'Failed to get bookkeeping metadata with result "%s"' % ( result['Message'] ) )
+      self.log.error('Failed to get bookkeeping metadata with result "%s"' % (result['Message']))
       return result
 
     for lfn, metadata in result['Value']['Successful'].items():
       if 'RunNumber' in metadata:
         runNumber = metadata['RunNumber']
-        runDict.setdefault( runNumber, [] ).append( lfn )
+        runDict.setdefault(runNumber, []).append(lfn)
       else:
-        self.log.warn( 'Could not find run number from BK for %s' % ( lfn ) )
+        self.log.warn('Could not find run number from BK for %s' % (lfn))
 
     if printOutput:
-      self.log.notice( self.pPrint.pformat( runDict ) )
+      self.log.notice(self.pPrint.pformat(runDict))
 
-    return S_OK( runDict )
+    return S_OK(runDict)
 
   #############################################################################
-  def bkMetadata( self, lfns, printOutput = False ):
+  def bkMetadata(self, lfns, printOutput=False):
     """Return metadata for the supplied lfn list. An S_OK object will be returned
        containing a dictionary of LFN(s) and the corresponding metadata associated
        with them.
@@ -733,21 +743,21 @@ class DiracLHCb( Dirac ):
        @type printOutput: boolean
        @return: S_OK,S_ERROR
     """
-    if isinstance( lfns, str ):
-      lfns = [lfns.replace( 'LFN:', '' )]
-    elif isinstance( lfns, list ):
+    if isinstance(lfns, str):
+      lfns = [lfns.replace('LFN:', '')]
+    elif isinstance(lfns, list):
       try:
-        lfns = [str( lfn.replace( 'LFN:', '' ) ) for lfn in lfns]
+        lfns = [str(lfn.replace('LFN:', '')) for lfn in lfns]
       except ValueError as x:
-        return self._errorReport( str( x ), 'Expected strings for LFNs' )
+        return self._errorReport(str(x), 'Expected strings for LFNs')
     else:
-      return self._errorReport( 'Expected single string or list of strings for LFN(s)' )
+      return self._errorReport('Expected single string or list of strings for LFN(s)')
 
     start = time.time()
-    result = self.bk.getFileMetadata( lfns )
-    self.log.verbose( "Obtained BK file metadata in %.2f seconds" % ( time.time() - start ) )
+    result = self._bkClient.getFileMetadata(lfns)
+    self.log.verbose("Obtained BK file metadata in %.2f seconds" % (time.time() - start))
     if not result['OK']:
-      self.log.error( 'Failed to get bookkeeping metadata with result "%s"' % ( result['Message'] ) )
+      self.log.error('Failed to get bookkeeping metadata with result "%s"' % (result['Message']))
       return result
 
     if printOutput:
@@ -757,20 +767,20 @@ class DiracLHCb( Dirac ):
 
   #############################################################################
 
-  def lhcbProxyInit( self, *args ):  # pylint: disable=no-self-use
+  def lhcbProxyInit(self, *args):  # pylint: disable=no-self-use
     """ just calling the dirac-proxy-init script
     """
-    os.system( "dirac-proxy-init -o LogLevel=NOTICE -t --rfc %s" % "' '".join( args ) )
+    os.system("dirac-proxy-init -o LogLevel=NOTICE -t --rfc %s" % "' '".join(args))
 
   #############################################################################
 
-  def lhcbProxyInfo( self, *args ):  # pylint: disable=no-self-use
+  def lhcbProxyInfo(self, *args):  # pylint: disable=no-self-use
     """ just calling the dirac-proxy-info script
     """
-    os.system( "dirac-proxy-info -o LogLevel=NOTICE %s" % "' '".join( args ) )
+    os.system("dirac-proxy-info -o LogLevel=NOTICE %s" % "' '".join(args))
   #############################################################################
 
-  def gridWeather( self, printOutput = False ):
+  def gridWeather(self, printOutput=False):
     """This method gives a snapshot of the current Grid weather from the perspective
        of the DIRAC site and SE masks.  Tier-1 sites are returned with more detailed
        information.
@@ -785,15 +795,15 @@ class DiracLHCb( Dirac ):
        @return: S_OK,S_ERROR
     """
 
-    lcgSites = gConfig.getSections( '/Resources/Sites/LCG' )
-    if not lcgSites[ 'OK' ]:
+    lcgSites = gConfig.getSections('/Resources/Sites/LCG')
+    if not lcgSites['OK']:
       return lcgSites
 
-    for lcgSite in lcgSites[ 'Value' ]:
+    for lcgSite in lcgSites['Value']:
 
-      tier = gConfig.getValue( '/Resources/Sites/LCG/%s/MoUTierLevel' % lcgSite, 2 )
-      if tier in ( 0, 1 ):
-        self.tier1s.append( lcgSite )
+      tier = gConfig.getValue('/Resources/Sites/LCG/%s/MoUTierLevel' % lcgSite, 2)
+      if tier in (0, 1):
+        self.tier1s.append(lcgSite)
 
     siteInfo = self.checkSites()
     if not siteInfo['OK']:
@@ -807,7 +817,7 @@ class DiracLHCb( Dirac ):
 
     tierSEs = {}
     for site in self.tier1s:
-      tierSEs[site] = getSEsForSite( site )['Value']
+      tierSEs[site] = getSEsForSite(site)['Value']
 
     tierInfo = {}
     for site, seList in tierSEs.items():
@@ -823,14 +833,14 @@ class DiracLHCb( Dirac ):
 
     if printOutput:
       self.log.notice('========> Tier-1 status in DIRAC site and SE masks')
-      for site in sorted( self.tier1s ):
-        self.log.notice('\n====> %s is %s in site mask\n' % ( site, tierInfo[site]['MaskStatus'] ))
-        self.log.notice('%s %s %s' % ( 'Storage Element'.ljust( 25 ), 'Read Status'.rjust( 15 ), 'Write Status'.rjust( 15 ) ))
-        for se in sorted( tierSEs[site] ):
+      for site in sorted(self.tier1s):
+        self.log.notice('\n====> %s is %s in site mask\n' % (site, tierInfo[site]['MaskStatus']))
+        self.log.notice('%s %s %s' % ('Storage Element'.ljust(25), 'Read Status'.rjust(15), 'Write Status'.rjust(15)))
+        for se in sorted(tierSEs[site]):
           if se in tierInfo[site]:
-            self.log.notice('%s %s %s' % ( se.ljust( 25 ),
-                            tierInfo[site][se]['ReadStatus'].rjust( 15 ),
-                            tierInfo[site][se]['WriteStatus'].rjust( 15 ) )
+            self.log.notice('%s %s %s' % (se.ljust(25),
+                                          tierInfo[site][se]['ReadStatus'].rjust(15),
+                                          tierInfo[site][se]['WriteStatus'].rjust(15))
                             )
 
       self.log.notice('\n========> Tier-2 status in DIRAC site mask\n')
@@ -838,16 +848,16 @@ class DiracLHCb( Dirac ):
       bannedSites = siteInfo['BannedSites']
       for site in self.tier1s:
         if site in allowedSites:
-          allowedSites.remove( site )
+          allowedSites.remove(site)
         if site in bannedSites:
-          bannedSites.remove( site )
-      self.log.notice(' %s sites are in the site mask, %s are banned.\n' % ( len( allowedSites ), len( bannedSites ) ))
+          bannedSites.remove(site)
+      self.log.notice(' %s sites are in the site mask, %s are banned.\n' % (len(allowedSites), len(bannedSites)))
 
-    summary = {'Sites':siteInfo, 'SEs':seInfo, 'Tier-1s':tierInfo}
-    return S_OK( summary )
+    summary = {'Sites': siteInfo, 'SEs': seInfo, 'Tier-1s': tierInfo}
+    return S_OK(summary)
 
   #############################################################################
-  def checkSites( self, printOutput = False ):  # pylint: disable=no-self-use
+  def checkSites(self, printOutput=False):  # pylint: disable=no-self-use
     """Return the list of sites in the DIRAC site mask and those which are banned.
 
        Example usage:
@@ -866,26 +876,26 @@ class DiracLHCb( Dirac ):
     totalList = getSites()
 
     if not totalList['OK']:
-      return S_ERROR( 'Could not get list of sites from CS' )
+      return S_ERROR('Could not get list of sites from CS')
     totalList = totalList['Value']
     sites = siteMask['Value']
     bannedSites = []
     for site in totalList:
       if not site in sites:
-        bannedSites.append( site )
+        bannedSites.append(site)
 
     if printOutput:
       self.log.notice('\n========> Allowed Sites\n')
-      self.log.notice('\n'.join( sites ))
+      self.log.notice('\n'.join(sites))
       self.log.notice('\n========> Banned Sites\n')
-      self.log.notice('\n'.join( bannedSites ))
-      self.log.notice('\nThere is a total of %s allowed sites and %s banned sites in the system.' % ( len( sites ),
-                                                                                                      len( bannedSites ) ))
+      self.log.notice('\n'.join(bannedSites))
+      self.log.notice('\nThere is a total of %s allowed sites and %s banned sites in the system.' % (len(sites),
+                                                                                                     len(bannedSites)))
 
-    return S_OK( {'AllowedSites':sites, 'BannedSites':bannedSites} )
+    return S_OK({'AllowedSites': sites, 'BannedSites': bannedSites})
 
   #############################################################################
-  def checkSEs( self, printOutput = False ):  # pylint: disable=no-self-use
+  def checkSEs(self, printOutput=False):  # pylint: disable=no-self-use
     """Check the status of read and write operations in the DIRAC SE mask.
 
        Example usage:
@@ -897,31 +907,31 @@ class DiracLHCb( Dirac ):
        @type printOutput: boolean
        @return: S_OK,S_ERROR
     """
-    res = gConfig.getSections( '/Resources/StorageElements', True )
+    res = gConfig.getSections('/Resources/StorageElements', True)
 
     if not res['OK']:
-      return S_ERROR( 'Failed to get storage element information' )
+      return S_ERROR('Failed to get storage element information')
 
     if printOutput:
-      self.log.notice('%s %s %s' % ( 'Storage Element'.ljust( 25 ), 'Read Status'.rjust( 15 ), 'Write Status'.rjust( 15 ) ))
+      self.log.notice('%s %s %s' % ('Storage Element'.ljust(25), 'Read Status'.rjust(15), 'Write Status'.rjust(15)))
 
-    seList = sorted( res['Value'] )
+    seList = sorted(res['Value'])
     result = {}
     rss = ResourceStatus()
     for se in seList:
-      res = rss.getElementStatus( se, 'StorageElement' )
+      res = rss.getElementStatus(se, 'StorageElement')
       if not res['OK']:
-        self.log.error( "Failed to get StorageElement status for %s" % se )
+        self.log.error("Failed to get StorageElement status for %s" % se)
       else:
-        readState = res['Value'].get( 'ReadAccess' , 'Active' )
-        writeState = res['Value'].get( 'WriteAccess', 'Active' )
+        readState = res['Value'].get('ReadAccess', 'Active')
+        writeState = res['Value'].get('WriteAccess', 'Active')
         result[se] = {'ReadStatus': readState, 'WriteStatus': writeState}
         if printOutput:
-          self.log.notice('%s %s %s' % ( se.ljust( 25 ), readState.rjust( 15 ), writeState.rjust( 15 ) ))
+          self.log.notice('%s %s %s' % (se.ljust(25), readState.rjust(15), writeState.rjust(15)))
 
-    return S_OK( result )
+    return S_OK(result)
 
-  def splitInputDataBySize( self, lfns, maxSizePerJob = 20, printOutput = False ):
+  def splitInputDataBySize(self, lfns, maxSizePerJob=20, printOutput=False):
     """Split the supplied lfn list by the replicas present at the possible
        destination sites, based on a maximum size.
        An S_OK object will be returned containing a list of
@@ -942,71 +952,75 @@ class DiracLHCb( Dirac ):
        @return: S_OK,S_ERROR
     """
     sitesForSE = {}
-    if isinstance( lfns, str ):
-      lfns = [lfns.replace( 'LFN:', '' )]
-    elif isinstance( lfns, list ):
+    if isinstance(lfns, str):
+      lfns = [lfns.replace('LFN:', '')]
+    elif isinstance(lfns, list):
       try:
-        lfns = [str( lfn.replace( 'LFN:', '' ) ) for lfn in lfns]
+        lfns = [str(lfn.replace('LFN:', '')) for lfn in lfns]
       except TypeError as x:
-        return self._errorReport( str( x ), 'Expected strings for LFNs' )
+        return self._errorReport(str(x), 'Expected strings for LFNs')
     else:
-      return self._errorReport( 'Expected single string or list of strings for LFN(s)' )
+      return self._errorReport('Expected single string or list of strings for LFN(s)')
 
-    if not isinstance( maxSizePerJob, int ):
+    if not isinstance(maxSizePerJob, int):
       try:
-        maxSizePerJob = int( maxSizePerJob )
+        maxSizePerJob = int(maxSizePerJob)
       except ValueError as x:
-        return self._errorReport( str( x ), 'Expected integer for maxSizePerJob' )
+        return self._errorReport(str(x), 'Expected integer for maxSizePerJob')
     maxSizePerJob *= 1000 * 1000 * 1000
 
-    replicaDict = self.getReplicas( lfns )
+    replicaDict = self.getReplicas(lfns)
     if not replicaDict['OK']:
       return replicaDict
     replicas = replicaDict['Value']['Successful']
     if not replicas:
-      return self._errorReport( replicaDict['Value']['Failed'].items()[0], 'Failed to get replica information' )
+      return self._errorReport(replicaDict['Value']['Failed'].items()[0],
+                               'Failed to get replica information')
     siteLfns = {}
     for lfn, reps in replicas.items():
-      possibleSites = set( [site for se in reps for site in sitesForSE.setdefault( se, getSitesForSE( se ).get( 'Value', [] ) )] )
-      siteLfns.setdefault( ','.join( sorted( possibleSites ) ), [] ).append( lfn )
+      possibleSites = set(site
+                          for se in reps
+                          for site in sitesForSE.setdefault(se, getSitesForSE(se).get('Value', [])))
+      siteLfns.setdefault(','.join(sorted(possibleSites)), []).append(lfn)
 
     if '' in siteLfns:
       # Some files don't have active replicas
-      return self._errorReport( 'No active replica found for', str( siteLfns[''] ) )
+      return self._errorReport('No active replica found for', str(siteLfns['']))
     # Get size of files
-    metadataDict = self.getMetadata( lfns, printOutput )
+    metadataDict = self.getMetadata(lfns, printOutput)
     if not metadataDict['OK']:
       return metadataDict
-    fileSizes = dict( [( lfn, metadataDict['Value']['Successful'].get( lfn, {} ).get( 'Size', maxSizePerJob ) ) for lfn in lfns] )
+    fileSizes = dict((lfn, metadataDict['Value']['Successful'].get(lfn, {}).get('Size', maxSizePerJob))
+                     for lfn in lfns)
 
     lfnGroups = []
     # maxSize is in GB
     for files in siteLfns.values():
       # Now get bunches of files,
       # Sort in decreasing size
-      files.sort( cmp = ( lambda f1, f2: fileSizes[f2] - fileSizes[f1] ) )
+      files.sort(cmp=(lambda f1, f2: fileSizes[f2] - fileSizes[f1]))
       while files:
         # print [( lfn, fileSizes[lfn] ) for lfn in files]
         group = []
         sizeTot = 0
-        for lfn in list( files ):
+        for lfn in list(files):
           size = fileSizes[lfn]
           if size >= maxSizePerJob:
-            lfnGroups.append( [lfn] )
+            lfnGroups.append([lfn])
           elif sizeTot + size < maxSizePerJob:
             sizeTot += size
-            group.append( lfn )
-            files.remove( lfn )
+            group.append(lfn)
+            files.remove(lfn)
         if group:
-          lfnGroups.append( group )
+          lfnGroups.append(group)
 
     if printOutput:
-      self.log.notice(self.pPrint.pformat( lfnGroups ))
-    return S_OK( lfnGroups )
+      self.log.notice(self.pPrint.pformat(lfnGroups))
+    return S_OK(lfnGroups)
 
     #############################################################################
 
-  def getAccessURL( self, lfn, storageElement, protocol = None, printOutput = False ):
+  def getAccessURL(self, lfn, storageElement, protocol=None, printOutput=False):
     """Allows to retrieve an access URL for an LFN replica given a valid DIRAC SE
        name.  Contacts the file catalog and contacts the site SRM endpoint behind
        the scenes.
@@ -1024,15 +1038,15 @@ class DiracLHCb( Dirac ):
        :type printOutput: boolean
        :returns: S_OK,S_ERROR
     """
-    ret = self._checkFileArgument( lfn, 'LFN' )
+    ret = self._checkFileArgument(lfn, 'LFN')
     if not ret['OK']:
       return ret
     lfn = ret['Value']
-    if isinstance( lfn, basestring ):
+    if isinstance(lfn, basestring):
       lfn = [lfn]
-    results = getAccessURL( lfn, storageElement, protocol = protocol )
+    results = getAccessURL(lfn, storageElement, protocol=protocol)
     if printOutput:
-      printDMResult( results, empty = "File not at SE", script = "dirac-dms-lfn-accessURL" )
+      printDMResult(results, empty="File not at SE", script="dirac-dms-lfn-accessURL")
     return results
 
   #############################################################################
@@ -1040,16 +1054,16 @@ class DiracLHCb( Dirac ):
   def _getLocalInputData(self, parameters):
     """ LHCb extension of DIRAC API's _getLocalInputData. Only used for handling ancestors.
     """
-    inputData = parameters.get( 'InputData' )
+    inputData = parameters.get('InputData')
     if inputData:
       ancestorsDepth = int(parameters.get('AncestorDepth', 0))
       if ancestorsDepth:
-        res = self.bk.getFileAncestors( inputData, ancestorsDepth )
+        res = self._bkClient.getFileAncestors(inputData, ancestorsDepth)
         if not res['OK']:
-          return S_ERROR( "Can't get ancestors: %s" % res['Message'] )
+          return S_ERROR("Can't get ancestors: %s" % res['Message'])
         ancestorsLFNs = []
         for ancestorsLFN in res['Value']['Successful'].itervalues():
-          ancestorsLFNs += [ i['FileName'] for i in ancestorsLFN]
+          ancestorsLFNs += [i['FileName'] for i in ancestorsLFN]
         inputData += ancestorsLFNs
 
     return S_OK(inputData)

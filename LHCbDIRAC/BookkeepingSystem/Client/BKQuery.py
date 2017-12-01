@@ -16,7 +16,7 @@ from LHCbDIRAC.TransformationSystem.Client.TransformationClient import Transform
 def getProcessingPasses(bkQuery, depth=0):
   """
   Get the list of processing passes for a given BK query
-  The processing pass in the initial query may terminate with a "...", in which case this acts as a wildcard
+  The processing pass in the initial query may contain "..." or a '*', in which case this acts as a wildcard character
   The search for processing passes may be limited to a certain depth (default: all)
 
   :param bkQuery: BK query dictionary
@@ -24,15 +24,14 @@ def getProcessingPasses(bkQuery, depth=0):
   :param depth: depth to which look for the processing pass
   :type depth: int
   """
-  processingPass = bkQuery.getProcessingPass()
-  if '...' not in processingPass:
+  processingPass = bkQuery.getProcessingPass().replace('...', '*')
+  if '*' not in processingPass:
     return [processingPass]
-  ind = processingPass.index('...')
+  ind = processingPass.index('*')
   basePass = os.path.dirname(processingPass[:ind])
-  wildPass = processingPass.replace('...', '*')
   bkQuery.setProcessingPass(basePass)
   return sorted(pp for pp in bkQuery.getBKProcessingPasses()
-                if fnmatch(pp, wildPass) and pp != basePass and
+                if fnmatch(pp, processingPass) and pp != basePass and
                 (not depth or len(pp.replace(basePass, '').split('/')) == (depth + 1)))
 
 
