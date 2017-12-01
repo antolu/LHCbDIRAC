@@ -163,17 +163,22 @@ class NotifyAgent( AgentModule ):
             informPeople = group[3].split( ',' )
           if informPeople:
             for emailaddress in informPeople:
-              res = self.diracAdmin.sendMail( emailaddress, "Notifications for production requests - Group %s; %s; %s" % ( group[0], group[2], group[1] ),
-                                              aggregated_body, self.fromAddress, html = True )
+              res = self.diracAdmin.sendMail(emailaddress,
+                                             "Notifications for production requests - Group %s; %s; %s" % (group[0],
+                                                                                                           group[2],
+                                                                                                           group[1]),
+                                             aggregated_body, self.fromAddress, html=True)
 
           for people in _getMemberMails( group[0] ):
 
-            res = self.diracAdmin.sendMail( people, "Notifications for production requests - Group %s; %s; %s" % ( group[0], group[2], group[1] ),
-                                            aggregated_body, self.fromAddress, html = True )
+            res = self.diracAdmin.sendMail(people,
+                                           "Notifications for production requests - Group %s; %s; %s" % (group[0],
+                                                                                                         group[2],
+                                                                                                         group[1]),
+                                           aggregated_body, self.fromAddress, html=True)
 
             if res['OK']:
               conn.execute("DELETE FROM ProductionManagementCache;")
-              conn.execute("VACUUM;")
             else:
               self.log.error( "_inform_people: can't send email: %s" % res['Message'] )
               return S_OK()
