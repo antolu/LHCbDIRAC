@@ -1623,11 +1623,7 @@ class TransformationDebug(object):
           if runStatus != 'Flush':
             # Check if the run should be flushed
             lfn = transFilesList[0]['LFN']
-            res = self.pluginUtil.getMetadataFromTSorBK(lfn, 'EventType')
-            if res['OK']:
-              evtType = res['Value'][lfn]
-            else:
-              evtType = 90000000
+            evtType = self.pluginUtil.getMetadataFromTSorBK(lfn, 'EventType').get(lfn, 90000000)
             self.__checkRunsToFlush(runID, transFilesList, runStatus, evtType=evtType, fileTypes=queryFileTypes)
           else:
             gLogger.notice('Run %d is already flushed' % runID)
