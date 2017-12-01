@@ -326,7 +326,7 @@ class NagiosTopologyAgent(AgentModule):
       i6Comment = ""
       if i6Status == -1:
         i6Comment = "Maybe DIRAC Service, not a valid machine"
-      xml_append(xml_doc, xml_ce, 'queues', ipv6_status=i6Status, ipv6_comment=i6Comment)
+      xml_append(xml_doc, xml_ce, 'queues', ipv6_status=str(i6Status), ipv6_comment=i6Comment)
 
 
       for queue in ce_queues:
@@ -376,7 +376,7 @@ class NagiosTopologyAgent(AgentModule):
       i6Comment = ""
       if i6Status == -1:
         i6Comment = "Maybe DIRAC Service, not a valid machine"
-      xml_append(xml_doc, xml_se, 'queues', ipv6_status=i6Status, ipv6_comment=i6Comment)
+      xml_append(xml_doc, xml_se, 'queues', ipv6_status=str(i6Status), ipv6_comment=i6Comment)
 
     has_grid_elem = True
 
