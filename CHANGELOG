@@ -1,3 +1,26 @@
+[v9r1-pre1]
+use DIRAC v6r19p8
+
+* fix variable name
+* add missing exception
+* fix change of return from utility
+* pep8 on API
+* get pp for more than one path
+* accept * as wildcard character
+* accept * as wildcard character
+* remove duplicated line
+* new script to list processing passes matching a BK path
+* Minor bug fix
+* if the StartingDate or FinalizationDate is not provided, use the current date. Update the unit test
+* add FastSimulationType to the production request page
+* add FastSimulationType to the production request page
+* handle correctly the datetime.date objects
+* do not reduce the number of elements
+* add new fields to the Production request
+* add the missing group by expression, which required by the latest version of MySQL
+* fix the sum of the number of bkk events and grouping
+* WMS: escape the pilotwrapper template
+
 [v9r0p2]
 use DIRAC v6r19p7
 
