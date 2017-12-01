@@ -5,6 +5,8 @@
 
 '''
 
+#FIXME: this is certainly wrong, not running right now!
+
 import datetime
 import os
 import re
