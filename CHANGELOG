@@ -1,6 +1,8 @@
-[v9r1-pre1]
+[v9r1]
 use DIRAC v6r19p8
 
+* fix for cleaning sqlite
+* fixed location of tar file
 * fix variable name
 * add missing exception
 * fix change of return from utility
