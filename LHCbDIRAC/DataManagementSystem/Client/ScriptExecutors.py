@@ -775,16 +775,16 @@ def printPfnMetadata(lfnList, seList, check=False, exists=False, summary=False):
     else:
       replicas.update(res['Value']['Successful'])
     for lfn in res['Value']['Failed']:
-      metadata['Failed'][lfn] = 'FC: ' + res['Value']['Failed'][lfn]
+      metadata['Failed'][lfn] = {'FC': res['Value']['Failed'][lfn]}
   progressBar.endLoop()
   for lfn in sorted(replicas):
     if seList and not [se for se in replicas[lfn] if se in seList]:
-      metadata['Failed'][lfn] = 'No such file at %s in FC' % ' '.join(seList)
+      metadata['Failed'][lfn] = {'FC': 'No such file at %s' % ' '.join(seList)}
       replicas.pop(lfn)
       lfnList.remove(lfn)
   metadata['Failed'].update(dict.fromkeys((url for url in lfnList
                                            if url not in replicas and url not in metadata['Failed']),
-                                          'FC: No active replicas'))
+                                          {'FC': 'No active replicas'}))
   if not seList:
     # take all seList in replicas and add a fake '' to printout the SE name
     seList = [''] + sorted(set(se for lfn in replicas for se in replicas[lfn]))
@@ -840,7 +840,7 @@ def printPfnMetadata(lfnList, seList, check=False, exists=False, summary=False):
             metadata['Failed'].setdefault(url, {})[se] = seMetadata['Failed'][url]
         else:
           for url in fileChunk:
-            metadata['Failed'][url] = res['Message'] + ' at %s' % se
+            metadata['Failed'].setdefault(url, {})[se] = res['Message']
     progressBar.endLoop()
 
   if not summary:
