@@ -6,6 +6,7 @@
     It also supposes that the DB is empty!
 """
 import unittest
+import time 
 
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
@@ -40,8 +41,10 @@ class TestProductionRequestTestCaseChain( TestProductionRequestTestCase ):
                                                    'ProPath':'Blup', 'ProID':'', 'ProDetail':'BlaaaaaahBlahBlah',
                                                    'EventType':'900000', 'NumberOfEvents':'-1',
                                                    'Description':'Description', 'Comments':'Comments',
-                                                   'Inform':'', 'RealNumberOfEvents':'', 'IsModel':0, 'Extra':''} )
-    self.assertTrue(res['OK'])
+                                                   'Inform':'', 'RealNumberOfEvents':'', 'IsModel':0, 'Extra':'',
+                                                   'StartingDate':time.strftime( '%d/%m/%Y' ), 'FinalizationDate':time.strftime( '%d/%m/%Y' ),
+                                                   'RetentionRate':1, 'FastSimulationType':'None'} )
+    self.assert_( res['OK'] )
     firstReq = res['Value']
     self.reqIds.append( res['Value'] )
     
@@ -53,8 +56,10 @@ class TestProductionRequestTestCaseChain( TestProductionRequestTestCase ):
                                                    'ProPath':'Blup', 'ProID':'', 'ProDetail':'BlaaaaaahBlahBlah',
                                                    'EventType':'900000', 'NumberOfEvents':'-1',
                                                    'Description':'Description', 'Comments':'Comments',
-                                                   'Inform':'', 'RealNumberOfEvents':'', 'IsModel':0, 'Extra':''} )
-    self.assertTrue(res['OK'])
+                                                   'Inform':'', 'RealNumberOfEvents':'', 'IsModel':0, 'Extra':'',
+                                                   'StartingDate':time.strftime( '%d/%m/%Y' ), 'FinalizationDate':time.strftime( '%d/%m/%Y' ),
+                                                   'RetentionRate':1, 'FastSimulationType':'None'} )
+    self.assert_( res['OK'] )
     self.assertEqual( res['Value'], firstReq + 1 )
     self.reqIds.append( res['Value'] )
     # Querying
@@ -72,14 +77,17 @@ class TestProductionRequestTestCaseChain( TestProductionRequestTestCase ):
     self.assertTrue(res['OK'])
     self.assertEqual( res['Value'], 123 )
     res = self.reqClient.removeProductionFromRequest( 123 )
-
+    self.assert_( res['OK'] )
+  
     res = self.reqClient.addProductionToRequest( {'ProductionID': 456,
                                                   'RequestID':firstReq + 1,
                                                   'Used':1,
                                                   'BkEvents':0} )
     self.assertTrue(res['OK'])
     self.assertEqual( res['Value'], 456 )
-
+    
+    res = self.reqClient.removeProductionFromRequest( 456 )
+    self.assert_( res['OK'] )
     
     # delete
     for reqId in self.reqIds:

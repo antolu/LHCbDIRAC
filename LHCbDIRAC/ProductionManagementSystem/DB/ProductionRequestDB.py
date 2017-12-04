@@ -35,6 +35,8 @@ class ProductionRequestDB( DB ):
     ''' Constructor
     '''
     DB.__init__( self, 'ProductionRequestDB', 'ProductionManagement/ProductionRequestDB' )
+    self.dateColumns = ['StartingDate', 'FinalizationDate']
+    self.dateFormat = '%d/%m/%Y'
     self.lock = threading.Lock()
 
 #################### Production Requests table ########################
@@ -45,8 +47,9 @@ class ProductionRequestDB( DB ):
                     'ProPath', 'ProID', 'ProDetail',
                     'EventType', 'NumberOfEvents', 'Description', 'Comments',
                     'Inform', 'RealNumberOfEvents', 'IsModel', 'Extra',
-                    'HasSubrequest', 'bk', 'bkSrTotal', 'bkTotal', # runtime
-                    'rqTotal', 'crTime', 'upTime' ] # runtime
+                    'RetentionRate','FastSimulationType', 'StartingDate', 'FinalizationDate',
+                    'HasSubrequest', 'bk', 'bkSrTotal', 'bkTotal',  # runtime
+                    'rqTotal', 'crTime', 'upTime' ]  # runtime
 
   historyFields = [ 'RequestID', 'RequestState', 'RequestUser', 'TimeStamp' ]
 
@@ -140,7 +143,8 @@ class ProductionRequestDB( DB ):
         TODO: Complete check of content
     '''
 
-    rec = dict.fromkeys( self.requestFields[1:-7], None )
+    rec = dict.fromkeys( self.requestFields[1:-9], None )
+    
     for x in requestDict:
       if x in rec and str( requestDict[x] ) != '':
         rec[x] = requestDict[x] # set only known not empty fields
@@ -174,12 +178,15 @@ class ProductionRequestDB( DB ):
     rec['IsModel'] = 0
 
 
-    recl = [ rec[x] for x in self.requestFields[1:-7] ]
+    recl = [ rec[x] for x in self.requestFields[1:-9] ]
     result = self._fixedEscapeValues( recl )
     if not result['OK']:
       return result
     recls = result['Value']
-
+    
+    for dateValues in self.dateColumns:
+      recls.append( "STR_TO_DATE('%s','%s')" % ( requestDict.get( dateValues, time.strftime( self.dateFormat ) ), self.dateFormat ) )
+    
     self.lock.acquire() # transaction begin ?? may be after connection ??
     result = self._getConnection()
     if not result['OK']:
@@ -694,14 +701,24 @@ class ProductionRequestDB( DB ):
     if not result['OK']:
       return result
     inform = result['Value']
-
-    recl_fields = update.keys() # we have to escape values... tricky way
+    
+    # we have to escape values... tricky way
+    #in addition we can not escape the datetime.date values. so if they are being updated, 
+    #they will be added to this list later 
+    recl_fields = [column for column in update if column not in self.dateColumns]
     recl = [ update[x] for x in recl_fields ]
     result = self._fixedEscapeValues( recl )
     if not result['OK']:
       self.lock.release()
       return result
-    updates = ','.join( [x + '=' + y for x, y in zip( recl_fields, result['Value'] )] )
+    updateValues = result['Value'] 
+    for dateValue in self.dateColumns:
+      # we are going to check if we have column which type is date
+      # the order is very important that's why we use recl_fields 
+      if dateValue in self.dateColumns:
+        recl_fields.append( dateValue )
+        updateValues.append( "STR_TO_DATE('%s','%s')" % ( requestDict.get( dateValue, time.strftime( self.dateFormat ) ), self.dateFormat ) )
+    updates = ','.join( [x + '=' + y for x, y in zip( recl_fields, updateValues )] )
 
     req = "UPDATE ProductionRequests "
     req += "SET %s " % updates
