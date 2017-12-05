@@ -1216,8 +1216,9 @@ get from BK" % (param, self.paramName))
     # Get daughters of processed files in each production
     success = {}
     descProd = {}
+    chunkSize = self.getPluginParam('MaxFilesToGetDescendants', 100)
     for prod, lfns in prodLfns.iteritems():
-      for lfnChunk in breakListIntoChunks(lfns, 20):
+      for lfnChunk in breakListIntoChunks(lfns, chunkSize):
         # prod is a long and server expects an int!
         res = self.bkClient.getFileDescendants(lfnChunk, depth=1, production=int(prod), checkreplica=False)
         if not res['OK']:
@@ -1227,46 +1228,59 @@ get from BK" % (param, self.paramName))
           # Record information about which production created each descendant
           for desc in descDict:
             descProd[desc] = prod
-    descToCheck = {}
-    # Invert list of descendants: descToCheck has descendant as key and list of parents
-    descMetadata = {}
-    for lfn, descendants in success.iteritems():
-      descMetadata.update(descendants)
-      for desc, metadata in descendants.iteritems():
-        if metadata['FileType'] not in excludeTypes:
-          descToCheck.setdefault(desc, set()).add(lfn)
 
-    prodDesc = {}
-    # Check if we found a descendant in the requested productions
-    foundProds = {}
-    for desc in descToCheck.keys():  # pylint: disable=consider-iterating-dictionary
-      prod = descProd[desc]
-      # If we found an existing descendant in the list of productions, all OK
-      if descMetadata[desc]['GotReplica'] == 'Yes' and prod in prodList:
-        foundProds.setdefault(prod, set()).update(descToCheck[desc])
-        finalResult.update(descToCheck[desc])
-        del descToCheck[desc]
-      else:
-        # Sort remaining descendants in productions
-        prodDesc.setdefault(prod, set()).add(desc)
-    for prod in foundProds:
-      self.logVerbose("Found %d descendants with replicas (out of %d) in production %d at depth %d" %
-                      (len(foundProds[prod]), len(lfnSet), prod, depth + 1))
+    # Get set of file types
+    fileTypes = sorted(set(metadata['FileType']
+                           for descendants in success.itervalues()
+                           for metadata in descendants.itervalues()
+                           if metadata['FileType'] not in excludeTypes))
+    self.logVerbose("Will check file types %s" % ','.join(fileTypes))
 
-    # Check descendants without replicas in reverse order of productions
-    for prod in sorted(prodDesc, reverse=True):
-      # Check descendants whose parent was not yet found processed
-      toCheckInProd = set(desc for desc in prodDesc[prod] if not descToCheck[desc] & finalResult)
-      if toCheckInProd:
-        res = self.checkForDescendants(toCheckInProd, prodList, depth=depth + 1)
-        if not res['OK']:
-          return res
-        foundInProd = set()
-        for desc in res['Value']:
-          foundInProd.update(descToCheck[desc])
-        if foundInProd:
-          self.logVerbose("Found descendants of %d files at depth %d" % (len(foundInProd), depth + 2))
-          finalResult.update(foundInProd)
+    # Try and find descendants for each file type in turn as this is sufficient
+    for fileType in fileTypes:
+      # Invert list of descendants: descToCheck has descendant as key and list of parents
+      descToCheck = {}
+      descMetadata = {}
+      for lfn, descendants in success.iteritems():
+        if lfn not in finalResult:
+          descMetadata.update(descendants)
+          for desc, metadata in descendants.iteritems():
+            if metadata['FileType'] == fileType:
+              descToCheck.setdefault(desc, set()).add(lfn)
+      if not descToCheck:
+        break
+
+      prodDesc = {}
+      # Check if we found a descendant in the requested productions
+      foundProds = {}
+      for desc in descToCheck.keys():  # pylint: disable=consider-iterating-dictionary
+        prod = descProd[desc]
+        # If we found an existing descendant in the list of productions, all OK
+        if descMetadata[desc]['GotReplica'] == 'Yes' and prod in prodList:
+          foundProds.setdefault(prod, set()).update(descToCheck[desc])
+          finalResult.update(descToCheck[desc])
+          del descToCheck[desc]
+        else:
+          # Sort remaining descendants in productions
+          prodDesc.setdefault(prod, set()).add(desc)
+      for prod in foundProds:
+        self.logVerbose("Found %s descendants for %d files with replicas (out of %d) in production %d at depth %d" %
+                        (fileType, len(foundProds[prod]), len(lfnSet), prod, depth + 1))
+
+      # Check descendants without replicas in reverse order of productions
+      for prod in sorted(prodDesc, reverse=True):
+        # Check descendants whose parent was not yet found processed
+        toCheckInProd = set(desc for desc in prodDesc[prod] if not descToCheck[desc] & finalResult)
+        if toCheckInProd:
+          res = self.checkForDescendants(toCheckInProd, prodList, depth=depth + 1)
+          if not res['OK']:
+            return res
+          foundInProd = set()
+          for desc in res['Value']:
+            foundInProd.update(descToCheck[desc])
+          if foundInProd:
+            self.logVerbose("Found %s descendants of %d files at depth %d" % (fileType, len(foundInProd), depth + 2))
+            finalResult.update(foundInProd)
 
     return S_OK(finalResult)
 
