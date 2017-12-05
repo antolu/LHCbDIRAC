@@ -1430,7 +1430,10 @@ class TransformationPlugin(DIRACTransformationPlugin):
         lfnsToCheck = set(lfn for lfn in bkPathsToCheck if bkPathsToCheck[lfn])
         self.util.logInfo('Checking descendants for %d files at %s' % (len(lfnsToCheck), stringTargetSEs))
         # Update with the cached information
+        remaining = len(bkPathList)
         for bkPath in bkPathList:
+          # How many iterations are left?
+          remaining -= 1
           prods = productions['List'][bkPath]
           # If there is nothing left to do, exit
           if not prods or not lfnsToCheck:
@@ -1452,7 +1455,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
               bkPathsToCheck[lfn].remove(bkPath)
           lfnsToCheckForPath -= processedLfns
           # Only worth checking if not the last processing pass
-          if bkPath != bkPathList[-1]:
+          if remaining:
             notProcessed = set(lfn for lfn in lfnsToCheckForPath if bkPath in bkPathsToCheck[lfn])
             if notProcessed:
               self.util.logVerbose("%d files not processed by processing pass %s, don't check further" %
