@@ -1451,11 +1451,13 @@ class TransformationPlugin(DIRACTransformationPlugin):
             else:
               bkPathsToCheck[lfn].remove(bkPath)
           lfnsToCheckForPath -= processedLfns
-          notProcessed = set(lfn for lfn in lfnsToCheckForPath if bkPath in bkPathsToCheck[lfn])
-          if notProcessed:
-            self.util.logVerbose("%d files not processed by processing pass %s, don't check further" %
-                                 (len(notProcessed), bkPathList[bkPath]))
-            lfnsToCheck -= notProcessed
+          # Only worth checking if not the last processing pass
+          if bkPath != bkPathList[-1]:
+            notProcessed = set(lfn for lfn in lfnsToCheckForPath if bkPath in bkPathsToCheck[lfn])
+            if notProcessed:
+              self.util.logVerbose("%d files not processed by processing pass %s, don't check further" %
+                                   (len(notProcessed), bkPathList[bkPath]))
+              lfnsToCheck -= notProcessed
 
         lfnsProcessed = [lfn for lfn in lfns if not bkPathsToCheck[lfn]]
         self.util.cachedLFNProcessedPath.update(bkPathsToCheck)
