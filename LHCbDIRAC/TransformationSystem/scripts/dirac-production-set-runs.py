@@ -15,6 +15,7 @@ Examples of Usage :
 """
 
 import DIRAC
+from DIRAC import gLogger
 from DIRAC.Core.Base import Script
 Script.setUsageMessage('\n'.join([__doc__.split('\n')[1],
                                   'Usage:',
