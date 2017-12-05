@@ -1441,7 +1441,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
           if not res['OK']:
             self.util.logError("Error checking descendants using utility", res['Message'])
           processedLfns = res.get('Value', set())
-          self.util.logVerbose('Found %s descendants in %.1f seconds' %
+          self.util.logVerbose('Found %s processed files in %.1f seconds' %
                                (len(processedLfns) if processedLfns else 'no',
                                 time.time() - startTime))
           # Remove bkPath from processing passes to check for lLFNs found processed
