@@ -13,14 +13,13 @@ if __name__ == "__main__":
   dmScript.registerBKSwitches()
   dmScript.registerFileSwitches()
 
-  Script.registerSwitch( '', 'ByStream', '   Get rejection for each stream' )
+  Script.registerSwitch('', 'ByStream', '   Get rejection for each stream')
 
-  Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
-                                       'Usage:',
-                                       '  %s [option|cfgfile]' % Script.scriptName, ] ) )
+  Script.setUsageMessage('\n'.join([__doc__.split('\n')[1],
+                                    'Usage:',
+                                    '  %s [option|cfgfile]' % Script.scriptName, ]))
 
-  Script.addDefaultOptionValue( 'LogLevel', 'error' )
-  Script.parseCommandLine( ignoreErrors = False )
+  Script.parseCommandLine(ignoreErrors=False)
 
   from LHCbDIRAC.BookkeepingSystem.Client.ScriptExecutors import executeRejectionStats
-  executeRejectionStats( dmScript )
+  executeRejectionStats(dmScript)
