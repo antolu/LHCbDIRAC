@@ -36,7 +36,7 @@ class ProductionRequestDB( DB ):
     '''
     DB.__init__( self, 'ProductionRequestDB', 'ProductionManagement/ProductionRequestDB' )
     self.dateColumns = ['StartingDate', 'FinalizationDate']
-    self.dateFormat = '%d/%m/%Y'
+    self.dateFormat = '%Y-%m-%d' 
     self.lock = threading.Lock()
 
 #################### Production Requests table ########################
