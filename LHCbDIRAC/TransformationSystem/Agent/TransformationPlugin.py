@@ -1439,6 +1439,8 @@ class TransformationPlugin(DIRACTransformationPlugin):
           if not prods or not lfnsToCheck:
             break
           lfnsToCheckForPath = set(lfn for lfn in lfnsToCheck if bkPath in bkPathsToCheck[lfn])
+          if not lfnsToCheckForPath:
+            continue
           startTime = time.time()
           res = self.util.checkForDescendants(lfnsToCheckForPath, prods)
           if not res['OK']:

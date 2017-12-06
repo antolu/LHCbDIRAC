@@ -5,6 +5,7 @@ import os
 import datetime
 import random
 import time
+import sys
 
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks
@@ -22,6 +23,7 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClie
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery, makeBKPath
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import ProgressBar
 
 __RCSID__ = "$Id$"
 
@@ -103,7 +105,7 @@ class PluginUtilities(DIRACPluginUtilities):
     self.tsParams = ('FileSize', 'FileType', 'RunNumber')
     self.paramName = None
     self.onlineCondDB = None
-
+    self.chunkForFileDescendants = None
     # Method aliases
     self.setCachedTimeExceeded = self.setCachedLastRun
     self.getCachedTimeExceeded = self.getCachedLastRun
@@ -1194,16 +1196,24 @@ get from BK" % (param, self.paramName))
                                                                     time.time() - startTime))
     return prodLfns
 
+  def __getChunkSize(self):
+    """ Cache the chunk size """
+    if self.chunkForFileDescendants is None:
+      self.chunkForFileDescendants = self.getPluginParam('MaxFilesToGetDescendants', 100)
+    return self.chunkForFileDescendants
+
   def checkForDescendants(self, lfnSet, prodList, depth=0):
     """
-    check the files if they have an existing descendant in the list of productions
+    check if the files have an existing descendant in the list of productions
     """
+    finalResult = set()
+    if not lfnSet or not prodList:
+      return S_OK(finalResult)
     self.logVerbose("Checking descendants for %d files in productions %s, depth %d" %
                     (len(lfnSet),
                      ','.join(str(prod) for prod in prodList),
                      depth))
     excludeTypes = ('LOG', 'BRUNELHIST', 'DAVINCIHIST', 'GAUSSHIST', 'HIST', 'INDEX.ROOT')
-    finalResult = set()
     if isinstance(lfnSet, basestring):
       lfnSet = {lfnSet}
     elif isinstance(lfnSet, list):
@@ -1216,25 +1226,34 @@ get from BK" % (param, self.paramName))
     # Get daughters of processed files in each production
     success = {}
     descProd = {}
-    chunkSize = self.getPluginParam('MaxFilesToGetDescendants', 100)
+    chunkSize = self.__getChunkSize()
     for prod, lfns in prodLfns.iteritems():
+      progressBar = ProgressBar(len(lfns),
+                                title="Getting descendants for %d files in production %d" %
+                                (len(lfns), prod), chunk=chunkSize,
+                                interactive=sys.stdout.isatty(), log=self.logVerbose)
       for lfnChunk in breakListIntoChunks(lfns, chunkSize):
+        progressBar.loop()
         # prod is a long and server expects an int!
         res = self.bkClient.getFileDescendants(lfnChunk, depth=1, production=int(prod), checkreplica=False)
         if not res['OK']:
           return res
         for lfn, descDict in res['Value']['WithMetadata'].iteritems():
-          success.setdefault(lfn, {}).update(descDict)
+          # Only keep the file type as metadata in teh dict
+          success.setdefault(lfn, {}).update(dict((desc, {'FileType': metadata['FileType'],
+                                                          'GotReplica': metadata['GotReplica']})
+                                                  for desc, metadata in descDict.iteritems()
+                                                  if metadata['FileType'] not in excludeTypes))
           # Record information about which production created each descendant
           for desc in descDict:
             descProd[desc] = prod
+      progressBar.endLoop()
 
     # Get set of file types
     fileTypes = sorted(set(metadata['FileType']
                            for descendants in success.itervalues()
-                           for metadata in descendants.itervalues()
-                           if metadata['FileType'] not in excludeTypes))
-    self.logVerbose("Will check file types %s" % ','.join(fileTypes))
+                           for metadata in descendants.itervalues()))
+    self.logVerbose("Will check file type%s %s" % ('s' if len(fileTypes) > 1 else '', ','.join(fileTypes)))
 
     # Try and find descendants for each file type in turn as this is sufficient
     for fileType in fileTypes:
@@ -1264,7 +1283,7 @@ get from BK" % (param, self.paramName))
           # Sort remaining descendants in productions
           prodDesc.setdefault(prod, set()).add(desc)
       for prod in foundProds:
-        self.logVerbose("Found %s descendants for %d files with replicas (out of %d) in production %d at depth %d" %
+        self.logVerbose("Found %s descendants with replicas for %d files (out of %d) in production %d at depth %d" %
                         (fileType, len(foundProds[prod]), len(lfnSet), prod, depth + 1))
 
       # Check descendants without replicas in reverse order of productions
@@ -1272,6 +1291,9 @@ get from BK" % (param, self.paramName))
         # Check descendants whose parent was not yet found processed
         toCheckInProd = set(desc for desc in prodDesc[prod] if not descToCheck[desc] & finalResult)
         if toCheckInProd:
+          self.logVerbose("Found %d %s descendants without replicas in production %d at depth %d,"
+                          " check them for descendants" %
+                          (len(toCheckInProd), fileType, prod, depth + 1))
           res = self.checkForDescendants(toCheckInProd, prodList, depth=depth + 1)
           if not res['OK']:
             return res
