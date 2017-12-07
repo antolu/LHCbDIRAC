@@ -170,7 +170,7 @@ class ProgressBar(object):
     if not self._interactive:
       # Print out message if defined
       if self._log:
-        self._log("%s %s %s" (self._title, message, timingMsg))
+        self._log("%s %s %s" % (self._title, message, timingMsg))
       return
     if self._showBar:
       sys.stderr.write("%s\033[K: %s" % ((self._progress + self._backspace + 1) * '\b',
