@@ -538,7 +538,7 @@ class ProductionRequestDB( DB ):
     elif requestState == 'Submitted':
       if creds['Group'] == 'lhcb_ppg':
         for x in update:
-          if not x in ['RequestState', 'RequestWG', 'Comments', 'Inform', 'RequestPriority', 'Extra']:
+          if not x in ['RequestState', 'RequestWG', 'Comments', 'Inform', 'RequestPriority', 'Extra', 'StartingDate', 'FinalizationDate', 'RetentionRate']:
             self.lock.release()
             return S_ERROR( "%s can't be modified during PPG signing" % x )
         if not 'RequestState' in update:
