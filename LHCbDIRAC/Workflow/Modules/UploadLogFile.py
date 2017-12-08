@@ -22,6 +22,7 @@ from DIRAC.DataManagementSystem.Utilities.DMSHelpers import resolveSEGroup
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.Workflow.Modules.ModulesUtilities import tarFiles
 from LHCbDIRAC.Core.Utilities.ProductionData import getLogPath
+from LHCbDIRAC.Core.Utilities.ResolveSE import getDestinationSEList
 
 __RCSID__ = "$Id$"
 
@@ -44,7 +45,7 @@ class UploadLogFile(ModuleBase):
     self.logSE = self.opsH.getValue('LogStorage/LogSE', 'LogSE')
     self.logSizeLimit = self.opsH.getValue('LogFiles/SizeLimit', 1 * 1024 * 1024)
     self.logExtensions = self.opsH.getValue('LogFiles/Extensions', [])
-    self.failoverSEs = resolveSEGroup(gConfig.getValue('/Resources/StorageElementGroups/Tier1-Failover', []))
+    self.failoverSEs = getDestinationSEList('Tier1-Failover', self.siteName, outputmode='Any')
     self.diracLogo = 'https://lhcb-portal-dirac.cern.ch/DIRAC/s:LHCb-Production/g:lhcb_prmgr/static/LHCbDIRAC/img/icons/lhcb.jpg'
     self.logFilePath = ''
     self.logLFNPath = ''
