@@ -9,7 +9,7 @@ import random
 import stat
 import shlex
 
-from DIRAC import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities.Subprocess import systemCall
 from DIRAC.Core.Utilities.File import mkDir
 from DIRAC.DataManagementSystem.Client.FailoverTransfer import FailoverTransfer
@@ -17,7 +17,6 @@ from DIRAC.RequestManagementSystem.Client.Operation import Operation
 from DIRAC.RequestManagementSystem.Client.File import File
 from DIRAC.Resources.Storage.StorageElement import StorageElement
 from DIRAC.Core.Utilities.ReturnValues import returnSingleResult
-from DIRAC.DataManagementSystem.Utilities.DMSHelpers import resolveSEGroup
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.Workflow.Modules.ModulesUtilities import tarFiles
@@ -46,7 +45,8 @@ class UploadLogFile(ModuleBase):
     self.logSizeLimit = self.opsH.getValue('LogFiles/SizeLimit', 1 * 1024 * 1024)
     self.logExtensions = self.opsH.getValue('LogFiles/Extensions', [])
     self.failoverSEs = getDestinationSEList('Tier1-Failover', self.siteName, outputmode='Any')
-    self.diracLogo = 'https://lhcb-portal-dirac.cern.ch/DIRAC/s:LHCb-Production/g:lhcb_prmgr/static/LHCbDIRAC/img/icons/lhcb.jpg'
+    self.diracLogo = 'https://lhcb-portal-dirac.cern.ch/DIRAC/'\
+                     's:LHCb-Production/g:lhcb_prmgr/static/LHCbDIRAC/img/icons/lhcb.jpg'
     self.logFilePath = ''
     self.logLFNPath = ''
     self.logdir = ''
