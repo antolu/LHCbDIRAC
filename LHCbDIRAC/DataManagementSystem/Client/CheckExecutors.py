@@ -62,6 +62,44 @@ def __replaceReplica(dm, seLFNs):
       gLogger.notice('\tError %s : %d files' % (reason, errors[reason]))
 
 
+def _dumpErrorAndFiles(title, lfnList, maxFiles, dumpStr, fileName, fp):
+  """
+  Print out errors and a (restricted) list of LFNs
+  dump the whole list in a file
+  """
+  gLogger.error(title)
+  if not gLogger.info('\n'.join(sorted(lfnList))):
+    if len(lfnList) > maxFiles:
+      gLogger.error('First %d files:' % maxFiles)
+    gLogger.error('\n'.join(sorted(lfnList)[0:maxFiles]))
+  if fileName is None:
+    return None
+  if fp is None:
+    fp = open(fileName, 'w')
+  dumpStr1 = dumpStr.strip().replace('\n', '')
+  if not dumpStr.endswith(' '):
+    dumpStr += ' '
+  if not dumpStr.startswith('\n'):
+    dumpStr = '\n' + dumpStr
+  fp.write(dumpStr)
+  fp.write(dumpStr.join([''] + sorted(lfnList)))
+  gLogger.notice("Whole list available with 'grep %s %s'" % (dumpStr1, fileName))
+  return fp
+
+
+def _getUniqueFileName(name):
+  """ Get a file name that doesn't exist given a prefix """
+  suffix = ''
+  nb = 0
+  while True:
+    fileName = name + '%s.txt' % suffix
+    if not os.path.exists(fileName):
+      break
+    nb += 1
+    suffix = '-%d' % nb
+  return fileName
+
+
 def doCheckFC2SE(cc, bkCheck=True, fixIt=False, replace=False, maxFiles=None):
   """
   Method actually calling for the the check using ConsistencyChecks module
@@ -71,21 +109,15 @@ def doCheckFC2SE(cc, bkCheck=True, fixIt=False, replace=False, maxFiles=None):
 
   if maxFiles is None:
     maxFiles = 20
+  fileName = _getUniqueFileName('CheckFC2SE')
+  fp = None
   if cc.existLFNsBKRepNo:
     gLogger.notice('>>>>')
     affectedRuns = set(str(run) for run in cc.existLFNsBKRepNo.itervalues() if run)
-    if len(cc.existLFNsBKRepNo) > maxFiles:
-      prStr = ' (first %d)' % maxFiles
-    else:
-      prStr = ''
-    gLogger.error("%d files are in the FC but have replica = NO in BK%s:\nAffected runs: %s" %
-                  (len(cc.existLFNsBKRepNo),
-                   prStr,
-                   ','.join(sorted(affectedRuns) if affectedRuns else 'None')))
-    if not gLogger.info('\n'.join(sorted(cc.existLFNsBKRepNo))):
-      if len(cc.existLFNsBKRepNo) > maxFiles:
-        gLogger.notice('First %d files:' % maxFiles)
-      gLogger.error('\n'.join(sorted(cc.existLFNsBKRepNo)[0:maxFiles]))
+    title = "%d files are in the FC but have replica = NO in BK:\nAffected runs: %s" % \
+        (len(cc.existLFNsBKRepNo),
+         ','.join(sorted(affectedRuns) if affectedRuns else 'None'))
+    fp = _dumpErrorAndFiles(title, cc.existLFNsBKRepNo, maxFiles, 'InFCButBKNo', fileName, fp)
     if fixIt:
       gLogger.notice("Going to fix them, setting the replica flag")
       res = cc.bkClient.addFiles(cc.existLFNsBKRepNo.keys())
@@ -103,13 +135,8 @@ def doCheckFC2SE(cc, bkCheck=True, fixIt=False, replace=False, maxFiles=None):
   if cc.existLFNsNotInBK:
     gLogger.notice('>>>>')
 
-    if len(cc.existLFNsNotInBK) > maxFiles:
-      prStr = ' (first %d)' % maxFiles
-    else:
-      prStr = ''
-    gLogger.error("%d files are in the FC but are NOT in BK%s:\n%s" %
-                  (len(cc.existLFNsNotInBK), prStr,
-                   '\n'.join(sorted(cc.existLFNsNotInBK[0:maxFiles]))))
+    title = "%d files are in the FC but are NOT in BK" % len(cc.existLFNsNotInBK)
+    fp = _dumpErrorAndFiles(title, cc.existLFNsNotInBK, maxFiles, 'InFCButNotInBK ', fileName, fp)
     if fixIt:
       gLogger.notice("Going to fix them, by removing from the FC and storage")
       __removeFile(cc.existLFNsNotInBK)
@@ -125,12 +152,9 @@ def doCheckFC2SE(cc, bkCheck=True, fixIt=False, replace=False, maxFiles=None):
     gLogger.notice('>>>>')
 
     seOK = False
-    gLogger.error("%d files are in the BK and FC but are missing at some SEs" % len(cc.existLFNsNoSE))
+    title = "%d files are in the BK and FC but are missing at some SEs" % len(cc.existLFNsNoSE)
     fixStr = "removing them from catalogs" if not replace else "re-replicating them"
-    if not gLogger.info('\n'.join(cc.existLFNsNoSE)):
-      if len(cc.existLFNsNoSE) > maxFiles:
-        gLogger.notice('First %d files:' % maxFiles)
-      gLogger.error('\n'.join(cc.existLFNsNoSE[0:maxFiles]))
+    fp = _dumpErrorAndFiles(title, cc.existLFNsNoSE, maxFiles, 'InFCButNotInSE ', fileName, fp)
     if fixIt:
       gLogger.notice("Going to fix, " + fixStr)
       removeLfns = []
@@ -145,7 +169,7 @@ def doCheckFC2SE(cc, bkCheck=True, fixIt=False, replace=False, maxFiles=None):
       if replicasToRemove:
         seLFNs = __removeReplica(replicasToRemove)
         if replace:
-          __replaceReplica(cc.dm, seLFNs)
+          __replaceReplica(cc.dataManager, seLFNs)
     else:
       if not replace:
         fixStr += "; use --Replace if you want to re-replicate them"
@@ -160,14 +184,12 @@ def doCheckFC2SE(cc, bkCheck=True, fixIt=False, replace=False, maxFiles=None):
 
     seOK = False
     if cc.existLFNsBadFiles:
-      gLogger.error("%d files have a bad checksum" % len(cc.existLFNsBadFiles))
+      title = "%d files have a bad checksum" % len(cc.existLFNsBadFiles)
+      fp = _dumpErrorAndFiles(title, cc.existLFNsBadFiles, maxFiles, 'BadFiles', fileName, fp)
     if cc.existLFNsNotExisting:
-      gLogger.error("%d files don't exist at any SE" % len(cc.existLFNsNotExisting))
+      title = "%d files don't exist at any SE" % len(cc.existLFNsNotExisting)
+      fp = _dumpErrorAndFiles(title, cc.existLFNsNotExisting, maxFiles, 'LostFiles', fileName, fp)
     toRemove = sorted(set(cc.existLFNsBadFiles) | set(cc.existLFNsNotExisting))
-    if not gLogger.info('\n'.join(toRemove)):
-      if len(toRemove) > maxFiles:
-        gLogger.notice('First %d files:' % maxFiles)
-      gLogger.error('\n'.join(toRemove[0:maxFiles]))
     if fixIt:
       gLogger.notice("Going to fix them, removing files from catalogs and storage")
       __removeFile(toRemove)
@@ -179,15 +201,16 @@ def doCheckFC2SE(cc, bkCheck=True, fixIt=False, replace=False, maxFiles=None):
     gLogger.notice('>>>>')
 
     seOK = False
-    gLogger.error("%d replicas have a bad checksum" % len(cc.existLFNsBadReplicas))
-    for lfn, se in cc.existLFNsBadReplicas.iteritems():
-      gLogger.error('%s @ %s' % (lfn, ','.join(sorted(se))))
+    title = "%d replicas have a bad checksum" % len(cc.existLFNsBadReplicas)
+    badChecksum = ['%s @ %s' % (lfn, ','.join(sorted(se)))
+                   for lfn, se in cc.existLFNsBadReplicas.iteritems()]
+    fp = _dumpErrorAndFiles(title, badChecksum, maxFiles, 'BadChecksum', fileName, fp)
     fixStr = "remove replicas from SE and catalogs" if not replace else "re-replicating them"
     if fixIt:
       gLogger.notice("Going to fix, " + fixStr)
       seLFNs = __removeReplica(cc.existLFNsBadReplicas)
       if replace:
-        __replaceReplica(cc.dm, seLFNs)
+        __replaceReplica(cc.dataManager, seLFNs)
     else:
       if not replace:
         fixStr += "; use --Replace if you want to re-replicate them"
@@ -234,7 +257,7 @@ def doCheckFC2BK(cc, fixFC=False, fixBK=False, listAffectedRuns=False):
                      len(cc.existLFNsBKRepNo))
       if fp is None:
         fp = open(fileName, 'w')
-      fp.write('\nInFCButBKNo'.join([''] + sorted(cc.existLFNsBKRepNo)))
+      fp.write('\nInFCButBKNo '.join([''] + sorted(cc.existLFNsBKRepNo)))
       res = cc.bkClient.getFileMetadata(cc.existLFNsBKRepNo)
       if not res['OK']:
         gLogger.fatal("Unable to get file metadata", res['Message'])
@@ -282,7 +305,7 @@ def doCheckFC2BK(cc, fixFC=False, fixBK=False, listAffectedRuns=False):
     gLogger.error("%d files are in the FC but are NOT in BK:" % len(cc.existLFNsNotInBK))
     if fp is None:
       fp = open(fileName, 'w')
-    fp.write('\nInFCNotInBK'.join([''] + sorted(cc.existLFNsNotInBK)))
+    fp.write('\nInFCNotInBK '.join([''] + sorted(cc.existLFNsNotInBK)))
     if not gLogger.info('\n'.join(sorted(cc.existLFNsNotInBK))):
       if len(cc.existLFNsNotInBK) > maxFiles:
         gLogger.notice('First %d files:' % maxFiles)

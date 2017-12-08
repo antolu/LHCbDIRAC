@@ -5,6 +5,7 @@ import os
 import datetime
 import random
 import time
+import sys
 
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks
@@ -19,9 +20,10 @@ from DIRAC.TransformationSystem.Client.Utilities import PluginUtilities as DIRAC
 from DIRAC.TransformationSystem.Client.Utilities import isArchive, getActiveSEs
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient, BKClientWithRetry
-from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
+from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery, makeBKPath
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import ProgressBar
 
 __RCSID__ = "$Id$"
 
@@ -103,6 +105,10 @@ class PluginUtilities(DIRACPluginUtilities):
     self.tsParams = ('FileSize', 'FileType', 'RunNumber')
     self.paramName = None
     self.onlineCondDB = None
+    self.chunkForFileDescendants = None
+    # Method aliases
+    self.setCachedTimeExceeded = self.setCachedLastRun
+    self.getCachedTimeExceeded = self.getCachedLastRun
 
   def setDebug(self, val):
     self.debug = val
@@ -373,24 +379,62 @@ class PluginUtilities(DIRACPluginUtilities):
 
     return filesParam
 
-  def getProductions(self, bkPathList, eventType, transStatus):
+  def getProductions(self, processingPasses, transStatus):
     """
-    Get the list of productions matching a given BK path
+    Get the list of productions matching a given list of processing passes
     """
+    # Get information about the current transformation
+    transQuery = self.getTransQuery(self.transReplicas)
+    if transQuery is None:
+      return S_ERROR("Could not get transformation BK query")
+    transProcPass = transQuery['ProcessingPass']
+    eventType = transQuery['EventType']
+    if not transProcPass:
+      self.logError('Unable to find processing pass for transformation')
+      return S_ERROR('No processing pass found')
+
+    # Build list of BK paths to look for
+    fullBKPaths = [bkPath for bkPath in processingPasses if bkPath.startswith('/')]
+    relBKPaths = [bkPath for bkPath in processingPasses if not bkPath.startswith('/')]
+    bkPathList = {}
+    if fullBKPaths:
+      # We were given full BK paths, use them
+      bkQuery = BKQuery(bkPath, visible='All')
+      eventType = bkQuery.getEventTypeList()
+      bkPathList.update(dict((bkPath.replace('RealData', 'Real Data'), bkQuery.getQueryDict()['ProcessingPass'])
+                             for bkPath in fullBKPaths))
+
+    if relBKPaths:
+      for procPass in relBKPaths:
+        if not transProcPass.endswith(procPass):
+          newPass = os.path.join(transProcPass, procPass)
+        else:
+          newPass = procPass
+        transQuery.update({'ProcessingPass': newPass, 'Visibility': 'All'})
+        transQuery.pop('FileType', None)
+        bkPathList[makeBKPath(transQuery)] = newPass
+    self.logVerbose('List of BK paths:', '\n\t'.join([''] + ['%s: %s' %
+                                                             (bkPath.replace('Real Data', 'RealData'),
+                                                              bkPathList[bkPath].replace('Real Data', 'RealData'))
+                                                             for bkPath in sorted(bkPathList)]))
+
     now = datetime.datetime.utcnow()
     period = self.getPluginParam('Period', 6)
     cacheLifeTime = self.getPluginParam('CacheLifeTime', 24)
     productions = self.getCachedProductions()
+    # Check if the cache lifetime expired
     if 'CacheTime' in productions and (now - productions['CacheTime']) < datetime.timedelta(hours=cacheLifeTime):
       # If we haven't found productions for one of the processing passes, retry
       cacheOK = len([bkPath for bkPath in bkPathList if bkPath not in productions.get('List', {})]) == 0
     else:
       cacheOK = False
+
     if cacheOK:
-      if transStatus != 'Flush' and (now - productions['LastCall_%s' % self.transID])\
-              < datetime.timedelta(hours=period):
+      # Check if it's worth processing (i.e. "period" hours have passed
+      if transStatus != 'Flush' and not self.getCachedTimeExceeded() and \
+              (now - productions['LastCall_%s' % self.transID]) < datetime.timedelta(hours=period):
         self.logInfo("Skip this loop (less than %s hours since last call)" % period)
-        return None
+        return S_OK()
     else:
       productions.setdefault('List', {})
       self.logVerbose("Cache is being refreshed (lifetime %d hours)" % cacheLifeTime)
@@ -400,10 +444,8 @@ class PluginUtilities(DIRACPluginUtilities):
         prods = bkQuery.getBKProductions()
         if not prods:
           self.logVerbose("For bkPath %s, found no productions, wait next time" % (bkPath))
-          return None
+          return S_OK()
         productions['List'][bkPath] = []
-        self.logVerbose("For bkPath %s, found productions %s" %
-                        (bkPath, ','.join('%s' % prod for prod in prods)))
         for prod in prods:
           res = self.transClient.getTransformation(prod)
           if not res['OK']:
@@ -415,9 +457,12 @@ class PluginUtilities(DIRACPluginUtilities):
                      (bkPath, ','.join('%s' % prod for prod in productions['List'][bkPath])))
       productions['CacheTime'] = now
 
+    # Record time of last call and update the cache
     productions['LastCall_%s' % self.transID] = now
     self.setCachedProductions(productions)
-    return productions
+    # Return the list of BK paths (with their processing passes),
+    #   the list of productions and the depth of current processing pass
+    return S_OK((bkPathList, productions))
 
   # @timeThis
   def getFilesParam(self, lfns, param):
@@ -1123,114 +1168,143 @@ get from BK" % (param, self.paramName))
       return res.get('Value')
     return None
 
-  def selectProcessedFiles(self, lfns, prodList):
+  def _selectProcessedFiles(self, lfns, prodList):
     """
     Select only the files that are not in a status other than Processed in a list of productions
     Beware: this is not the same as Processed files as some files may not be in any production
             because they are intermediate files
     """
-    res = self.transClient.getTransformationFiles(
-        {'LFN': list(lfns), 'TransformationID': prodList})
+    startTime = time.time()
+    res = self.transClient.getTransformationFiles({'LFN': list(lfns), 'TransformationID': prodList})
     if not res['OK']:
       self.logError("Error getting transformation files", res['Message'])
-      return []
-    unProcessedLfns = set(fDict['LFN'] for fDict in res['Value'] if fDict['Status'] != 'Processed')
-    processedLfns = set(lfns) - set(unProcessedLfns)
-    if len(processedLfns) != len(lfns):
-      self.logVerbose('Reduce files from %d to %d (removing pending files)' % (len(lfns), len(processedLfns)))
-    return processedLfns
+      return {}
+    fDictList = res['Value']
+    unProcessedLfns = set(fDict['LFN'] for fDict in fDictList if fDict['Status'] != 'Processed')
+    procLfns = lfns - unProcessedLfns
+    prodLfns = {}
+    processedLfns = 0
+    for fDict in fDictList:
+      lfn = fDict['LFN']
+      if lfn in procLfns:
+        processedLfns += 1
+        prodLfns.setdefault(fDict['TransformationID'], []).append(lfn)
+    if processedLfns != len(lfns):
+      self.logVerbose('Reduce files from %d to %d '
+                      '(removing non-processed files) in %.1f s' % (len(lfns),
+                                                                    processedLfns,
+                                                                    time.time() - startTime))
+    return prodLfns
 
-  def checkForDescendants(self, lfns, prodList, depth=0):
+  def __getChunkSize(self):
+    """ Cache the chunk size """
+    if self.chunkForFileDescendants is None:
+      self.chunkForFileDescendants = self.getPluginParam('MaxFilesToGetDescendants', 100)
+    return self.chunkForFileDescendants
+
+  def checkForDescendants(self, lfnSet, prodList, depth=0):
     """
-    check the files if they have an existing descendant in the list of productions
+    check if the files have an existing descendant in the list of productions
     """
-    excludeTypes = ('LOG', 'BRUNELHIST', 'DAVINCIHIST', 'GAUSSHIST', 'HIST', 'INDEX.ROOT')
     finalResult = set()
-    if isinstance(lfns, basestring):
-      lfns = set([lfns])
-    elif isinstance(lfns, list):
-      lfns = set(lfns)
-    if depth:
-      lfns = self.selectProcessedFiles(lfns, prodList)
-    # Get daughters of processed files
-    res = self.bkClient.getFileDescendants(list(lfns), depth=1, checkreplica=False)
-    if not res['OK']:
-      return res
-    success = res['Value']['WithMetadata']
-    descToCheck = {}
-    # Invert list of descendants
-    descMetadata = {}
-    for lfn in lfns:
-      descendants = success.get(lfn, {})
-      descMetadata.update(descendants)
-      for desc, metadata in descendants.iteritems():
-        if metadata['FileType'] not in excludeTypes:
-          descToCheck.setdefault(desc, set()).add(lfn)
-    res = self.__getProduction(descToCheck)
-    if not res['OK']:
-      return res
-    descProd = res['Value']
-    prodDesc = {}
-    # Check if we found a descendant in the requested productions
-    foundProds = {}
-    for desc in descToCheck.keys():  # pylint: disable=consider-iterating-dictionary
-      prod = descProd[desc]
-      # If we found an existing descendant in the list of productions, all OK
-      if descMetadata[desc]['GotReplica'] == 'Yes' and prod in prodList:
-        foundProds.setdefault(prod, set()).update(descToCheck[desc])
-        finalResult.update(descToCheck[desc])
-        del descToCheck[desc]
-      else:
-        # Sort remaining descendants in productions
-        prodDesc.setdefault(prod, set()).add(desc)
-    for prod in foundProds:
-      self.logVerbose("Found %d files with descendants (out of %d) in production %d at depth %d" %
-                      (len(foundProds[prod]), len(lfns), prod, depth + 1))
-
-    # Check descendants in reverse order of productions
-    for prod in sorted(prodDesc, reverse=True):
-      # Check descendants whose parent was not yet found processed
-      toCheckInProd = set()
-      for desc in prodDesc[prod]:
-        if not descToCheck[desc] & finalResult:
-          toCheckInProd.add(desc)
-      if toCheckInProd:
-        res = self.checkForDescendants(toCheckInProd, prodList, depth=depth + 1)
+    if not lfnSet or not prodList:
+      return S_OK(finalResult)
+    self.logVerbose("Checking descendants for %d files in productions %s, depth %d" %
+                    (len(lfnSet),
+                     ','.join(str(prod) for prod in prodList),
+                     depth))
+    excludeTypes = ('LOG', 'BRUNELHIST', 'DAVINCIHIST', 'GAUSSHIST', 'HIST', 'INDEX.ROOT')
+    if isinstance(lfnSet, basestring):
+      lfnSet = {lfnSet}
+    elif isinstance(lfnSet, list):
+      lfnSet = set(lfnSet)
+    # Select files that have been processed in one of the productions,
+    #   and return the list of these prods
+    prodLfns = self._selectProcessedFiles(lfnSet, prodList)
+    if not prodLfns:
+      return S_OK(finalResult)
+    # Get daughters of processed files in each production
+    success = {}
+    descProd = {}
+    chunkSize = self.__getChunkSize()
+    for prod, lfns in prodLfns.iteritems():
+      progressBar = ProgressBar(len(lfns),
+                                title="Getting descendants for %d files in production %d" %
+                                (len(lfns), prod), chunk=chunkSize,
+                                interactive=sys.stdout.isatty(), log=self.logVerbose)
+      for lfnChunk in breakListIntoChunks(lfns, chunkSize):
+        progressBar.loop()
+        # prod is a long and server expects an int!
+        res = self.bkClient.getFileDescendants(lfnChunk, depth=1, production=int(prod), checkreplica=False)
         if not res['OK']:
           return res
-        foundInProd = set()
-        for desc in res['Value']:
-          foundInProd.update(descToCheck[desc])
-        if foundInProd:
-          self.logVerbose("Found descendants of %d files at depth %d" % (len(foundInProd), depth + 2))
-          finalResult.update(foundInProd)
+        for lfn, descDict in res['Value']['WithMetadata'].iteritems():
+          # Only keep the file type as metadata in teh dict
+          success.setdefault(lfn, {}).update(dict((desc, {'FileType': metadata['FileType'],
+                                                          'GotReplica': metadata['GotReplica']})
+                                                  for desc, metadata in descDict.iteritems()
+                                                  if metadata['FileType'] not in excludeTypes))
+          # Record information about which production created each descendant
+          for desc in descDict:
+            descProd[desc] = prod
+      progressBar.endLoop()
+
+    # Get set of file types
+    fileTypes = sorted(set(metadata['FileType']
+                           for descendants in success.itervalues()
+                           for metadata in descendants.itervalues()))
+    self.logVerbose("Will check file type%s %s" % ('s' if len(fileTypes) > 1 else '', ','.join(fileTypes)))
+
+    # Try and find descendants for each file type in turn as this is sufficient
+    for fileType in fileTypes:
+      # Invert list of descendants: descToCheck has descendant as key and list of parents
+      descToCheck = {}
+      descMetadata = {}
+      for lfn, descendants in success.iteritems():
+        if lfn not in finalResult:
+          descMetadata.update(descendants)
+          for desc, metadata in descendants.iteritems():
+            if metadata['FileType'] == fileType:
+              descToCheck.setdefault(desc, set()).add(lfn)
+      if not descToCheck:
+        break
+
+      prodDesc = {}
+      # Check if we found a descendant in the requested productions
+      foundProds = {}
+      for desc in descToCheck.keys():  # pylint: disable=consider-iterating-dictionary
+        prod = descProd[desc]
+        # If we found an existing descendant in the list of productions, all OK
+        if descMetadata[desc]['GotReplica'] == 'Yes' and prod in prodList:
+          foundProds.setdefault(prod, set()).update(descToCheck[desc])
+          finalResult.update(descToCheck[desc])
+          del descToCheck[desc]
+        else:
+          # Sort remaining descendants in productions
+          prodDesc.setdefault(prod, set()).add(desc)
+      for prod in foundProds:
+        self.logVerbose("Found %s descendants with replicas for %d files (out of %d) in production %d at depth %d" %
+                        (fileType, len(foundProds[prod]), len(lfnSet), prod, depth + 1))
+
+      # Check descendants without replicas in reverse order of productions
+      for prod in sorted(prodDesc, reverse=True):
+        # Check descendants whose parent was not yet found processed
+        toCheckInProd = set(desc for desc in prodDesc[prod] if not descToCheck[desc] & finalResult)
+        if toCheckInProd:
+          self.logVerbose("Found %d %s descendants without replicas in production %d at depth %d,"
+                          " check them for descendants" %
+                          (len(toCheckInProd), fileType, prod, depth + 1))
+          res = self.checkForDescendants(toCheckInProd, prodList, depth=depth + 1)
+          if not res['OK']:
+            return res
+          foundInProd = set()
+          for desc in res['Value']:
+            foundInProd.update(descToCheck[desc])
+          if foundInProd:
+            self.logVerbose("Found %s descendants of %d files at depth %d" % (fileType, len(foundInProd), depth + 2))
+            finalResult.update(foundInProd)
 
     return S_OK(finalResult)
-
-  def __getProduction(self, lfns):
-    """
-    Returns the production that was used to create each LFN
-    """
-    directories = {}
-    lfnDirs = {}
-    # Get the directories
-    for lfn in lfns:
-      dirName = os.path.dirname(lfn)
-      last = os.path.basename(dirName)
-      if len(last) == 4 and last.isdigit():
-        dirName = os.path.dirname(dirName)
-      directories.setdefault(dirName, lfn)
-      lfnDirs[lfn] = dirName
-
-    dirList = [dirName for dirName in directories if dirName not in self.cachedDirMetadata]
-    for dirName in dirList:
-      res = self.bkClient.getJobInfo(directories[dirName])
-      if not res['OK']:
-        return res
-      self.cachedDirMetadata.update({dirName: res['Value'][0][18]})
-
-    lfnProd = dict((lfn, self.cachedDirMetadata.get(lfnDirs[lfn], 0)) for lfn in lfns)
-    return S_OK(lfnProd)
 
   def __getStorageUsage(self, dirList, seList):
     """
