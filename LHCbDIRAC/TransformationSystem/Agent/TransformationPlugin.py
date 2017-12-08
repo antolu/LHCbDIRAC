@@ -282,6 +282,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
             # Here we pass both the number of files and the runID as we can use either metrics
             self.util.updateSharesUsage(existingCount, assignedRAW, len(lfns), runID)
           assignedSE = ','.join(ses)
+        if assignedSE:
           self.util.logVerbose('Creating a task (%d files, run %d) for SEs %s' %
                                (len(lfns), runID, assignedSE))
           tasks.append((assignedSE, lfns))
