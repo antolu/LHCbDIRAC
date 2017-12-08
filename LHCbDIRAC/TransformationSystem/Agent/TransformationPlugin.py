@@ -1609,21 +1609,21 @@ class TransformationPlugin(DIRACTransformationPlugin):
         shortSEs = [se for se in candidateSEs if maxFilesAtSE.get(se, sys.maxsize) == 0]
         candidateSEs = [se for se in candidateSEs if se not in shortSEs]
         if not candidateSEs:
-          self.util.logVerbose("No candidate SE where files are accepted (%s not allowed)" % ','.join(shortSEs))
+          self.util.logInfo("No candidate SE where more files are accepted (%s not allowed)" % ','.join(shortSEs))
         else:
           # Check if enough free space
           freeSpace = self.util.getStorageFreeSpace(candidateSEs)
           shortSEs = [se for se in candidateSEs if freeSpace[se] < watermark]
           candidateSEs = [se for se in candidateSEs if se not in shortSEs]
           if not candidateSEs:
-            self.util.logVerbose("No enough space (%s TB) found at %s" % (watermark, ','.join(shortSEs)))
+            self.util.logInfo("No enough space (%s TB) found at %s" % (watermark, ','.join(shortSEs)))
           else:
             # Select a single SE out of candidates; in most cases there is one only
             candidateSE = candidateSEs[0]
             maxToReplicate = maxFilesAtSE.get(candidateSE, sys.maxsize)
             if maxToReplicate < len(lfns):
-              self.util.logVerbose("Limit number of files for %s to %d (out of %d)" %
-                                   (candidateSE, maxToReplicate, len(lfns)))
+              self.util.logInfo("Limit number of files for %s to %d (out of %d)" %
+                                (candidateSE, maxToReplicate, len(lfns)))
             else:
               self.util.logVerbose("Number of files for %s: %d" % (candidateSE, len(lfns)))
             storageElementGroups.setdefault(candidateSE, []).extend(lfns[:maxToReplicate])
