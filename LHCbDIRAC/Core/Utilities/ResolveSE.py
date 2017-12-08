@@ -90,7 +90,7 @@ def getDestinationSEList(outputSE, site, outputmode='Any', run=None):
       if opt['OK'] and opt['Value']:
         assignedCountry = opt['Value']
         gLogger.verbose('/Resources/Countries/%s/AssociatedSEs' % assignedCountry)
-        assocCheck = gConfig.getOption('/Resources/Countries/%s/AssociatedSEs' % assignedCountry)
+        assocCheck = gConfig.getOptions('/Resources/Countries/%s/AssociatedSEs' % assignedCountry)
         if assocCheck['OK'] and assocCheck['Value']:
           break
       count += 1
