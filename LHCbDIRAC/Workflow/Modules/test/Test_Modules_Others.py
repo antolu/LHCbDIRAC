@@ -1,7 +1,7 @@
 """ Unit tests for Workflow Modules
 """
 
-#pylint: disable=protected-access, missing-docstring, invalid-name, line-too-long
+# pylint: disable=protected-access, missing-docstring, invalid-name, line-too-long
 
 import unittest
 import itertools
@@ -21,9 +21,9 @@ from DIRAC.RequestManagementSystem.Client.File import File
 
 # mocks
 from LHCbDIRAC.Workflow.Modules.test.mock_Commons import prod_id, prod_job_id, wms_job_id, \
-                                                         workflowStatus, stepStatus, step_id, step_number,\
-                                                         step_commons, wf_commons,\
-                                                         rc_mock
+    workflowStatus, stepStatus, step_id, step_number,\
+    step_commons, wf_commons,\
+    rc_mock
 from LHCbDIRAC.BookkeepingSystem.Client.test.mock_BookkeepingClient import bkc_mock
 
 # sut
@@ -42,15 +42,16 @@ getDestinationSEListMock.return_value = []
 getDestinationSEListMockCNAF = MagicMock()
 getDestinationSEListMockCNAF.return_value = ['CNAF']
 
-
 __RCSID__ = "$Id$"
 
-class ModulesTestCase( unittest.TestCase ):
+
+class ModulesTestCase(unittest.TestCase):
   """ Base class for the Modules test cases
   """
-  def setUp( self ):
 
-    gLogger.setLevel( 'DEBUG' )
+  def setUp(self):
+
+    gLogger.setLevel('DEBUG')
     self.maxDiff = None
 
     self.jsu_mock = MagicMock()
@@ -60,7 +61,7 @@ class ModulesTestCase( unittest.TestCase ):
     self.jsu_mock.setJobApplicationStatus.return_value = {'OK': True, 'Value': ''}
 
     self.ft_mock = MagicMock()
-    self.ft_mock.transferAndRegisterFile.return_value = {'OK': True, 'Value': {'uploadedSE':''}}
+    self.ft_mock.transferAndRegisterFile.return_value = {'OK': True, 'Value': {'uploadedSE': ''}}
     self.ft_mock.transferAndRegisterFileFailover.return_value = {'OK': True, 'Value': {}}
     self.ft_mock.request = rc_mock
     self.ft_mock.FileCatalog = fc_mock
@@ -69,8 +70,8 @@ class ModulesTestCase( unittest.TestCase ):
     self.nc_mock.sendMail.return_value = {'OK': True, 'Value': ''}
 
     self.xf_o_mock = MagicMock()
-    self.xf_o_mock.inputFileStats = {'a':1, 'b':2}
-    self.xf_o_mock.outputFileStats = {'a':1, 'b':2}
+    self.xf_o_mock.inputFileStats = {'a': 1, 'b': 2}
+    self.xf_o_mock.outputFileStats = {'a': 1, 'b': 2}
     self.xf_o_mock.analyse.return_value = True
 
     self.jobStep_mock = MagicMock()
@@ -78,7 +79,7 @@ class ModulesTestCase( unittest.TestCase ):
     self.jobStep_mock.setValuesFromDict.return_value = {'OK': True, 'Value': ''}
     self.jobStep_mock.checkValues.return_value = {'OK': True, 'Value': ''}
 
-  def tearDown( self ):
+  def tearDown(self):
     for fileProd in ['appLog', 'foo.txt', 'aaa.Bhadron.dst', 'bbb.Calibration.dst', 'bar.py', 'aLongLog.log',
                      'bookkeeping_123_00000456_321.xml',
                      'aLongLog.log.gz', 'ccc.charm.mdst', 'ccc.charm.mdst', 'prova.txt', 'aLog.log',
@@ -88,14 +89,14 @@ class ModulesTestCase( unittest.TestCase ):
                      '00000123_00000456.tar', 'someOtherDir', 'DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK', 'myfoo.blah',
                      'prodConf_someApp__.py', 'prodConf_someApp___.py']:
       try:
-        os.remove( fileProd )
+        os.remove(fileProd)
       except OSError:
         continue
 
     for directory in ['./job', 'job']:
       try:
-        shutil.rmtree( directory )
-      except:
+        shutil.rmtree(directory)
+      except Exception:
         continue
 
 
@@ -103,249 +104,254 @@ class ModulesTestCase( unittest.TestCase ):
 # FailoverRequest.py
 #############################################################################
 
-@patch( "LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect = MagicMock() )
-class FailoverRequestSuccess( ModulesTestCase ):
+@patch("LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect=MagicMock())
+class FailoverRequestSuccess(ModulesTestCase):
 
   #################################################
 
-  def test_execute( self, _patch ):
+  def test_execute(self, _patch):
 
-    fr = FailoverRequest( bkClient = bkc_mock, dm = dm_mock )
+    fr = FailoverRequest(bkClient=bkc_mock, dm=dm_mock)
     fr.jobType = 'merge'
     fr.stepInputData = ['foo', 'bar']
     fr.requestValidator = MagicMock()
 
     # no errors, no input data
-    for wf_cs in copy.deepcopy( wf_commons ):
+    for wf_cs in copy.deepcopy(wf_commons):
       for s_cs in step_commons:
-        self.assertTrue( fr.execute( prod_id, prod_job_id, wms_job_id,
-                                     workflowStatus, stepStatus,
-                                     wf_cs, s_cs,
-                                     step_number, step_id )['OK'] )
+        self.assertTrue(fr.execute(prod_id, prod_job_id, wms_job_id,
+                                   workflowStatus, stepStatus,
+                                   wf_cs, s_cs,
+                                   step_number, step_id)['OK'])
 
 
 ##############################################################################
 # # RemoveInputData.py
 ##############################################################################
 
-@patch( "LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect = MagicMock() )
-class RemoveInputDataSuccess( ModulesTestCase ):
+@patch("LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect=MagicMock())
+class RemoveInputDataSuccess(ModulesTestCase):
 
   #################################################
 
-  def test_execute( self, _patch ):
+  def test_execute(self, _patch):
 
-    rid = RemoveInputData( bkClient = bkc_mock, dm = dm_mock )
+    rid = RemoveInputData(bkClient=bkc_mock, dm=dm_mock)
     # no errors, no input data
-    for wf_cs in copy.deepcopy( wf_commons ):
+    for wf_cs in copy.deepcopy(wf_commons):
       if 'InputData' in wf_cs.keys():
         continue
       for s_cs in step_commons:
-        self.assertTrue( rid.execute( prod_id, prod_job_id, wms_job_id,
-                                      workflowStatus, stepStatus,
-                                      wf_cs, s_cs,
-                                      step_number, step_id )['OK'] )
+        self.assertTrue(rid.execute(prod_id, prod_job_id, wms_job_id,
+                                    workflowStatus, stepStatus,
+                                    wf_cs, s_cs,
+                                    step_number, step_id)['OK'])
 
     # no errors, input data
-    for wf_cs in copy.deepcopy( wf_commons ):
+    for wf_cs in copy.deepcopy(wf_commons):
       if 'InputData' not in wf_cs.keys():
         continue
       for s_cs in step_commons:
-        self.assertTrue( rid.execute( prod_id, prod_job_id, wms_job_id,
-                                      workflowStatus, stepStatus,
-                                      wf_cs, s_cs,
-                                      step_number, step_id )['OK'] )
-
+        self.assertTrue(rid.execute(prod_id, prod_job_id, wms_job_id,
+                                    workflowStatus, stepStatus,
+                                    wf_cs, s_cs,
+                                    step_number, step_id)['OK'])
 
 
 ##############################################################################
 # # SendBookkeeping.py
 ##############################################################################
 
-@patch( "LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect = MagicMock() )
-class SendBookkeepingSuccess( ModulesTestCase ):
+@patch("LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect=MagicMock())
+class SendBookkeepingSuccess(ModulesTestCase):
 
   #################################################
 
-  def test_execute( self, _patch ):
+  def test_execute(self, _patch):
 
     # no errors, no input data
-    for wf_cs in copy.deepcopy( wf_commons ):
+    for wf_cs in copy.deepcopy(wf_commons):
       for s_cs in step_commons:
-        sb = SendBookkeeping( bkClient = bkc_mock, dm = dm_mock )
-        self.assertTrue( sb.execute( prod_id, prod_job_id, wms_job_id,
-                                     workflowStatus, stepStatus,
-                                     wf_cs, s_cs,
-                                     step_number, step_id )['OK'] )
+        sb = SendBookkeeping(bkClient=bkc_mock, dm=dm_mock)
+        self.assertTrue(sb.execute(prod_id, prod_job_id, wms_job_id,
+                                   workflowStatus, stepStatus,
+                                   wf_cs, s_cs,
+                                   step_number, step_id)['OK'])
 
 #############################################################################
 # StepAccounting.py
 #############################################################################
 
-@patch( "LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect = MagicMock() )
-class StepAccountingSuccess( ModulesTestCase ):
+
+@patch("LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect=MagicMock())
+class StepAccountingSuccess(ModulesTestCase):
 
   #################################################
 
-  def test_execute( self, _patch ):
+  def test_execute(self, _patch):
 
-    sa = StepAccounting( bkClient = bkc_mock, dm = dm_mock )
+    sa = StepAccounting(bkClient=bkc_mock, dm=dm_mock)
     sa.jobType = 'merge'
     sa.stepInputData = ['foo', 'bar']
     sa.siteName = 'DIRAC.Test.ch'
 
-    for wf_cs in copy.deepcopy( wf_commons ):
+    for wf_cs in copy.deepcopy(wf_commons):
       for s_cs in step_commons:
-        self.assertTrue( sa.execute( prod_id, prod_job_id, wms_job_id,
-                                     workflowStatus, stepStatus,
-                                     wf_cs, s_cs,
-                                     step_number, step_id,
-                                     self.jobStep_mock, self.xf_o_mock )['OK'] )
+        self.assertTrue(sa.execute(prod_id, prod_job_id, wms_job_id,
+                                   workflowStatus, stepStatus,
+                                   wf_cs, s_cs,
+                                   step_number, step_id,
+                                   self.jobStep_mock, self.xf_o_mock)['OK'])
 
 #############################################################################
 # UploadLogFile.py
 #############################################################################
 
-@patch( "LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect = MagicMock() )
-class UploadLogFileSuccess( ModulesTestCase ):
+
+@patch("LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect=MagicMock())
+class UploadLogFileSuccess(ModulesTestCase):
 
   #################################################
 
-  def test_execute( self, _patch ):
+  @patch("LHCbDIRAC.Workflow.Modules.UploadLogFile.getDestinationSEList", side_effect=getDestinationSEListMockCNAF)
+  def test_execute(self, _patch, _patch1):
 
     # no errors, no input data
-#    for wf_commons in copy.deepcopy( wf_commons ):
-#      for step_commons in step_commons:
-#        self.assertTrue( ulf.execute( prod_id, prod_job_id, wms_job_id,
-#                                           workflowStatus, stepStatus,
-#                                           wf_commons, step_commons,
-#                                           step_number, step_id,
-#                                           dm_mock, self.ft_mock,
-#                                           bkc_mock )['OK'] )
+    #    for wf_commons in copy.deepcopy( wf_commons ):
+    #      for step_commons in step_commons:
+    #        self.assertTrue( ulf.execute( prod_id, prod_job_id, wms_job_id,
+    #                                           workflowStatus, stepStatus,
+    #                                           wf_commons, step_commons,
+    #                                           step_number, step_id,
+    #                                           dm_mock, self.ft_mock,
+    #                                           bkc_mock )['OK'] )
 
     # putStorageDirectory returns False
 
-    rm_mock = copy.deepcopy( dm_mock )
-    rm_mock.putStorageDirectory.return_value = {'OK':False, 'Message':'bih'}
-    ft_mock = copy.deepcopy( self.ft_mock )
-    ulf = UploadLogFile( bkClient = bkc_mock, dm = dm_mock )
+    rm_mock = copy.deepcopy(dm_mock)
+    rm_mock.putStorageDirectory.return_value = {'OK': False, 'Message': 'bih'}
+    ft_mock = copy.deepcopy(self.ft_mock)
+    ulf = UploadLogFile(bkClient=bkc_mock, dm=dm_mock)
     ulf.request = Request()
     ulf.failoverTransfer = ft_mock
-    for wf_cs in copy.deepcopy( wf_commons ):
+    for wf_cs in copy.deepcopy(wf_commons):
       for s_cs in step_commons:
-        self.assertTrue( ulf.execute( prod_id, prod_job_id, 0,
-                                      workflowStatus, stepStatus,
-                                      wf_cs, s_cs,
-                                      step_number, step_id )['OK'] )
+        self.assertTrue(ulf.execute(prod_id, prod_job_id, 0,
+                                    workflowStatus, stepStatus,
+                                    wf_cs, s_cs,
+                                    step_number, step_id)['OK'])
 #        self.assertTrue( ulf.finalize( rm_mock, self.ft_mock )['OK'] )
 
-  def test__uploadLogToFailoverSE( self, _patch ):
-    open( 'foo.txt', 'w' ).close()
+  @patch("LHCbDIRAC.Workflow.Modules.UploadLogFile.getDestinationSEList", side_effect=getDestinationSEListMockCNAF)
+  def test__uploadLogToFailoverSE(self, _patch, _patch1):
+    open('foo.txt', 'w').close()
     tarFileName = 'foo.txt'
-    ulf = UploadLogFile( bkClient = bkc_mock, dm = dm_mock )
+    ulf = UploadLogFile(bkClient=bkc_mock, dm=dm_mock)
     ulf.request = Request()
     ulf.failoverTransfer = self.ft_mock
     ulf.logLFNPath = '/an/lfn/foo.txt'
     ulf.failoverSEs = ['SE1', 'SE2']
-    ulf._uploadLogToFailoverSE( tarFileName )
+    ulf._uploadLogToFailoverSE(tarFileName)
 
-  def test__determinRelevantFiles( self, _patch ):
+  @patch("LHCbDIRAC.Workflow.Modules.UploadLogFile.getDestinationSEList", side_effect=getDestinationSEListMockCNAF)
+  def test__determinRelevantFiles(self, _patch, _patch1):
     for fileN in ['foo.txt', 'aLog.log', 'aLongLog.log', 'aLongLog.log.gz']:
       try:
-        os.remove( fileN )
+        os.remove(fileN)
       except OSError:
         continue
 
-    open( 'foo.txt', 'w' ).close()
-    open( 'bar.py', 'w' ).close()
-    open( 'aLog.log', 'w' ).close()
-    ulf = UploadLogFile( bkClient = bkc_mock, dm = dm_mock )
+    open('foo.txt', 'w').close()
+    open('bar.py', 'w').close()
+    open('aLog.log', 'w').close()
+    ulf = UploadLogFile(bkClient=bkc_mock, dm=dm_mock)
     res = ulf._determineRelevantFiles()
-    self.assertTrue( res['OK'] )
+    self.assertTrue(res['OK'])
     expected = ['foo.txt', 'aLog.log']
-    if 'pylint.txt' in os.listdir( '.' ):
-      expected.append( 'pylint.txt' )
-    if 'nosetests.xml' in os.listdir( '.' ):
-      expected.append( 'nosetests.xml' )
-    self.assertTrue( set( res['Value'] ) >= set( expected ) )
+    if 'pylint.txt' in os.listdir('.'):
+      expected.append('pylint.txt')
+    if 'nosetests.xml' in os.listdir('.'):
+      expected.append('nosetests.xml')
+    self.assertTrue(set(res['Value']) >= set(expected))
 
-    fd = open( 'aLongLog.log', 'w' )
-    for _x in xrange( 2500 ):
-      fd.writelines( "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum" )
+    fd = open('aLongLog.log', 'w')
+    for _x in xrange(2500):
+      fd.writelines("Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum")
     fd.close()
     res = ulf._determineRelevantFiles()
-    self.assertTrue( res['OK'] )
+    self.assertTrue(res['OK'])
     expected = ['foo.txt', 'aLog.log', 'aLongLog.log.gz']
-    if 'pylint.txt' in os.listdir( '.' ):
-      expected.append( 'pylint.txt' )
-    if 'nosetests.xml' in os.listdir( '.' ):
-      expected.append( 'nosetests.xml' )
-    self.assertTrue( set( res['Value'] ) >= set( expected ) )
+    if 'pylint.txt' in os.listdir('.'):
+      expected.append('pylint.txt')
+    if 'nosetests.xml' in os.listdir('.'):
+      expected.append('nosetests.xml')
+    self.assertTrue(set(res['Value']) >= set(expected))
 
-    open( 'foo.txt', 'w' ).close()
-    fd = open( 'aLongLog.log', 'w' )
-    for _x in xrange( 2500 ):
-      fd.writelines( "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum" )
+    open('foo.txt', 'w').close()
+    fd = open('aLongLog.log', 'w')
+    for _x in xrange(2500):
+      fd.writelines("Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum")
     fd.close()
-    open( 'bar.py', 'w' ).close()
+    open('bar.py', 'w').close()
     res = ulf._determineRelevantFiles()
     expected = ['foo.txt', 'aLog.log', 'aLongLog.log.gz']
-    if 'pylint.txt' in os.listdir( '.' ):
-      expected.append( 'pylint.txt' )
-    if 'nosetests.xml' in os.listdir( '.' ):
-      expected.append( 'nosetests.xml' )
-    self.assertTrue( res['OK'] )
-    self.assertTrue( set( res['Value'] ) >= set( expected ) )
+    if 'pylint.txt' in os.listdir('.'):
+      expected.append('pylint.txt')
+    if 'nosetests.xml' in os.listdir('.'):
+      expected.append('nosetests.xml')
+    self.assertTrue(res['OK'])
+    self.assertTrue(set(res['Value']) >= set(expected))
 
 ##############################################################################
 # # UploadOutputData.py
 ##############################################################################
 
-@patch( "LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect = MagicMock() )
-class UploadOutputDataSuccess( ModulesTestCase ):
+
+@patch("LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect=MagicMock())
+class UploadOutputDataSuccess(ModulesTestCase):
 
   #################################################
 
-  @patch( "LHCbDIRAC.Workflow.Modules.UploadOutputData.FileCatalog", side_effect = fc_mock )
-  @patch( "LHCbDIRAC.Core.Utilities.ResolveSE.gConfig", side_effect = MagicMock() )
-  def test_execute( self, _p, _patch, _patched ):
+  @patch("LHCbDIRAC.Workflow.Modules.UploadOutputData.FileCatalog", side_effect=fc_mock)
+  @patch("LHCbDIRAC.Core.Utilities.ResolveSE.gConfig", side_effect=MagicMock())
+  def test_execute(self, _p, _patch, _patched):
 
-    uod = UploadOutputData( bkClient = bkc_mock, dm = dm_mock )
+    uod = UploadOutputData(bkClient=bkc_mock, dm=dm_mock)
     uod.siteName = 'DIRAC.Test.ch'
     uod.failoverTransfer = self.ft_mock
 
     # no errors, no input data
-    for wf_cs in copy.deepcopy( wf_commons ):
-      if wf_cs.has_key( 'InputData' ):
+    for wf_cs in copy.deepcopy(wf_commons):
+      if 'InputData' in wf_cs:
         continue
       for s_cs in step_commons:
         fileDescendants = {}
-        self.assertTrue( uod.execute( prod_id, prod_job_id, wms_job_id,
-                                      workflowStatus, stepStatus,
-                                      wf_cs, s_cs,
-                                      step_number, step_id,
-                                      SEs = ['SomeSE'],
-                                      fileDescendants = fileDescendants )['OK'] )
-
+        self.assertTrue(uod.execute(prod_id, prod_job_id, wms_job_id,
+                                    workflowStatus, stepStatus,
+                                    wf_cs, s_cs,
+                                    step_number, step_id,
+                                    SEs=['SomeSE'],
+                                    fileDescendants=fileDescendants)['OK'])
 
     # no errors, input data
-    for wf_cs in copy.deepcopy( wf_commons ):
+    for wf_cs in copy.deepcopy(wf_commons):
       for s_cs in step_commons:
-        for transferAndRegisterFile in ( {'OK': True, 'Value': {'uploadedSE':''}}, {'OK': False, 'Message': 'error'} ):
-#          for transferAndRegisterFileFailover in ( {'OK': True, 'Value': {}}, {'OK': False, 'Message': 'error'} ):
+        for transferAndRegisterFile in ({'OK': True, 'Value': {'uploadedSE': ''}}, {'OK': False, 'Message': 'error'}):
+          # for transferAndRegisterFileFailover in ( {'OK': True, 'Value': {}},
+          # {'OK': False, 'Message': 'error'} ):
           self.ft_mock.transferAndRegisterFile.return_value = transferAndRegisterFile
 #            self.ft_mock.transferAndRegisterFileFailover.return_value = transferAndRegisterFileFailover
-          open( 'foo.txt', 'w' ).close()
-          open( 'bar.txt', 'w' ).close()
-          if not wf_cs.has_key( 'InputData' ):
+          open('foo.txt', 'w').close()
+          open('bar.txt', 'w').close()
+          if 'InputData' not in wf_cs:
             continue
           if wf_cs['InputData'] == '':
             continue
           wf_cs['outputList'] = [{'outputDataType': 'txt', 'outputDataName': 'foo.txt'},
                                  {'outputDataType': 'txt', 'outputDataName': 'bar.txt'},
-                                ]
+                                 ]
           wf_cs['ProductionOutputData'] = ['/lhcb/MC/2010/DST/00012345/0001/foo.txt',
-                                           '/lhcb/MC/2010/DST/00012345/0001/bar.txt' ]
+                                           '/lhcb/MC/2010/DST/00012345/0001/bar.txt']
 #          bkc_mock.getFileDescendants.return_value = {'OK': False,
 #                                                           'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
 #                                                                        {'skipCACheck': False,
@@ -355,12 +361,12 @@ class UploadOutputDataSuccess( ModulesTestCase ):
 #                                                                     'Failed': [],
 #                                                                     'NotProcessed': []}}
           fileDescendants = {'foo.txt': ['baaar']}
-          self.assertFalse( uod.execute( prod_id, prod_job_id, wms_job_id,
-                                         workflowStatus, stepStatus,
-                                         wf_cs, s_cs,
-                                         step_number, step_id,
-                                         SEs = ['SomeSE'],
-                                         fileDescendants = fileDescendants )['OK'] )
+          self.assertFalse(uod.execute(prod_id, prod_job_id, wms_job_id,
+                                       workflowStatus, stepStatus,
+                                       wf_cs, s_cs,
+                                       step_number, step_id,
+                                       SEs=['SomeSE'],
+                                       fileDescendants=fileDescendants)['OK'])
 #          bkc_mock.getFileDescendants.return_value = {'OK': True,
 #                                                           'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
 #                                                                        {'skipCACheck': False,
@@ -372,21 +378,21 @@ class UploadOutputDataSuccess( ModulesTestCase ):
           if wf_cs['Request'] == '':
             continue
           fileDescendants = {}
-          res = uod.execute( prod_id, prod_job_id, wms_job_id,
-                             workflowStatus, stepStatus,
-                             wf_cs, s_cs,
-                             step_number, step_id,
-                             SEs = ['SomeSE'],
-                             fileDescendants = fileDescendants )
-          self.assertTrue( res['OK'] )
+          res = uod.execute(prod_id, prod_job_id, wms_job_id,
+                            workflowStatus, stepStatus,
+                            wf_cs, s_cs,
+                            step_number, step_id,
+                            SEs=['SomeSE'],
+                            fileDescendants=fileDescendants)
+          self.assertTrue(res['OK'])
 #            if transferAndRegisterFileFailover['OK']:
 #              self.assertTrue( res['OK'] )
 #            else:
 #              self.assertFalse( res['OK'] )
-          os.remove( 'foo.txt' )
-          os.remove( 'bar.txt' )
+          os.remove('foo.txt')
+          os.remove('bar.txt')
 
-  def test__cleanUp( self, _patch ):
+  def test__cleanUp(self, _patch):
     f1 = File()
     f1.LFN = '/a/1.txt'
     f2 = File()
@@ -396,29 +402,29 @@ class UploadOutputDataSuccess( ModulesTestCase ):
 
     o1 = Operation()
     o1.Type = 'RegisterFile'
-    o1.addFile( f1 )
+    o1.addFile(f1)
     o2 = Operation()
     o2.Type = 'RegisterFile'
-    o2.addFile( f2 )
+    o2.addFile(f2)
     o3 = Operation()
     o3.Type = 'ForwardDISET'
     o4 = Operation()
     o4.Type = 'RegisterFile'
-    o4.addFile( f1 )
-    o4.addFile( f3 )
+    o4.addFile(f1)
+    o4.addFile(f3)
 
     r = Request()
-    r.addOperation( o4 )
-    r.addOperation( o1 )
-    r.addOperation( o2 )
-    r.addOperation( o3 )
+    r.addOperation(o4)
+    r.addOperation(o1)
+    r.addOperation(o2)
+    r.addOperation(o3)
 
-    uod = UploadOutputData( bkClient = bkc_mock, dm = dm_mock )
+    uod = UploadOutputData(bkClient=bkc_mock, dm=dm_mock)
     uod.failoverTransfer = self.ft_mock
     uod.request = r
 
     expected = Request()
-    expected.addOperation( o3 )
+    expected.addOperation(o3)
     removeOp = Operation()
     removeOp.Type = 'RemoveFile'
     fileRemove1 = File()
@@ -427,157 +433,158 @@ class UploadOutputDataSuccess( ModulesTestCase ):
     fileRemove2.LFN = '/a/2.txt'
     fileRemove3 = File()
     fileRemove3.LFN = '/a/notPresent.txt'
-    removeOp.addFile( fileRemove1 )
-    removeOp.addFile( fileRemove3 )
-    removeOp.addFile( fileRemove2 )
-    expected.addOperation( removeOp )
+    removeOp.addFile(fileRemove1)
+    removeOp.addFile(fileRemove3)
+    removeOp.addFile(fileRemove2)
+    expected.addOperation(removeOp)
 
-    uod._cleanUp( {'1.txt':{'lfn':'/a/1.txt'},
-                   '2.txt':{'lfn':'/a/2.txt'},
-                   'notPresent.txt':{'lfn':'/a/notPresent.txt' } } )
+    uod._cleanUp({'1.txt': {'lfn': '/a/1.txt'},
+                  '2.txt': {'lfn': '/a/2.txt'},
+                  'notPresent.txt': {'lfn': '/a/notPresent.txt'}})
 
-    for opsR, opsE in itertools.izip( uod.request, expected ):
-      self.assertEqual( str( opsR ), str( opsE ) )
+    for opsR, opsE in itertools.izip(uod.request, expected):
+      self.assertEqual(str(opsR), str(opsE))
 
 
 ##############################################################################
 # # UserJobFinalization.py
 ##############################################################################
 
-@patch( "LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect = MagicMock() )
-class UserJobFinalizationSuccess( ModulesTestCase ):
+@patch("LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect=MagicMock())
+class UserJobFinalizationSuccess(ModulesTestCase):
 
   #################################################
 
-  def test_execute( self, _patch ):
+  def test_execute(self, _patch):
 
-    ujf = UserJobFinalization( bkClient = bkc_mock, dm = dm_mock )
+    ujf = UserJobFinalization(bkClient=bkc_mock, dm=dm_mock)
     ujf.bkClient = bkc_mock
     ujf.failoverTransfer = self.ft_mock
     ujf.requestValidator = MagicMock()
-    ujf.requestValidator.validate.return_value = {'OK':True}
+    ujf.requestValidator.validate.return_value = {'OK': True}
 
     # no errors, no input data
-    for wf_cs in copy.deepcopy( wf_commons ):
+    for wf_cs in copy.deepcopy(wf_commons):
       wf_cs['TotalSteps'] = step_number
       for s_cs in step_commons:
-        self.assertTrue( ujf.execute( prod_id, prod_job_id, wms_job_id,
-                                      workflowStatus, stepStatus,
-                                      wf_cs, s_cs,
-                                      step_number, step_id )['OK'] )
+        self.assertTrue(ujf.execute(prod_id, prod_job_id, wms_job_id,
+                                    workflowStatus, stepStatus,
+                                    wf_cs, s_cs,
+                                    step_number, step_id)['OK'])
 
-    for wf_cs in copy.deepcopy( wf_commons ):
+    for wf_cs in copy.deepcopy(wf_commons):
       wf_cs['TotalSteps'] = step_number
       for s_cs in step_commons:
         wf_cs['UserOutputData'] = ['i1', 'i2']
         wf_cs['UserOutputSE'] = ['MySE']
         wf_cs['OwnerName'] = 'fstagni'
-        open( 'i1', 'w' ).close()
-        open( 'i2', 'w' ).close()
-        self.assertTrue( ujf.execute( prod_id, prod_job_id, wms_job_id,
-                                      workflowStatus, stepStatus,
-                                      wf_cs, s_cs,
-                                      step_number, step_id, orderedSEs = ['MySE1', 'MySE2'] )['OK'] )
-      os.remove( 'i1' )
-      os.remove( 'i2' )
+        open('i1', 'w').close()
+        open('i2', 'w').close()
+        self.assertTrue(ujf.execute(prod_id, prod_job_id, wms_job_id,
+                                    workflowStatus, stepStatus,
+                                    wf_cs, s_cs,
+                                    step_number, step_id, orderedSEs=['MySE1', 'MySE2'])['OK'])
+      os.remove('i1')
+      os.remove('i2')
 
-  @patch( "LHCbDIRAC.Workflow.Modules.UserJobFinalization.getDestinationSEList", side_effect = getDestinationSEListMock )
-  def test__getOrderedSEsList( self, _patch, _patched ):
+  @patch("LHCbDIRAC.Workflow.Modules.UserJobFinalization.getDestinationSEList", side_effect=getDestinationSEListMock)
+  def test__getOrderedSEsList(self, _patch, _patched):
 
-    ujf = UserJobFinalization( bkClient = bkc_mock, dm = dm_mock )
+    ujf = UserJobFinalization(bkClient=bkc_mock, dm=dm_mock)
 
     ujf.userOutputSE = ['userSE']
     res = ujf._getOrderedSEsList()
-    self.assertEqual( res, ['userSE'] )
+    self.assertEqual(res, ['userSE'])
 
     ujf.defaultOutputSE = ['CERN']
     res = ujf._getOrderedSEsList()
-    self.assertEqual( res, ['userSE', 'CERN'] )
+    self.assertEqual(res, ['userSE', 'CERN'])
 
-  @patch( "LHCbDIRAC.Workflow.Modules.UserJobFinalization.getDestinationSEList", side_effect = getDestinationSEListMockCNAF )
-  def test__getOrderedSEsListCNAF( self, _patch, _patched ):
+  @patch("LHCbDIRAC.Workflow.Modules.UserJobFinalization.getDestinationSEList", side_effect=getDestinationSEListMockCNAF)
+  def test__getOrderedSEsListCNAF(self, _patch, _patched):
 
-    ujf = UserJobFinalization( bkClient = bkc_mock, dm = dm_mock )
+    ujf = UserJobFinalization(bkClient=bkc_mock, dm=dm_mock)
     res = ujf._getOrderedSEsList()
-    self.assertEqual( res, ['CNAF'] )
+    self.assertEqual(res, ['CNAF'])
 
 #############################################################################
 # FileUsage.py
 #############################################################################
 
-@patch( "LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect = MagicMock() )
-class FileUsageSuccess( ModulesTestCase ):
+
+@patch("LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect=MagicMock())
+class FileUsageSuccess(ModulesTestCase):
 
   #################################################
 
-  def test_execute( self, _patch ):
+  def test_execute(self, _patch):
 
     # no errors, no input files to report
     wfStatus = copy.deepcopy(workflowStatus)
-    wfC = copy.deepcopy( wf_commons )
+    wfC = copy.deepcopy(wf_commons)
     for wf_cs in wfC:  # copy.deepcopy( wf_commons ):
       for s_cs in step_commons:
-        fu = FileUsage( bkClient = bkc_mock, dm = dm_mock )
-        self.assertTrue( fu.execute( prod_id, prod_job_id, wms_job_id,
-                                     wfStatus, stepStatus,
-                                     wf_cs, s_cs,
-                                     step_number, step_id )['OK'] )
-    wfC = copy.deepcopy( wf_commons )
+        fu = FileUsage(bkClient=bkc_mock, dm=dm_mock)
+        self.assertTrue(fu.execute(prod_id, prod_job_id, wms_job_id,
+                                   wfStatus, stepStatus,
+                                   wf_cs, s_cs,
+                                   step_number, step_id)['OK'])
+    wfC = copy.deepcopy(wf_commons)
     for wf_cs in wfC:  # copy.deepcopy( wf_commons ):
       wf_cs['ParametricInputData'] = ['LFN:/lhcb/data/2010/EW.DST/00008380/0000/00008380_00000287_1.ew.dst',
                                       'LFN:/lhcb/data/2010/EW.DST/00008380/0000/00008380_00000285_1.ew.dst',
                                       'LFN:/lhcb/data/2010/EW.DST/00008380/0000/00008380_00000281_1.ew.dst']
       for s_cs in step_commons:
-        fu = FileUsage( bkClient = bkc_mock, dm = dm_mock )
-        self.assertTrue( fu.execute( prod_id, prod_job_id, wms_job_id,
-                                     workflowStatus, stepStatus,
-                                     wf_cs, s_cs,
-                                     step_number, step_id )['OK'] )
-    wfC = copy.deepcopy( wf_commons )
+        fu = FileUsage(bkClient=bkc_mock, dm=dm_mock)
+        self.assertTrue(fu.execute(prod_id, prod_job_id, wms_job_id,
+                                   workflowStatus, stepStatus,
+                                   wf_cs, s_cs,
+                                   step_number, step_id)['OK'])
+    wfC = copy.deepcopy(wf_commons)
     for wf_cs in wfC:  # copy.deepcopy( wf_commons ):
       wf_cs['ParametricInputData'] = ['LFN:/lhcb/data/2010/EW.DST/00008380/0000/00008380_00000287_1.ew.dst',
                                       'LFN:/lhcb/data/2010/EW.DST/00008380/0000/00008380_00000285_1.ew.dst',
                                       'LFN:/lhcb/data/2010/PIPPO/00008380/0000/00008380_00000281_1.pippo.dst']
       for s_cs in step_commons:
-        fu = FileUsage( bkClient = bkc_mock, dm = dm_mock )
-        self.assertTrue( fu.execute( prod_id, prod_job_id, wms_job_id,
-                                     workflowStatus, stepStatus,
-                                     wf_cs, s_cs,
-                                     step_number, step_id )['OK'] )
+        fu = FileUsage(bkClient=bkc_mock, dm=dm_mock)
+        self.assertTrue(fu.execute(prod_id, prod_job_id, wms_job_id,
+                                   workflowStatus, stepStatus,
+                                   wf_cs, s_cs,
+                                   step_number, step_id)['OK'])
 
     # workflow status not ok
-    wfC = copy.deepcopy( wf_commons )
+    wfC = copy.deepcopy(wf_commons)
     for wf_cs in wfC:  # copy.deepcopy( wf_commons ):
-      wfStatus = {'OK':False, 'Message':'Mess'}
+      wfStatus = {'OK': False, 'Message': 'Mess'}
       for s_cs in step_commons:
-        fu = FileUsage( bkClient = bkc_mock, dm = dm_mock )
-        self.assertTrue( fu.execute( prod_id, prod_job_id, wms_job_id,
-                                     wfStatus, stepStatus,
-                                     wf_cs, s_cs,
-                                     step_number, step_id )['OK'] )
+        fu = FileUsage(bkClient=bkc_mock, dm=dm_mock)
+        self.assertTrue(fu.execute(prod_id, prod_job_id, wms_job_id,
+                                   wfStatus, stepStatus,
+                                   wf_cs, s_cs,
+                                   step_number, step_id)['OK'])
 
 
 #############################################################################
 # FileUsage.py
 #############################################################################
 
-@patch( "LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect = MagicMock() )
-class CreateDataFileSuccess( ModulesTestCase ):
+@patch("LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect=MagicMock())
+class CreateDataFileSuccess(ModulesTestCase):
 
   #################################################
 
-  def test_execute( self, _patch ):
+  def test_execute(self, _patch):
 
-    cdf = CreateDataFile( bkClient = bkc_mock, dm = dm_mock )
+    cdf = CreateDataFile(bkClient=bkc_mock, dm=dm_mock)
     cdf.jobType = 'merge'
     cdf.stepInputData = ['foo', 'bar']
 
-    for wf_cs in copy.deepcopy( wf_commons ):
+    for wf_cs in copy.deepcopy(wf_commons):
       for s_cs in step_commons:
-        self.assertTrue( cdf.execute( prod_id, prod_job_id, wms_job_id,
-                                      workflowStatus, stepStatus,
-                                      wf_cs, s_cs,
-                                      step_number, step_id )['OK'] )
+        self.assertTrue(cdf.execute(prod_id, prod_job_id, wms_job_id,
+                                    workflowStatus, stepStatus,
+                                    wf_cs, s_cs,
+                                    step_number, step_id)['OK'])
 
 
 #############################################################################
