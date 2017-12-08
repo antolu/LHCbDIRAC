@@ -44,7 +44,10 @@ class TargzJobLogAgent( AgentModule ):
     '''
     AgentModule.__init__( self, *args, **kwargs )
 
-    self.storageElement = StorageElement ( self.am_getOption( 'StorageElement', "CERN-LOGBACKUP" ) )
+    # Do not initialize ANYTHING in the init
+    # but declare it to make pylint happy.
+    self.storageElement = None
+
 
   def initialize( self ):
     """ agent initialisation """
@@ -71,6 +74,7 @@ class TargzJobLogAgent( AgentModule ):
     """ execution in one cycle """
 
     self.log.info( 'Starting Agent loop' )
+    self.storageElement = StorageElement ( self.am_getOption( 'StorageElement', "CERN-LOGBACKUP" ) )
 
     path = os.path.abspath( self.logPath )
 
