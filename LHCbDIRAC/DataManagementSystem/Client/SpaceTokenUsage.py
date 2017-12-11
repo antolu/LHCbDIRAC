@@ -4,10 +4,11 @@ from SRM and if available from storage dumps
 It reports for each site its availability and usage
 """
 
-import time
-import lcg_util
+#FIXME: this should be adapted once https://github.com/DIRACGrid/DIRAC/pull/3572 and what follows will be merged
 
-from DIRAC import gLogger, S_OK, S_ERROR
+import time
+
+from DIRAC import gLogger, S_ERROR
 from DIRAC.Core.DISET.RPCClient import RPCClient
 
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
@@ -45,34 +46,23 @@ def combinedResult(unit, sites=None):
     return S_ERROR("Unit not in %s" % scaleDict.keys())
   scaleFactor = scaleDict[unit]
 
-  for site in sites:
-    sitesSEs[site] = {}
-    # Get SEs at site
-    seList = dmsHelper.getSEsAtSite(site).get('Value', [])
-    for se in seList:
-      spaceToken = StorageElement(se).getStorageParameters(protocol='srm')  # FIXME: remove this limit
-      if spaceToken['OK']:
-        spaceToken = spaceToken['Value']
-        st = spaceToken['SpaceToken']
-        sitesSEs[site].setdefault(st, {}).setdefault('SEs', []).append(se)
-        # Fill in the endpoints
-        # FIXME: should move all this shit in the StorageElement definition
-        ep = 'httpg://%s:%s%s' % (spaceToken['Host'], spaceToken['Port'], spaceToken['WSUrl'].split('?')[0])
-        spaceTokenInfo.setdefault(site.split('.')[1], {}).setdefault(ep, set()).add(st)
-
   fcUsage = {}
   srmUsage = {}
   sdUsage = {}
+
   for site in sites:
     # retrieve space usage from FC
     fcUsage[site] = getFCUsage(site)
 
-    # retrieve SRM usage
-    srmResult = getSrmUsage(site)
-    if srmResult != -1:
-      srmUsage[site] = srmResult
-    else:
-      return 1
+    sitesSEs[site] = {}
+    # Get SEs at site
+    seList = dmsHelper.getSEsAtSite(site).get('Value', [])
+    for se in seList:
+      occupancyResult = StorageElement(se).getOccupancy()
+      if not occupancyResult['OK']:
+        return occupancyResult
+      occupancy = occupancyResult['Value']
+      srmUsage[site] = occupancy
 
     # retrieve space usage from storage dumps:
     sdResult = getSDUsage(site)
@@ -102,38 +92,6 @@ def combinedResult(unit, sites=None):
       else:
         gLogger.notice("\tFrom storage dumps: Information not available")
   return 0
-
-
-def getSrmUsage(lcgSite):  # FIXME: should move this shit in the StorageElement definition (SRM2Storage or GFAL2_SRM2Storage?)
-  """Get space usage via SRM interface
-  """
-  try:
-    site = lcgSite.split('.')[1]
-  except IndexError:
-    site = lcgSite
-  if site not in spaceTokenInfo:
-    gLogger.error("ERROR: information not available for site %s. Space token information from CS: %s "
-                  % (site, sorted(spaceTokenInfo)))
-    return -1
-
-  result = {}
-  for ep, stList in spaceTokenInfo[site].iteritems():
-    for st in stList:
-      result[st] = {}
-      srm = lcg_util.lcg_stmd(st, ep, True, 0)
-      if srm[0]:
-        # This SpaceToken doesn't exist at this endPoint
-        continue
-      srmVal = srm[1][0]
-      srmTotSpace = srmVal['totalsize']
-      srmFree = srmVal['unusedsize']
-      srmUsed = srmTotSpace - srmFree
-      result[st]['SRMUsed'] = srmUsed
-      result[st]['SRMFree'] = srmFree
-      result[st]['SRMTotal'] = srmTotSpace
-  return result
-
-# .................................................
 
 
 def getSDUsage(lcgSite):
@@ -166,7 +124,6 @@ def getFCUsage(lcgSite):
   """ get storage usage from LFC
   """
   if storageSummary is None:
-    # FIXME: this is in LHCbDIRAC. So it should be moved
     res = RPCClient('DataManagement/StorageUsage').getStorageSummary()
     if not res['OK']:
       gLogger.error('ERROR in getStorageSummary ', res['Message'])

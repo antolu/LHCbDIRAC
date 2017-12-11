@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """  Check the space token usage at the site and report the space usage from several sources:
-      File Catalogue, Storage dumps, SRM interface
+      File Catalogue, Storage dumps, StorageElement interface
 """
 
 __RCSID__ = "$Id$"
@@ -23,5 +23,5 @@ if __name__ == "__main__":
 
   Script.parseCommandLine(ignoreErrors=False)
 
-  from LHCbDIRAC.DataManagementSystem.Client.SpaceTokenUsage import SpaceTokenUsage
-  DIRAC.exit(SpaceTokenUsage().execute(unit))
+  from LHCbDIRAC.DataManagementSystem.Client.SpaceTokenUsage import combinedResult
+  DIRAC.exit(combinedResult(unit))
