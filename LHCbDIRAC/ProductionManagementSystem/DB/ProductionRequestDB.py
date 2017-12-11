@@ -178,11 +178,11 @@ class ProductionRequestDB( DB ):
     rec['IsModel'] = 0
 
 
-    recl = [ rec[x] for x in self.requestFields[1:-9] ]
+    recl = [ rec[x] for x in self.requestFields[1:-10] ]
     result = self._fixedEscapeValues( recl )
     if not result['OK']:
       return result
-    recls = result['Value']
+    recls = result['Value'] + ['"None"'] #This is FastSimulationType, which can be None
     
     for dateValues in self.dateColumns:
       recls.append( "STR_TO_DATE('%s','%s')" % ( requestDict.get( dateValues, time.strftime( self.dateFormat ) ), self.dateFormat ) )
