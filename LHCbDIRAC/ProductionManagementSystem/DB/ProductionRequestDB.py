@@ -675,6 +675,9 @@ class ProductionRequestDB( DB ):
           pass
       elif x != 'ProDetail' and str( rec[x] ) == str( old[x] ):
         continue
+      
+      if x == 'RetentionRate' and float(rec[x]) == old[x]:
+        continue
       update[x] = rec[x]
 
     if len( update ) == 0:
