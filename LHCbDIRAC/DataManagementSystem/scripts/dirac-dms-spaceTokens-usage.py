@@ -14,7 +14,6 @@ if __name__ == "__main__":
   unit = 'TB'
   Script.registerSwitch("u:", "Unit=", "   Unit to use [%s] (MB,GB,TB,PB)" % unit)
   Script.registerSwitch("S:", "Sites=", "  Sites to consider [ALL] (space or comma separated list, e.g. LCG.CNAF.it")
-  # Script.registerSwitch( "l:", "Site=", "   LCG Site list to check [%s] (e.g. LCG.CERN.cern, LCG.CNAF.it, ... )" %sites )
 
   Script.setUsageMessage('\n'.join([__doc__.split('\n')[1],
                                     'Usage:',

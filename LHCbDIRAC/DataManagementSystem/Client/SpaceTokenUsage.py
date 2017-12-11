@@ -4,7 +4,7 @@ from SRM and if available from storage dumps
 It reports for each site its availability and usage
 """
 
-#FIXME: this should be adapted once https://github.com/DIRACGrid/DIRAC/pull/3572 and what follows will be merged
+# FIXME: this should be adapted once https://github.com/DIRACGrid/DIRAC/pull/3572 and what follows will be merged
 
 import time
 
