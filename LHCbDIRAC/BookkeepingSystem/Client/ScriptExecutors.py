@@ -216,10 +216,17 @@ def executeFilePath(dmScript):
     res = S_OK({'Successful': success, 'Failed': failed})
     paths = {'Successful': {}, 'Failed': {}}
     for dirName in success:
+      # If there is more than on result, they differ by the visibility
+      bestMetadata = None  # to make pylint happy
+      for bestMetadata in success[dirName]:
+        # It happens that some files are visible and others invisible,
+        #   therefore select the metadata that is visible if any
+        if bestMetadata['VisibilityFlag'] == 'Y':
+          break
       if full:
-        success[dirName] = success[dirName][0]
+        success[dirName] = bestMetadata
       else:
-        bkDict = success[dirName][0]
+        bkDict = bestMetadata
         if ignoreFileType:
           bkDict['FileType'] = ''
         bkDict['Path'] = __buildPath(bkDict)
