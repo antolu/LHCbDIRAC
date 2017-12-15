@@ -1158,6 +1158,7 @@ class TransformationDebug(object):
         gLogger.notice(prStr, prevStatus)
         majorStatus, minorStatus, applicationStatus = prevStatus.split('; ')
         if majorStatus == 'Failed' and ('exited with status' in applicationStatus.lower() or
+                                        'non-zero exit status' in applicationStatus.lower() or
                                         'problem executing application' in applicationStatus.lower()):
           exitedJobs.update(dict.fromkeys(jobs, applicationStatus))
         if majorStatus == 'Failed' and minorStatus == 'Job stalled: pilot not running':
@@ -1234,9 +1235,15 @@ class TransformationDebug(object):
 
       for (lfn, reason), jobs in failedLfns.iteritems():
         jobs = sorted(set(jobs))
-        gLogger.notice("\nERROR ==> %s %s during processing from jobs: %s" %
-                       (lfn, reason, ', '.join("%d (%s)" % (job, jobSites.get(job, 'Unknown'))
-                                               for job in jobs)))
+        js = set(jobSites.get(job, 'Unknown') for job in jobs)
+        # If only one site, print it once only
+        if len(js) == 1:
+          gLogger.notice("\nERROR ==> %s %s during processing from jobs: %s (%s)" %
+                         (lfn, reason, ', '.join(str(job) for job in jobs), list(js)[0]))
+        else:
+          gLogger.notice("\nERROR ==> %s %s during processing from jobs: %s" %
+                         (lfn, reason, ', '.join("%d (%s)" % (job, jobSites.get(job, 'Unknown'))
+                                                 for job in jobs)))
         # Get an example log if possible
         if checkLogs:
           logDump = _checkLog(jobLogURL[jobs[0]])
