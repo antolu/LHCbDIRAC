@@ -1,3 +1,12 @@
+[v9r1p2]
+use DIRAC v6r19p10
+
+* self.siteName is not known in __init__
+* datasets can be visible AND invisible
+* changes to help debugging MaxReset files
+* DOC: maxCPUTime for boinc templates
+* fix the pilot.cfg path
+
 [v9r1p1]
 use DIRAC v6r19p9
 
