@@ -122,8 +122,8 @@ class OracleDB:
       raise Exception('OracleDB.__init__: maxQueueSize must positive')
     try:
       test = maxQueueSize - 1
-    except BaseException:
-      raise Exception('OracleDB.__init__: wrong type for maxQueueSize' + str(test))
+    except TypeError:
+      raise TypeError('OracleDB.__init__: wrong type for maxQueueSize' + str(test))
 
   def _except(self, methodName, x, err):
     """
@@ -233,14 +233,15 @@ class OracleDB:
       cursor = connection.cursor()
       result = None
       results = None
-      if array is not None and array:
-        if isinstance(array[0], basestring):
+      if array:
+        fArray = array[0]
+        if isinstance(fArray, basestring):
           result = cursor.arrayvar(cx_Oracle.STRING, array)
           parameters += [result]
-        elif isinstance(array[0], (int, long)):
+        elif isinstance(fArray, (int, long)):
           result = cursor.arrayvar(cx_Oracle.NUMBER, array)
           parameters += [result]
-        elif isinstance(array[0], list):
+        elif isinstance(fArray, list):
           for i in array:
             if isinstance(i, (bool, basestring, int, long)):
               parameters += [i]
