@@ -1064,6 +1064,8 @@ class DiracLHCb(Dirac):
         ancestorsLFNs = []
         for ancestorsLFN in res['Value']['Successful'].itervalues():
           ancestorsLFNs += [i['FileName'] for i in ancestorsLFN]
+        if isinstance(inputData, basestring):
+          inputData = [inputData]
         inputData += ancestorsLFNs
 
     return S_OK(inputData)
