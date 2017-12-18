@@ -21,7 +21,7 @@ class SpaceTokenUsage(object):
 
   def __init__(self):
     """ c'tor """
-    import lcg_util
+    import lcg_util  # pylint: disable=import-error
     self.lcg_util = lcg_util
     self.storageusage = RPCClient('DataManagement/StorageUsage')
     self.spaceTokenInfo = {}
