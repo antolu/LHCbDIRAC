@@ -298,12 +298,12 @@ class UploadLogFile(ModuleBase):
 
     # Now verify the contents of our target log dir
     successfulFiles = os.listdir(self.logdir)
-    if len(successfulFiles) == 0:
+    if not successfulFiles:
       self.log.info('Failed to copy any files to the target directory.')
       return S_ERROR()
-    else:
-      self.log.info('Prepared %s files in the temporary directory.' % self.logdir)
-      return S_OK()
+
+    self.log.info('Prepared %s files in the temporary directory.' % self.logdir)
+    return S_OK()
 
   #############################################################################
 
