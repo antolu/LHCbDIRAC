@@ -44,7 +44,8 @@ class UploadLogFile(ModuleBase):
     self.logSE = self.opsH.getValue('LogStorage/LogSE', 'LogSE')
     self.logSizeLimit = self.opsH.getValue('LogFiles/SizeLimit', 1 * 1024 * 1024)
     self.logExtensions = self.opsH.getValue('LogFiles/Extensions', [])
-    self.failoverSEs = getDestinationSEList('Tier1-Failover', self.siteName, outputmode='Any')
+    self.failoverSEs = getDestinationSEList(
+        'Tier1-Failover', self.siteName, outputmode='Any')
     self.diracLogo = 'https://lhcb-portal-dirac.cern.ch/DIRAC/'\
                      's:LHCb-Production/g:lhcb_prmgr/static/LHCbDIRAC/img/icons/lhcb.jpg'
     self.logFilePath = ''

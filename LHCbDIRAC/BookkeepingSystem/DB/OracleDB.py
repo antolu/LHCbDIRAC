@@ -123,7 +123,8 @@ class OracleDB:
     try:
       test = maxQueueSize - 1
     except TypeError:
-      raise TypeError('OracleDB.__init__: wrong type for maxQueueSize' + str(test))
+      raise TypeError(
+          'OracleDB.__init__: wrong type for maxQueueSize' + str(test))
 
   def _except(self, methodName, x, err):
     """
