@@ -44,14 +44,13 @@ class UploadLogFile(ModuleBase):
     self.logSE = self.opsH.getValue('LogStorage/LogSE', 'LogSE')
     self.logSizeLimit = self.opsH.getValue('LogFiles/SizeLimit', 1 * 1024 * 1024)
     self.logExtensions = self.opsH.getValue('LogFiles/Extensions', [])
-    self.failoverSEs = getDestinationSEList(
-        'Tier1-Failover', self.siteName, outputmode='Any')
     self.diracLogo = 'https://lhcb-portal-dirac.cern.ch/DIRAC/'\
                      's:LHCb-Production/g:lhcb_prmgr/static/LHCbDIRAC/img/icons/lhcb.jpg'
     self.logFilePath = ''
     self.logLFNPath = ''
     self.logdir = ''
     self.failoverTransfer = None
+    self.failoverSEs = []
 
 ######################################################################
 
@@ -201,6 +200,8 @@ class UploadLogFile(ModuleBase):
     """  Recover the logs to a failover storage element
     """
 
+    # here because self.siteName is not known until execute() is invoked
+    self.failoverSEs = getDestinationSEList('Tier1-Failover', self.siteName, outputmode='Any')
     random.shuffle(self.failoverSEs)
     self.log.info("Attempting to store file %s to the following SE(s):\n%s" % (tarFileName,
                                                                                ', '.join(self.failoverSEs)))
