@@ -4,8 +4,6 @@ from SRM and if available from storage dumps
 It reports for each site its availability and usage
 """
 
-# FIXME: this should be adapted once https://github.com/DIRACGrid/DIRAC/pull/3572 and what follows will be merged
-
 import time
 
 from DIRAC import gLogger, S_ERROR
@@ -16,12 +14,11 @@ from DIRAC.Resources.Storage.StorageElement import StorageElement
 
 sitesSEs = {}
 spaceTokenInfo = {}
-storageSummary = None
 
 
 def combinedResult(unit, sites=None):
   """ Checks the space token usage at the site and report the space usage from several sources:
-      File Catalogue, Storage dumps, SRM interface
+      File Catalog, Storage dumps, SRM interface
   """
 
   dmsHelper = DMSHelpers()
@@ -123,12 +120,11 @@ def getSDUsage(lcgSite):
 def getFCUsage(lcgSite):
   """ get storage usage from LFC
   """
-  if storageSummary is None:
-    res = RPCClient('DataManagement/StorageUsage').getStorageSummary()
-    if not res['OK']:
-      gLogger.error('ERROR in getStorageSummary ', res['Message'])
-      return {}
-    storageSummary = res['Value']
+  res = RPCClient('DataManagement/StorageUsage').getStorageSummary()
+  if not res['OK']:
+    gLogger.error('ERROR in getStorageSummary ', res['Message'])
+    return {}
+  storageSummary = res['Value']
 
   usage = {}
   for st in sitesSEs[lcgSite]:
