@@ -300,6 +300,7 @@ class TransformationDebug(object):
     self.transType = None
     self.fixIt = False
     self.kickRequests = False
+    self.cancelRequests = False
     self.pluginUtil = None
     self.listOfAssignedRequests = {}
     self.transPlugin = None
@@ -821,6 +822,12 @@ class TransformationDebug(object):
             gLogger.notice('\tRequest %d is reset' % requestID)
           else:
             gLogger.notice('\tError resetting request', res['Message'])
+        elif self.cancelRequests:
+          res = self.reqClient.cancelRequest(request)
+          if res['OK']:
+            gLogger.notice('\tRequest %d is canceled' % requestID)
+          else:
+            gLogger.notice('\tError canceling request', res['Message'])
     else:
       selectDict = {'RequestID': requestID}
       res = self.reqClient.getRequestSummaryWeb(selectDict, [], 0, 100000)
@@ -1151,6 +1158,7 @@ class TransformationDebug(object):
         gLogger.notice(prStr, prevStatus)
         majorStatus, minorStatus, applicationStatus = prevStatus.split('; ')
         if majorStatus == 'Failed' and ('exited with status' in applicationStatus.lower() or
+                                        'non-zero exit status' in applicationStatus.lower() or
                                         'problem executing application' in applicationStatus.lower()):
           exitedJobs.update(dict.fromkeys(jobs, applicationStatus))
         if majorStatus == 'Failed' and minorStatus == 'Job stalled: pilot not running':
@@ -1227,9 +1235,15 @@ class TransformationDebug(object):
 
       for (lfn, reason), jobs in failedLfns.iteritems():
         jobs = sorted(set(jobs))
-        gLogger.notice("\nERROR ==> %s %s during processing from jobs: %s" %
-                       (lfn, reason, ', '.join("%d (%s)" % (job, jobSites.get(job, 'Unknown'))
-                                               for job in jobs)))
+        js = set(jobSites.get(job, 'Unknown') for job in jobs)
+        # If only one site, print it once only
+        if len(js) == 1:
+          gLogger.notice("\nERROR ==> %s %s during processing from jobs: %s (%s)" %
+                         (lfn, reason, ', '.join(str(job) for job in jobs), list(js)[0]))
+        else:
+          gLogger.notice("\nERROR ==> %s %s during processing from jobs: %s" %
+                         (lfn, reason, ', '.join("%d (%s)" % (job, jobSites.get(job, 'Unknown'))
+                                                 for job in jobs)))
         # Get an example log if possible
         if checkLogs:
           logDump = _checkLog(jobLogURL[jobs[0]])
@@ -1483,6 +1497,8 @@ class TransformationDebug(object):
         taskList = [int(x) for x in val.split(',')]
       elif opt == 'KickRequests':
         self.kickRequests = True
+      elif opt == 'CancelRequests':
+        self.cancelRequests = True
       elif opt == 'DumpFiles':
         dumpFiles = True
       elif opt == 'Statistics':
@@ -1787,7 +1803,9 @@ class TransformationDebug(object):
         if self.kickRequests:
           gLogger.notice("%d requests have been kicked" % toBeKicked)
         else:
-          gLogger.notice("%d requests are eligible to be kicked (use option --KickRequests)" % toBeKicked)
+          gLogger.notice(
+              "%d requests are eligible to be kicked or canceled (use option --KickRequests or --CancelRequests)" %
+              toBeKicked)
 
       ###########
       # Print out statistics of SEs if relevant (DMS)

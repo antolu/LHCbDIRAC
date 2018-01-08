@@ -1,3 +1,49 @@
+[v9r1p2]
+use DIRAC v6r19p10
+
+* self.siteName is not known in __init__
+* datasets can be visible AND invisible
+* changes to help debugging MaxReset files
+* DOC: maxCPUTime for boinc templates
+* fix the pilot.cfg path
+
+[v9r1p1]
+use DIRAC v6r19p9
+
+* FastSimulationType can be None
+* the retention rate should be float
+* fix case of already replicated RAW files
+* fix test
+* TarGZ: move the instanciation of the SE out of the init
+* remove unused imports
+* get FailoverSes according to getDestinationSEList
+* fix typo
+* cosmetics
+* add logging info
+* PPG can change the newly added fields
+* typo
+* more improvements + progress bar for interactive usage
+* fix exception
+* Allow non interactive usage to print out a message
+* gLogger missing
+* use resolveSEGroup
+* just count processed files
+* fix for last loop
+* make number of files in getFileDescendants a parameter
+* use correct date format
+* fix message
+* fix log level
+* slight optimization
+* optimize checking for descendants for RemoveWhenProcessed
+* remove legacy lower case options, use gLogger
+* use a function for dumping files
+* set Failed as dictionary
+* add SE status in lfn-replicas --All
+* add possibility to exclude sites in DSTBroadcast
+* fix dataManager and LFN list
+* add --CancelRequest option
+* add option --List
+
 [v9r1]
 use DIRAC v6r19p8
 

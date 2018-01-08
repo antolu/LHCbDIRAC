@@ -36,7 +36,7 @@ class ProductionRequestDB( DB ):
     '''
     DB.__init__( self, 'ProductionRequestDB', 'ProductionManagement/ProductionRequestDB' )
     self.dateColumns = ['StartingDate', 'FinalizationDate']
-    self.dateFormat = '%d/%m/%Y'
+    self.dateFormat = '%Y-%m-%d' 
     self.lock = threading.Lock()
 
 #################### Production Requests table ########################
@@ -178,11 +178,11 @@ class ProductionRequestDB( DB ):
     rec['IsModel'] = 0
 
 
-    recl = [ rec[x] for x in self.requestFields[1:-9] ]
+    recl = [ rec[x] for x in self.requestFields[1:-10] ]
     result = self._fixedEscapeValues( recl )
     if not result['OK']:
       return result
-    recls = result['Value']
+    recls = result['Value'] + ['"None"'] #This is FastSimulationType, which can be None
     
     for dateValues in self.dateColumns:
       recls.append( "STR_TO_DATE('%s','%s')" % ( requestDict.get( dateValues, time.strftime( self.dateFormat ) ), self.dateFormat ) )
@@ -538,7 +538,7 @@ class ProductionRequestDB( DB ):
     elif requestState == 'Submitted':
       if creds['Group'] == 'lhcb_ppg':
         for x in update:
-          if not x in ['RequestState', 'RequestWG', 'Comments', 'Inform', 'RequestPriority', 'Extra']:
+          if x not in ('RequestState', 'RequestWG', 'Comments', 'Inform', 'RequestPriority', 'Extra', 'StartingDate', 'FinalizationDate', 'RetentionRate'):
             self.lock.release()
             return S_ERROR( "%s can't be modified during PPG signing" % x )
         if not 'RequestState' in update:
@@ -674,6 +674,9 @@ class ProductionRequestDB( DB ):
           # Which means that now we can update
           pass
       elif x != 'ProDetail' and str( rec[x] ) == str( old[x] ):
+        continue
+      
+      if x == 'RetentionRate' and float(rec[x]) == old[x]:
         continue
       update[x] = rec[x]
 

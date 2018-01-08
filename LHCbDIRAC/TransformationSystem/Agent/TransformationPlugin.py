@@ -5,7 +5,6 @@
 # pylint: disable=missing-docstring
 
 import time
-import os
 import random
 import sys
 
@@ -18,7 +17,6 @@ from DIRAC.TransformationSystem.Agent.TransformationPlugin import Transformation
 from DIRAC.TransformationSystem.Client.Utilities import getFileGroups, sortExistingSEs
 from DIRAC.Resources.Storage.StorageElement import StorageElement
 
-from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery, makeBKPath
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
@@ -284,6 +282,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
             # Here we pass both the number of files and the runID as we can use either metrics
             self.util.updateSharesUsage(existingCount, assignedRAW, len(lfns), runID)
           assignedSE = ','.join(ses)
+        if assignedSE:
           self.util.logVerbose('Creating a task (%d files, run %d) for SEs %s' %
                                (len(lfns), runID, assignedSE))
           tasks.append((assignedSE, lfns))
@@ -813,7 +812,9 @@ class TransformationPlugin(DIRACTransformationPlugin):
     archive1SEs = resolveSEGroup(self.util.getPluginParam('Archive1SEs', []))
     archive2SEs = resolveSEGroup(self.util.getPluginParam('Archive2SEs', []))
     mandatorySEs = resolveSEGroup(self.util.getPluginParam('MandatorySEs', []))
-    secondarySEs = resolveSEGroup(self.util.getPluginParam('SecondarySEs', []))
+    # In order to not have to change the SEGroups when excluding temporarily a site, add exclusion list...
+    excludedSEs = resolveSEGroup(self.util.getPluginParam('ExcludedSEs', []))
+    secondarySEs = list(set(resolveSEGroup(self.util.getPluginParam('SecondarySEs', []))) - set(excludedSEs))
     numberOfCopies = self.util.getPluginParam('NumberOfReplicas', 4)
 
     self.util.logInfo("Starting execution of plugin")
@@ -906,7 +907,9 @@ class TransformationPlugin(DIRACTransformationPlugin):
     archive1SEs = resolveSEGroup(self.util.getPluginParam('Archive1SEs', []))
     archive2SEs = resolveSEGroup(self.util.getPluginParam('Archive2SEs', []))
     mandatorySEs = resolveSEGroup(self.util.getPluginParam('MandatorySEs', []))
-    secondarySEs = resolveSEGroup(self.util.getPluginParam('SecondarySEs', []))
+    # In order to not have to change the SEGroups when excluding temporarily a site, add exclusion list...
+    excludedSEs = resolveSEGroup(self.util.getPluginParam('ExcludedSEs', []))
+    secondarySEs = list(set(resolveSEGroup(self.util.getPluginParam('SecondarySEs', []))) - set(excludedSEs))
     numberOfCopies = self.util.getPluginParam('NumberOfReplicas', 3)
     excludedFileTypes = self.util.getPluginParam('ExcludedFileTypes', ['GAUSSHIST', 'BRUNELHIST', 'DAVINCIHIST'])
 
@@ -1353,6 +1356,8 @@ class TransformationPlugin(DIRACTransformationPlugin):
     """
     keepSEs = resolveSEGroup(self.util.getPluginParam('KeepSEs', []))
     fromSEs = set(resolveSEGroup(self.util.getPluginParam('FromSEs', []))) - set(keepSEs)
+    # Ignore files that are at a banned SE
+    bannedSEs = set(se for se in fromSEs if not StorageElement(se).status()['Remove'])
     if not fromSEs:
       self.util.logError('No SEs where to delete from, check overlap with %s' % keepSEs)
       return S_OK([])
@@ -1365,51 +1370,31 @@ class TransformationPlugin(DIRACTransformationPlugin):
       self.util.logWarn("No processing pass(es)")
       return S_OK([])
 
-    transQuery = self.util.getTransQuery(self.transReplicas)
-    if transQuery is None:
-      return S_ERROR("Could not get transformation BK query")
-    transProcPass = transQuery['ProcessingPass']
-    eventType = transQuery['EventType']
-    if not transProcPass:
-      self.util.logError('Unable to find processing pass for transformation')
-      return S_ERROR('No processing pass found')
+    maxTime = self.util.getPluginParam('MaxTimeAllowed', 0)
+    pluginStartTime = time.time()
 
-    fullBKPaths = [bkPath for bkPath in processingPasses if bkPath.startswith('/')]
-    relBKPaths = [bkPath for bkPath in processingPasses if not bkPath.startswith('/')]
-    bkPathList = {}
-    if fullBKPaths:
-      # We were given full BK paths, use them
-      bkQuery = BKQuery(bkPath, visible='All')
-      eventType = bkQuery.getEventTypeList()
-      bkPathList.update(dict((bkPath.replace('RealData', 'Real Data'), bkQuery.getQueryDict()['ProcessingPass'])
-                             for bkPath in fullBKPaths))
-
-    if relBKPaths:
-      for procPass in relBKPaths:
-        if not transProcPass.endswith(procPass):
-          newPass = os.path.join(transProcPass, procPass)
-        else:
-          newPass = procPass
-        transQuery.update({'ProcessingPass': newPass, 'Visibility': 'All'})
-        transQuery.pop('FileType', None)
-        bkPathList[makeBKPath(transQuery)] = newPass
-    self.util.logVerbose('List of BK paths:', '\n\t'.join([''] + ['%s: %s' %
-                                                                  (bkPath.replace('Real Data', 'RealData'),
-                                                                   bkPathList[bkPath].replace('Real Data', 'RealData'))
-                                                                  for bkPath in sorted(bkPathList)]))
-    # Now we must find out whether the input files have a descendant in these BK paths
-
+    self.util.setCachedTimeExceeded(False)
     try:
-      productions = self.util.getProductions(bkPathList, eventType, transStatus)
+      # Now we must find out whether the input files have a descendant in the processing passes
+      result = self.util.getProductions(processingPasses, transStatus)
+      if not result['OK']:
+        return result
+      if not result['Value']:
+        return S_OK([])
+      bkPathList, productions = result['Value']
       if productions is None or not productions.get('List'):
         return S_OK([])
 
+      # Group files per StorageElement
       replicaGroups = getFileGroups(self.transReplicas)
       self.util.logVerbose("Using %d input files, in %d groups" % (len(self.transReplicas), len(replicaGroups)))
       storageElementGroups = {}
       newGroups = {}
       for stringSEs, lfns in replicaGroups.iteritems():
         replicaSEs = set(stringSEs.split(','))
+        if replicaSEs & bannedSEs:
+          # Ignore these files
+          continue
         targetSEs = fromSEs & replicaSEs
         if not targetSEs:
           # This is a fake to have a placeholder for the replica location... Later it is not used
@@ -1420,66 +1405,65 @@ class TransformationPlugin(DIRACTransformationPlugin):
           self.util.logInfo("%d files are only in required list (only at %s), don't remove (yet)" %
                             (len(lfns), ','.join(sorted(replicaSEs))))
         else:
+          self.util.logVerbose("%d files are in required list (also at %s)" %
+                               (len(lfns), ','.join(sorted(replicaSEs - fromSEs))))
           newGroups.setdefault(','.join(sorted(targetSEs)), []).extend(lfns)
 
       # Restrict the query to the BK to the interesting productions
-      transPassLen = len(transProcPass.split('/'))
-      newMethod = True
-      for stringTargetSEs in sorted(newGroups):
-        lfns = newGroups[stringTargetSEs]
-        self.util.logInfo('Checking descendants for %d files at %s' % (len(lfns), stringTargetSEs))
+      #####################
+      # Loop on storages  #
+      #####################
+      for stringTargetSEs in randomize(newGroups):
+        # if enough time already spent, exit
+        # this is better placed at the beginning of the loop in case timeout in last item
+        timeSpent = time.time() - pluginStartTime
+        if maxTime and timeSpent > maxTime:
+          # We break the loop here and set a flag in the cached file to execute next time
+          self.util.setCachedTimeExceeded(True)
+          self.util.logInfo("Enough time spent in plugin (%.1f seconds), exit" % (timeSpent))
+          break
+
+        lfns = set(newGroups[stringTargetSEs])
         # Use the cached information if any
         bkPathsToCheck = dict((lfn, set(self.util.cachedLFNProcessedPath.get(lfn, bkPathList)) & set(bkPathList))
                               for lfn in lfns)
-        # Only check files that are not fully processed
+        # Only check files that are not fully processed (cache contains processing passes still not done)
         lfnsToCheck = set(lfn for lfn in bkPathsToCheck if bkPathsToCheck[lfn])
+        self.util.logInfo('Checking descendants for %d files at %s' % (len(lfnsToCheck), stringTargetSEs))
         # Update with the cached information
+        remaining = len(bkPathList)
         for bkPath in bkPathList:
+          # How many iterations are left?
+          remaining -= 1
           prods = productions['List'][bkPath]
           # If there is nothing left to do, exit
           if not prods or not lfnsToCheck:
             break
           lfnsToCheckForPath = set(lfn for lfn in lfnsToCheck if bkPath in bkPathsToCheck[lfn])
-          depth = len(bkPathList[bkPath].split('/')) - transPassLen + 1
-          self.util.logVerbose('Checking descendants for %d files in productions %s, depth %d' %
-                               (len(lfnsToCheckForPath),
-                                ','.join(str(prod) for prod in prods),
-                                depth))
-          lfnLeft = self.util.selectProcessedFiles(lfnsToCheckForPath, prods)
-          for prod in sorted(prods, reverse=True) if not newMethod else [None]:
-            if not lfnLeft:
-              # No files have been processed, go to next bkPath
-              break
-            if prod:
-              self.util.logVerbose('Checking descendants for %d files in production %d, depth %d' %
-                                   (len(lfnLeft), prod, depth))
-            startTime = time.time()
-            processedLfns = set()
-            for lfnChunk in breakListIntoChunks(lfnLeft, 20):
-              res = self.util.checkForDescendants(lfnChunk, prods) if newMethod\
-                  else self.bkClient.getFileDescendants(lfnChunk,
-                                                        production=prod,
-                                                        depth=depth,
-                                                        checkreplica=True)
-              if res['OK']:
-                processedLfns.update(res['Value'])
-              else:
-                self.util.logError("Error checking descendants using %s" %
-                                   ('utility' if newMethod else 'BK'), res['Message'])
-            self.util.logVerbose('Found %s descendants in %.1f seconds' %
-                                 (len(processedLfns) if processedLfns else 'no',
-                                  time.time() - startTime))
-            for lfn in processedLfns:
-              if bkPath not in bkPathsToCheck[lfn]:
-                self.util.logWarn('LFN not in list: %s' % lfn, str(bkPathsToCheck[lfn]))
-              else:
-                bkPathsToCheck[lfn].remove(bkPath)
-            lfnLeft -= processedLfns
-          notProcessed = set(lfn for lfn in lfnsToCheckForPath if bkPath in bkPathsToCheck[lfn])
-          if notProcessed:
-            self.util.logVerbose("%d files not processed by processing pass %s, don't check further" %
-                                 (len(notProcessed), bkPathList[bkPath]))
-            lfnsToCheck -= notProcessed
+          if not lfnsToCheckForPath:
+            continue
+          startTime = time.time()
+          res = self.util.checkForDescendants(lfnsToCheckForPath, prods)
+          if not res['OK']:
+            self.util.logError("Error checking descendants using utility", res['Message'])
+          processedLfns = res.get('Value', set())
+          self.util.logVerbose('Found %s processed files in %.1f seconds' %
+                               (len(processedLfns) if processedLfns else 'no',
+                                time.time() - startTime))
+          # Remove bkPath from processing passes to check for lLFNs found processed
+          for lfn in processedLfns:
+            if bkPath not in bkPathsToCheck[lfn]:
+              self.util.logWarn('LFN not in list: %s' % lfn, str(bkPathsToCheck[lfn]))
+            else:
+              bkPathsToCheck[lfn].remove(bkPath)
+          lfnsToCheckForPath -= processedLfns
+          # Only worth checking if not the last processing pass
+          if remaining:
+            notProcessed = set(lfn for lfn in lfnsToCheckForPath if bkPath in bkPathsToCheck[lfn])
+            if notProcessed:
+              self.util.logVerbose("%d files not processed by processing pass %s, don't check further" %
+                                   (len(notProcessed), bkPathList[bkPath]))
+              lfnsToCheck -= notProcessed
 
         lfnsProcessed = [lfn for lfn in lfns if not bkPathsToCheck[lfn]]
         self.util.cachedLFNProcessedPath.update(bkPathsToCheck)
@@ -1498,6 +1482,10 @@ class TransformationPlugin(DIRACTransformationPlugin):
             self.transClient.setFileStatusForTransformation(self.transID, 'Processed', lfnsProcessed)
           else:
             storageElementGroups.setdefault(stringTargetSEs, []).extend(lfnsProcessed)
+
+        ###############
+        # End of loop #
+        ###############
       if not storageElementGroups:
         return S_OK([])
     except Exception as e:  # pylint: disable=broad-except
@@ -1622,21 +1610,21 @@ class TransformationPlugin(DIRACTransformationPlugin):
         shortSEs = [se for se in candidateSEs if maxFilesAtSE.get(se, sys.maxsize) == 0]
         candidateSEs = [se for se in candidateSEs if se not in shortSEs]
         if not candidateSEs:
-          self.util.logVerbose("No candidate SE where files are accepted (%s not allowed)" % ','.join(shortSEs))
+          self.util.logInfo("No candidate SE where more files are accepted (%s not allowed)" % ','.join(shortSEs))
         else:
           # Check if enough free space
           freeSpace = self.util.getStorageFreeSpace(candidateSEs)
           shortSEs = [se for se in candidateSEs if freeSpace[se] < watermark]
           candidateSEs = [se for se in candidateSEs if se not in shortSEs]
           if not candidateSEs:
-            self.util.logVerbose("No enough space (%s TB) found at %s" % (watermark, ','.join(shortSEs)))
+            self.util.logInfo("No enough space (%s TB) found at %s" % (watermark, ','.join(shortSEs)))
           else:
             # Select a single SE out of candidates; in most cases there is one only
             candidateSE = candidateSEs[0]
             maxToReplicate = maxFilesAtSE.get(candidateSE, sys.maxsize)
             if maxToReplicate < len(lfns):
-              self.util.logVerbose("Limit number of files for %s to %d (out of %d)" %
-                                   (candidateSE, maxToReplicate, len(lfns)))
+              self.util.logInfo("Limit number of files for %s to %d (out of %d)" %
+                                (candidateSE, maxToReplicate, len(lfns)))
             else:
               self.util.logVerbose("Number of files for %s: %d" % (candidateSE, len(lfns)))
             storageElementGroups.setdefault(candidateSE, []).extend(lfns[:maxToReplicate])
