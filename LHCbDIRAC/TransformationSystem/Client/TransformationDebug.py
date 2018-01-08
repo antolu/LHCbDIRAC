@@ -1129,10 +1129,10 @@ class TransformationDebug(object):
         gLogger.notice('Error getting jobs statuses:', allStatus['Message'])
         return
       if byFiles or len(lfnList) < 3:
-        gLogger.notice('\n %d LFNs: %s : Status of corresponding %d jobs (ordered):' %
+        gLogger.notice('\n %d LFNs: %s : Status of corresponding %d jobs (sorted):' %
                        (len(lfnList), lfnList, len(allJobs)))
       else:
-        gLogger.notice('\n %d LFNs: Status of corresponding %d jobs (ordered):' % (len(lfnList), len(allJobs)))
+        gLogger.notice('\n %d LFNs: Status of corresponding %d jobs (sorted):' % (len(lfnList), len(allJobs)))
       # Get the sites
       jobSites.update(self.__getJobSites(allJobs))
       gLogger.notice(', '.join(allJobs))
