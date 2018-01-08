@@ -1104,6 +1104,41 @@ class TransformationDebug(object):
       return {}
     return dict((job, jobSites[job]['Site']) for job in jobs)
 
+  def __getJobCPU(self, job):
+    """
+    Get the status of a (list of) job, return it formated <major>;<minor>;<application>
+    """
+    if isinstance(job, basestring):
+      jobs = [int(job)]
+    elif isinstance(job, (long, int)):
+      jobs = [job]
+    else:
+      jobs = list(int(jid) for jid in job)
+    if not self.monitoring:
+      self.monitoring = RPCClient('WorkloadManagement/JobMonitoring')
+    jobCPU = {}
+    stdoutTag = ' (h:m:s)'
+    for job in jobs:
+      param = 'TotalCPUTime(s)'
+      res = self.monitoring.getJobParameter(job, param)
+      if res['OK'] and param in res['Value']:
+        jobCPU[job] = res['Value'][param] + ' s'
+      else:
+        # Try and get the stdout
+        param = 'StandardOutput'
+        res = self.monitoring.getJobParameter(job, param)
+        if res['OK']:
+          try:
+            for line in res['Value'].get(param, '').splitlines():
+              if stdoutTag in line:
+                cpu = line.split(stdoutTag)[0].split()[-1].split(':')
+                cpu = 3600 * int(cpu[0]) + 60 * int(cpu[1]) + int(cpu[2])
+                jobCPU[job] = '%d s' % cpu
+                break
+          except (IndexError, ValueError):
+            pass
+    return jobCPU
+
   def __checkJobs(self, jobsForLfn, byFiles=False, checkLogs=False):
     """
     Extract all information about jobs referring to list of LFNs
@@ -1120,6 +1155,7 @@ class TransformationDebug(object):
     failedLfns = {}
     jobLogURL = {}
     jobSites = {}
+    jobCPU = {}
     for lfnStr, allJobs in jobsForLfn.iteritems():
       lfnList = lfnStr.split(',')
       exitedJobs = {}
@@ -1135,8 +1171,12 @@ class TransformationDebug(object):
         gLogger.notice('\n %d LFNs: Status of corresponding %d jobs (sorted):' % (len(lfnList), len(allJobs)))
       # Get the sites
       jobSites.update(self.__getJobSites(allJobs))
-      gLogger.notice(', '.join(allJobs))
-      gLogger.notice('Sites:', ', '.join(jobSites.get(int(job), 'Unknown') for job in allJobs))
+      jobCPU.update(self.__getJobCPU(allJobs))
+      gLogger.notice('Jobs:', ', '.join(allJobs))
+      gLogger.notice(
+          'Sites (CPU):', ', '.join('%s (%s)' %
+                                    (jobSites.get(int(job), 'Site unknown'),
+                                     jobCPU.get(int(job), 'CPU unknown')) for job in allJobs))
       prevStatus = None
       allStatus[sys.maxsize] = ''
       jobs = []
