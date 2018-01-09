@@ -79,7 +79,7 @@ except SyntaxError:
   recoOutputVisFlagSpecial = {}
 
 # stripp params
-strippPriority = int( '{{priority#PROD-2:Stripping: priority#5}}' )
+strippPriority = int( '{{priority#PROD-2:Stripping: priority#2}}' )
 strippCPU = '{{StrippMaxCPUTime#PROD-2:Stripping: Max CPU time in secs#1000000}}'
 strippPlugin = '{{StrippPluginType#PROD-2:Stripping: plugin name#ByRunWithFlush}}'
 strippFilesPerJob = '{{StrippFilesPerJob#PROD-2:Stripping: Group size or number of files per job#2}}'

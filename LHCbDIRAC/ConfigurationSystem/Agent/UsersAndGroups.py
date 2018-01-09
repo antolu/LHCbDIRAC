@@ -2,6 +2,9 @@
   Update Users and Groups from VOMS on CS
 '''
 
+# FIXME: 18/12/2017: superseded by the the VOMS2CSAgent (since long)
+# can be removed completely
+
 import os
 from time import time
 from DIRAC                                           import S_OK, S_ERROR, gConfig
