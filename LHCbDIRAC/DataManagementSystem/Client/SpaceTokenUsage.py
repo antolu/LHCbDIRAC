@@ -65,6 +65,7 @@ def combinedResult(unit, sites=None):
     sdResult = getSDUsage(site)
     if sdResult != -1:
       sdUsage[site] = sdResult
+
     else:
       return 1
 

@@ -1056,6 +1056,9 @@ class DiracLHCb(Dirac):
     """
     inputData = parameters.get('InputData')
     if inputData:
+      if isinstance(inputData, basestring):
+        inputData = inputData.split(';')
+      inputData = [lfn.strip('LFN:') for lfn in inputData]
       ancestorsDepth = int(parameters.get('AncestorDepth', 0))
       if ancestorsDepth:
         res = self._bkClient.getFileAncestors(inputData, ancestorsDepth)
