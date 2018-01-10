@@ -1081,9 +1081,10 @@ class TransformationDebug(object):
     if not res['OK']:
       return {}
     return dict((job, '%s; %s; %s' %
-                 (jobStatus[job]['Status'],
-                  jobMinorStatus[job]['MinorStatus'],
-                  jobApplicationStatus[job]['ApplicationStatus'])) for job in jobs)
+                 (jobStatus.get(job, {}).get('Status', 'Unknown'),
+                  jobMinorStatus.get(job, {}).get('MinorStatus', 'Unknown'),
+                  jobApplicationStatus.get(job, {}).get('ApplicationStatus', 'Unknown')))
+                for job in jobs)
 
   def __getJobSites(self, job):
     """
@@ -1102,7 +1103,7 @@ class TransformationDebug(object):
       jobSites = res['Value']
     else:
       return {}
-    return dict((job, jobSites[job]['Site']) for job in jobs)
+    return dict((job, jobSites.get(job, {}).get('Site', 'Unknown')) for job in jobs)
 
   def __getJobCPU(self, job):
     """
