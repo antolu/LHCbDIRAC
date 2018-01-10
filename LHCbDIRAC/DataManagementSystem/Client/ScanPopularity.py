@@ -85,7 +85,7 @@ def cacheDirectories(directories):
   for lfns in breakListIntoChunks(dirShort2Long.values(), chunkSize):
     res = duClient.getDirMetadata(lfns)
     if not res['OK']:
-      gLogger.fatal("\nError getting metadata from DataUsage", res['Message'])
+      gLogger.error("\nError getting metadata from DataUsage", res['Message'])
     else:
       dirMetadata.update(res['Value'])
 
@@ -116,7 +116,7 @@ def cacheDirectories(directories):
       while True:
         res = bkClient.getDirectoryMetadata(lfns)
         if not res['OK']:
-          gLogger.fatal("\nError getting BK metadata", res['Message'])
+          gLogger.error("\nError getting BK metadata", res['Message'])
         else:
           break
       success.update(res['Value'].get('Successful', {}))
@@ -153,7 +153,7 @@ def cacheDirectories(directories):
       while True:
         res = suClient.getSummary(lfn)
         if not res['OK']:
-          gLogger.fatal('Error getting LFN storage usage %s' % lfn, res['Message'])
+          gLogger.error('Error getting LFN storage usage %s' % lfn, res['Message'])
         else:
           break
       bkPath = bkPathForLfn[dirShort2Long[lfn]]
@@ -169,7 +169,7 @@ def cacheDirectories(directories):
       while True:
         res = suClient.getDirectorySummaryPerSE(lfn)
         if not res['OK']:
-          gLogger.fatal('Error getting storage usage per SE %s' % lfn, res['Message'])
+          gLogger.error('Error getting storage usage per SE %s' % lfn, res['Message'])
         else:
           break
       info = physicalDataUsage.setdefault(lfn, {})
@@ -249,7 +249,7 @@ def getPhysicalUsage(baseDir):
   while True:
     res = suClient.getStorageDirectoryData(baseDir, None, None, None, timeout=3600)
     if not res['OK']:
-      gLogger.fatal("Error getting list of directories for %s" % baseDir, res['Message'])
+      gLogger.error("Error getting list of directories for %s" % baseDir, res['Message'])
     else:
       break
   # The returned value is a dictionary of all directory leaves
@@ -394,7 +394,11 @@ def scanPopularity(since, getAllDatasets, topDirectory='/lhcb', csvFile=None):
                                                      for bkPath in timeUsage))
     for bkPath in sorted(timeUsage):
       if bkPath not in datasetStorage['Disk'] | datasetStorage['Archived'] | datasetStorage['Tape']:
-        datasetStorage[storageType(usedSEs[bkPath])].add(bkPath)
+        ses = usedSEs.get(bkPath)
+        if ses is None:
+          gLogger.error("BK path not in usedSEs", bkPath)
+        else:
+          datasetStorage[storageType(ses)].add(bkPath)
       nLfns, lfnSize = bkPathUsage.get(bkPath, {}).get('LFN', (0, 0))
       nPfns, pfnSize = bkPathUsage.get(bkPath, {}).get('All', (0, 0))
       gLogger.always('%s (%d LFNs, %s), (%d PFNs, %s, %.1f replicas)' %
