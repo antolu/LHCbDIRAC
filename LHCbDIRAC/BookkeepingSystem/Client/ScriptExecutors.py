@@ -630,7 +630,7 @@ def executeGetFiles(dmScript, maxFiles=20):
       bkQueries += [BKQuery(ll.strip().split()[0]) for ll in fd.readlines()]
 
   if not bkQueries:
-    gLogger.notice("No BK query given, use --BK <bkPath> or --BKFile <localFile>")
+    gLogger.notice("No BK query given, use --BKQuery <bkPath> or <localFile>")
     diracExit(1)
 
   fileDict = {}

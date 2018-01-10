@@ -229,14 +229,15 @@ class DMScript(object):
     Register switches related to bookkeeping
     """
     # BK query switches
-    Script.registerSwitch("P:", "Productions=",
-                          "   Production ID to search (comma separated list)", self.setProductions)
+    Script.registerSwitch("B:", "BKQuery=", "   Bookkeeping query path", self.setBKQuery)
     Script.registerSwitch("f:", "FileType=",
                           "   File type (comma separated list, to be used with --Production) [All]", self.setFileType)
     Script.registerSwitch('', "ExceptFileType=",
                           "   Exclude the (list of) file types when all are requested", self.setExceptFileTypes)
-    Script.registerSwitch("B:", "BKQuery=", "   Bookkeeping query path", self.setBKQuery)
+    Script.registerSwitch('', 'EventType=', '   Event type', self.setEventType)
     Script.registerSwitch("r:", "Runs=", "   Run or range of runs (r1:r2)", self.setRuns)
+    Script.registerSwitch("P:", "Productions=",
+                          "   Production ID to search (comma separated list)", self.setProductions)
     Script.registerSwitch('', "DQFlags=", "   DQ flag used in query", self.setDQFlags)
     Script.registerSwitch('', "StartDate=", "   Start date for the BK query", self.setStartDate)
     Script.registerSwitch('', "EndDate=", "   End date for the BK query", self.setEndDate)
@@ -306,6 +307,12 @@ class DMScript(object):
     """ Setter """
     fileTypes = arg.split(',')
     self.options['FileType'] = fileTypes
+    return DIRAC.S_OK()
+
+  def setEventType(self, arg):
+    """ Setter """
+    eventTypes = arg.split(',')
+    self.options['EventType'] = eventTypes
     return DIRAC.S_OK()
 
   def setExceptFileTypes(self, arg):
@@ -509,7 +516,10 @@ class DMScript(object):
     """
     Returns a BKQuery object from the requested BK information
     """
-    mandatoryKeys = {'ConfigName', 'ConfigVersion', 'Production'}
+    mandatoryKeys = {('ConfigName', 'ConfigVersion'),
+                     'Production',
+                     ('FileType', 'RunNumber'),
+                     ('FileType', 'StartRun')}
     if self.bkClientQuery:
       return self.bkClientQuery
     if self.bkClientQueryDict:
@@ -520,9 +530,19 @@ class DMScript(object):
       prods = self.options.get('Productions')
       runs = self.options.get('Runs')
       fileTypes = self.options.get('FileType')
-      self.bkClientQuery = BKQuery(bkPath, prods, runs, fileTypes, visible)
+      eventTypes = self.options.get('EventType')
+      self.bkClientQuery = BKQuery(bkQuery=bkPath, prods=prods, runs=runs,
+                                   fileTypes=fileTypes, eventTypes=eventTypes, visible=visible)
     bkQueryDict = self.bkClientQuery.getQueryDict()
-    if not set(bkQueryDict) & mandatoryKeys:
+    found = False
+    for key in mandatoryKeys:
+      if isinstance(key, basestring) and key in bkQueryDict:
+        found = True
+        break
+      elif isinstance(key, (list, tuple)) and not set(key) - set(bkQueryDict):
+        found = True
+        break
+    if not found:
       self.bkClientQuery = None
       return None
     # Add extra requirements
