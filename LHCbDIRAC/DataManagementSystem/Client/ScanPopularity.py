@@ -113,10 +113,11 @@ def cacheDirectories(directories):
     gLogger.always('Getting BK metadata for %d directories' % len(lfnsFromBK))
     success = {}
     for lfns in breakListIntoChunks(lfnsFromBK, chunkSize):
-      while True:
+      for trial in xrange(10, -1, -1):
         res = bkClient.getDirectoryMetadata(lfns)
-        if not res['OK']:
-          gLogger.error("\nError getting BK metadata", res['Message'])
+        if not res['OK'] and not trial:
+          gLogger.fatal("\nError getting BK metadata", res['Message'])
+          DIRAC.exit(1)
         else:
           break
       success.update(res['Value'].get('Successful', {}))
@@ -150,10 +151,11 @@ def cacheDirectories(directories):
     gLogger.info('\n'.join(sorted(missingSU)))
     for lfn in missingSU:
       # LFN usage
-      while True:
+      for trial in xrange(10, -1, -1):
         res = suClient.getSummary(lfn)
-        if not res['OK']:
-          gLogger.error('Error getting LFN storage usage %s' % lfn, res['Message'])
+        if not res['OK'] and not trial:
+          gLogger.fatal('Error getting LFN storage usage %s' % lfn, res['Message'])
+          DIRAC.exit(1)
         else:
           break
       bkPath = bkPathForLfn[dirShort2Long[lfn]]
@@ -166,10 +168,11 @@ def cacheDirectories(directories):
     # # get the PFN usage per storage type
     gLogger.always('Check storage type and PFN usage for %d directories' % len(dirSet))
     for lfn in dirSet:
-      while True:
+      for trial in xrange(10, -1, -1):
         res = suClient.getDirectorySummaryPerSE(lfn)
-        if not res['OK']:
-          gLogger.error('Error getting storage usage per SE %s' % lfn, res['Message'])
+        if not res['OK'] and not trial:
+          gLogger.fatal('Error getting storage usage per SE %s' % lfn, res['Message'])
+          DIRAC.exit(1)
         else:
           break
       info = physicalDataUsage.setdefault(lfn, {})
@@ -246,10 +249,11 @@ def getPhysicalUsage(baseDir):
   """
   Extract information about storage usage from the StorageusageDB
   """
-  while True:
+  for trial in xrange(10, -1, -1):
     res = suClient.getStorageDirectoryData(baseDir, None, None, None, timeout=3600)
-    if not res['OK']:
-      gLogger.error("Error getting list of directories for %s" % baseDir, res['Message'])
+    if not res['OK'] and not trial:
+      gLogger.fatal("Error getting list of directories for %s" % baseDir, res['Message'])
+      DIRAC.exit(1)
     else:
       break
   # The returned value is a dictionary of all directory leaves
