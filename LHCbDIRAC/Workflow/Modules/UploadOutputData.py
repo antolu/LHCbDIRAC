@@ -129,7 +129,7 @@ class UploadOutputData( ModuleBase ):
       # Get final, resolved SE list for files
       final = {}
 
-      for fileName, metadata in fileMetadata.items():
+      for fileName, metadata in fileMetadata.iteritems():
         if not SEs:
           resolvedSE = getDestinationSEList( metadata['workflowSE'], self.siteName, self.outputMode,
                                              self.workflow_commons.get( 'runNumber' ) )
@@ -141,7 +141,7 @@ class UploadOutputData( ModuleBase ):
       self.log.info( "The following files will be uploaded: %s" % ( ', '.join( final.keys() ) ) )
       for fileName, metadata in final.items():
         self.log.info( '--------%s--------' % fileName )
-        for name, val in metadata.items():
+        for name, val in metadata.iteritems():
           self.log.info( '%s = %s' % ( name, val ) )
 
       if not self._enableModule():
@@ -298,19 +298,34 @@ class UploadOutputData( ModuleBase ):
       if not performBKRegistration:
         self.log.info( "There are no files to perform the BK registration for, all are in failover" )
       else:
-        result = FileCatalog( catalogs = ['BookkeepingDB'] ).addFile( [lfnMeta['lfn'] for lfnMeta in performBKRegistration] )
+        # performing BK registration
+        
+        # Getting what should be registered immediately, and what later
+        lfnsToRegisterInBK = set([metadata['filedict']['LFN'] for metadata in performBKRegistration])
+        lfnsToRegisterInBKNow = self._getLFNsForBKRegistration(lfnsToRegisterInBK)
+        lfnsToRegisterInBKLater = list(lfnsToRegisterInBK - set(lfnsToRegisterInBKNow))
+
+        # Registering what should be registering immediately, and handling failures
+        result = FileCatalog( catalogs = ['BookkeepingDB'] ).addFile( lfnsToRegisterInBKNow )
         self.log.verbose( "BookkeepingDB.addFile: %s" % result )
         if not result['OK']:
           self.log.error( result )
           return S_ERROR( "Could Not Perform BK Registration" )
         if 'Failed' in result['Value'] and result['Value']['Failed']:
-          for lfn, error in result['Value']['Failed'].items():
+          for lfn, error in result['Value']['Failed'].iteritems():
             lfnMetadata = {}
             for lfnMD in performBKRegistration:
-              if lfnMD['lfn'] == lfn:
+              if lfnMD['lfn'] == lfn: # the lfn is indeed both at lfnMD['lfn'] and at lfnMD['filedict']['LFN']
                 lfnMetadata = lfnMD['filedict']
                 break
             self.setBKRegistrationRequest( lfn, error = error, metaData = lfnMetadata )
+
+        # Adding a registration request for what whould be registered later
+        if lfnsToRegisterInBKLater:
+          for lfnMD in performBKRegistration:
+            if lfnMD['lfn'] in lfnsToRegisterInBKLater:
+              lfnMetadata = lfnMD['filedict']
+              self.setBKRegistrationRequest( lfnMD['lfn'], metaData = lfnMetadata )
 
       self.workflow_commons['Request'] = self.request
 
@@ -326,6 +341,27 @@ class UploadOutputData( ModuleBase ):
 
 
   #############################################################################
+
+  def _getLFNsForBKRegistration(self, lfns):
+    """ Check what should be registered immediately in the BK, and what later.
+        If there's a request in self.request for registering the file in the FC,
+        don't perform the registration in the BK immediately:
+        in this case the file should be registered with an operation
+
+    :param list lfnsList: an iterable of LFNs
+    :return: list of LFNs to be registered immediately
+
+    """
+
+    postPonePerformBKRegistration = []
+    for op in self.request:
+      if op.Type == 'RegisterFile': # We assume that this is a registerFile operation for the DFC... what else?
+        for fileInOp in op:
+          if fileInOp.LFN in lfns:
+            postPonePerformBKRegistration.append(fileInOp.LFN)
+
+    return list(set(lfns) - set(postPonePerformBKRegistration))
+
 
   def _cleanUp( self, final ):
     """ Clean up uploaded data for the LFNs in the list

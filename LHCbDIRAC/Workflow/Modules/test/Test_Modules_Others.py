@@ -349,7 +349,7 @@ class UploadOutputDataSuccess(ModulesTestCase):
             continue
           wf_cs['outputList'] = [{'outputDataType': 'txt', 'outputDataName': 'foo.txt'},
                                  {'outputDataType': 'txt', 'outputDataName': 'bar.txt'},
-                                 ]
+                                ]
           wf_cs['ProductionOutputData'] = ['/lhcb/MC/2010/DST/00012345/0001/foo.txt',
                                            '/lhcb/MC/2010/DST/00012345/0001/bar.txt']
 #          bkc_mock.getFileDescendants.return_value = {'OK': False,
@@ -391,6 +391,42 @@ class UploadOutputDataSuccess(ModulesTestCase):
 #              self.assertFalse( res['OK'] )
           os.remove('foo.txt')
           os.remove('bar.txt')
+
+  def test__getLFNsForBKRegistration(self, _p):
+
+    f1 = File()
+    f1.LFN = '/a/1.txt'
+    f2 = File()
+    f2.LFN = '/a/2.txt'
+    f3 = File()
+    f3.LFN = '/a/3.txt'
+
+    o1 = Operation()
+    o1.Type = 'RegisterFile'
+    o1.addFile(f1)
+    o2 = Operation()
+    o2.Type = 'RegisterFile'
+    o2.addFile(f2)
+    o3 = Operation()
+    o3.Type = 'ForwardDISET'
+    o4 = Operation()
+    o4.Type = 'RegisterFile'
+    o4.addFile(f1)
+    o4.addFile(f3)
+
+    r = Request()
+    r.addOperation(o4)
+    r.addOperation(o1)
+    r.addOperation(o2)
+    r.addOperation(o3)
+
+    uod = UploadOutputData(bkClient=bkc_mock, dm=dm_mock)
+    uod.request = r
+
+    lfns = set(['/a/1.txt', '/a/5.txt','/a/6.txt','/a/3.txt'])
+    lfnsForBkReg = uod._getLFNsForBKRegistration(lfns)
+    self.assertEqual(sorted(lfnsForBkReg), sorted(['/a/5.txt','/a/6.txt']))
+
 
   def test__cleanUp(self, _patch):
     f1 = File()
