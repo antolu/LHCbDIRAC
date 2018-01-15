@@ -127,7 +127,7 @@ class BKQuery():
   which is used to query the Bookkeeping database.
   """
 
-  def __init__(self, bkQuery=None, prods=None, runs=None, fileTypes=None, visible=True):
+  def __init__(self, bkQuery=None, prods=None, runs=None, fileTypes=None, visible=True, eventTypes=None):
     prods = prods if prods is not None else []
     runs = runs if runs is not None else []
     fileTypes = fileTypes if fileTypes is not None else []
@@ -146,9 +146,9 @@ class BKQuery():
       bkQueryDict = bkQuery.copy()
     elif isinstance(bkQuery, basestring):
       bkPath = bkQuery
-    bkQueryDict = self.buildBKQuery(bkPath, bkQueryDict=bkQueryDict,
+    bkQueryDict = self.buildBKQuery(bkPath=bkPath, bkQueryDict=bkQueryDict,
                                     prods=prods, runs=runs,
-                                    fileTypes=fileTypes,
+                                    fileTypes=fileTypes, eventTypes=eventTypes,
                                     visible=visible)
     self.__bkPath = bkPath
     self.__bkQueryDict = bkQueryDict
@@ -158,7 +158,8 @@ class BKQuery():
   def __str__(self):
     return str(self.__bkQueryDict)
 
-  def buildBKQuery(self, bkPath='', bkQueryDict=None, prods=None, runs=None, fileTypes=None, visible=True):
+  def buildBKQuery(self, bkPath='', bkQueryDict=None, prods=None, runs=None,
+                   fileTypes=None, visible=True, eventTypes=None):
     """ it builds a dictionary using a path
     """
     bkQueryDict = bkQueryDict if bkQueryDict is not None else {}
@@ -169,14 +170,15 @@ class BKQuery():
     fileTypes = fileTypes if fileTypes is not None else []
 
     gLogger.verbose("BKQUERY.buildBKQuery: Path %s, Dict %s, \
-      Prods %s, Runs %s, FileTypes %s, Visible %s" % (bkPath,
-                                                      str(bkQueryDict),
-                                                      str(prods),
-                                                      str(runs),
-                                                      str(fileTypes),
-                                                      visible))
+      Prods %s, Runs %s, FileTypes %s, EventTypes %s, Visible %s" % (bkPath,
+                                                                     str(bkQueryDict),
+                                                                     str(prods),
+                                                                     str(runs),
+                                                                     str(fileTypes),
+                                                                     str(eventTypes),
+                                                                     visible))
     self.__bkQueryDict = {}
-    if not bkPath and not prods and not runs and not bkQueryDict and not fileTypes:
+    if not bkPath and not prods and not bkQueryDict and not runs:
       return {}
     if bkQueryDict:
       bkQuery = bkQueryDict.copy()
@@ -237,7 +239,7 @@ class BKQuery():
                                                                                                  bpath,
                                                                                                  processingPass))
         if bkFields[i] == 'EventType' and bpath:
-          eventTypes = []
+          eventTypeList = []
           # print b
           if bpath.upper() == 'ALL':
             bpath = 'ALL'
@@ -245,13 +247,13 @@ class BKQuery():
             for et in bpath.split(','):
               try:
                 eventType = int(et.split(' ')[0])
-                eventTypes.append(eventType)
+                eventTypeList.append(eventType)
               except ValueError:
                 pass
-            if len(eventTypes) == 1:
-              eventTypes = eventTypes[0]
-            bpath = eventTypes
-            gLogger.verbose('buildBKQuery. Event types %s' % eventTypes)
+            if len(eventTypeList) == 1:
+              eventTypeList = eventTypeList[0]
+            bpath = eventTypeList
+            gLogger.verbose('buildBKQuery. Event types %s' % eventTypeList)
         # Set the BK dictionary item
         if bpath != '':
           bkQuery[bkFields[i]] = bpath
@@ -288,6 +290,10 @@ class BKQuery():
         print prods, 'invalid as production list'
         return self.__bkQueryDict
 
+    # If an event type is specified
+    if eventTypes:
+      bkQuery['EventType'] = eventTypes
+
     # Set the file type(s) taking into account excludes file types
     fileTypes = bkQuery.get('FileType', fileTypes)
     bkQuery.pop('FileType', None)
@@ -310,18 +316,16 @@ class BKQuery():
     self.setVisible(visible)
 
     # Set both event type entries
-    # print "Before setEventType",self.__bkQueryDict
+    # print "Before setEventType", self.__bkQueryDict
     if not self.setEventType(bkQuery.get('EventType')):
       self.__bkQueryDict = {}
       return self.__bkQueryDict
     # Set conditions
-    # print "Before setConditions",self.__bkQueryDict
+    # print "Before setConditions", self.__bkQueryDict
     self.setConditions(bkQuery.get('ConditionDescription',
-                                   bkQuery.get('DataTakingConditions',
-                                               bkQuery.get('SimulationConditions')
-                                               )
+                                   bkQuery.get('DataTakingConditions', bkQuery.get('SimulationConditions'))
                                    ))
-    # print self.__bkQueryDict
+    # print "Returned value", self.__bkQueryDict
     return self.__bkQueryDict
 
   def setOption(self, key, val):
