@@ -234,8 +234,10 @@ class LHCbJob(Job):
                         ('extraPackages', 'string', '', 'ExtraPackages'),
                         ('SystemConfig', 'string', '', 'CMT Config')]
 
-    step = getStepDefinition(stepName, modulesNameList=modulesNameList,
-                             importLine="LHCbDIRAC.Workflow.Modules", parametersList=parametersList)
+    step = getStepDefinition(stepName,
+                             modulesNameList=modulesNameList,
+                             importLine="LHCbDIRAC.Workflow.Modules",
+                             parametersList=parametersList)
 
     logPrefix = 'Step%s_' % (self.stepCount)
     logName = '%s%s' % (logPrefix, logName)
@@ -367,7 +369,10 @@ class LHCbJob(Job):
                         ('extraPackages', 'string', '', 'extraPackages'),
                         ('SystemConfig', 'string', '', 'CMT Config')]
 
-    step = getStepDefinition(stepName, modulesNameList=modulesNameList, parametersList=parametersList)
+    step = getStepDefinition(stepName,
+                             modulesNameList=modulesNameList,
+                             importLine="LHCbDIRAC.Workflow.Modules",
+                             parametersList=parametersList)
 
     logPrefix = 'Step%s_' % (self.stepCount)
     logName = '%s%s' % (logPrefix, logName)
@@ -578,7 +583,10 @@ class LHCbJob(Job):
                         ('arguments', 'list', [], 'Optional arguments for payload'),
                         ('applicationLog', 'string', '', 'Log file name'),
                         ('SystemConfig', 'string', '', 'CMT Config')]
-    step = getStepDefinition(stepName, modulesNameList=modulesNameList, parametersList=parametersList)
+    step = getStepDefinition(stepName,
+                             modulesNameList=modulesNameList,
+                             importLine="LHCbDIRAC.Workflow.Modules",
+                             parametersList=parametersList)
 
     logPrefix = 'Step%s_' % (self.stepCount)
     logName = '%s%s' % (logPrefix, logName)
@@ -829,7 +837,10 @@ class LHCbJob(Job):
                         ('applicationLog', 'string', '', 'Log file name'),
                         ('SystemConfig', 'string', '', 'CMT Config')]
 
-    step = getStepDefinition(stepName, modulesNameList=modulesNameList, parametersList=parametersList)
+    step = getStepDefinition(stepName,
+                             modulesNameList=modulesNameList,
+                             importLine="LHCbDIRAC.Workflow.Modules",
+                             parametersList=parametersList)
 
     stepName = 'RunScriptStep%s' % (self.stepCount)
     logPrefix = 'Script%s_' % (self.stepCount)

@@ -1,0 +1,77 @@
+<Workflow>
+<origin></origin>
+<description><![CDATA[]]></description>
+<descr_short></descr_short>
+<version>0.0</version>
+<type></type>
+<name>notgiven</name>
+<Parameter name="JobType" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Job Type"><value><![CDATA[User]]></value></Parameter>
+<Parameter name="Priority" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="User Job Priority"><value><![CDATA[1]]></value></Parameter>
+<Parameter name="JobGroup" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Name of the JobGroup"><value><![CDATA[]]></value></Parameter>
+<Parameter name="JobName" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Name of Job"><value><![CDATA[Name]]></value></Parameter>
+<Parameter name="Site" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Site Requirement"><value><![CDATA[ANY]]></value></Parameter>
+<Parameter name="Origin" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Origin of client"><value><![CDATA[DIRAC]]></value></Parameter>
+<Parameter name="StdOutput" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Standard output file"><value><![CDATA[std.out]]></value></Parameter>
+<Parameter name="StdError" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Standard error file"><value><![CDATA[std.err]]></value></Parameter>
+<Parameter name="InputData" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Default null input data value"><value><![CDATA[]]></value></Parameter>
+<Parameter name="LogLevel" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Job Logging Level"><value><![CDATA[info]]></value></Parameter>
+<Parameter name="arguments" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Arguments to executable Step"><value><![CDATA[]]></value></Parameter>
+<Parameter name="ParametricInputData" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Default null parametric input data value"><value><![CDATA[]]></value></Parameter>
+<Parameter name="ParametricInputSandbox" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Default null parametric input sandbox value"><value><![CDATA[]]></value></Parameter>
+<ModuleDefinition>
+<body><![CDATA[
+from LHCbDIRAC.Workflow.Modules.CreateDataFile import CreateDataFile
+]]></body>
+<origin></origin>
+<description><![CDATA[  Prepare a file (data.py) which is consumed by Ganga, containing the input files as resolved in the workflow
+]]></description>
+<descr_short></descr_short>
+<required></required>
+<version>0.0</version>
+<type>CreateDataFile</type>
+</ModuleDefinition>
+<ModuleDefinition>
+<body><![CDATA[
+from LHCbDIRAC.Workflow.Modules.LHCbScript import LHCbScript
+]]></body>
+<origin></origin>
+<description><![CDATA[ LHCbScript is very similar to DIRAC Script module, but consider LHCb environment
+]]></description>
+<descr_short></descr_short>
+<required></required>
+<version>0.0</version>
+<type>LHCbScript</type>
+</ModuleDefinition>
+<StepDefinition>
+<origin></origin>
+<version>0.0</version>
+<type>ScriptStep1</type>
+<description><![CDATA[]]></description>
+<descr_short></descr_short>
+<Parameter name="name" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Name of executable"><value><![CDATA[]]></value></Parameter>
+<Parameter name="executable" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Executable Script"><value><![CDATA[]]></value></Parameter>
+<Parameter name="arguments" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Arguments for executable Script"><value><![CDATA[]]></value></Parameter>
+<Parameter name="applicationLog" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Log file name"><value><![CDATA[]]></value></Parameter>
+<Parameter name="SystemConfig" type="string" linked_module="" linked_parameter="" in="True" out="False" description="CMT Config"><value><![CDATA[]]></value></Parameter>
+<ModuleInstance>
+<type>LHCbScript</type>
+<name>LHCbScript</name>
+<descr_short></descr_short>
+</ModuleInstance>
+<ModuleInstance>
+<type>CreateDataFile</type>
+<name>CreateDataFile</name>
+<descr_short></descr_short>
+</ModuleInstance>
+</StepDefinition>
+<StepInstance>
+<type>ScriptStep1</type>
+<name>RunScriptStep1</name>
+<descr_short></descr_short>
+<Parameter name="name" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Name of executable"><value><![CDATA[CodeSegment]]></value></Parameter>
+<Parameter name="executable" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Executable Script"><value><![CDATA[sh /home/fstagni/pyDevs/DIRAC/WorkloadManagementSystem/JobWrapper/test/script-OK.sh]]></value></Parameter>
+<Parameter name="arguments" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Arguments for executable Script"><value><![CDATA[]]></value></Parameter>
+<Parameter name="applicationLog" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Log file name"><value><![CDATA[Script1_CodeOutput.log]]></value></Parameter>
+<Parameter name="SystemConfig" type="string" linked_module="" linked_parameter="" in="True" out="False" description="CMT Config"><value><![CDATA[ANY]]></value></Parameter>
+</StepInstance>
+</Workflow>
