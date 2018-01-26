@@ -1,3 +1,15 @@
+[v9r2-pre1]
+use DIRAC v6r20-pre11
+
+* CI: build slc6 based image for docker
+* Keep pre first in the list
+* fixes
+* removed part of SLSAGent
+* style
+* fixes
+* re-migrated
+* moved to DIRAC
+
 [v9r1p4]
 use DIRAC v6r19p12
 
