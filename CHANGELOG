@@ -1,3 +1,10 @@
+[v9r1p5]
+use DIRAC v6r19p13
+
+* print list of selected runs
+* fix typo
+* fix help for setting up ROOT
+
 [v9r1p4]
 use DIRAC v6r19p12
 
