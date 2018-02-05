@@ -25,7 +25,7 @@ def seSvcClass(se):
         status = StorageElement(se).getStatus()
         if status['OK']:
           status = status['Value']
-          seSvcClassDict[se] = 'Tape' if status['TapeSE'] else 'Disk' if status['Disk'] else 'Unknown'
+          seSvcClassDict[se] = 'Tape' if status['TapeSE'] else 'Disk' if status['DiskSE'] else 'Unknown'
         else:
           seSvcClassDict[se] = 'Unknown'
     except BaseException:
@@ -423,7 +423,8 @@ def execute(unit, minimum, depth):
             usersUsage[user] = (spaceUsed, quota)
           else:
             print "Storage usage for user %s (quota: %.1f %s)%s" % \
-                (user, quota, unit, ' <== User no longer registered' if not quota else (' <== Over quota' if spaceUsed > quota else ''))
+                (user, quota, unit, ' <== User no longer registered' if not quota else (
+                  ' <== Over quota' if spaceUsed > quota else ''))
             printSEUsage(totalUsage, grandTotal, scaleFactor)
         else:
           totalUsage, grandTotal = getStorageSummary(totalUsage, grandTotal, dirName, fileType, prodID, ses)
@@ -470,7 +471,8 @@ def execute(unit, minimum, depth):
       spaceUsed, quota = usersUsage[user]
       if spaceUsed > minimum:
         print "Storage usage for user %8s: %6.3f %s (quota: %4.1f %s)%s" % \
-              (user, spaceUsed, unit, quota, unit, ' <== User no longer registered' if not quota else (' <== Over quota' if spaceUsed > quota else ''))
+              (user, spaceUsed, unit, quota, unit, ' <== User no longer registered' if not quota else (
+                  ' <== Over quota' if spaceUsed > quota else ''))
 
   DIRAC.exit(0)
 
