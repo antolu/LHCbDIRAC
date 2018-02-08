@@ -720,7 +720,7 @@ class ProductionRequestDB( DB ):
       # the order is very important that's why we use recl_fields 
       if dateValue in self.dateColumns and requestDict.get( dateValue ):
         recl_fields.append( dateValue )
-        updateValues.append( "STR_TO_DATE('%s','%s')" % ( requestDict.get( dateValue, time.strftime( self.dateFormat ) ), self.dateFormat ) )
+        updateValues.append( "STR_TO_DATE('%s','%s')" % ( requestDict.get( dateValue ), self.dateFormat ) )
     updates = ','.join( [x + '=' + y for x, y in zip( recl_fields, updateValues )] )
 
     req = "UPDATE ProductionRequests "
