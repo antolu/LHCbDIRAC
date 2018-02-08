@@ -718,7 +718,7 @@ class ProductionRequestDB( DB ):
     for dateValue in self.dateColumns:
       # we are going to check if we have column which type is date
       # the order is very important that's why we use recl_fields 
-      if dateValue in self.dateColumns:
+      if dateValue in self.dateColumns and requestDict.get( dateValue ):
         recl_fields.append( dateValue )
         updateValues.append( "STR_TO_DATE('%s','%s')" % ( requestDict.get( dateValue, time.strftime( self.dateFormat ) ), self.dateFormat ) )
     updates = ','.join( [x + '=' + y for x, y in zip( recl_fields, updateValues )] )
