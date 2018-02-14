@@ -6,6 +6,8 @@
 
 '''
 
+__RCSID__ = "$Id$"
+
 from datetime                                               import datetime, timedelta
 from types                                                  import NoneType
 
@@ -16,7 +18,6 @@ from DIRAC.ResourceStatusSystem.Utilities                   import CSHelpers
 
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 
-__RCSID__ = "$Id$"
 rsClient  = None
 rmClient  = None
 

@@ -4,7 +4,6 @@
       DIRAC.ResourceStatusSystem.DB.ResourceManagementDB.ResourceManagementDB
 
     Extension of ResourceManagementDB, adding the following tables:
-    - HammerCloudTest
     - MonitoringTest
     - JobAccountingCache
     - PilotAccountingCache
@@ -23,57 +22,11 @@ from sqlalchemy import Column, String, DateTime, Text, text, BLOB
 from DIRAC.ResourceStatusSystem.DB.ResourceManagementDB import rmsBase, TABLESLIST
 
 
-TABLESLIST = TABLESLIST + ['HammerCloudTest',
-                           'MonitoringTest',
+TABLESLIST = TABLESLIST + ['MonitoringTest',
                            'JobAccountingCache',
                            'PilotAccountingCache',
                            'SLST1Service',
                            'SLSLogSE']
-
-
-class HammerCloudTest(rmsBase):
-  """ HammerCloudTest table
-  """
-
-  __tablename__ = 'HammerCloudTest'
-  __table_args__ = {'mysql_engine': 'InnoDB',
-                    'mysql_charset': 'utf8'}
-
-  submissiontime = Column( 'SubmissionTime', DateTime, nullable = False, primary_key = True )
-  counter = Column( 'Counter', INTEGER, nullable = False, server_default = '0' )
-  teststatus = Column( 'TestStatus', String( 16 ) )
-  testid = Column( 'TestID', INTEGER )
-  resourcename = Column( 'ResourceName', String( 64 ), nullable = False )
-  agentstatus = Column( 'AgentStatus', String( 255 ), nullable = False, server_default = "Unspecified" )
-  endtime = Column( 'EndTime', DateTime )
-  sitename = Column( 'SiteName', String( 64 ), nullable = False )
-  formeragentstatus = Column( 'FormerAgentStatus', String( 255 ), nullable = False, server_default = "Unspecified" )
-  starttime = Column( 'StartTime', DateTime )
-  countertime = Column( 'CounterTime', DateTime )
-
-
-  def fromDict( self, dictionary ):
-    """
-    Fill the fields of the HammerCloudTest object from a dictionary
-    """
-
-    self.submissiontime = dictionary.get( 'SubmissionTime', self.submissiontime )
-    self.counter = dictionary.get( 'Counter', self.counter )
-    self.teststatus = dictionary.get( 'TestStatus', self.teststatus )
-    self.testid = dictionary.get( 'TestID', self.testid )
-    self.resourcename = dictionary.get( 'ResourceName', self.resourcename )
-    self.agentstatus = dictionary.get( 'AgentStatus', self.agentstatus )
-    self.endtime = dictionary.get( 'EndTime', self.endtime )
-    self.sitename = dictionary.get( 'SiteName', self.sitename )
-    self.formeragentstatus = dictionary.get( 'FormeraAentStatus', self.formeragentstatus )
-    self.starttime = dictionary.get( 'StartTime', self.starttime )
-    self.countertime = dictionary.get( 'CounterTime', self.countertime )
-
-  def toList(self):
-    """ Simply returns a list of column values
-    """
-    return [self.submissiontime, self.counter, self.teststatus, self.testid, self.resourcename, self.agentstatus,
-            self.endtime, self.sitename, self.formeragentstatus, self.starttime, self.countertime]
 
 
 class MonitoringTest(rmsBase):
