@@ -181,7 +181,7 @@ diracServices(){
 diracAgents(){
   echo '==> [diracAgents]'
 
-  agents=`cat agents | cut -d '.' -f 1 | grep -v LFC | grep -v MyProxy | grep -v CAUpdate | grep -v CE2CSAgent.py | grep -v GOCDB2CS | grep -v Bdii2CS | grep -v CacheFeeder | grep -v NetworkAgent | grep -v FrameworkSystem | grep -v DiracSiteAgent | grep -v StatesMonitoringAgent | grep -v DataProcessingProgressAgent | grep -v RAWIntegrityAgent  | grep -v GridSiteWMSMonitoringAgent | grep -v HCAgent | grep -v GridCollectorAgent | grep -v HCProxyAgent | grep -v Nagios | grep -v AncestorFiles | grep -v BKInputData | grep -v LHCbPRProxyAgent | grep -v StorageUsageAgent | grep -v PopularityAnalysisAgent | grep -v SEUsageAgent | grep -v NotifyAgent | grep -v TargzJobLogAgent | grep -v ShiftDBAgent | sed 's/System / /g' | sed 's/ /\//g'`
+  agents=`cat agents | cut -d '.' -f 1 | grep -v LFC | grep -v MyProxy | grep -v CAUpdate | grep -v CE2CSAgent.py | grep -v GOCDB2CS | grep -v Bdii2CS | grep -v CacheFeeder | grep -v NetworkAgent | grep -v FrameworkSystem | grep -v DiracSiteAgent | grep -v StatesMonitoringAgent | grep -v DataProcessingProgressAgent | grep -v RAWIntegrityAgent  | grep -v GridSiteWMSMonitoringAgent | grep -v HCAgent | grep -v HCProxyAgent | grep -v Nagios | grep -v AncestorFiles | grep -v BKInputData | grep -v LHCbPRProxyAgent | grep -v StorageUsageAgent | grep -v PopularityAnalysisAgent | grep -v SEUsageAgent | grep -v NotifyAgent | grep -v TargzJobLogAgent | grep -v ShiftDBAgent | sed 's/System / /g' | sed 's/ /\//g'`
 
   for agent in $agents
   do
