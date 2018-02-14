@@ -15,6 +15,8 @@ if __name__ == "__main__":
   dmScript.registerFileSwitches()
   dmScript.registerSiteSwitches()
 
+  Script.registerSwitch('', 'RemoveSource', '   If set, the source replica(s) will be removed')
+
   Script.setUsageMessage('\n'.join([__doc__,
                                     'Usage:',
                                     '  %s [option|cfgfile] ...  [LFN1[,LFN2,[...]]] Dest[,Dest2[,...]] [Source [Cache]]' % Script.scriptName,

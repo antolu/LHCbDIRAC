@@ -148,10 +148,10 @@ def executeRemoveReplicas(dmScript, allDisk=False):
     Script.showHelp()
     return -1
 
-  return removeReplicas(lfnList, seList, minReplicas, checkFC, allDisk, force)
+  return removeReplicas(lfnList, seList, minReplicas, checkFC, allDisk, force)[0]
 
 
-def removeReplicas(lfnList, seList, minReplicas=1, checkFC=True, allDisk=False, force=False):
+def removeReplicas(lfnList, seList, minReplicas=1, checkFC=True, allDisk=False, force=False, verbose=True):
   """
   remove replicas from a list of SEs or all disk SEs
   2 different methods are used to remove registered and unregistered replicas
@@ -161,7 +161,7 @@ def removeReplicas(lfnList, seList, minReplicas=1, checkFC=True, allDisk=False, 
     res = removeReplicasNoFC(lfnList, sorted(seList))
     if not res['OK']:
       gLogger.fatal("Completely failed removing replicas without FC", res['Message'])
-      return -1
+      return -1, res['Message']
     successfullyRemoved = res['Value']['Successful']
     fullyRemoved = res['Value']['FullyRemoved']
     errorReasons = res['Value']['Failed']
@@ -169,7 +169,7 @@ def removeReplicas(lfnList, seList, minReplicas=1, checkFC=True, allDisk=False, 
     res = removeReplicasWithFC(lfnList, sorted(seList), minReplicas, allDisk, force)
     if not res['OK']:
       gLogger.fatal("Completely failed removing replicas with FC", res['Message'])
-      return -1
+      return -1, res['Message']
     successfullyRemoved = res['Value']['Successful']
     if allDisk:
       fullyRemoved = successfullyRemoved
@@ -186,17 +186,18 @@ def removeReplicas(lfnList, seList, minReplicas=1, checkFC=True, allDisk=False, 
       removeFilesInTransformations(list(lfnList))
 
   # Print result
-  if successfullyRemoved:
-    for se, rep in successfullyRemoved.iteritems():
-      nrep = len(rep)
-      if nrep:
-        gLogger.notice("Successfully removed %d replicas from %s" % (nrep, se))
-  for reason, seDict in errorReasons.iteritems():
-    for se, lfns in seDict.iteritems():
-      gLogger.notice("Failed to remove %d replicas from %s with reason: %s" % (len(lfns), se, reason))
-  if not successfullyRemoved and not errorReasons and not checkFC:
-    gLogger.notice("Replicas were found at no SE in %s" % str(seList))
-  return 0
+  if verbose:
+    if successfullyRemoved:
+      for se, rep in successfullyRemoved.iteritems():
+        nrep = len(rep)
+        if nrep:
+          gLogger.notice("Successfully removed %d replicas from %s" % (nrep, se))
+    for reason, seDict in errorReasons.iteritems():
+      for se, lfns in seDict.iteritems():
+        gLogger.error("Failed to remove %d replicas from %s with reason: %s" % (len(lfns), se, reason))
+    if not successfullyRemoved and not errorReasons and not checkFC:
+      gLogger.notice("Replicas were found at no SE in %s" % str(seList))
+  return 0, errorReasons
 
 
 def removeReplicasWithFC(lfnList, seList, minReplicas=1, allDisk=False, force=False):
@@ -1179,6 +1180,10 @@ def executeReplicateLfn(dmScript):
   """
   get options for replicate-lfn
   """
+  removeSource = False
+  for switch in Script.getUnprocessedSwitches():
+    if switch[0] == 'RemoveSource':
+      removeSource = True
   # The source SE may be given as second positional argument, therefore do not aggregate
   seList, args = __checkSEs(Script.getPositionalArgs(), expand=False)
   if not seList:
@@ -1211,7 +1216,7 @@ def executeReplicateLfn(dmScript):
     gLogger.notice("No LFNs provided...")
     Script.showHelp()
 
-  finalResult = replicateLfn(lfnList, sourceSE, destList, localCache)
+  finalResult = replicateLfn(lfnList, sourceSE, destList, localCache=localCache, removeSource=removeSource)
   return printDMResult(finalResult)
 
 
@@ -1219,6 +1224,10 @@ def executeReplicateToRunDestination(dmScript):
   """
   get information from file for destination according to the run destination
   """
+  removeSource = False
+  for switch in Script.getUnprocessedSwitches():
+    if switch[0] == 'RemoveSource':
+      removeSource = True
   seList, args = __checkSEs(Script.getPositionalArgs(), expand=False)
   if not seList:
     seList = __getSEsFromOptions(dmScript)
@@ -1260,13 +1269,13 @@ def executeReplicateToRunDestination(dmScript):
       else:
         finalResult['Value']['Failed'].update(dict.fromkeys(lfns, res['Message']))
   for destSE, lfns in groupBySE.iteritems():
-    result = replicateLfn(lfns, '', [destSE], verbose=True)
+    result = replicateLfn(lfns, '', [destSE], removeSource=removeSource, verbose=True)
     finalResult['Value']['Successful'].update(result['Value']['Successful'])
     finalResult['Value']['Failed'].update(result['Value']['Failed'])
   return printDMResult(finalResult)
 
 
-def replicateLfn(lfnList, sourceSE, destList, localCache=None, verbose=False):
+def replicateLfn(lfnList, sourceSE, destList, localCache=None, removeSource=False, verbose=False):
   """
   replicate a list of LFNs to a list of SEs
   """
@@ -1276,6 +1285,22 @@ def replicateLfn(lfnList, sourceSE, destList, localCache=None, verbose=False):
   if len(lfnList) > 1 or len(destList) > 1 or verbose:
     gLogger.notice('Replicating %d files to %s' % (len(lfnList), ','.join(destList)) +
                    (' from %s' % sourceSE if sourceSE else ''))
+
+  # Get the list of replicas to remove if any
+  replicasToRemove = {}
+  if removeSource:
+    result = dm.getReplicas(lfnList, getUrl=False)
+    if not result['OK']:
+      for lfn in lfnList:
+        finalResult['Value']["Failed"].setdefault('Remove', {}).update({lfn: result['Message']})
+    else:
+      for lfn, reason in result['Value']['Failed'].iteritems():
+        finalResult['Value']['Failed'].setdefault('Remove', {}).update({lfn, reason})
+      for lfn, seList in result['Value']['Successful'].iteritems():
+        replicasToRemove.setdefault(','.join(sorted(seList)), []).append(lfn)
+
+  # Perform the actual replication
+  replicated = set()
   for lfn in lfnList:
     for seName in destList:
       result = dm.replicateAndRegister(lfn, seName, sourceSE, localCache=localCache)
@@ -1283,6 +1308,7 @@ def replicateLfn(lfnList, sourceSE, destList, localCache=None, verbose=False):
         finalResult['Value']["Failed"].setdefault(seName, {}).update({lfn: result['Message']})
       else:
         success = result['Value']['Successful']
+        replicated.update(success)
         failed = result['Value']['Failed']
         if failed:
           finalResult['Value']['Failed'].setdefault(seName, {}).update(failed)
@@ -1290,6 +1316,25 @@ def replicateLfn(lfnList, sourceSE, destList, localCache=None, verbose=False):
           if success[lfn].get('register') == 0 and success[lfn].get('replicate') == 0:
             success[lfn] = 'Already present'
           finalResult['Value']['Successful'].setdefault(seName, {}).update(success)
+
+  # If there are replicas to remove, do it
+  for ses, lfnList in replicasToRemove.iteritems():
+    gLogger.info("Removing %d files from %s" % (len(lfnList), ses))
+    seList = ses.split(',')
+    lfnList = list(set(lfnList) & replicated)
+    code, errorReasons = removeReplicas(lfnList, seList, verbose=False)
+    # There were errors, add them
+    if not code:
+      for reason, seDict in errorReasons.iteritems():
+        for se, lfns in seDict.iteritems():
+          for lfn in lfns:
+            finalResult['Value']['Failed'].setdefault('Remove from %s' % se, {}).update({lfn: reason})
+          if se in seList:
+            seList.remove(se)
+      finalResult['Value']['Successful'].setdefault('Remove', {}).update(dict.fromkeys(lfnList, ','.join(seList)))
+    else:
+      for lfn in lfnList:
+        finalResult['Value']['Failed'].setdefault(ses, {}).update({lfn, "Failed to remove replicas"})
   return finalResult
 
 
