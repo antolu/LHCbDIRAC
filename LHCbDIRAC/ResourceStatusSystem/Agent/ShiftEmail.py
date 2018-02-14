@@ -43,6 +43,7 @@ Best regards and happy shifting
 
 #...............................................................................
 
+
 def getBodyEmail(role):
   '''
     Returns a body for the email if provided a proper role.
@@ -54,4 +55,4 @@ def getBodyEmail(role):
   return None
 
 #...............................................................................
-#EOF
+# EOF

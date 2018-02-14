@@ -7,14 +7,15 @@
 
 __RCSID__ = "$Id$"
 
-#pylint: disable=unused-argument,too-many-arguments
+# pylint: disable=unused-argument,too-many-arguments
 
 from DIRAC import S_ERROR, S_OK
 from DIRAC.ResourceStatusSystem.Client.ResourceManagementClient import \
-     ResourceManagementClient as DIRACResourceManagementClient
+    ResourceManagementClient as DIRACResourceManagementClient
 from DIRAC.ResourceStatusSystem.Utilities import CSHelpers
 
-class ResourceManagementClient( DIRACResourceManagementClient ):
+
+class ResourceManagementClient(DIRACResourceManagementClient):
   """
   Extension for the DIRAC version of the ResourceManagementClient.
 
@@ -112,10 +113,10 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 #    # Unused argument
 #    return self._query( 'update', 'MonitoringTest', locals() )
 
-  def selectMonitoringTest( self, metricName = None, serviceURI = None,
-                            siteName = None, serviceFlavour = None,
-                            metricStatus = None, summaryData = None,
-                            timestamp = None, lastCheckTime = None ):
+  def selectMonitoringTest(self, metricName=None, serviceURI=None,
+                           siteName=None, serviceFlavour=None,
+                           metricStatus=None, summaryData=None,
+                           timestamp=None, lastCheckTime=None):
     """
     Gets from MonitoringTest all rows that match the parameters given.
 
@@ -140,12 +141,12 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
     :return: S_OK() || S_ERROR()
     """
 
-    return self.rmService.select( 'MonitoringTest', self._prepare(locals()) )
+    return self.rmService.select('MonitoringTest', self._prepare(locals()))
 
-  def deleteMonitoringTest( self, metricName = None, serviceURI = None,
-                            siteName = None, serviceFlavour = None,
-                            metricStatus = None, summaryData = None,
-                            timestamp = None, lastCheckTime = None ):
+  def deleteMonitoringTest(self, metricName=None, serviceURI=None,
+                           siteName=None, serviceFlavour=None,
+                           metricStatus=None, summaryData=None,
+                           timestamp=None, lastCheckTime=None):
     """
     Deletes from MonitoringTest all rows that match the parameters given.
 
@@ -170,11 +171,11 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
     :return: S_OK() || S_ERROR()
     """
 
-    return self.rmService.delete( 'MonitoringTest', self._prepare(locals()) )
+    return self.rmService.delete('MonitoringTest', self._prepare(locals()))
 
-  def addOrModifyMonitoringTest( self, metricName, serviceURI, siteName,
-                                 serviceFlavour, metricStatus, summaryData,
-                                 timestamp, lastCheckTime ):
+  def addOrModifyMonitoringTest(self, metricName, serviceURI, siteName,
+                                serviceFlavour, metricStatus, summaryData,
+                                timestamp, lastCheckTime):
     """
     Using `metricName` and `serviceURI` to query the database, decides whether
     to insert or update the table.
@@ -200,15 +201,15 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
     :return: S_OK() || S_ERROR()
     """
 
-    return self.rmService.addOrModify( 'MonitoringTest', self._prepare(locals()) )
+    return self.rmService.addOrModify('MonitoringTest', self._prepare(locals()))
 
   ##############################################################################
   # JOB ACCOUNTING CACHE METHODS
 
-  def selectJobAccountingCache( self, name = None, checking = None, completed = None,
-                                done = None, failed = None, killed = None,
-                                matched = None, running = None, stalled = None,
-                                lastCheckTime = None ):
+  def selectJobAccountingCache(self, name=None, checking=None, completed=None,
+                               done=None, failed=None, killed=None,
+                               matched=None, running=None, stalled=None,
+                               lastCheckTime=None):
     """
     Selects from JobAccountingCach all rows that match the parameters given.
 
@@ -237,13 +238,12 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
     :return: S_OK() || S_ERROR()
     """
 
-    return self.rmService.select( 'JobAccountingCache', self._prepare(locals()) )
+    return self.rmService.select('JobAccountingCache', self._prepare(locals()))
 
-
-  def deleteJobAccountingCache( self, name = None, checking = None, completed = None,
-                                done = None, failed = None, killed = None,
-                                matched = None, running = None, stalled = None,
-                                lastCheckTime = None ):
+  def deleteJobAccountingCache(self, name=None, checking=None, completed=None,
+                               done=None, failed=None, killed=None,
+                               matched=None, running=None, stalled=None,
+                               lastCheckTime=None):
     """
     Deletes from JobAccountingCach all rows that match the parameters given.
 
@@ -271,13 +271,12 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 
     :return: S_OK() || S_ERROR()
     """
-    return self.rmService.delete( 'JobAccountingCache', self._prepare(locals()) )
+    return self.rmService.delete('JobAccountingCache', self._prepare(locals()))
 
-
-  def addOrModifyJobAccountingCache( self, name = None, checking = None, completed = None,
-                                     done = None, failed = None, killed = None,
-                                     matched = None, running = None, stalled = None,
-                                     lastCheckTime = None ):
+  def addOrModifyJobAccountingCache(self, name=None, checking=None, completed=None,
+                                    done=None, failed=None, killed=None,
+                                    matched=None, running=None, stalled=None,
+                                    lastCheckTime=None):
     """
     Using `name` to query the database, decides whether to insert or update the t
     table.
@@ -307,14 +306,14 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
     :return: S_OK() || S_ERROR()
     """
 
-    return self.rmService.addOrModify( 'JobAccountingCache', self._prepare(locals()) )
+    return self.rmService.addOrModify('JobAccountingCache', self._prepare(locals()))
 
   ##############################################################################
   # PILOT ACCOUNTING CACHE METHODS
 
-  def selectPilotAccountingCache( self, name = None, aborted = None, deleted = None,
-                                  done = None, failed = None, lastCheckTime = None,
-                                  meta = None ):
+  def selectPilotAccountingCache(self, name=None, aborted=None, deleted=None,
+                                 done=None, failed=None, lastCheckTime=None,
+                                 meta=None):
     """
     Selects from PilotAccountingCache all rows that match the parameters given.
 
@@ -334,11 +333,11 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 
     :return: S_OK() || S_ERROR()
     """
-    return self.rmService.select( 'PilotAccountingCache', self._prepare(locals()) )
+    return self.rmService.select('PilotAccountingCache', self._prepare(locals()))
 
-  def deletePilotAccountingCache( self, name = None, aborted = None, deleted = None,
-                                  done = None, failed = None, lastCheckTime = None,
-                                  meta = None ):
+  def deletePilotAccountingCache(self, name=None, aborted=None, deleted=None,
+                                 done=None, failed=None, lastCheckTime=None,
+                                 meta=None):
     """
     Deletes from PilotAccountingCache all rows that match the parameters given.
 
@@ -358,11 +357,11 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 
     :return: S_OK() || S_ERROR()
     """
-    return self.rmService.delete( 'PilotAccountingCache', self._prepare(locals()) )
+    return self.rmService.delete('PilotAccountingCache', self._prepare(locals()))
 
-  def addOrModifyPilotAccountingCache( self, name = None, aborted = None, deleted = None,
-                                       done = None, failed = None, lastCheckTime = None,
-                                       meta = None ):
+  def addOrModifyPilotAccountingCache(self, name=None, aborted=None, deleted=None,
+                                      done=None, failed=None, lastCheckTime=None,
+                                      meta=None):
     """
     Using `name` to query the database, decides whether to insert or update the t
     table.
@@ -384,10 +383,9 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
     :return: S_OK() || S_ERROR()
     """
 
-    return self.rmService.addOrModify( 'PilotAccountingCache', self._prepare(locals()) )
+    return self.rmService.addOrModify('PilotAccountingCache', self._prepare(locals()))
 
-
-  def getSEStorageSpace( self, seName ):
+  def getSEStorageSpace(self, seName):
     """ getSEStorageSpace
 
     Given a SE, returns a dictionary with the Total, Free and Guaranteed Space.
@@ -409,22 +407,22 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
     """
 
     # Given a SE, we need to find its endpoint
-    endpoint = CSHelpers.getStorageElementEndpoint( seName )
-    if not endpoint[ 'OK' ]:
+    endpoint = CSHelpers.getStorageElementEndpoint(seName)
+    if not endpoint['OK']:
       return endpoint
-    endpoint = endpoint[ 'Value' ]
+    endpoint = endpoint['Value']
 
-    spaceToken = CSHelpers.getSEToken( seName )
-    if not spaceToken[ 'OK' ]:
+    spaceToken = CSHelpers.getSEToken(seName)
+    if not spaceToken['OK']:
       return spaceToken
-    spaceToken = spaceToken[ 'Value']
+    spaceToken = spaceToken['Value']
 
-    res = self.selectSpaceTokenOccupancyCache( endpoint, spaceToken )
-    if not res[ 'OK' ]:
+    res = self.selectSpaceTokenOccupancyCache(endpoint, spaceToken)
+    if not res['OK']:
       return res
-    if not res[ 'Value' ]:
-      return S_ERROR( "Empty result" )
+    if not res['Value']:
+      return S_ERROR("Empty result")
 
-    return S_OK( dict( zip( res[ 'Columns' ], res[ 'Value' ][ 0 ] ) ) )
+    return S_OK(dict(zip(res['Columns'], res['Value'][0])))
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
