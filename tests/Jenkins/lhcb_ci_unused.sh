@@ -262,13 +262,3 @@ function dumpDBs(){
   echo "$sqlStatements" | gawk '{print "drop database " $1 ";select sleep(0.1);"}' | mysql -u root -p$rootPass 
 
 }
-
-
-
-function integrationTest(){
-  echo '[integrationTest]'
-  
-  nosetests --with-xunit $WORKSPACE/$1/Integration/$2 -v --xunit-file=nosetests_$1_$2.xml --with-coverage --cover-package=DIRAC,LHCbDIRAC
-  mv .coverage .coverage._$1_$2
-  
-}
