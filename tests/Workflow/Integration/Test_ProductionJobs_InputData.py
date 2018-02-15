@@ -2,8 +2,9 @@
 """ "Integration" production jobs. StepIDs are taken from REAL productions that ran "recently"
 """
 
-#pylint: disable=line-too-long,protected-access,missing-docstring,invalid-name,wrong-import-position
+#pylint: disable=line-too-long,protected-access,invalid-name,wrong-import-position
 
+import os
 import unittest
 
 import DIRAC
@@ -56,7 +57,10 @@ class Reco17Success( ProductionJobTestCase ):
 
     prod = self.pr._buildProduction( 'Reconstruction', stepsInProd, {'RDST': 'Tier1-Buffer'}, 0, 100,
                                      outputMode = 'Run', inputDataPolicy = 'protocol', inputDataList = lfns, events = 25 )
-    prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', rootPath )[0] )
+    try:
+      prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', os.environ['WORKSPACE'] )[0] )
+    except IndexError:
+      prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', rootPath )[0] )
     prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
     prod.LHCbJob._addParameter( prod.LHCbJob.workflow, 'runNumber', 'JDL', 192165, 'Input run number' )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
@@ -106,7 +110,10 @@ class StrippSuccess( ProductionJobTestCase ):
                                      outputMode = 'Run', inputDataPolicy = 'protocol', inputDataList = lfns, events = 500,
                                      ancestorDepth = 1 )
     prod.LHCbJob._addParameter( prod.LHCbJob.workflow, 'runNumber', 'JDL', 167123, 'Input run number' )
-    prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', rootPath )[0] )
+    try:
+      prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', os.environ['WORKSPACE'] )[0] )
+    except IndexError:
+      prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', rootPath )[0] )
     prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
@@ -131,7 +138,10 @@ class MCMergeSuccess( ProductionJobTestCase ):
 
     prod = self.pr._buildProduction( 'Merge', stepsInProd, {'ALLSTREAMS.DST': 'Tier1_MC-DST'}, 0, 100,
                                      inputDataPolicy = 'protocol', inputDataList = lfns )
-    prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', rootPath )[0] )
+    try:
+      prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', os.environ['WORKSPACE'] )[0] )
+    except IndexError:
+      prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', rootPath )[0] )
     prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
