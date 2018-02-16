@@ -505,7 +505,8 @@ class ConsistencyChecks(DiracConsistencyChecks):
       else:
         if res['Value']:
           self.runsList.extend(run['RunNumber'] for run in res['Value'] if run['RunNumber'] not in self.runsList)
-          gLogger.notice("%d runs selected" % len(res['Value']))
+          gLogger.notice("%d runs selected:" % len(res['Value']),
+                         ','.join(str(run['RunNumber']) for run in res['Value']))
         elif not self.runsList:
           gLogger.notice("No runs selected, check completed")
           DIRAC.exit(0)

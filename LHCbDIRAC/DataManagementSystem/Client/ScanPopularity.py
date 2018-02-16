@@ -85,7 +85,7 @@ def cacheDirectories(directories):
   for lfns in breakListIntoChunks(dirShort2Long.values(), chunkSize):
     res = duClient.getDirMetadata(lfns)
     if not res['OK']:
-      gLogger.fatal("\nError getting metadata from DataUsage", res['Message'])
+      gLogger.error("\nError getting metadata from DataUsage", res['Message'])
     else:
       dirMetadata.update(res['Value'])
 
@@ -113,10 +113,11 @@ def cacheDirectories(directories):
     gLogger.always('Getting BK metadata for %d directories' % len(lfnsFromBK))
     success = {}
     for lfns in breakListIntoChunks(lfnsFromBK, chunkSize):
-      while True:
+      for trial in xrange(10, -1, -1):
         res = bkClient.getDirectoryMetadata(lfns)
-        if not res['OK']:
+        if not res['OK'] and not trial:
           gLogger.fatal("\nError getting BK metadata", res['Message'])
+          DIRAC.exit(1)
         else:
           break
       success.update(res['Value'].get('Successful', {}))
@@ -150,10 +151,11 @@ def cacheDirectories(directories):
     gLogger.info('\n'.join(sorted(missingSU)))
     for lfn in missingSU:
       # LFN usage
-      while True:
+      for trial in xrange(10, -1, -1):
         res = suClient.getSummary(lfn)
-        if not res['OK']:
+        if not res['OK'] and not trial:
           gLogger.fatal('Error getting LFN storage usage %s' % lfn, res['Message'])
+          DIRAC.exit(1)
         else:
           break
       bkPath = bkPathForLfn[dirShort2Long[lfn]]
@@ -166,10 +168,11 @@ def cacheDirectories(directories):
     # # get the PFN usage per storage type
     gLogger.always('Check storage type and PFN usage for %d directories' % len(dirSet))
     for lfn in dirSet:
-      while True:
+      for trial in xrange(10, -1, -1):
         res = suClient.getDirectorySummaryPerSE(lfn)
-        if not res['OK']:
+        if not res['OK'] and not trial:
           gLogger.fatal('Error getting storage usage per SE %s' % lfn, res['Message'])
+          DIRAC.exit(1)
         else:
           break
       info = physicalDataUsage.setdefault(lfn, {})
@@ -246,10 +249,11 @@ def getPhysicalUsage(baseDir):
   """
   Extract information about storage usage from the StorageusageDB
   """
-  while True:
+  for trial in xrange(10, -1, -1):
     res = suClient.getStorageDirectoryData(baseDir, None, None, None, timeout=3600)
-    if not res['OK']:
+    if not res['OK'] and not trial:
       gLogger.fatal("Error getting list of directories for %s" % baseDir, res['Message'])
+      DIRAC.exit(1)
     else:
       break
   # The returned value is a dictionary of all directory leaves
@@ -394,7 +398,11 @@ def scanPopularity(since, getAllDatasets, topDirectory='/lhcb', csvFile=None):
                                                      for bkPath in timeUsage))
     for bkPath in sorted(timeUsage):
       if bkPath not in datasetStorage['Disk'] | datasetStorage['Archived'] | datasetStorage['Tape']:
-        datasetStorage[storageType(usedSEs[bkPath])].add(bkPath)
+        ses = usedSEs.get(bkPath)
+        if ses is None:
+          gLogger.error("BK path not in usedSEs", bkPath)
+        else:
+          datasetStorage[storageType(ses)].add(bkPath)
       nLfns, lfnSize = bkPathUsage.get(bkPath, {}).get('LFN', (0, 0))
       nPfns, pfnSize = bkPathUsage.get(bkPath, {}).get('All', (0, 0))
       gLogger.always('%s (%d LFNs, %s), (%d PFNs, %s, %.1f replicas)' %

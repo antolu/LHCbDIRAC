@@ -1,3 +1,47 @@
+[v9r2-pre1]
+use DIRAC v6r20-pre11
+
+* CI: build slc6 based image for docker
+* Keep pre first in the list
+* fixes
+* removed part of SLSAGent
+* style
+* fixes
+* re-migrated
+* moved to DIRAC
+
+[v9r1p5]
+use DIRAC v6r19p13
+
+* print list of selected runs
+* fix typo
+* fix help for setting up ROOT
+
+[v9r1p4]
+use DIRAC v6r19p12
+
+[v9r1p3]
+use DIRAC v6r19p11
+
+* fix for jobs no longer in JobDB
+* fix potential exception and exit for persistent fatal errors
+* add CPU time to job debugging info
+* fix message
+* fix selectProcessedFiles for intermediate files
+* fix wrong message
+* add --EventType in BK switches
+* add EventType in BKQuery builder
+* improve output
+* simplification
+* bug fix
+* set default stripping priority to 2
+* removing LFN:
+* minor fixes
+* type checking
+* Removed add_DN_LFC
+* removed add_DN_LFC bash script
+* pylint and style fixes
+
 [v9r1p2]
 use DIRAC v6r19p10
 

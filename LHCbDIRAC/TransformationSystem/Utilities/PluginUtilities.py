@@ -1183,16 +1183,23 @@ get from BK" % (param, self.paramName))
     unProcessedLfns = set(fDict['LFN'] for fDict in fDictList if fDict['Status'] != 'Processed')
     procLfns = lfns - unProcessedLfns
     prodLfns = {}
-    processedLfns = 0
+    processedLfns = set()
     for fDict in fDictList:
       lfn = fDict['LFN']
       if lfn in procLfns:
-        processedLfns += 1
+        processedLfns.add(lfn)
         prodLfns.setdefault(fDict['TransformationID'], []).append(lfn)
-    if processedLfns != len(lfns):
+    # This is for files that are not in any production, accept them by default
+    notInProdLfns = procLfns - processedLfns
+    if notInProdLfns:
+      processedLfns = procLfns
+      for prod in prodList:
+        prodLfns.setdefault(prod, []).extend(list(notInProdLfns))
+
+    if len(processedLfns) != len(lfns):
       self.logVerbose('Reduce files from %d to %d '
                       '(removing non-processed files) in %.1f s' % (len(lfns),
-                                                                    processedLfns,
+                                                                    len(processedLfns),
                                                                     time.time() - startTime))
     return prodLfns
 
