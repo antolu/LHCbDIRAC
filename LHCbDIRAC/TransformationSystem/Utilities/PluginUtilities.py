@@ -441,6 +441,7 @@ class PluginUtilities(DIRACPluginUtilities):
       for bkPath in bkPathList:
         bkQuery = BKQuery(bkPath, visible='All')
         bkQuery.setOption('EventType', eventType)
+        bkQuery.setOption('ReplicaFlag', 'All')
         prods = bkQuery.getBKProductions()
         if not prods:
           self.logVerbose("For bkPath %s, found no productions, wait next time" % (bkPath))

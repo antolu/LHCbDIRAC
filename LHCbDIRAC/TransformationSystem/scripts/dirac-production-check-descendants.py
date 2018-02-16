@@ -31,6 +31,7 @@ if __name__ == '__main__':
   Script.registerSwitch('', 'Verbose', '   Print full list of files with error')
   Script.registerSwitch('', 'Status=', '   Select files with a given status in the production')
   Script.registerSwitch('', 'Depth=', '   Depth to which to check descendants (default=%d)' % depth)
+  Script.registerSwitch('', 'Force', '   Use this flag to force checking a whole production')
   Script.parseCommandLine(ignoreErrors=True)
   fileType = []
   runsList = []
@@ -39,6 +40,7 @@ if __name__ == '__main__':
   verbose = False
   status = None
   noFC = False
+  force = False
   for switch in Script.getUnprocessedSwitches():
     if switch[0] == 'Runs':
       try:
@@ -65,11 +67,13 @@ if __name__ == '__main__':
       noFC = True
     elif switch[0] == 'Depth':
       depth = min(10, max(1, int(switch[1])))
+    elif switch[0] == 'Force':
+      force = True
     elif switch[0] == 'ActiveRunsProduction':
       try:
         fromProd = int(switch[1])
-      except Exception:
-        gLogger.exception("Wrong production number: %s" % switch[1])
+      except ValueError as e:
+        gLogger.exception("Wrong production number: %s" % switch[1], lException=e)
         DIRAC.exit(0)
 
   args = Script.getPositionalArgs()
@@ -79,16 +83,24 @@ if __name__ == '__main__':
   else:
     ids = args[0].split(",")
     prodList = []
-    for id in ids:
-      r = id.split(':')
-      if len(r) > 1:
-        for i in range(int(r[0]), int(r[1]) + 1):
-          prodList.append(i)
-      else:
-        prodList.append(int(r[0]))
+    try:
+      for id in ids:
+        r = id.split(':')
+        if len(r) > 1:
+          for i in range(int(r[0]), int(r[1]) + 1):
+            prodList.append(i)
+        else:
+          prodList.append(int(eval(r[0])))
+    except (ValueError, NameError) as e:
+      gLogger.exception("Bad production list: %s" % args[0], lException=e)
   # In case the user asked for specific LFNs
   if not status:
     lfnList = dmScript.getOption('LFNs', [])
+
+  if not status and not lfnList and not runsList and not fromProd and not force:
+    gLogger.fatal("You are about to check descendants for all files in a production")
+    gLogger.fatal("If you really want to do so, use --Force")
+    DIRAC.exit(0)
 
   from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
   from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
