@@ -19,7 +19,7 @@ class Popularity( BaseAccountingType ):
                                  ( 'Activity',       "VARCHAR(64)" ),
                                  ( 'FileType',       "VARCHAR(32)" ),
                                  ( 'Production',     "VARCHAR(32)" ),
-                                 ( 'ProcessingPass', "VARCHAR(64)" ),
+                                 ( 'ProcessingPass', "VARCHAR(256)" ),
                                  ( 'Conditions',     "VARCHAR(64)" ),
                                  ( 'EventType',      "VARCHAR(64)" ),
                                  ( 'StorageElement', "VARCHAR(32)" )
