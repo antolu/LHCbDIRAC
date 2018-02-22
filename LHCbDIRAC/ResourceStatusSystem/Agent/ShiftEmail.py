@@ -43,15 +43,16 @@ Best regards and happy shifting
 
 #...............................................................................
 
-def getBodyEmail( role ):
+
+def getBodyEmail(role):
   '''
     Returns a body for the email if provided a proper role.
   '''
 
   if role == 'Production':
     return __productionBody__
-  else:
-    return None
+
+  return None
 
 #...............................................................................
-#EOF
+# EOF

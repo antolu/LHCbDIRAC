@@ -18,8 +18,8 @@ class JobStep( BaseAccountingType ):
     self.definitionKeyFields = [ ( 'JobGroup',       'VARCHAR(32)' ),
                                  ( 'RunNumber',      'VARCHAR(32)' ),
                                  ( 'EventType',      'VARCHAR(32)' ),
-                                 ( 'ProcessingType', 'VARCHAR(32)' ),
-                                 ( 'ProcessingStep', 'VARCHAR(32)' ),
+                                 ( 'ProcessingType', 'VARCHAR(256)' ),
+                                 ( 'ProcessingStep', 'VARCHAR(256)' ),
                                  ( 'Site',           'VARCHAR(32)' ),
                                  ( 'FinalStepState', 'VARCHAR(32)' )
                                 ]

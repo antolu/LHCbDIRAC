@@ -373,12 +373,10 @@ When the machines are updated, then you have to go through all the components an
 Pilot
 `````
 
-Use the following script (from, e.g., lxplus after having run `lb-run LHCbDIRAC tcsh`)::
+Update the pilot version from the CS, keeping 2 pilot versions, for example:
 
-  dirac-pilot-version -S v8r2p42
+   /Operation/LHCb-Production/Pilot/Version = v8r2p42, v8r241
 
-NOTE: YOU HAVE TO KEEP TWO PILOT VERSION. AFTER YOU EXECUTED THIS COMMAND PLEASE MODIFY THE CS!
-for example:/Operation/LHCb-Production/Pilot/Version to v8r2p42, v8r241
 The newer version should be the first in the list
 
 for checking and updating the pilot version. Note that you'll need a proxy that can write in the CS (i.e. lhcb-admin).

@@ -10,6 +10,20 @@ use DIRAC v6r20-pre11
 * re-migrated
 * moved to DIRAC
 
+[v9r1p6]
+use DIRAC v6r19p14
+
+* unpickle the simulation conditions and use the unplicked object for comparision
+* prevent checking the whole production unless specified as it may take time
+* add option to remove the source replica(s) when replicating a file
+* increase the EventType size
+* use ReplicaFlag All for getting productions
+* Remove addLevelDefaultValue
+* do not overwrite the existing value
+* if the value is empty, the dates should not be in the update
+* increase the size of the column
+* Docs: add ReqProxy in the BOINC setup
+
 [v9r1p5]
 use DIRAC v6r19p13
 

@@ -28,31 +28,6 @@ Run by Jenkins.
 System tests
 ------------
 
-Even if it should not be considered strictly as a test, running all the agents and service within certification is an action to take.
-Agents and services spits errors and exceptions. While the second are obviously bugs, the first are not to be considered bugs until an expert look.
-Nonetheless, we have created a tool to easily identify all new exceptions and errors:
-
-::
-
-    codeLocation=https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/raw/devel/tests/System/LogsParser/
-    mkdir /tmp/logTest
-    cd /tmp/logTest
-    wget -r -np -nH --cut-dirs=7 $codeLocation
-    /bin/bash logParser.sh
-
-
-For testing that the RMS works, there is an ad-hoc test:
-::
-
-  wget http://github.com/DIRACGrid/DIRAC/blob/integration/DataManagementSystem/test/IntegrationFCT.py
-  python IntegrationFCT.py lhcb_user CERN-USER RAL-USER CNAF-USER
-  python IntegrationFCT.py lhcb_prod CERN-FAILOVER RAL-FAILOVER CNAF-FALIOVER
-
-Those commands will create and put to the Request Management System two new requests:
-
-1. for lhcb_user group, which should be banned from using the FTS system
-2. for lhcb_prod or lhcb_prmgr group, which this should be executed using FTS
-
 You could monitor their execution using `Request monitor` web page or by using CLI comamnd:
 
 ::
