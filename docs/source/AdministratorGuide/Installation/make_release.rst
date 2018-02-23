@@ -157,6 +157,7 @@ It may happen that the pipeline fails. There are various reasons for that, but n
 
 Manual procedure
 ^^^^^^^^^^^^^^^^
+
 **This should a priori not be used anymore. If the pipeline fails, you should rather investigate why.**
 
 Login on lxplus, run ::
@@ -179,37 +180,47 @@ If you do not have access to lhcbprod, you can use your user name.
 2. Making basic verifications
 =============================
 
-Once the tarball is done and uploaded, the release manager is asked to make basic verifications, via Jenkins,
-if the release has been correctly created.
+Once the tarball is done and uploaded, the release manager is asked to make basic verifications,
+to see if the release has been correctly created.
 
-At this `link <https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/>`_ you'll find some Jenkins Jobs ready to be started.
-Please start the following Jenkins jobs and come back in about an hour to see the results for all of them.
+2.1. GitLab-CI pipelines
+````````````````````````
 
-1. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/!RELEASE!__pylint_unit/ the !RELEASE! is the actual relase for example: https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/v8r5__pylint_unit/
+Within GitLab-CI, at https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/pipelines we run simple "unit" tests.
 
-This job will: run pylint (errors only), run all the unit tests found in the system, assess the coverage.
-The job should be considered successful if:
+These pipelines will: run pylint (errors only), run all the unit tests found in the system, assess the coverage.
+If the GitLab-CI pipelines are successful, we can check the system tests.
 
-- the pylint error report didn't increase from the previous job run
-- the test results didn't get worse from the previous job run
-- the coverage didn't drop from the previous job run
+2.2. Jenkins "system" tests
+```````````````````````````
+
+At this `link <https://jenkins-dirac.web.cern.ch/view/LHCbDIRAC/>`_ you'll find some Jenkins Jobs ready to be started.
+Please start the following Jenkins jobs and verify their output.
+
+1. LHCbPilot2
+
+This jobs will simply install the pilot. Please just check if the result does not show in an "unstable" status.
+Also, please grep its output for "ERROR:".
+
+2. LHCbPilot2_integration_user
+
+This job will install the pilot. Then it will run a couple jobs. Verify its output for "ERROR:" as in the previous step.
+
+3. LHCbPilot2_regression_user
+
+This job will install the pilot. Then it will run a couple jobs. Verify its output for "ERROR:" as in the previous step.
 
 
-2. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/!RELEASE!__pilot/
 
-This job will simply install the pilot. Please just check if the result does not show in an "unstable" status
-
-
-3. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/!RELEASE!__/
-
-   TODO
 
 
 3. Advertise the new release
 ============================
 
 Before you start the release you must write an Elog entry 1 hour before you start the deployment.
-You have to select Production and Release tick boxes. When the intervention is over you must notify the users (reply to the Elog message).
+You have to select Production and Release tick boxes.
+
+When the intervention is over you must notify the users (reply to the Elog message).
 
 
 4. Deploying the release
@@ -264,9 +275,9 @@ Changing the prod version for LHCbGrid
 ```````````````````````````````````
 
 ask the CVMFS librarians to change the prod version for the LHCbGrid on cvmfs::
-	
-	cd /cvmfs/lhcb.cern.ch/lib/lhcb/LHCBGRID
-	rm LHCBGRID_prod; ln -s LHCBGRID_vArBpC LHCBGRID_prod
+
+   cd /cvmfs/lhcb.cern.ch/lib/lhcb/LHCBGRID
+   rm LHCBGRID_prod; ln -s LHCBGRID_vArBpC LHCBGRID_prod
 
 
 Server

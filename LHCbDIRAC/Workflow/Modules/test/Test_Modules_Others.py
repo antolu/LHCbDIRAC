@@ -80,14 +80,40 @@ class ModulesTestCase(unittest.TestCase):
     self.jobStep_mock.checkValues.return_value = {'OK': True, 'Value': ''}
 
   def tearDown(self):
-    for fileProd in ['appLog', 'foo.txt', 'aaa.Bhadron.dst', 'bbb.Calibration.dst', 'bar.py', 'aLongLog.log',
-                     'bookkeeping_123_00000456_321.xml',
-                     'aLongLog.log.gz', 'ccc.charm.mdst', 'ccc.charm.mdst', 'prova.txt', 'aLog.log',
-                     'BAR.txt', 'FooBAR.ext.txt', 'foo_1.txt', 'bar_2.py', 'bar.txt',
-                     'ErrorLogging_Step1_coredump.log', '123_00000456_request.xml', 'lfn1', 'lfn2', 'XMLSummaryFile',
-                     'aaa.bhadron.dst', 'bbb.calibration.dst', 'ProductionOutputData', 'data.py', '123_00000456_request.json',
-                     '00000123_00000456.tar', 'someOtherDir', 'DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK', 'myfoo.blah',
-                     'prodConf_someApp__.py', 'prodConf_someApp___.py']:
+    for fileProd in [
+        'appLog',
+        'foo.txt',
+        'aaa.Bhadron.dst',
+        'bbb.Calibration.dst',
+        'bar.py',
+        'aLongLog.log',
+        'bookkeeping_123_00000456_321.xml',
+        'aLongLog.log.gz',
+        'ccc.charm.mdst',
+        'ccc.charm.mdst',
+        'prova.txt',
+        'aLog.log',
+        'BAR.txt',
+        'FooBAR.ext.txt',
+        'foo_1.txt',
+        'bar_2.py',
+        'bar.txt',
+        'ErrorLogging_Step1_coredump.log',
+        '123_00000456_request.xml',
+        'lfn1',
+        'lfn2',
+        'XMLSummaryFile',
+        'aaa.bhadron.dst',
+        'bbb.calibration.dst',
+        'ProductionOutputData',
+        'data.py',
+        '123_00000456_request.json',
+        '00000123_00000456.tar',
+        'someOtherDir',
+        'DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK',
+        'myfoo.blah',
+        'prodConf_someApp__.py',
+        'prodConf_someApp___.py']:
       try:
         os.remove(fileProd)
       except OSError:
@@ -349,7 +375,7 @@ class UploadOutputDataSuccess(ModulesTestCase):
             continue
           wf_cs['outputList'] = [{'outputDataType': 'txt', 'outputDataName': 'foo.txt'},
                                  {'outputDataType': 'txt', 'outputDataName': 'bar.txt'},
-                                 ]
+                                ]
           wf_cs['ProductionOutputData'] = ['/lhcb/MC/2010/DST/00012345/0001/foo.txt',
                                            '/lhcb/MC/2010/DST/00012345/0001/bar.txt']
 #          bkc_mock.getFileDescendants.return_value = {'OK': False,
@@ -391,6 +417,41 @@ class UploadOutputDataSuccess(ModulesTestCase):
 #              self.assertFalse( res['OK'] )
           os.remove('foo.txt')
           os.remove('bar.txt')
+
+  def test__getLFNsForBKRegistration(self, _p):
+
+    f1 = File()
+    f1.LFN = '/a/1.txt'
+    f2 = File()
+    f2.LFN = '/a/2.txt'
+    f3 = File()
+    f3.LFN = '/a/3.txt'
+
+    o1 = Operation()
+    o1.Type = 'RegisterFile'
+    o1.addFile(f1)
+    o2 = Operation()
+    o2.Type = 'RegisterFile'
+    o2.addFile(f2)
+    o3 = Operation()
+    o3.Type = 'ForwardDISET'
+    o4 = Operation()
+    o4.Type = 'RegisterFile'
+    o4.addFile(f1)
+    o4.addFile(f3)
+
+    r = Request()
+    r.addOperation(o4)
+    r.addOperation(o1)
+    r.addOperation(o2)
+    r.addOperation(o3)
+
+    uod = UploadOutputData(bkClient=bkc_mock, dm=dm_mock)
+    uod.request = r
+
+    lfns = set(['/a/1.txt', '/a/5.txt', '/a/6.txt', '/a/3.txt'])
+    lfnsForBkReg = uod._getLFNsForBKRegistration(lfns)
+    self.assertEqual(sorted(lfnsForBkReg), sorted(['/a/5.txt', '/a/6.txt']))
 
   def test__cleanUp(self, _patch):
     f1 = File()
