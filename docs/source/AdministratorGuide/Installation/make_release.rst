@@ -243,8 +243,15 @@ go to this `web page <https://jenkins-lhcb-nightlies.web.cern.ch/job/nightly-bui
 
 * in the field "Project list" put : "Dirac vNrMpK LHCbGrid vArB LHCbDirac vArBpC"  (NOTE: LHCbGrid version can be found: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/blob/master/dist-tools/projectConfig.json)
 * in the field "platforms" put : "x86_64-slc6-gcc49-opt"
+* in the field "scripts_version" put "dirac"
 
 Then click on the "BUILD" button
+
+on lxplus please execute the following command:: 
+
+  lb-sdb-import LHCbDIRAC vArBpC --platforms=which platform(s) to build
+  for example:
+  lb-sdb-import LHCbDIRAC v9r1p7 --platforms=x86_64-slc6-gcc49-opt
 
 * within 10-15 min the build should start to appear in the nightlies page https://lhcb-nightlies.cern.ch/release/
 * if there is a problem in the build, it can be re-started via the dedicated button (it will not restart by itself after a retag)
