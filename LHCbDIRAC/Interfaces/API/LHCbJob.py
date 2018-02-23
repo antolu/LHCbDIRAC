@@ -87,7 +87,7 @@ from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Workflow.Utilities.Utils import getStepDefinition, addStepToWorkflow
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getPlatformFromConfig
+from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getPlatformFromLHCbConfig
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 
 
@@ -859,31 +859,44 @@ class LHCbJob(Job):
     return S_OK()
 
   #############################################################################
+  def setPlatform(self, platform):
+    """Developer function: sets the target platform, e.g. x86_64-slc5
+       This platform is in the form of what it is returned by the dirac-architecture script)
+    """
+    kwargs = {'platform': platform}
+
+    if not isinstance(platform, basestring):
+      return self._reportError("Expected string for platform", **kwargs)
+
+    if platform and platform.lower() != 'any':
+      self._addParameter(self.workflow, 'Platform', 'JDL', platform, 'Platform ( Operating System )')
+    return S_OK()
 
   def setDIRACPlatform(self):
-    """ Looks inside the steps definition to find list of CMTConfigs, then translates it in a DIRAC platform
+    """ Looks inside the steps definition to find list of Configs, then translates it in a DIRAC platform
     """
-    listOfCMTConfigs = []
+    listOfConfigs = []
     for step_instance in self.workflow.step_instances:
       for parameter in step_instance.parameters:
         if parameter.name.lower() == 'systemconfig':
-          if not parameter.value or parameter.value.lower() == 'any':
-            listOfCMTConfigs.append('zzz')  # just for comparison... yes, it's a hack! due to this damn "ANY"
-          else:
-            listOfCMTConfigs.append(parameter.value)
+          if parameter.value:
+            listOfConfigs.append(parameter.value)
 
-    listOfCMTConfigs = uniqueElements(listOfCMTConfigs)
-    listOfCMTConfigs.sort(key=LooseVersion)
+    listOfConfigs = uniqueElements(listOfConfigs)
+    listOfConfigs.sort(key=LooseVersion)
 
-    if listOfCMTConfigs[0] == 'zzz':
-      return super(LHCbJob, self).setPlatform('ANY')
+    if not listOfConfigs or listOfConfigs[0].lower() == 'any':
+      # It was calling the base class setPlatfor('ANY') which just returns S_OK()
+      return S_OK()
 
     try:
-      platform = getPlatformFromConfig(listOfCMTConfigs[0])[0]
+      platform = getPlatformFromLHCbConfig(listOfConfigs[0])
     except (ValueError, IndexError) as error:
-      self.log.warn(error)
-      platform = 'ANY'
-    return super(LHCbJob, self).setPlatform(platform)
+      self.log.exception("Exception while getting platform, don't set it", lException=error)
+      return S_OK()
+    # At this stage this is never "AANY", so set it... although it is not clear it is of any use anywhere!
+    self._addParameter(self.workflow, 'Platform', 'JDL', platform, 'Platform ( Operating System )')
+    return S_OK()
 
   #############################################################################
 
@@ -963,7 +976,7 @@ class LHCbJob(Job):
 
   #############################################################################
 
-  def runLocal(self, diracLHCb=None, bkkClientIn=None):
+  def runLocal(self, diracLHCb=None):
     """ The DiracLHCb (API) object is for local submission.
         A BKKClient might be needed.
         First, adds Ancestors (in any) to the InputData.

@@ -15,7 +15,7 @@ __RCSID__ = "$Id$"
 
 class NoSoftwareInstallation( object ):
   """ This class is a temporary solution until a proper fix is set at the level
-      of DIRAC. It's main objective is to replace the class CombinedSoftwareInstallation.
+      of DIRAC. Its main objective is to replace the class CombinedSoftwareInstallation.
       At the moment, it is set on the CS. However, if we clear that entry on the CS
       the JobAgent will crash as it is expecting something. That something is this class.
   """
@@ -34,37 +34,37 @@ class NoSoftwareInstallation( object ):
 
     # platform ...........................................................
     if 'Platform' in self.job:
-      platform = self.job['Platform']
+      jobPlatform = self.job['Platform']
     else:
-      platform = 'ANY'
+      jobPlatform = 'ANY'
 
-    # localArch ...........................................................
-    localArch = gConfig.getValue( '/LocalSite/Architecture', '' )
-    if not localArch:
+    # localPlatform ...........................................................
+    localPlatform = gConfig.getValue( '/LocalSite/Architecture', '' )
+    if not localPlatform:
       raise RuntimeError( "/LocalSite/Architecture is missing and must be specified" )
 
-    if platform.lower() == 'any':
+    if jobPlatform.lower() == 'any':
       self.log.info( "Platform requested by the job is set to 'ANY', using the local platform" )
     else:
-      self.log.info( "Platform requested by the job is set to '%s'" % platform )
-      if not ProductionEnvironment.getPlatformsCompatibilities( platform, localArch ):
+      self.log.info( "Platform requested by the job is set to '%s'" % jobPlatform )
+      if not ProductionEnvironment.getPlatformsCompatibilities( jobPlatform, localPlatform ):
         self.log.error( "The platform request is different from the local one... something is very wrong!" )
         return S_ERROR( "The platform request is different from the local one... something is very wrong!" )
 
-    compatibleCMTConfigs = self._getSupportedCMTConfigs( localArch )
-    self.log.info( "This node supports the following CMT configs: %s" % ', '.join( compatibleCMTConfigs ) )
+    compatibleConfigs = self._getSupportedConfigs( localPlatform )
+    self.log.info( "This node supports the following configs: %s" % ', '.join( compatibleConfigs ) )
 
     return S_OK()
 
 
-  def _getSupportedCMTConfigs( self, platform ):
-    """ returns getCMTConfigsCompatibleWithPlatforms
+  def _getSupportedConfigs( self, platform ):
+    """ returns getLHCbConfigsForPlatform
     """
     self.log.info( "Node supported platform is: %s" % platform )
-    compatibleCMTConfigs = ProductionEnvironment.getCMTConfigsCompatibleWithPlatforms( platform )
-    if not compatibleCMTConfigs['OK']:
-      raise RuntimeError( compatibleCMTConfigs['Message'] )
-    if not compatibleCMTConfigs['Value']:
-      raise RuntimeError( "No CMT configs can be run here. Something is wrong in our configuration" )
+    compatibleConfigs = ProductionEnvironment.getLHCbConfigsForPlatform( platform )
+    if not compatibleConfigs['OK']:
+      raise RuntimeError( compatibleConfigs['Message'] )
+    if not compatibleConfigs['Value']:
+      raise RuntimeError( "No configs can be run here. Something is wrong in our configuration" )
 
-    return compatibleCMTConfigs['Value']
+    return compatibleConfigs['Value']

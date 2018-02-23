@@ -51,12 +51,12 @@ class RegressionTestCase( IntegrationTest ):
 
 class HelloWorldSuccess( RegressionTestCase ):
   def test_Regression_User( self ):
-    res = self.j_u_hello.runLocal( self.diracLHCb, self.bkkClient )
+    res = self.j_u_hello.runLocal(self.diracLHCb)
     self.assertTrue( res['OK'] )
 
 class HelloWorldPlusSuccess( RegressionTestCase ):
   def test_Regression_User( self ):
-    res = self.j_u_helloPlus.runLocal( self.diracLHCb, self.bkkClient )
+    res = self.j_u_helloPlus.runLocal(self.diracLHCb)
     self.assertTrue( res['OK'] )
 
 # class Collision12Success( RegressionTestCase ):
