@@ -1,3 +1,9 @@
+[v9r1p7]
+use DIRAC v6r19p15
+
+* use a certain script_version and use lb-sdb-import
+* do not reschedule when error code is a multiple of 64
+
 [v9r1p6]
 use DIRAC v6r19p14
 

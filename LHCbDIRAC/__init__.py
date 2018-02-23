@@ -19,7 +19,7 @@ rootPath = os.path.dirname( os.path.realpath( __path__[0] ) )
 
 majorVersion = 9
 minorVersion = 1
-patchLevel = 6 
+patchLevel = 7 
 preVersion = 0
 
 version = "v%sr%s" % ( majorVersion, minorVersion )
