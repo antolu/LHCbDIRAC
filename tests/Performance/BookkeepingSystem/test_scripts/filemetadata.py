@@ -4,7 +4,6 @@ import time
 import random
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-from DIRAC.Core.Utilities.List import sortList
 from DIRAC.Core.Base import Script
 Script.parseCommandLine(ignoreErrors=True)
 
