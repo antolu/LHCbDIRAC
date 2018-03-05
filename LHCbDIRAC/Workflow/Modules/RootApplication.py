@@ -5,7 +5,7 @@ import os
 from DIRAC import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities import DErrno
 
-from LHCbDIRAC.Core.Utilities.RunApplication import RunApplication, LbRunError, LHCbApplicationError
+from LHCbDIRAC.Core.Utilities.RunApplication import RunApplication, LbRunError, LHCbApplicationError, LHCbDIRACError
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
 __RCSID__ = "$Id$"
@@ -153,6 +153,9 @@ class RootApplication( ModuleBase ):
     except LHCbApplicationError as lbae: # This is the case for real application errors
       self.setApplicationStatus( repr(lbae) )
       return S_ERROR( str(lbae) )
+    except LHCbDIRACError as lbde: # This is the case for LHCbDIRAC errors (e.g. subProcess call failed)
+      self.setApplicationStatus( repr(lbde) )
+      return S_ERROR( str(lbde) )
     except Exception as e: #pylint:disable=broad-except
       self.log.exception( "Failure in RootApplication execute module", lException = e )
       return S_ERROR( "Error in RootApplication module" )
