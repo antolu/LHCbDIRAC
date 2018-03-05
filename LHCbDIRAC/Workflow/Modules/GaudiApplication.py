@@ -12,7 +12,7 @@ from DIRAC import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities import DErrno
 
 from LHCbDIRAC.Core.Utilities.ProductionOptions import getDataOptions, getModuleOptions
-from LHCbDIRAC.Core.Utilities.RunApplication import RunApplication, LbRunError, LHCbApplicationError
+from LHCbDIRAC.Core.Utilities.RunApplication import RunApplication, LbRunError, LHCbApplicationError, LHCbDIRACError
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
 __RCSID__ = "$Id$"
@@ -190,6 +190,9 @@ class GaudiApplication( ModuleBase ):
     except LHCbApplicationError as lbae: # This is the case for real application errors
       self.setApplicationStatus( repr(lbae) )
       return S_ERROR( str(lbae) )
+    except LHCbDIRACError as lbde: # This is the case for LHCbDIRAC errors (e.g. subProcess call failed)
+      self.setApplicationStatus( repr(lbde) )
+      return S_ERROR( str(lbde) )
     except Exception as exc: #pylint:disable=broad-except
       self.log.exception( "Failure in GaudiApplication execute module", lException = exc, lExcInfo = True )
       self.setApplicationStatus( "Error in GaudiApplication module" )
