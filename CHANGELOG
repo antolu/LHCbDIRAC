@@ -1,3 +1,9 @@
+[v9r1p8]
+use DIRAC v6r19p16
+
+* --use-grid is deprecated
+* using custum exception when the launching or running the application failed
+
 [v9r1p7]
 use DIRAC v6r19p15
 
