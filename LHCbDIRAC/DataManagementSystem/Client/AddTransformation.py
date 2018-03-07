@@ -337,7 +337,12 @@ def executeAddTransformation(pluginScript):
       if res['OK']:
         gLogger.notice("%d files were successfully set invisible in the BK" % len(lfns))
         if transBKQuery:
-          transBKQuery["Visible"] = 'All'
+          savedVisi = transBKQuery.get('Visible')
+          transBKQuery['Visible'] = 'All'
+          if savedVisi:
+            transBKQuery['Visible'] = savedVisi
+          else:
+            transBKQuery.pop('Visible')
           transformation.setBkQuery(transBKQuery)
       else:
         gLogger.error("Failed to set the files invisible:", res['Message'])
