@@ -10,6 +10,7 @@
      Command: Command to execute (separate with spaces)
               If command terminates with ", a " is appended after the argument
               If the command contains the string @arg@, it is replaced by the argument rather than the argument appended
+              If the command itself is dirac-loop, then the first occurrence only of @arg@ is replaced, which allows recursive calls
 """
 
 

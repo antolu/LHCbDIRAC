@@ -1809,7 +1809,6 @@ def executeListDirectory(dmScript, days=0, months=0, years=0, wildcard=None, dep
     # We should get the list of directories from that query
     baseDirs += bkQuery.getDirs()
 
-  wildcardSplit = wildcard.split('/')
   progressBar = ProgressBar(len(baseDirs), title="Getting files from %d directories" % len(baseDirs), chunk=1)
   filesInDirs = {}
   for baseDir in baseDirs:
@@ -1823,10 +1822,6 @@ def executeListDirectory(dmScript, days=0, months=0, years=0, wildcard=None, dep
     emptyDirs = set()
     while len(activeDirs) > 0:
       currentDir = activeDirs.pop(0)
-      # Does this directory match tthe wildcard?
-      matchLen = len(currentDir.split('/'))
-      if not fnmatch.fnmatch(currentDir, '/'.join(wildcardSplit[:matchLen])):
-        continue
       res = fc.listDirectory(currentDir, verbose)
       if not res['OK']:
         gLogger.error("Error retrieving directory contents -",
