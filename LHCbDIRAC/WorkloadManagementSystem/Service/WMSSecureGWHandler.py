@@ -308,5 +308,5 @@ class WMSSecureGWHandler( RequestHandler ):
   types_commitRegisters = [ list ]
   def export_commitRegisters( self, entriesList ):
     acc = RPCClient( 'AccountingSystem/DataStore' )
-    retVal = rpcClient.commitRegisters( entriesList )
+    retVal = RPCClient.commitRegisters( entriesList )
     return retVal
