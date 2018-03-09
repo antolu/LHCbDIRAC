@@ -72,6 +72,9 @@ class WMSSecureGWHandler( RequestHandler ):
     from DIRAC.RequestManagementSystem.Service.ReqManagerHandler import ReqManagerHandler
     if ReqManagerHandler.types_putRequest != cls.types_putRequest:
       raise Exception( "ReqManagerHandler putRequest types has been changed." )
+    from DIRAC.AccountingSystem.Service.DataStoreHandler import DataStoreHandler
+    if DataStoreHandler.types_commitRegisters != cls.types_commitRegisters:
+      raise Exception( "DataStoreHandler commitRegisters types has been changed." )
 
 
 
@@ -299,3 +302,11 @@ class WMSSecureGWHandler( RequestHandler ):
     defaultGroup = result['Value']
     userGroup = opsHelper.getValue( cfgPath( 'BoincShifter', shifterType, 'Group' ), defaultGroup )
     return userDN, userGroup, userName
+
+  ########################################################################
+
+  types_commitRegisters = [ list ]
+  def export_commitRegisters( self, entriesList ):
+    acc = RPCClient( 'AccountingSystem/DataStore' )
+    retVal = rpcClient.commitRegisters( entriesList )
+    return retVal
