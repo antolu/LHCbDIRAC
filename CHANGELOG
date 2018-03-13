@@ -10,6 +10,18 @@ use DIRAC v6r20-pre11
 * re-migrated
 * moved to DIRAC
 
+[v9r1p9]
+use DIRAC v6r19p17
+
+* accounting for boinc in GW, commitRegisters
+* a few changes in the docs
+* fix selection of visibility when creating more than one transformation with RemoveDataset
+* use filesSummary even if ReplicaFlag is used in the query
+* add comment in docstring
+* remove matching of directory with wildcard in listDirectory
+* more fixes
+* fix jenkins tests
+
 [v9r1p8]
 use DIRAC v6r19p16
 
