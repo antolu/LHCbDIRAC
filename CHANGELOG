@@ -1,3 +1,25 @@
+[v9r2-pre2]
+use DIRAC v6r20-pre18
+* Port to devel changes for platforms in master
+* removed old/deprecated stuff for Jenkins
+* removed more useless stuff
+* finding correct location
+* try different location
+* removed old stuff
+* removed HammerCloud
+* removed GridCollectorAgent
+* updated doc for release
+* removed useless script
+* removed empty dir
+* removed scripts moved to vanilla DIRAC
+* removed old/unmaintained scripts
+* removed unduly created file
+* cleaning only for Idle prods
+* update release docs
+* just different order, for pipelines
+* autopep8
+* postponing BK registration if there's a request to register the LFN in the DFC
+
 [v9r2-pre1]
 use DIRAC v6r20-pre11
 
