@@ -6,10 +6,10 @@ return the message.
 """
 import time
 
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 cl = BookkeepingClient()
 
 

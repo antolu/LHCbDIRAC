@@ -6,6 +6,7 @@ import time
 
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
+
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 cl = BookkeepingClient()
 

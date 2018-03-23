@@ -3,11 +3,13 @@
 import random
 import time
 
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
+
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 cl = BookkeepingClient()
+
 runs = [164452, 164454, 164455, 164457, 164459, 164460, 164462, 164524, 164527, 164528, 164529, 164531, 164533,
         164534, 164536, 164537, 164538, 164539, 164589, 164594, 164641, 164642, 164643, 164644, 164646, 164647,
         164649, 164651, 164661, 164662, 164663, 164665, 164666, 164667, 164668, 164670, 164672, 164680, 164681,
