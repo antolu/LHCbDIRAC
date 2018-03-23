@@ -4,6 +4,8 @@
 
 '''
 
+# pylint: disable=invalid-name,wrong-import-position
+
 import unittest
 import datetime
 
@@ -11,7 +13,8 @@ from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
 from DIRAC import gLogger
-from DIRAC.tests.Integration.ResourceStatusSystem.Test_ResourceManagement import ResourceManagementClientChain as DIRACResourceManagementClientChain
+from DIRAC.tests.Integration.ResourceStatusSystem.Test_ResourceManagement import ResourceManagementClientChain as \
+    DIRACResourceManagementClientChain
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 
 gLogger.setLevel('DEBUG')
@@ -23,19 +26,18 @@ rsClient = ResourceManagementClient()
 Datetime = datetime.datetime.now()
 
 
-class LHCbResourceManagementTestCase( unittest.TestCase ):
+class LHCbResourceManagementTestCase(unittest.TestCase):
 
-  def setUp( self ):
+  def setUp(self):
     self.rmClient = ResourceManagementClient()
 
-  def tearDown( self ):
+  def tearDown(self):
     pass
 
 
-class LHCbResourceManagementClientChain( LHCbResourceManagementTestCase, DIRACResourceManagementClientChain ):
+class LHCbResourceManagementClientChain(LHCbResourceManagementTestCase, DIRACResourceManagementClientChain):
 
   def test_addAndRemove(self):
-
 
     # TEST addOrModifyMonitoringTest
     # ...............................................................................
@@ -46,9 +48,8 @@ class LHCbResourceManagementClientChain( LHCbResourceManagementTestCase, DIRACRe
 
     res = rsClient.selectMonitoringTest('TestName1234')
     self.assertTrue(res['OK'])
-    #check if the name that we got is equal to the previously added 'TestName1234'
-    self.assertEqual(res['Value'][0][1],'TestName1234')
-
+    # check if the name that we got is equal to the previously added 'TestName1234'
+    self.assertEqual(res['Value'][0][1], 'TestName1234')
 
     # TEST deleteMonitoringTest
     # ...............................................................................
@@ -60,7 +61,6 @@ class LHCbResourceManagementClientChain( LHCbResourceManagementTestCase, DIRACRe
     self.assertTrue(res['OK'])
     self.assertFalse(res['Value'])
 
-
     # TEST addOrModifyJobAccountingCache
     # ...............................................................................
 
@@ -69,9 +69,8 @@ class LHCbResourceManagementClientChain( LHCbResourceManagementTestCase, DIRACRe
 
     res = rsClient.selectJobAccountingCache('TestName1234')
     self.assertTrue(res['OK'])
-    #check if the name that we got is equal to the previously added 'TestName1234'
-    self.assertEqual(res['Value'][0][0],'TestName1234')
-
+    # check if the name that we got is equal to the previously added 'TestName1234'
+    self.assertEqual(res['Value'][0][0], 'TestName1234')
 
     # TEST deleteJobAccountingCache
     # ...............................................................................
@@ -83,8 +82,6 @@ class LHCbResourceManagementClientChain( LHCbResourceManagementTestCase, DIRACRe
     self.assertTrue(res['OK'])
     self.assertFalse(res['Value'])
 
-
-
     # TEST addOrModifyPilotAccountingCache
     # ...............................................................................
 
@@ -93,9 +90,8 @@ class LHCbResourceManagementClientChain( LHCbResourceManagementTestCase, DIRACRe
 
     res = rsClient.selectPilotAccountingCache('TestName1234')
     self.assertTrue(res['OK'])
-    #check if the name that we got is equal to the previously added 'TestName1234'
-    self.assertEqual(res['Value'][0][0],'TestName1234')
-
+    # check if the name that we got is equal to the previously added 'TestName1234'
+    self.assertEqual(res['Value'][0][0], 'TestName1234')
 
     # TEST deletePilotAccountingCache
     # ...............................................................................
@@ -107,10 +103,11 @@ class LHCbResourceManagementClientChain( LHCbResourceManagementTestCase, DIRACRe
     self.assertTrue(res['OK'])
     self.assertFalse(res['Value'])
 
+
 if __name__ == '__main__':
-  suite = unittest.defaultTestLoader.loadTestsFromTestCase( LHCbResourceManagementTestCase )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( LHCbResourceManagementClientChain ) )
-  testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
+  suite = unittest.defaultTestLoader.loadTestsFromTestCase(LHCbResourceManagementTestCase)
+  suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(LHCbResourceManagementClientChain))
+  testResult = unittest.TextTestRunner(verbosity=2).run(suite)
 
 
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

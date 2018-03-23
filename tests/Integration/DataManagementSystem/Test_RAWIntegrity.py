@@ -1,5 +1,6 @@
 """ Integration test for the RAWIntegritySystem"""
-#pylint: disable=invalid-name,too-many-statements,protected-access,too-many-instance-attributes,wrong-import-position
+
+# pylint: disable=invalid-name,too-many-statements,protected-access,too-many-instance-attributes,wrong-import-position
 
 import unittest
 import time
@@ -11,9 +12,9 @@ from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
 from DIRAC import S_OK, S_ERROR
+from DIRAC.Resources.Storage.Utilities import checkArgumentFormat
 from LHCbDIRAC.DataManagementSystem.DB.RAWIntegrityDB import RAWIntegrityDB
 from LHCbDIRAC.DataManagementSystem.Agent.RAWIntegrityAgent import RAWIntegrityAgent
-from DIRAC.Resources.Storage.Utilities import checkArgumentFormat
 
 
 class RAWIntegrityDBTest(unittest.TestCase):
@@ -241,14 +242,14 @@ class RAWIntegrityDBTest(unittest.TestCase):
     self.assertEqual(returnedLfns, [])
 
     # limit to 1
-    res = self.db.selectFiles({'StorageElement': 'se0'}, limit = 1)
+    res = self.db.selectFiles({'StorageElement': 'se0'}, limit=1)
     self.assertTrue(res['OK'], res)
     # they should be sorted by LFN by default
     returnedLfns = [ret[0] for ret in res['Value']]
     self.assertEqual(returnedLfns, ['lfn2'])
 
     # Same selection, sorted by size
-    res = self.db.selectFiles({'StorageElement': 'se0'}, orderAttribute = 'Size')
+    res = self.db.selectFiles({'StorageElement': 'se0'}, orderAttribute='Size')
     self.assertTrue(res['OK'], res)
     returnedLfns = [ret[0] for ret in res['Value']]
     self.assertEqual(returnedLfns, ['lfn4', 'lfn2'])
@@ -263,13 +264,13 @@ class RAWIntegrityDBTest(unittest.TestCase):
     self.assertTrue(res['OK'], res)
 
     # select the old files with no conditions
-    res = self.db.selectFiles({}, older = now)
+    res = self.db.selectFiles({}, older=now)
     self.assertTrue(res['OK'], res)
     returnedLfns = [ret[0] for ret in res['Value']]
     self.assertEqual(returnedLfns, ['lfn%i' % i for i in xrange(1, 5)])
 
     # select the new file
-    res = self.db.selectFiles({}, newer = now)
+    res = self.db.selectFiles({}, newer=now)
     self.assertTrue(res['OK'], res)
     returnedLfns = [ret[0] for ret in res['Value']]
     self.assertEqual(returnedLfns, ['lfn6'])
@@ -283,13 +284,13 @@ class RAWIntegrityDBTest(unittest.TestCase):
     self.assertTrue(res['OK'], res)
 
     # We should now have two files after 'now'
-    res = self.db.selectFiles({}, newer = now)
+    res = self.db.selectFiles({}, newer=now)
     self.assertTrue(res['OK'], res)
     returnedLfns = [ret[0] for ret in res['Value']]
     self.assertEqual(returnedLfns, ['lfn6', 'lfn7'])
 
     # Only one file is before 'now' and 'after'
-    res = self.db.selectFiles({}, newer = now, older = after)
+    res = self.db.selectFiles({}, newer=now, older=after)
     self.assertTrue(res['OK'], res)
     returnedLfns = [ret[0] for ret in res['Value']]
     self.assertEqual(returnedLfns, ['lfn6'])
@@ -378,7 +379,7 @@ class RAWIntegrityAgentTest(unittest.TestCase):
       self.failedAdd = []
       self.attemptsAdd = []
 
-    def removeCatalog(self, _catalogName):  #pylint: disable=no-self-use
+    def removeCatalog(self, _catalogName):  # pylint: disable=no-self-use
       """ Remove a catalog"""
       return S_OK()
 
@@ -444,7 +445,7 @@ class RAWIntegrityAgentTest(unittest.TestCase):
       """
       return self
 
-    def getFileMetadata(self, lfns):  #pylint: disable=no-self-use
+    def getFileMetadata(self, lfns):  # pylint: disable=no-self-use
       """ file metadata"""
 
       # If any of the LFN should trigger an error, do it immediately
@@ -504,7 +505,7 @@ class RAWIntegrityAgentTest(unittest.TestCase):
   class dbFile(object):
     """ Just a convenience class """
 
-    def __init__(self, lfn, size = 0, se = 'se'):
+    def __init__(self, lfn, size=0, se='se'):
       self.lfn = lfn
       self.size = size
       self.se = se
@@ -514,9 +515,9 @@ class RAWIntegrityAgentTest(unittest.TestCase):
 
   @mock.patch(
       'LHCbDIRAC.DataManagementSystem.Agent.RAWIntegrityAgent.FileCatalog',
-      side_effect = mock_FileCatalog)
-  @mock.patch('LHCbDIRAC.DataManagementSystem.Agent.RAWIntegrityAgent.gMonitor', new = gMonitor)
-  def setUp(self, _mockFC):  #pylint: disable=arguments-differ
+      side_effect=mock_FileCatalog)
+  @mock.patch('LHCbDIRAC.DataManagementSystem.Agent.RAWIntegrityAgent.gMonitor', new=gMonitor)
+  def setUp(self, _mockFC):  # pylint: disable=arguments-differ
     """ This method resets the internal counters of the mock,
         creates a new RAWIntegrityAgent,
         and insert into the DB some specifically crafted files
@@ -534,43 +535,43 @@ class RAWIntegrityAgentTest(unittest.TestCase):
     # Lets fill the DB with some files
 
     # Fake state in the DB, should not be fetched -> no change
-    self.fakeState = RAWIntegrityAgentTest.dbFile('/lhcb/fakeState/fakeState.txt', size = 1)
+    self.fakeState = RAWIntegrityAgentTest.dbFile('/lhcb/fakeState/fakeState.txt', size=1)
     # Cannot get SE metadata (failed)-> no change
     self.failMetadata = RAWIntegrityAgentTest.dbFile(
-        '/lhcb/fail_seMetadata/failedMetadata.txt', size = 2)
+        '/lhcb/fail_seMetadata/failedMetadata.txt', size=2)
     # Get error on SE metadata -> no change.
     self.errorMetadata = RAWIntegrityAgentTest.dbFile(
-        '/lhcb/error_seMetadata/errorMetadata.txt', size = 3, se = 'se2')
+        '/lhcb/error_seMetadata/errorMetadata.txt', size=3, se='se2')
     # All fine but on se2 so fails because of errorMetadata -> no change
     self.onSEMetadata = RAWIntegrityAgentTest.dbFile(
-        '/lhcb/allGood/ButOnSEMetadata.txt', size = 3, se = 'se2')
+        '/lhcb/allGood/ButOnSEMetadata.txt', size=3, se='se2')
     # Has the wrong checksum -> no changes
-    self.badChecksum = RAWIntegrityAgentTest.dbFile('/lhcb/seChecksum/badChecksum.txt', size = 4)
+    self.badChecksum = RAWIntegrityAgentTest.dbFile('/lhcb/seChecksum/badChecksum.txt', size=4)
     # All good but file not migrated -> no change
-    self.notCopied = RAWIntegrityAgentTest.dbFile('/lhcb/notCopied/notCopied.txt', size = 6)
+    self.notCopied = RAWIntegrityAgentTest.dbFile('/lhcb/notCopied/notCopied.txt', size=6)
     # Cannot perform add file (in Failed) -> goes to state migrated
-    self.failAddFile = RAWIntegrityAgentTest.dbFile('/lhcb/addFile/failAddFile.txt', size = 7)
+    self.failAddFile = RAWIntegrityAgentTest.dbFile('/lhcb/addFile/failAddFile.txt', size=7)
     # Cannot perform add file (S_ERROR) -> goes to state migrated
     self.errorAddFile = RAWIntegrityAgentTest.dbFile(
-        '/lhcb/error_addFile/errorAddFile.txt', size = 8, se = 'se3')
+        '/lhcb/error_addFile/errorAddFile.txt', size=8, se='se3')
     # All fine but on se3 with errorAddFile -> goes to migrated
     self.onSeAddFile = RAWIntegrityAgentTest.dbFile(
-        '/lhcb/allGood/ButOnSEAddFile.txt', size = 8, se = 'se3')
+        '/lhcb/allGood/ButOnSEAddFile.txt', size=8, se='se3')
     # Cannot perform the removal -> goes to Registered
     self.failRemove = RAWIntegrityAgentTest.dbFile(
-        '/lhcb/removal/fail_removeFile/failRemove.txt', size = 9)
+        '/lhcb/removal/fail_removeFile/failRemove.txt', size=9)
     #  Error when performin se.removeFile-> goes to register
     self.errorRemove = RAWIntegrityAgentTest.dbFile(
-        '/lhcb/removal/error_removeFile/failRemove.txt', size = 9, se = 'se4')
+        '/lhcb/removal/error_removeFile/failRemove.txt', size=9, se='se4')
     #  All good but on se4-> goes to register
     self.onSeRemove = RAWIntegrityAgentTest.dbFile(
-        '/lhcb/removal/allGood/ButOnSeRemove.txt', size = 9, se = 'se4')
+        '/lhcb/removal/allGood/ButOnSeRemove.txt', size=9, se='se4')
     # all perfect, Status goes to done
     self.allGood = RAWIntegrityAgentTest.dbFile('/lhcb/allGood/allGood.txt', 10)
     # File that was in Migrated status in the DB
-    self.wasCopied = RAWIntegrityAgentTest.dbFile('/lhcb/allGood/wasCopied.txt', size = 7)
+    self.wasCopied = RAWIntegrityAgentTest.dbFile('/lhcb/allGood/wasCopied.txt', size=7)
     # File that was in Registered status in the DB
-    self.wasRegistered = RAWIntegrityAgentTest.dbFile('/lhcb/allGood/wasRegistered.txt', size = 7)
+    self.wasRegistered = RAWIntegrityAgentTest.dbFile('/lhcb/allGood/wasRegistered.txt', size=7)
 
     self.files = [
         self.fakeState, self.failMetadata, self.errorMetadata, self.onSEMetadata, self.badChecksum,
@@ -592,9 +593,9 @@ class RAWIntegrityAgentTest(unittest.TestCase):
     for dbf in self.files:
       self.db.removeFile(dbf.lfn)
 
-  @mock.patch('LHCbDIRAC.DataManagementSystem.Agent.RAWIntegrityAgent.gMonitor', new = gMonitor)
+  @mock.patch('LHCbDIRAC.DataManagementSystem.Agent.RAWIntegrityAgent.gMonitor', new=gMonitor)
   @mock.patch(
-      'LHCbDIRAC.DataManagementSystem.Agent.RAWIntegrityAgent.StorageElement', new = genericSE)
+      'LHCbDIRAC.DataManagementSystem.Agent.RAWIntegrityAgent.StorageElement', new=genericSE)
   def test_01_executeWithNoError(self):
     """ Perform the execution loop but without the registration or the removal returning S_ERROR"""
 
@@ -621,9 +622,9 @@ class RAWIntegrityAgentTest(unittest.TestCase):
 
     self._analyseResults(allActiveFiles, pbMetadataFiles, pbRegisterFiles, pbRemoveFiles)
 
-  @mock.patch('LHCbDIRAC.DataManagementSystem.Agent.RAWIntegrityAgent.gMonitor', new = gMonitor)
+  @mock.patch('LHCbDIRAC.DataManagementSystem.Agent.RAWIntegrityAgent.gMonitor', new=gMonitor)
   @mock.patch(
-      'LHCbDIRAC.DataManagementSystem.Agent.RAWIntegrityAgent.StorageElement', new = genericSE)
+      'LHCbDIRAC.DataManagementSystem.Agent.RAWIntegrityAgent.StorageElement', new=genericSE)
   def test_02_executeWithRegisterError(self):
     """ Perform the execution loop and trigger an S_ERROR on Register"""
 
@@ -654,9 +655,9 @@ class RAWIntegrityAgentTest(unittest.TestCase):
 
     self._analyseResults(allActiveFiles, pbMetadataFiles, pbRegisterFiles, pbRemoveFiles)
 
-  @mock.patch('LHCbDIRAC.DataManagementSystem.Agent.RAWIntegrityAgent.gMonitor', new = gMonitor)
+  @mock.patch('LHCbDIRAC.DataManagementSystem.Agent.RAWIntegrityAgent.gMonitor', new=gMonitor)
   @mock.patch(
-      'LHCbDIRAC.DataManagementSystem.Agent.RAWIntegrityAgent.StorageElement', new = genericSE)
+      'LHCbDIRAC.DataManagementSystem.Agent.RAWIntegrityAgent.StorageElement', new=genericSE)
   def test_03_executeWithRemoveError(self):
     """ Perform the execution loop and trigger an S_ERROR on Remove"""
 
@@ -821,4 +822,4 @@ if __name__ == '__main__':
   suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(RAWIntegrityAgentTest))
   # The failfast option here is useful because the first test executed is if the db is empty.
   # if not we stop... this avoids bad accident :)
-  unittest.TextTestRunner(verbosity = 2, failfast = True).run(suite)
+  unittest.TextTestRunner(verbosity=2, failfast=True).run(suite)

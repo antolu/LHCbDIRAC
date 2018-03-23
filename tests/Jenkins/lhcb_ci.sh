@@ -317,8 +317,22 @@ function fullLHCbPilot(){
   echo '==> Adding the LocalSE, for the subsequent tests'
   dirac-configure -FDMH --UseServerCertificate -L CERN-SWTEST -O $PILOTINSTALLDIR/$PILOTCFG $PILOTINSTALLDIR/$PILOTCFG $DEBUG
 
-  #be sure we only have pilot.cfg
+  # be sure we only have pilot.cfg
+
+  # check if errexit mode is set and disabling as the component may not exist
+  save=$-
+  if [[ $save =~ e ]]
+  then
+    set +e
+  fi
+
   mv $PILOTINSTALLDIR/etc/dirac.cfg $PILOTINSTALLDIR/etc/dirac.cfg-not-here
+
+  # re-enabling it
+  if [[ $save =~ e ]]
+  then
+    set -e
+  fi
 
   getUserProxy
 
