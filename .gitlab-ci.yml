@@ -40,16 +40,25 @@ run_pylint:
     - cd LHCbDIRAC
     - 'find . -name "*.py" -and -not -name "NotForJenkins_Test_BKK_DB_OracleBookkeepingDB.py" -exec pylint -E --rcfile=$CI_PROJECT_DIR/DIRAC/.pylintrc --msg-template="{path}:{line}: [{msg_id}({symbol}), {obj}] {msg}" --extension-pkg-whitelist=GSI,numpy {} +'
 
-# This runs py.test and generates the coverage report
+# This runs pytest and generates the coverage report
 run_pytest:
   <<: *test_setup
   script:
     - cd LHCbDIRAC
-    - py.test . --cov=. --cov-report term-missing --cov-report html --junitxml=pytests.xml
+    - pytest . --cov=. --cov-report term-missing --cov-report html --junitxml=pytests.xml
   coverage: '/\d+\%\s*$/'
   artifacts:
     paths:
       - LHCbDIRAC/htmlcov/
+
+# This runs pycodestyle
+run_pycodestyle:
+  <<: *test_setup
+  script:
+    - git remote add GL https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC.git
+    - git fetch --no-tags GL ${diracBranch}-
+    - git branch -vv
+    - git diff -U0 GL/${diracBranch} | pycodestyle --diff
 
 # This job MUST be call pages as per https://docs.gitlab.com/ce/ci/yaml/README.html#pages
 pages:
