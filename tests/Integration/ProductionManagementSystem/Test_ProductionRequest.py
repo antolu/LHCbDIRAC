@@ -5,98 +5,139 @@
 
     It also supposes that the DB is empty!
 """
+
+# pylint: disable=invalid-name,wrong-import-position
+
 import unittest
-import time 
+import time
 
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
-from DIRAC.Core.DISET.RPCClient                                 import RPCClient
+from DIRAC import gLogger
+from DIRAC.Core.DISET.RPCClient import RPCClient
 
-class TestProductionRequestTestCase( unittest.TestCase ):
 
-  def setUp( self ):
-    self.reqClient = RPCClient( 'ProductionManagement/ProductionRequest' )
-    self.reqIds = [] #this request will be deleted
+class TestProductionRequestTestCase(unittest.TestCase):
+  """ Base class
+  """
 
-  def tearDown( self ):
+  def setUp(self):
+    gLogger.setLevel('DEBUG')
+    self.reqClient = RPCClient('ProductionManagement/ProductionRequest')
+    self.reqIds = []  # this request will be deleted
+
+  def tearDown(self):
     pass
 
 
-class TestProductionRequestTestCaseChain( TestProductionRequestTestCase ):
+class TestProductionRequestTestCaseChain(TestProductionRequestTestCase):
+  """ a chain of tests
+  """
 
-  def test_mix( self ):
+  def test_mix(self):
+    """ Calling various methods
+    """
 
     # this, does not exist yet
-    res = self.reqClient.getProductionList( 1L )
+    res = self.reqClient.getProductionList(1)
     self.assertTrue(res['OK'])
-    self.assertEqual( res['Value'], [] )
+    self.assertEqual(res['Value'], [])
 
     # add
-    res = self.reqClient.createProductionRequest( {'ParentID':'', 'MasterID':'', 'RequestAuthor': 'adminusername',
-                                                   'RequestName': 'RequestName', 'RequestType': 'RequestType',
-                                                   'RequestState': 'New', 'RequestPriority': '2b', 'RequestPDG':'',
-                                                   'SimCondition':'Beam3500GeV-VeloClosed-MagUp', 'SimCondID':'429215',
-                                                   'SimCondDetail':'BlahBlahBlah',
-                                                   'ProPath':'Blup', 'ProID':'', 'ProDetail':'BlaaaaaahBlahBlah',
-                                                   'EventType':'900000', 'NumberOfEvents':'-1',
-                                                   'Description':'Description', 'Comments':'Comments',
-                                                   'Inform':'', 'RealNumberOfEvents':'', 'IsModel':0, 'Extra':'',
-                                                   'StartingDate':time.strftime( '%d/%m/%Y' ), 'FinalizationDate':time.strftime( '%d/%m/%Y' ),
-                                                   'RetentionRate':1, 'FastSimulationType':'None'} )
-    self.assert_( res['OK'] )
+    res = self.reqClient.createProductionRequest({'ParentID': '',
+                                                  'MasterID': '',
+                                                  'RequestAuthor': 'adminusername',
+                                                  'RequestName': 'RequestName',
+                                                  'RequestType': 'RequestType',
+                                                  'RequestState': 'New',
+                                                  'RequestPriority': '2b',
+                                                  'RequestPDG': '',
+                                                  'SimCondition': 'Beam3500GeV-VeloClosed-MagUp',
+                                                  'SimCondID': '429215',
+                                                  'SimCondDetail': 'BlahBlahBlah',
+                                                  'ProPath': 'Blup',
+                                                  'ProID': '',
+                                                  'ProDetail': 'BlaaaaaahBlahBlah',
+                                                  'EventType': '900000',
+                                                  'NumberOfEvents': '-1',
+                                                  'Description': 'Description',
+                                                  'Comments': 'Comments',
+                                                  'Inform': '',
+                                                  'RealNumberOfEvents': '',
+                                                  'IsModel': 0,
+                                                  'Extra': '',
+                                                  'StartingDate': time.strftime('%Y-%m-%d'),
+                                                  'FinalizationDate': time.strftime('%Y-%m-%d'),
+                                                  'RetentionRate': 1,
+                                                  'FastSimulationType': 'None'})
+    self.assertTrue(res['OK'])
     firstReq = res['Value']
-    self.reqIds.append( res['Value'] )
-    
-    res = self.reqClient.createProductionRequest( {'ParentID':'', 'MasterID':'', 'RequestAuthor': 'adminusername',
-                                                   'RequestName': 'RequestName - new', 'RequestType': 'RequestType',
-                                                   'RequestState': 'New', 'RequestPriority': '2b', 'RequestPDG':'',
-                                                   'SimCondition':'Beam3500GeV-VeloClosed-MagUp', 'SimCondID':'429215',
-                                                   'SimCondDetail':'BlahBlahBlah',
-                                                   'ProPath':'Blup', 'ProID':'', 'ProDetail':'BlaaaaaahBlahBlah',
-                                                   'EventType':'900000', 'NumberOfEvents':'-1',
-                                                   'Description':'Description', 'Comments':'Comments',
-                                                   'Inform':'', 'RealNumberOfEvents':'', 'IsModel':0, 'Extra':'',
-                                                   'StartingDate':time.strftime( '%d/%m/%Y' ), 'FinalizationDate':time.strftime( '%d/%m/%Y' ),
-                                                   'RetentionRate':1, 'FastSimulationType':'None'} )
-    self.assert_( res['OK'] )
-    self.assertEqual( res['Value'], firstReq + 1 )
-    self.reqIds.append( res['Value'] )
+    self.reqIds.append(res['Value'])
+
+    res = self.reqClient.createProductionRequest({'ParentID': '',
+                                                  'MasterID': '',
+                                                  'RequestAuthor': 'adminusername',
+                                                  'RequestName': 'RequestName - new',
+                                                  'RequestType': 'RequestType',
+                                                  'RequestState': 'New',
+                                                  'RequestPriority': '2b',
+                                                  'RequestPDG': '',
+                                                  'SimCondition': 'Beam3500GeV-VeloClosed-MagUp',
+                                                  'SimCondID': '429215',
+                                                  'SimCondDetail': 'BlahBlahBlah',
+                                                  'ProPath': 'Blup',
+                                                  'ProID': '',
+                                                  'ProDetail': 'BlaaaaaahBlahBlah',
+                                                  'EventType': '900000',
+                                                  'NumberOfEvents': '-1',
+                                                  'Description': 'Description',
+                                                  'Comments': 'Comments',
+                                                  'Inform': '',
+                                                  'RealNumberOfEvents': '',
+                                                  'IsModel': 0,
+                                                  'Extra': '',
+                                                  'StartingDate': time.strftime('%Y-%m-%d'),
+                                                  'FinalizationDate': time.strftime('%Y-%m-%d'),
+                                                  'RetentionRate': 1,
+                                                  'FastSimulationType': 'None'})
+    self.assertTrue(res['OK'])
+    self.assertEqual(res['Value'], firstReq + 1)
+    self.reqIds.append(res['Value'])
     # Querying
-    res = self.reqClient.getProductionList( 1L )
+    res = self.reqClient.getProductionList(1)
     self.assertTrue(res['OK'])
 
-    res = self.reqClient.getProductionRequestList( 0, '', 'ASC', 0, 0, { 'RequestState':'Active' } )
+    res = self.reqClient.getProductionRequestList(0, '', 'ASC', 0, 0, {'RequestState': 'Active'})
     self.assertTrue(res['OK'])
 
     # Adding production
-    res = self.reqClient.addProductionToRequest( {'ProductionID': 123,
-                                                  'RequestID':firstReq,
-                                                  'Used':0,
-                                                  'BkEvents':0} )
+    res = self.reqClient.addProductionToRequest({'ProductionID': 123,
+                                                 'RequestID': firstReq,
+                                                 'Used': 0,
+                                                 'BkEvents': 0})
     self.assertTrue(res['OK'])
-    self.assertEqual( res['Value'], 123 )
-    res = self.reqClient.removeProductionFromRequest( 123 )
-    self.assert_( res['OK'] )
-  
-    res = self.reqClient.addProductionToRequest( {'ProductionID': 456,
-                                                  'RequestID':firstReq + 1,
-                                                  'Used':1,
-                                                  'BkEvents':0} )
+    self.assertEqual(res['Value'], 123)
+    res = self.reqClient.removeProductionFromRequest(123)
     self.assertTrue(res['OK'])
-    self.assertEqual( res['Value'], 456 )
-    
-    res = self.reqClient.removeProductionFromRequest( 456 )
-    self.assert_( res['OK'] )
-    
+
+    res = self.reqClient.addProductionToRequest({'ProductionID': 456,
+                                                 'RequestID': firstReq + 1,
+                                                 'Used': 1,
+                                                 'BkEvents': 0})
+    self.assertTrue(res['OK'])
+    self.assertEqual(res['Value'], 456)
+
+    res = self.reqClient.removeProductionFromRequest(456)
+    self.assertTrue(res['OK'])
+
     # delete
     for reqId in self.reqIds:
-      res = self.reqClient.deleteProductionRequest( reqId )
+      res = self.reqClient.deleteProductionRequest(reqId)
       self.assertTrue(res['OK'])
-      
 
 
 if __name__ == '__main__':
-  suite = unittest.defaultTestLoader.loadTestsFromTestCase( TestProductionRequestTestCase )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestProductionRequestTestCaseChain ) )
-  testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
+  suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestProductionRequestTestCase)
+  suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestProductionRequestTestCaseChain))
+  testResult = unittest.TextTestRunner(verbosity=2).run(suite)

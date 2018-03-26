@@ -23,6 +23,11 @@ class LHCbApplicationError(RuntimeError):
   """
   pass
 
+class LHCbDIRACError(RuntimeError):
+  """ Exception for application errors
+  """
+  pass
+
 class RunApplication(object):
   """ Encapsulate logic for running an LHCb application
   """
@@ -68,7 +73,7 @@ class RunApplication(object):
                                                                                 self.applicationVersion,
                                                                                 self.systemConfig ) )
 
-    lbRunOptions = self.opsH.getValue('GaudiExecution/lbRunOptions', '--use-grid')
+    lbRunOptions = self.opsH.getValue('GaudiExecution/lbRunOptions', '')
 
     extraPackagesString, runtimeProjectString, externalsString = self._lbRunCommandOptions()
 
@@ -107,7 +112,7 @@ class RunApplication(object):
         self.log.error( "LHCb environment used: %s" % self.lhcbEnvironment )
       else:
         self.log.error( "Environment: %s" % os.environ )
-      raise LbRunError( "Can not start %s %s" % ( self.applicationName, self.applicationVersion ) )
+      raise LHCbDIRACError( "Can not start %s %s" % ( self.applicationName, self.applicationVersion ) )
 
     if runResult['Value'][0]: # if exit status != 0
       self.log.error( "lb-run or its application exited with status %d" % runResult['Value'][0] )

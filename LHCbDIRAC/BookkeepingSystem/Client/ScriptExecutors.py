@@ -987,7 +987,8 @@ def executeGetStats(dmScript):
         gLogger.notice("For BK query:", bkQuery)
 
     # Get information from BK
-    if not triggerRate and not lfns and 'ReplicaFlag' not in queryDict and 'DataQuality' not in queryDict:
+    # if not triggerRate and not lfns and 'ReplicaFlag' not in queryDict and 'DataQuality' not in queryDict:
+    if not triggerRate and not lfns and 'DataQuality' not in queryDict:
       fileTypes = queryDict.pop('FileType', None)
       if not isinstance(fileTypes, list):
         fileTypes = [fileTypes]

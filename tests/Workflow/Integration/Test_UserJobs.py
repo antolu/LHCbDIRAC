@@ -7,12 +7,8 @@ import copy
 import unittest
 
 from DIRAC.Core.Base.Script import parseCommandLine
-parseCommandLine()
-
 from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
-
 from DIRAC.tests.Utilities.utils import find_all
-
 from LHCbDIRAC import rootPath
 
 try:
@@ -22,6 +18,9 @@ except ImportError:
 
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
+
+
+parseCommandLine()
 
 
 class UserJobTestCase(IntegrationTest):
@@ -145,7 +144,6 @@ class GaudirunSuccess(UserJobTestCase):
 
     oJob = copy.deepcopy(self.lhcbJobTemplate)
     oJob.setName("gaudirun-test")
-
     try:
       # This is the standard location in Jenkins
       oJob.setInputSandbox([find_all('prodConf_Gauss_00012345_00067890_1.py',
