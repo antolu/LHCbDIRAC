@@ -54,7 +54,8 @@ class Transaction(object):
                       </OutputFile>
                       <OutputFile Name="%logfile1%" TypeName="LOG" TypeVersion="1">
                               <Parameter Name="FileSize" Value="319867"/>
-                              <Replica Location="Web" Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Gauss_00056438_00001025_1.log"/>
+                              <Replica Location="Web"
+                              Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Gauss_00056438_00001025_1.log"/>
                               <Parameter Name="MD5Sum" Value="e4574c9083d1163d43ba6ac033cbd769"/>
                               <Parameter Name="Guid" Value="E4574C90-83D1-163D-43BA-6AC033CBD769"/>
                       </OutputFile>
@@ -99,7 +100,8 @@ class Transaction(object):
                     </OutputFile>
                     <OutputFile Name="%logfile2%" TypeName="LOG" TypeVersion="1">
                               <Parameter Name="FileSize" Value="131897"/>
-                              <Replica Location="Web" Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Boole_00056438_00001025_2.log"/>
+                              <Replica Location="Web"
+                              Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Boole_00056438_00001025_2.log"/>
                               <Parameter Name="MD5Sum" Value="2d9cdd2116535cd484cf06cdb1620d75"/>
                               <Parameter Name="Guid" Value="2D9CDD21-1653-5CD4-84CF-06CDB1620D75"/>
                     </OutputFile>
@@ -141,7 +143,8 @@ class Transaction(object):
                     </OutputFile>
                     <OutputFile Name="%logfile3%" TypeName="LOG" TypeVersion="1">
                               <Parameter Name="FileSize" Value="57133"/>
-                              <Replica Location="Web" Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Moore_00056438_00001025_3.log"/>
+                              <Replica Location="Web"
+                              Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Moore_00056438_00001025_3.log"/>
                               <Parameter Name="MD5Sum" Value="c62640e23c464305ff1c3b7b58b3027c"/>
                               <Parameter Name="Guid" Value="C62640E2-3C46-4305-FF1C-3B7B58B3027C"/>
                     </OutputFile>
@@ -183,7 +186,8 @@ class Transaction(object):
                     </OutputFile>
                     <OutputFile Name="%logfile4%" TypeName="LOG" TypeVersion="1">
                                 <Parameter Name="FileSize" Value="1621948"/>
-                                <Replica Location="Web" Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Moore_00056438_00001025_4.log"/>
+                                <Replica Location="Web"
+                                Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Moore_00056438_00001025_4.log"/>
                                 <Parameter Name="MD5Sum" Value="ea8bc998c1905a1c6ff192393a931766"/>
                                 <Parameter Name="Guid" Value="EA8BC998-C190-5A1C-6FF1-92393A931766"/>
                     </OutputFile>
@@ -225,7 +229,8 @@ class Transaction(object):
                     </OutputFile>
                     <OutputFile Name="%logfile5%" TypeName="LOG" TypeVersion="1">
                                 <Parameter Name="FileSize" Value="30967"/>
-                                <Replica Location="Web" Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Noether_00056438_00001025_5.log"/>
+                                <Replica Location="Web"
+                                Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Noether_00056438_00001025_5.log"/>
                                 <Parameter Name="MD5Sum" Value="bbe1d585f4961281968c48ed6f115f98"/>
                                 <Parameter Name="Guid" Value="BBE1D585-F496-1281-968C-48ED6F115F98"/>
                     </OutputFile>
@@ -267,7 +272,8 @@ class Transaction(object):
                     </OutputFile>
                     <OutputFile Name="%logfile6%" TypeName="LOG" TypeVersion="1">
                                 <Parameter Name="FileSize" Value="56250"/>
-                                <Replica Location="Web" Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Moore_00056438_00001025_6.log"/>
+                                <Replica Location="Web"
+                                Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Moore_00056438_00001025_6.log"/>
                                 <Parameter Name="MD5Sum" Value="6521d54c12608adc7b06c92e43d7d824"/>
                                 <Parameter Name="Guid" Value="6521D54C-1260-8ADC-7B06-C92E43D7D824"/>
                     </OutputFile>
@@ -309,7 +315,8 @@ class Transaction(object):
                     </OutputFile>
                     <OutputFile Name="%logfile7%" TypeName="LOG" TypeVersion="1">
                                 <Parameter Name="FileSize" Value="1709809"/>
-                                <Replica Location="Web" Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Moore_00056438_00001025_7.log"/>
+                                <Replica Location="Web"
+                                Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Moore_00056438_00001025_7.log"/>
                                 <Parameter Name="MD5Sum" Value="a2209db13ee25ba252c6c52839232999"/>
                                 <Parameter Name="Guid" Value="A2209DB1-3EE2-5BA2-52C6-C52839232999"/>
                     </OutputFile>
@@ -351,7 +358,8 @@ class Transaction(object):
                     </OutputFile>
                     <OutputFile Name="%logfile8%" TypeName="LOG" TypeVersion="1">
                                 <Parameter Name="FileSize" Value="31116"/>
-                                <Replica Location="Web" Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Noether_00056438_00001025_8.log"/>
+                                <Replica Location="Web"
+                                Name="http://lhcb-logs.cern.ch/storage/lhcb/MC/2012/LOG/00056438/0000/00001025/Noether_00056438_00001025_8.log"/>
                                 <Parameter Name="MD5Sum" Value="0a622440c036b46811912e48ceee076f"/>
                                 <Parameter Name="Guid" Value="0A622440-C036-B468-1191-2E48CEEE076F"/>
                     </OutputFile>
