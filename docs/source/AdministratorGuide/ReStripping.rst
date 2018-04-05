@@ -85,7 +85,7 @@ MinFreeSpace
 ^^^^^^^^^^^^
 
 This is a water mark, in TB, and per SE. The information is taken from <CacheFeederAgent>
-Note that it is not very smart: if when we check, we are bellow the watermark, we do not create tasks. if we are above, we create them all, even if we will be well bellow after ! It is just a safeguard
+Note that it is not very smart: if when we check, we are below the watermark, we do not create tasks. if we are above, we create them all, even if we will be well bellow after ! It is just a safeguard
 
 *************
 Input Removal
@@ -128,3 +128,14 @@ For example
 
 
 Typical useless streams are normally `CALIBRATION.DST` and `MDST.DST`
+
+
+*****************
+Productions check
+*****************
+
+The productions need to be checked for consistency and from teh Datamanagement point of view.
+
+For the DataManagement, please see :ref:`_strippingDMChecks` and :ref:`_mergingDMChecks`.
+
+Also, some files might need to be cleaned manually because they were flagged bad during the production, see :ref:`_dmCleanBadFiles`.

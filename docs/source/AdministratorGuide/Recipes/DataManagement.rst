@@ -2,13 +2,32 @@
 DataManagement
 ==============
 
+
+Checking unfinished runs
+========================
+
+
+The run is declared finished by the online data mover once all the files have been transfered. it is good to check from time to time that no runs are left behind:
+
+We start from the Reconstruction production (here 67722)
+
+.. code-block::
+
+    [localhost] ~ $ dirac-bookkeeping-run-information --Prod 67722 --Info Finished --ByValue
+    Found 347 runs
+    Successful :
+          No : (36 runs) - 201402,201403,201640,201971,201972,202804,202805,202821,[..... more that are active...]
+
+
+
+
 A bit of cleaning
 =================
 
 From StorageUsagePlot
 ---------------------
 
-From the StorageUsage plots, we can see that their are sometimes files left on BUFFER after a production has been finished.
+From the StorageUsage plots, we can see that there are sometimes files left on BUFFER after a production has been finished.
 
 To find them
 
@@ -42,6 +61,8 @@ We make sure they were not processed before removing them
     Removing replicas : completed in 8.6 seconds
     Successfully removed 3 replicas from IN2P3-BUFFER
 
+
+.. _dmCleanBadFiles:
 
 Files unused in productions
 ---------------------------

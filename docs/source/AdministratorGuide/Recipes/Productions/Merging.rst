@@ -2,6 +2,132 @@
 Merging
 =======
 
+
+.. _mergingDMChecks:
+
+*******************************
+DM checks at the end of Merging
+*******************************
+
+When the Merging productions for a given Stripping are over, there are a couple of situations that might arise:
+
+1. Output file is registered in the FC but is not registered in the BKK
+2. Output file is registered in the FC but does not have the replica flag = No
+3. Output file is registered in the BKK but not in the FC
+
+First case
+----------
+
+Nothing can be done, we do not have all the info, we should just remove the file
+
+Second case
+-----------
+
+Either the file is at its final destination, and in that case the replica flag can just be toggled, or the file is in a failover. In the later case, it is enough to replicate the file to its run destination (dirac-dms-replicate-to-run-destination) and remove the replica on the failover storage.
+
+Third case
+----------
+
+If the file physically exists, the file can just be registered in the FC.
+
+Examples
+--------
+
+The 3rd case is noticeable only in the output replication transformation, because it will mark these files as MissingInFC.
+For the first two cases, the best is to use `dirac-dms-check-fc2bkk`.
+
+For example
+
+.. code-block::
+
+    [LHCbDirac prod] diracos $ dirac-dms-check-fc2bkk --Prod 69080,69076,68774,68772
+    Processing production 69080
+    Getting files from 18 directories  : found 5348 files with replicas and 0 without in 13.9 seconds
+    Getting 5348 files metadata from BK : completed in 1.8 seconds
+    >>>>
+    1 files are in the FC but have replica = NO in BK
+    ====== Now checking 1 files from FC to SE ======
+    Checking replicas for 1 files : found 1 files with replicas and 0 without in 1.1 seconds
+    Get FC metadata for 1 files to be checked:  : completed in 0.1 seconds
+    Check existence and compare checksum file by file...
+    Getting checksum of 1 replicas in 1 SEs
+    0. At RAL-DST (1 files) : completed in 1.7 seconds
+    Verifying checksum of 1 files
+    No files in FC not in BK -> OK!
+    No missing replicas at sites -> OK!
+    No replicas have a bad checksum -> OK!
+    All files exist and have a correct checksum -> OK!
+    ====== Completed, 1 files are in the FC and SE but have replica = NO in BK ======
+    1 files are visible, 0 files are invisible
+    /lhcb/LHCb/Collision15/BHADRONCOMPLETEEVENT.DST/00069080/0000/00069080_00003151_1.bhadroncompleteevent.dst :
+    Visi Y
+    Full list of files:    grep InFCButBKNo CheckFC2BK-2.txt
+    Use --FixBK to fix it (set the replica flag) or --FixFC (for removing from FC and storage)
+    <<<<
+    No files in FC not in BK -> OK!
+    Processed production 69080
+    Processing production 69076
+    Getting files from 18 directories  : found 5789 files with replicas and 0 without in 10.3 seconds
+    Getting 5789 files metadata from BK : completed in 2.9 seconds
+    No files in FC with replica = NO in BK -> OK!
+    No files in FC not in BK -> OK!
+    Processed production 69076
+    Processing production 68774
+    Getting files from 18 directories  : found 7510 files with replicas and 0 without in 12.7 seconds
+    Getting 7510 files metadata from BK : completed in 2.8 seconds
+    No files in FC with replica = NO in BK -> OK!
+    No files in FC not in BK -> OK!
+    Processed production 68774
+    Processing production 68772
+    Getting files from 18 directories  : found 10702 files with replicas and 0 without in 14.8 seconds
+    Getting 10702 files metadata from BK : completed in 4.2 seconds
+    No files in FC with replica = NO in BK -> OK!
+    >>>>
+    1 files are in the FC but are NOT in BK:
+    /lhcb/debug/Collision15/LEPTONIC.MDST/00068772/0000/00068772_00003806_1.leptonic.mdst
+    Full list of files:    grep InFCNotInBK CheckFC2BK-3.txt
+    Use --FixFC to fix it (remove from FC and storage)
+    <<<<
+
+
+
+
+    [LHCbDirac prod] diracos $ dirac-dms-check-fc2bkk --
+    LFN=/lhcb/LHCb/Collision15/BHADRONCOMPLETEEVENT.DST/00069080/0000/00069080_00003151_1.bhadroncompleteevent.dst
+    --FixBK
+    Checking replicas for 1 files : found 1 files with replicas and 0 without in 0.3 seconds
+    Getting 1 files metadata from BK : completed in 0.0 seconds
+    >>>>
+    1 files are in the FC but have replica = NO in BK
+    ====== Now checking 1 files from FC to SE ======
+    Checking replicas for 1 files : found 1 files with replicas and 0 without in 4.8 seconds
+    Get FC metadata for 1 files to be checked:  : completed in 0.4 seconds
+    Check existence and compare checksum file by file...
+    Getting checksum of 1 replicas in 1 SEs
+    0. At RAL-DST (1 files) : completed in 1.0 seconds
+    Verifying checksum of 1 files
+    No files in FC not in BK -> OK!
+    No missing replicas at sites -> OK!
+    No replicas have a bad checksum -> OK!
+    All files exist and have a correct checksum -> OK!
+    ====== Completed, 1 files are in the FC and SE but have replica = NO in BK ======
+    1 files are visible, 0 files are invisible
+    /lhcb/LHCb/Collision15/BHADRONCOMPLETEEVENT.DST/00069080/0000/00069080_00003151_1.bhadroncompleteevent.dst :
+    Visi Y
+    Full list of files:    grep InFCButBKNo CheckFC2BK-4.txt
+    Going to fix them, setting the replica flag
+           Successfully added replica flag to 1 files
+    <<<<
+    No files in FC not in BK -> OK!
+
+    [LHCbDirac prod] diracos $ dirac-dms-remove-files
+    /lhcb/debug/Collision15/LEPTONIC.MDST/00068772/0000/00068772_00003806_1.leptonic.mdst
+    Removing 1 files : completed in 8.1 seconds
+    Successfully removed 1 files
+
+
+
+
 ****************************
 jobs failing during finalize
 ****************************

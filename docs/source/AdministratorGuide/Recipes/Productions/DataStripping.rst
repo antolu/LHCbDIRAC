@@ -2,6 +2,14 @@
 Stripping
 =========
 
+.. _strippingDMChecks:
+
+*********************************
+DM checks at the end of Stripping
+*********************************
+
+The procedure is very similar to the Merging production: :ref:`_mergingDMChecks`
+
 
 ***************
 Troubleshooting
