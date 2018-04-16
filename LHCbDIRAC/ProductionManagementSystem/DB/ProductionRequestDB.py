@@ -231,7 +231,6 @@ class ProductionRequestDB(DB):
       result = self.__getStateAndAuthor(parentID, connection)
       if not result['OK']:
         return result
-    # Check that the input and output types match for each processing step
     result = self.__checkIOTypes(requestDict)
     if not result['OK']:
       return result
@@ -264,7 +263,7 @@ class ProductionRequestDB(DB):
     return S_OK(requestID)
 
   def __checkIOTypes(self, requestDict):
-    '''Check the input of each step matches the output of the previous one.
+    '''Check the input type of each step matches the output of a previous step.
     '''
     if requestDict['ProDetail'] is not None:
       try:
@@ -703,7 +702,6 @@ class ProductionRequestDB(DB):
       if x == 'RetentionRate' and float(rec[x]) == old[x]:
         continue
       if x == 'ProDetail':
-        # Check that the input and output types match for each processing step
         result = self.__checkIOTypes(requestDict)
         if not result['OK']:
           return result
