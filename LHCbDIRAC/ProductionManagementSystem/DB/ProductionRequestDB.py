@@ -233,6 +233,7 @@ class ProductionRequestDB(DB):
         return result
     result = self.__checkIOTypes(requestDict)
     if not result['OK']:
+      self.lock.release()
       return result
 
     req = "INSERT INTO ProductionRequests ( " + ','.join(self.requestFields[1:-7])
@@ -704,6 +705,7 @@ class ProductionRequestDB(DB):
       if x == 'ProDetail':
         result = self.__checkIOTypes(requestDict)
         if not result['OK']:
+          self.lock.release()
           return result
       update[x] = rec[x]
 
