@@ -701,16 +701,16 @@ class ProductionRequestDB(DB):
 
       if x == 'RetentionRate' and float(rec[x]) == old[x]:
         continue
+      if x == 'ProDetail':
+        # Check that the input and output types match for each processing step
+        result = self.__checkIOTypes(requestDict)
+        if not result['OK']:
+          return result
       update[x] = rec[x]
 
     if len(update) == 0:
       self.lock.release()
       return S_OK(requestID)  # nothing to update
-
-    # Check that the input and output types match for each processing step
-    result = self.__checkIOTypes(requestDict)
-    if not result['OK']:
-      return result
 
     if 'NumberOfEvents' in update:  # Update RealNumberOfEvents if specified
       num = 0
