@@ -231,6 +231,10 @@ class ProductionRequestDB(DB):
       result = self.__getStateAndAuthor(parentID, connection)
       if not result['OK']:
         return result
+    # Check that the input and output types match for each processing step
+    result = self.__checkIOTypes(requestDict)
+    if not result['OK']:
+      return result
 
     req = "INSERT INTO ProductionRequests ( " + ','.join(self.requestFields[1:-7])
     req += " ) VALUES ( %s );" % ','.join(recls)
@@ -258,6 +262,24 @@ class ProductionRequestDB(DB):
       rec['RequestID'] = requestID
       informPeople(rec, '', rec['RequestState'], creds['User'], rec['Inform'])
     return S_OK(requestID)
+
+  def __checkIOTypes(self, requestDict):
+    '''Check the input of each step matches the output of the previous one.
+    '''
+    if requestDict['ProDetail'] is not None:
+      try:
+        proDetail = cPickle.loads(requestDict['ProDetail'])
+      except cPickle.UnpicklingError:
+        return S_ERROR('Content of ProDetail field cannot be unpickled')
+      for i in range(20):
+        outputKey = 'p'+str(i)+'OFT'
+        inputKey = 'p'+str(i+1)+'IFT'
+        if outputKey in proDetail and inputKey in proDetail:
+          outputFileTypes = proDetail[outputKey].split(',')
+          inputFileTypes = proDetail[inputKey].split(',')
+          if not any(a == b for a in outputFileTypes for b in inputFileTypes):
+            return S_ERROR('Input for step '+str(i+1)+' does not match the output of step '+str(i))
+    return S_OK()
 
   @staticmethod
   def __addMonitoring(req, order):
@@ -684,6 +706,11 @@ class ProductionRequestDB(DB):
     if len(update) == 0:
       self.lock.release()
       return S_OK(requestID)  # nothing to update
+
+    # Check that the input and output types match for each processing step
+    result = self.__checkIOTypes(requestDict)
+    if not result['OK']:
+      return result
 
     if 'NumberOfEvents' in update:  # Update RealNumberOfEvents if specified
       num = 0
