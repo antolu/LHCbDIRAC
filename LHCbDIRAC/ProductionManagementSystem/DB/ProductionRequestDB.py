@@ -921,7 +921,6 @@ class ProductionRequestDB(DB):
     ''' clear processing pass section.
     '''
     rec['ProID'] = None
-    _detail = cPickle.loads(rec['ProDetail'])
     nd = {}
     rec['ProDetail'] = cPickle.dumps(nd)
 
