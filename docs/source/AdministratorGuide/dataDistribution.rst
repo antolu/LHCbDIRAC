@@ -91,6 +91,6 @@ Obviously, since we have an extra constraint, we have to give a degree of freedo
   RALRAWShare = 100% - Sum(OtherShares)
   RALCPUFraction = RALCpuShare / RALRAWShare
 
-CPUShare corresponds to `Operations/<Setup>/Shares/CPUforRAW`
+CPUFraction corresponds to `Operations/<Setup>/Shares/CPUforRAW`
 
 RAWShare corresponds to `Operations/<Setup>/Shares/RAW`
