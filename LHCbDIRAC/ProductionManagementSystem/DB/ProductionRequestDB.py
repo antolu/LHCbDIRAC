@@ -231,6 +231,10 @@ class ProductionRequestDB(DB):
       result = self.__getStateAndAuthor(parentID, connection)
       if not result['OK']:
         return result
+    result = self.__checkIOTypes(requestDict)
+    if not result['OK']:
+      self.lock.release()
+      return result
 
     req = "INSERT INTO ProductionRequests ( " + ','.join(self.requestFields[1:-7])
     req += " ) VALUES ( %s );" % ','.join(recls)
@@ -258,6 +262,25 @@ class ProductionRequestDB(DB):
       rec['RequestID'] = requestID
       informPeople(rec, '', rec['RequestState'], creds['User'], rec['Inform'])
     return S_OK(requestID)
+
+  def __checkIOTypes(self, requestDict):
+    '''Check the input type of each step matches the output of a previous step.
+    '''
+    if requestDict['ProDetail'] is not None:
+      try:
+        proDetail = cPickle.loads(requestDict['ProDetail'])
+      except cPickle.UnpicklingError:
+        return S_ERROR('Content of ProDetail field cannot be unpickled')
+      previousOutputFileTypes = []
+      for i in range(20):
+        outputKey = 'p' + str(i) + 'OFT'
+        inputKey = 'p' + str(i + 1) + 'IFT'
+        if outputKey in proDetail and inputKey in proDetail:
+          inputFileTypes = proDetail[inputKey].split(',')
+          if not any(fileType in previousOutputFileTypes for fileType in inputFileTypes):
+            return S_ERROR('Input for step ' + str(i + 1) + ' does not match the output of step ' + str(i))
+          previousOutputFileTypes.extend(proDetail[outputKey].split(','))
+    return S_OK()
 
   @staticmethod
   def __addMonitoring(req, order):
@@ -679,6 +702,11 @@ class ProductionRequestDB(DB):
 
       if x == 'RetentionRate' and float(rec[x]) == old[x]:
         continue
+      if x == 'ProDetail':
+        result = self.__checkIOTypes(requestDict)
+        if not result['OK']:
+          self.lock.release()
+          return result
       update[x] = rec[x]
 
     if len(update) == 0:
@@ -894,7 +922,6 @@ class ProductionRequestDB(DB):
     ''' clear processing pass section.
     '''
     rec['ProID'] = None
-    _detail = cPickle.loads(rec['ProDetail'])
     nd = {}
     rec['ProDetail'] = cPickle.dumps(nd)
 

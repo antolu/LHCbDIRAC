@@ -13,20 +13,24 @@ from DIRAC.Core.Utilities.Subprocess import systemCall
 
 __RCSID__ = "$Id$"
 
+
 class LbRunError(RuntimeError):
   """ Exception for lb-run errors
   """
   pass
+
 
 class LHCbApplicationError(RuntimeError):
   """ Exception for application errors
   """
   pass
 
+
 class LHCbDIRACError(RuntimeError):
   """ Exception for application errors
   """
   pass
+
 
 class RunApplication(object):
   """ Encapsulate logic for running an LHCb application
@@ -37,11 +41,11 @@ class RunApplication(object):
     """
     # Standard LHCb scripts
     self.runApp = 'lb-run'
-    self.lhcbEnvironment = None # This may be added (the result of LbLogin)
+    self.lhcbEnvironment = None  # This may be added (the result of LbLogin)
 
     # What to run
-    self.applicationName = '' # e.g. Gauss
-    self.applicationVersion = '' # e.g v42r1
+    self.applicationName = ''  # e.g. Gauss
+    self.applicationVersion = ''  # e.g v42r1
 
     # Define the environment
     self.extraPackages = []
@@ -63,15 +67,15 @@ class RunApplication(object):
     self.stdError = 'applicationError.txt'
 
     # Utilities
-    self.log = gLogger.getSubLogger( "RunApplication" )
+    self.log = gLogger.getSubLogger("RunApplication")
     self.opsH = Operations()
 
-  def run( self ):
+  def run(self):
     """ Invokes lb-run (what you call after having setup the object)
     """
-    self.log.info( "Executing application %s %s for CMT configuration '%s'" % ( self.applicationName,
-                                                                                self.applicationVersion,
-                                                                                self.systemConfig ) )
+    self.log.info("Executing application %s %s for CMT configuration '%s'" % (self.applicationName,
+                                                                              self.applicationVersion,
+                                                                              self.systemConfig))
 
     lbRunOptions = self.opsH.getValue('GaudiExecution/lbRunOptions', '')
 
@@ -95,45 +99,45 @@ class RunApplication(object):
     else:
       command = self.command
 
-    finalCommand = ' '.join( [self.runApp, lbRunOptions,
-                              configString, extraPackagesString,
-                              runtimeProjectString, externalsString,
-                              app, command] )
+    finalCommand = ' '.join([self.runApp, lbRunOptions,
+                             configString, extraPackagesString,
+                             runtimeProjectString, externalsString,
+                             app, command])
 
     # get the environment
     # if self.lhcbEnvironment is None:
     #   self.lhcbEnvironment = getLHCbEnvironment()
 
     # then run it!
-    runResult = self._runApp( finalCommand, self.lhcbEnvironment )
+    runResult = self._runApp(finalCommand, self.lhcbEnvironment)
     if not runResult['OK']:
-      self.log.error( "Problem executing lb-run: %s" % runResult['Message'] )
+      self.log.error("Problem executing lb-run: %s" % runResult['Message'])
       if self.lhcbEnvironment:
-        self.log.error( "LHCb environment used: %s" % self.lhcbEnvironment )
+        self.log.error("LHCb environment used: %s" % self.lhcbEnvironment)
       else:
-        self.log.error( "Environment: %s" % os.environ )
-      raise LHCbDIRACError( "Can not start %s %s" % ( self.applicationName, self.applicationVersion ) )
+        self.log.error("Environment: %s" % os.environ)
+      raise LHCbDIRACError("Can not start %s %s" % (self.applicationName, self.applicationVersion))
 
-    if runResult['Value'][0]: # if exit status != 0
-      self.log.error( "lb-run or its application exited with status %d" % runResult['Value'][0] )
+    if runResult['Value'][0]:  # if exit status != 0
+      self.log.error("lb-run or its application exited with status %d" % runResult['Value'][0])
 
       # this is an lb-run specific error, available from LbScripts v9r1p8
       if runResult['Value'][0] & 0x40 and not runResult['Value'][0] & 0x80:
-        self.log.error( "Status %d is an lb-run specific error" % runResult['Value'][0] )
-        raise LbRunError( "Problem setting the environment: lb-run exited with status %d" % runResult['Value'][0] )
+        self.log.error("Status %d is an lb-run specific error" % runResult['Value'][0])
+        raise LbRunError("Problem setting the environment: lb-run exited with status %d" % runResult['Value'][0])
 
-      self.log.error( "Status %d is an application (%s %s) error" % ( runResult['Value'][0], 
-                                                                      self.applicationName,
-                                                                      self.applicationVersion) )
-      raise LHCbApplicationError( "%s %s exited with status %d" % ( self.applicationName,
-                                                                    self.applicationVersion,
-                                                                    runResult['Value'][0] ) )
+      self.log.error("Status %d is an application (%s %s) error" % (runResult['Value'][0],
+                                                                    self.applicationName,
+                                                                    self.applicationVersion))
+      raise LHCbApplicationError("%s %s exited with status %d" % (self.applicationName,
+                                                                  self.applicationVersion,
+                                                                  runResult['Value'][0]))
 
-    self.log.info( "%s execution completed successfully" % self.applicationName )
+    self.log.info("%s execution completed successfully" % self.applicationName)
 
     return runResult
 
-  def _lbRunCommandOptions( self ):
+  def _lbRunCommandOptions(self):
     """ Return lb-run command options
     """
 
@@ -149,41 +153,39 @@ class RunApplication(object):
       if epName.lower() == 'prodconf':
         self.prodConf = True
       if epVer:
-        extraPackagesString += ' --use="%s %s" ' % ( epName, epVer )
+        extraPackagesString += ' --use="%s %s" ' % (epName, epVer)
       else:
         extraPackagesString += ' --use="%s"' % epName
 
     # run time project
     runtimeProjectString = ''
     if self.runTimeProject:
-      self.log.verbose( 'Requested run time project: %s' % ( self.runTimeProject ) )
-      runtimeProjectString = ' --runtime-project %s/%s' % ( self.runTimeProject , self.runTimeProjectVersion )
+      self.log.verbose('Requested run time project: %s' % (self.runTimeProject))
+      runtimeProjectString = ' --runtime-project %s/%s' % (self.runTimeProject, self.runTimeProjectVersion)
 
     externalsString = ''
 
     externals = []
     if self.site:
-      externals = self.opsH.getValue( 'ExternalsPolicy/%s' % ( self.site ), [] )
+      externals = self.opsH.getValue('ExternalsPolicy/%s' % (self.site), [])
       if externals:
-        self.log.info( 'Found externals policy for %s = %s' % ( self.site, externals ) )
+        self.log.info('Found externals policy for %s = %s' % (self.site, externals))
         for external in externals:
           externalsString += ' --ext=%s' % external
 
     if not externalsString:
-      externals = self.opsH.getValue( 'ExternalsPolicy/Default', [] )
+      externals = self.opsH.getValue('ExternalsPolicy/Default', [])
       if externals:
-        self.log.info( 'Using default externals policy for %s = %s' % ( self.site, externals ) )
+        self.log.info('Using default externals policy for %s = %s' % (self.site, externals))
         for external in externals:
           externalsString += ' --ext=%s' % external
 
     return extraPackagesString, runtimeProjectString, externalsString
 
-
-
-  def _gaudirunCommand( self ):
+  def _gaudirunCommand(self):
     """ construct a gaudirun command
     """
-    command = self.opsH.getValue( '/GaudiExecution/gaudirunFlags', 'gaudirun.py' )
+    command = self.opsH.getValue('/GaudiExecution/gaudirunFlags', 'gaudirun.py')
 
     # multicore?
     if self.multicore:
@@ -192,7 +194,7 @@ class RunApplication(object):
         if _multicoreWN():
           command += ' --ncpus -1 '
         else:
-          self.log.info( "Would have run with option '--ncpus -1', but it is not allowed here" )
+          self.log.info("Would have run with option '--ncpus -1', but it is not allowed here")
 
     if self.commandOptions:
       command += ' '
@@ -204,28 +206,26 @@ class RunApplication(object):
 
     if self.extraOptionsLine:
       command += ' '
-      with open( 'gaudi_extra_options.py', 'w' ) as fopen:
-        fopen.write( self.extraOptionsLine )
+      with open('gaudi_extra_options.py', 'w') as fopen:
+        fopen.write(self.extraOptionsLine)
       command += 'gaudi_extra_options.py'
 
     return command
 
-
-
-  def _runApp( self, command, env = None ):
+  def _runApp(self, command, env=None):
     """ Actual call of a command
 
     Args:
         env (dict): LHCb environment (from LbLogin)
     """
-    print 'Command called: \n%s' % command # Really printing here as we want to see and maybe cut/paste
+    print 'Command called: \n%s' % command  # Really printing here as we want to see and maybe cut/paste
 
-    return systemCall( timeout = 0,
-                       cmdSeq = shlex.split(command),
-                       env = env, #this may be the LbLogin env
-                       callbackFunction = self.__redirectLogOutput )
+    return systemCall(timeout=0,
+                      cmdSeq=shlex.split(command),
+                      env=env,  # this may be the LbLogin env
+                      callbackFunction=self.__redirectLogOutput)
 
-  def __redirectLogOutput( self, fd, message ):
+  def __redirectLogOutput(self, fd, message):
     """ Callback function for the Subprocess calls (manages log files)
 
     Args:
@@ -234,18 +234,18 @@ class RunApplication(object):
     """
     sys.stdout.flush()
     if message:
-      if 'INFO Evt' in message or 'Reading Event record' in message: # These ones will appear in the std.out log too
+      if 'INFO Evt' in message or 'Reading Event record' in message:  # These ones will appear in the std.out log too
         print message
       if self.applicationLog:
-        with open( self.applicationLog, 'a' ) as log:
-          log.write( message + '\n' )
+        with open(self.applicationLog, 'a') as log:
+          log.write(message + '\n')
           log.flush()
       else:
-        log.error( "Application Log file not defined" )
+        log.error("Application Log file not defined")
       if fd == 1:
         if self.stdError:
-          with open( self.stdError, 'a' ) as error:
-            error.write( message + '\n' )
+          with open(self.stdError, 'a') as error:
+            error.write(message + '\n')
             error.flush()
 
 
@@ -253,17 +253,18 @@ def _multicoreWN():
   """ Returns "True" if the CE, or the Queue is marked as one where multi-processing is allowed
       (by having Tag "MultiProcessor")
   """
-  siteName = gConfig.getValue( '/LocalSite/Site' )
-  gridCE = gConfig.getValue( '/LocalSite/GridCE' )
-  queue = gConfig.getValue( '/LocalSite/CEQueue' )
+  siteName = gConfig.getValue('/LocalSite/Site')
+  gridCE = gConfig.getValue('/LocalSite/GridCE')
+  queue = gConfig.getValue('/LocalSite/CEQueue')
   # Tags of the CE
-  tags = fromChar( gConfig.getValue( '/Resources/Sites/%s/%s/CEs/%s/Tag' % ( siteName.split( '.' )[0],
-                                                                             siteName, gridCE ), '' ) )
+  tags = fromChar(gConfig.getValue('/Resources/Sites/%s/%s/CEs/%s/Tag' % (siteName.split('.')[0],
+                                                                          siteName, gridCE), ''))
   # Tags of the Queue
-  tags = fromChar( gConfig.getValue( '/Resources/Sites/%s/%s/CEs/%s/Queues/%s/Tag' % ( siteName.split( '.' )[0], queue,
-                                                                                       siteName, gridCE ), '' ) )
+  tags = fromChar(gConfig.getValue('/Resources/Sites/%s/%s/CEs/%s/Queues/%s/Tag' % (siteName.split('.')[0], queue,
+                                                                                    siteName, gridCE), ''))
 
   return bool(tags and 'MultiProcessor' in tags)
+
 
 def getLHCbEnvironment():
   """ Run LbLogin and returns the environment created.
