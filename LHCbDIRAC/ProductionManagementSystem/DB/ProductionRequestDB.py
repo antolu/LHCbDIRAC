@@ -273,12 +273,12 @@ class ProductionRequestDB(DB):
         return S_ERROR('Content of ProDetail field cannot be unpickled')
       previousOutputFileTypes = []
       for i in range(20):
-        outputKey = 'p'+str(i)+'OFT'
-        inputKey = 'p'+str(i+1)+'IFT'
+        outputKey = 'p' + str(i) + 'OFT'
+        inputKey = 'p' + str(i + 1) + 'IFT'
         if outputKey in proDetail and inputKey in proDetail:
           inputFileTypes = proDetail[inputKey].split(',')
           if not any(fileType in previousOutputFileTypes for fileType in inputFileTypes):
-            return S_ERROR('Input for step '+str(i+1)+' does not match the output of step '+str(i))
+            return S_ERROR('Input for step ' + str(i + 1) + ' does not match the output of step ' + str(i))
           previousOutputFileTypes.extend(proDetail[outputKey].split(','))
     return S_OK()
 
