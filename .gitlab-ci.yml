@@ -27,6 +27,9 @@ stages:
     - yum install -y mysql mysql-libs mysql-devel make ncurses-devel
     - pip install --upgrade setuptools
     - pip install --upgrade pip
+    - pip install virtualenv
+    - virtualenv DIRAC_VENV
+    - source DIRAC_VENV/bin/activate
     - pip install -r DIRAC/requirements.txt
 
   stage: test
