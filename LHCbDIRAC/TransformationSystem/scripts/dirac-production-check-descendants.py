@@ -113,7 +113,7 @@ if __name__ == '__main__':
       continue
     if fileType:
       if res['Value']['Type'] in ('Merge', 'MCMerge'):
-        gLogger.always("It is not allowed to select file type for merging transformation", prod)
+        gLogger.notice("It is not allowed to select file type for merging transformation", prod)
         continue
 
     startTime = time.time()
@@ -123,14 +123,14 @@ if __name__ == '__main__':
     cc.noFC = noFC
     cc.descendantsDepth = depth
     if prod != prodList[0]:
-      gLogger.always("====================")
-    gLogger.always("Processing %s production %d" % (cc.transType, cc.prod))
+      gLogger.notice("====================")
+    gLogger.notice("Processing %s production %d" % (cc.transType, cc.prod))
 
     if status:
       res = tr.getTransformationFiles({'TransformationID': prod, 'Status': status})
       if res['OK']:
         lfnList = [trFile['LFN'] for trFile in res['Value']]
-        gLogger.always('Found %d files with status %s' % (len(lfnList), status))
+        gLogger.notice('Found %d files with status %s' % (len(lfnList), status))
       else:
         gLogger.fatal("Error getting files %s" % status, res['Message'])
         DIRAC.exit(2)
@@ -141,7 +141,7 @@ if __name__ == '__main__':
     if not fileType:
       bkQuery = BKQuery({'Production': prod, 'FileType': 'ALL', 'Visible': 'All'})
       cc.fileType = bkQuery.getBKFileTypes()
-      gLogger.always("Looking for descendants of type %s" % str(cc.fileType))
+      gLogger.notice("Looking for descendants of type %s" % str(cc.fileType))
     else:
       cc.fileType = fileType
       cc.fileTypesExcluded = ['LOG']
@@ -151,7 +151,7 @@ if __name__ == '__main__':
     cc.checkTS2BK()
 
     # Print out the results
-    gLogger.always('\nResults:')
+    gLogger.notice('\nResults:')
     if verbose:
       nMax = sys.maxsize
     else:
@@ -167,122 +167,131 @@ if __name__ == '__main__':
     fp = None
     if cc.inFCNotInBK:
       lfns = cc.inFCNotInBK
-      gLogger.always("%d descendants were found in FC but don't have replica flag in BK" % len(lfns))
+      gLogger.notice("%d descendants were found in FC but don't have replica flag in BK" % len(lfns))
       if not fp:
         fp = open(fileName, 'w')
       fp.write('\nInFCNotInBK '.join([''] + lfns))
-      gLogger.always('First %d files:' % nMax if not verbose and len(lfns) > nMax else 'All files:',
+      gLogger.notice('First %d files:' % nMax if not verbose and len(lfns) > nMax else 'All files:',
                      '\n'.join([''] + lfns[0:nMax]))
-      gLogger.always(
+      gLogger.notice(
           "To fix it:   grep InFCNotInBK %s | dirac-dms-check-fc2bkk\n\tBeware you can then either fix the BK or the FC/SE" %
           fileName)
 
     if cc.inFailover:
       lfns = cc.inFailover
-      gLogger.always("%d descendants were found in Failover and have no replica flag in BK" % len(lfns))
+      gLogger.notice("%d descendants were found in Failover and have no replica flag in BK" % len(lfns))
       if not fp:
         fp = open(fileName, 'w')
       fp.write('\nInFailover '.join([''] + lfns))
-      gLogger.always('First %d files:' % nMax if not verbose and len(lfns) > nMax else 'All files:',
+      gLogger.notice('First %d files:' % nMax if not verbose and len(lfns) > nMax else 'All files:',
                      '\n'.join([''] + lfns[0:nMax]))
-      gLogger.always("You should check whether they are in a failover request by looking at their job status and in the RMS...")
-      gLogger.always("To list them:     grep InFailover %s" % fileName)
+      gLogger.notice("You should check whether they are in a failover request by looking at their job status and in the RMS...")
+      gLogger.notice("To list them:     grep InFailover %s" % fileName)
 
     if cc.inBKNotInFC:
       lfns = cc.inBKNotInFC
-      gLogger.always("%d descendants were found with replica flag in BK but not in FC" % len(lfns))
+      gLogger.notice("%d descendants were found with replica flag in BK but not in FC" % len(lfns))
       if not fp:
         fp = open(fileName, 'w')
       fp.write('\nInBKNotInFC '.join([''] + lfns))
-      gLogger.always('First %d files:' % nMax if not verbose and len(lfns) > nMax else 'All files:',
+      gLogger.notice('First %d files:' % nMax if not verbose and len(lfns) > nMax else 'All files:',
                      '\n'.join([''] + lfns[0:nMax]))
-      gLogger.always("To try and fix this:    grep InBKNotInFC %s | dirac-dms-check-bkk2fc" % fileName)
+      gLogger.notice("To try and fix this:    grep InBKNotInFC %s | dirac-dms-check-bkk2fc" % fileName)
 
     if cc.removedFiles:
       from DIRAC.Core.Utilities.List import breakListIntoChunks
-      gLogger.always(
+      gLogger.notice(
           "%d input files are processed, have no descendants but are not in the FC, set them Removed" %
           len(
               cc.removedFiles))
       if not fp:
         fp = open(fileName, 'w')
       fp.write('\nProcNotinFC '.join([''] + cc.removedFiles))
-      gLogger.always('First %d files:' % nMax if not verbose and len(cc.removedFiles) > nMax else 'All files:',
+      gLogger.notice('First %d files:' % nMax if not verbose and len(cc.removedFiles) > nMax else 'All files:',
                      '\n'.join([''] + cc.removedFiles[0:nMax]))
       for lfnChunk in breakListIntoChunks(cc.removedFiles, 1000):
         while True:
           res = cc.transClient.setFileStatusForTransformation(cc.prod, 'Removed', lfnChunk, force=True)
           if not res['OK']:
-            gLogger.always('Error setting files Removed, retry...', res['Message'])
+            gLogger.notice('Error setting files Removed, retry...', res['Message'])
           else:
             break
-      gLogger.always("\tFiles successfully set to status Removed")
+      gLogger.notice("\tFiles successfully set to status Removed")
 
-    gLogger.always("%d unique daughters found with real descendants" %
+    gLogger.notice("%d unique daughters found with real descendants" %
                    (len(set(cc.descForPrcdLFNs).union(cc.descForNonPrcdLFNs))))
 
     if cc.prcdWithMultDesc:
       lfns = sorted(cc.prcdWithMultDesc)
-      gLogger.always("Processed LFNs with multiple descendants (%d) -> ERROR" % len(lfns))
-      gLogger.always('First %d files:' % nMax if not verbose and len(lfns) > nMax else 'All files:',
+      gLogger.notice("Processed LFNs with multiple descendants (%d) -> ERROR" % len(lfns))
+      gLogger.notice('First %d files:' % nMax if not verbose and len(lfns) > nMax else 'All files:',
                      '\n'.join([''] + lfns[0:nMax]))
       if not fp:
         fp = open(fileName, 'w')
       fp.write('\nProcMultDesc '.join([''] + ['%s: %s' % (lfn, str(multi))
                                               for lfn, multi in cc.prcdWithMultDesc.iteritems()]))
-      gLogger.always("I'm not doing anything for them, neither with the 'FixIt' option")
+      gLogger.notice("I'm not doing anything for them, neither with the 'FixIt' option")
     else:
-      gLogger.always("No processed LFNs with multiple descendants found -> OK!")
+      gLogger.notice("No processed LFNs with multiple descendants found -> OK!")
 
+    fixItUsed = False
     if cc.prcdWithoutDesc:
       lfns = sorted(cc.prcdWithoutDesc)
-      gLogger.always("Processed LFNs without descendants (%d) -> ERROR!" % len(lfns))
-      gLogger.always('First %d files:' % nMax if not verbose and len(lfns) > nMax else 'All files:',
+      gLogger.notice("Processed LFNs without descendants (%d) -> ERROR!" % len(lfns))
+      gLogger.notice('First %d files:' % nMax if not verbose and len(lfns) > nMax else 'All files:',
                      '\n'.join([''] + lfns[0:nMax]))
       if fixIt:
         fixIt = False
-        gLogger.always("Resetting them 'Unused'")
+        gLogger.notice("Resetting them 'Unused'")
         res = cc.transClient.setFileStatusForTransformation(prod, 'Unused', lfns, force=True)
         if not res['OK']:
-          gLogger.always("Error resetting files to Unused", res['Message'])
+          gLogger.notice("Error resetting files to Unused", res['Message'])
       else:
+        fixItUsed = True
         if not fp:
           fp = open(fileName, 'w')
         fp.write('\nProcNoDesc '.join([''] + lfns))
-        gLogger.always("Use --FixIt for resetting files Unused in TS")
+        if cc.fileType:
+          gLogger.notice("You may want to check those files again for all file types, using:")
+          gLogger.notice("     grep ProcNoDesc %s | dirac-production-check-descendants %s" % (fileName, cc.prod))
+        gLogger.notice("If you are sure, use --FixIt for resetting files Unused in TS")
     else:
-      gLogger.always("No processed LFNs without descendants found -> OK!")
+      gLogger.notice("No processed LFNs without descendants found -> OK!")
 
     if cc.nonPrcdWithMultDesc:
       lfns = sorted(cc.nonPrcdWithMultDesc)
-      gLogger.always("Non processed LFNs with multiple descendants (%d) -> ERROR" % len(lfns))
+      gLogger.notice("Non processed LFNs with multiple descendants (%d) -> ERROR" % len(lfns))
       if not fp:
         fp = open(fileName, 'w')
       fp.write('\nNotProcMultDesc '.join([''] + lfns))
-      gLogger.always('First %d files:' % nMax if not verbose and len(lfns) > nMax else 'All files:',
+      gLogger.notice('First %d files:' % nMax if not verbose and len(lfns) > nMax else 'All files:',
                      '\n'.join([''] + lfns[0:nMax]))
-      gLogger.always("I'm not doing anything for them, neither with the 'FixIt' option")
+      gLogger.notice("I'm not doing anything for them, neither with the 'FixIt' option")
     else:
-      gLogger.always("No non processed LFNs with multiple descendants found -> OK!")
+      gLogger.notice("No non processed LFNs with multiple descendants found -> OK!")
 
     # fixing, if requested
     if cc.nonPrcdWithDesc:
       lfns = sorted(cc.nonPrcdWithDesc)
-      gLogger.always("There are %d LFNs not marked Processed but that have descendants -> ERROR" % len(lfns))
-      gLogger.always('First %d files:' % nMax if not verbose and len(lfns) > nMax else 'All files:',
+      gLogger.notice("There are %d LFNs not marked Processed but that have descendants -> ERROR" % len(lfns))
+      gLogger.notice('First %d files:' % nMax if not verbose and len(lfns) > nMax else 'All files:',
                      '\n'.join([''] + lfns[0:nMax]))
       if fixIt:
         fixIt = False
-        gLogger.always("Marking them as 'Processed'")
+        gLogger.notice("Marking them as 'Processed'")
         cc.transClient.setFileStatusForTransformation(prod, 'Processed', lfns, force=True)
       else:
         if not fp:
           fp = open(fileName, 'w')
         fp.write('\nNotProcWithDesc '.join([''] + lfns))
-        gLogger.always("Use --FixIt for setting files Processed in TS")
+        if not fixItUsed:
+          gLogger.notice("Use --FixIt for setting files Processed in TS")
+        else:
+          gLogger.notice("To get the list of files and check them again:")
+          gLogger.notice("     grep NotProcWithDesc %s | dirac-production-check-descendants" % fileName)
     else:
-      gLogger.always("No non processed LFNs with descendants found -> OK!")
+      gLogger.notice("No non processed LFNs with descendants found -> OK!")
     if fp:
       fp.close()
-      gLogger.always('Complete list of files is in %s' % fileName)
-    gLogger.always("Processed production %d in %.1f seconds" % (cc.prod, time.time() - startTime))
+      gLogger.notice('Complete list of files is in %s' % fileName)
+    gLogger.notice("Processed production %d in %.1f seconds" % (cc.prod, time.time() - startTime))
