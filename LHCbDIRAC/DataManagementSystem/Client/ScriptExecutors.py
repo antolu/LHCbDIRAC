@@ -848,34 +848,37 @@ def printPfnMetadata(lfnList, seList, check=False, exists=False, summary=False):
     return printDMResult(S_OK(metadata), empty="File not at SE")
   else:
     nFiles = 0
-    counterKeys = ['Not in FC', 'No active replicas', 'Not existing', 'Exists', 'Checksum OK', 'Checksum bad']
-    counters = dict.fromkeys(counterKeys, 0)
+    from collections import defaultdict
+    failed = {}
+    success = {}
     for lfn, reason in metadata['Failed'].iteritems():
       nFiles += 1
       if isinstance(reason, basestring):
+        failed.setdefault('FC', defaultdict(int))
         if reason == 'FC: No active replicas':
-          counters['No active replicas'] += 1
+          failed['FC']['No active replicas'] += 1
         elif reason.startswith('FC:'):
-          counters['Not in FC'] += 1
+          failed['FC']['Not in FC'] += 1
         else:
-          counters['Not existing'] += 1
+          failed['FC']['Not existing'] += 1
       elif isinstance(reason, dict):
         for se in reason:
-          if reason[se]['Exists']:
-            counters['Exists'] += 1
+          failed.setdefault(se, defaultdict(int))
+          if not isinstance(reason[se], dict):
+            failed[se][reason[se]] += 1
+          elif reason[se].get('Exists'):
+            failed[se]['Exists'] += 1
           else:
-            counters['Not existing'] += 1
+            failed[se]['Not existing'] += 1
     for lfn, seDict in metadata['Successful'].iteritems():
       nFiles += 1
       for se in seDict:
         if seDict[se]['MatchLFN'] is True:
-          counters['Checksum OK'] += 1
+          success.setdefault('Checksum OK', defaultdict(int))[se] += 1
         else:
-          counters['Checksum bad'] += 1
+          failed.setdefault(se, defaultdict(int))['Checksum bad'] += 1
     gLogger.notice('For %d files:' % nFiles)
-    for key in counterKeys:
-      if counters[key]:
-        gLogger.notice('%s: %d' % (key.rjust(20), counters[key]))
+    printDMResult(S_OK({'Successful': success, 'Failed': failed}))
   return 0
 
 
