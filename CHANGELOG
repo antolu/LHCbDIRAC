@@ -1,3 +1,40 @@
+[v9r2-pre3]
+use DIRAC v6r20-pre21
+
+* Fix pycodestyle issues with ProductionRequestDB.py
+* Release locks in ProductionRequestDB.py when file type checks fail
+* Fix outdated comments in ProductionRequestDB.py
+* Require any previous step to have created a suitable input
+* Move file type check so that pre-existing bad productions can still be updated
+* Remove redundant cPickle.load in ProductionRequestDB
+* Check input and output file types match when creating/updating production requests
+* installing libcurl-devel
+* some debug
+* use virtualenv
+* removed UsersAndGroups.py
+* several fixes to adapt to DIRAC v6r20
+* backport pylint fixes
+* remove old BOINC host
+* add BOINC host for update
+* test discovery for pytest for Integration tests in Jenkins
+* fix pycode style
+* fix pylint
+* fix
+* debug
+* @@typo
+* pylint and style
+* getting correct branch
+* added pycodestyle
+* pycodestyle fixes
+* added setup.cfg file for pycodestyle
+* change the location of the parseCommandLine
+* added some imports
+* mod message
+* remove non used import
+* add more tests
+* add more performance tests
+* add bookkeeping performance tests
+
 [v9r2-pre2]
 use DIRAC v6r20-pre18
 * Port to devel changes for platforms in master
