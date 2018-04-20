@@ -2,7 +2,7 @@
     This means that to run this test you need to have the KARMA!
 """
 
-#pylint: disable=wrong-import-position,unused-wildcard-import,wildcard-import
+# pylint: disable=wrong-import-position,unused-wildcard-import,wildcard-import
 
 import unittest
 
@@ -25,34 +25,36 @@ try:
 except ImportError:
   from tests.Utilities.testJobDefinitions import *
 
-gLogger.setLevel( 'VERBOSE' )
+gLogger.setLevel('VERBOSE')
 
 jobsSubmittedList = []
 
-class GridSubmissionTestCase( unittest.TestCase ):
+
+class GridSubmissionTestCase(unittest.TestCase):
   """ Base class for the Regression test cases
   """
-  def setUp( self ):
+
+  def setUp(self):
     self.dirac = DiracLHCb()
 
     result = getProxyInfo()
     if result['Value']['group'] not in ['lhcb_admin']:
       print "GET A ADMIN GROUP"
-      exit( 1 )
+      exit(1)
 
-    result = ResourceStatus().getElementStatus( 'PIC-USER', 'StorageElement', 'WriteAccess' )
+    result = ResourceStatus().getElementStatus('PIC-USER', 'StorageElement', 'WriteAccess')
     if result['Value']['PIC-USER']['WriteAccess'].lower() != 'banned':
       print "BAN PIC-USER in writing! and then restart this test"
-      exit( 1 )
+      exit(1)
 
-    res = DataManager().getReplicas( ['/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt',
-                                      '/lhcb/user/f/fstagni/test/testInputFile.txt'] )
+    res = DataManager().getReplicas(['/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt',
+                                     '/lhcb/user/f/fstagni/test/testInputFile.txt'])
     if not res['OK']:
       print "DATAMANAGER.getRepicas failure: %s" % res['Message']
-      exit( 1 )
+      exit(1)
     if res['Value']['Failed']:
       print "DATAMANAGER.getRepicas failed for something: %s" % res['Value']['Failed']
-      exit( 1 )
+      exit(1)
 
     replicas = res['Value']['Successful']
     if replicas['/lhcb/user/f/fstagni/test/testInputFile.txt'].keys() != ['CERN-USER', 'IN2P3-USER']:
@@ -60,30 +62,31 @@ class GridSubmissionTestCase( unittest.TestCase ):
     if replicas['/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt'].keys() != ['CERN-USER']:
       print "/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt locations are not correct"
 
-  def tearDown( self ):
+  def tearDown(self):
     pass
 
-class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
 
-  def test_LHCbsubmit( self ):
+class LHCbsubmitSuccess(GridSubmissionTestCase, DIRACGridSubmissionTestCase):
 
-    for uName, uGroup in [( 'chaen', 'lhcb_user' ), ( 'fstagni', 'lhcb_admin' )]:
+  def test_LHCbsubmit(self):
 
-      res = helloWorldTestT2s( proxyUserName = uName, proxyUserGroup = uGroup ) # pylint: disable=unexpected-keyword-arg
+    for uName, uGroup in [('chaen', 'lhcb_user'), ('zmathe', 'lhcb_admin')]:
+
+      res = helloWorldTestT2s(proxyUserName=uName, proxyUserGroup=uGroup)  # pylint: disable=unexpected-keyword-arg
       self.assertTrue(res['OK'])
-      jobsSubmittedList.append( res['Value'] )
+      jobsSubmittedList.append(res['Value'])
 
-      res = helloWorldTestCERN( proxyUserName = uName, proxyUserGroup = uGroup ) # pylint: disable=unexpected-keyword-arg
+      res = helloWorldTestCERN(proxyUserName=uName, proxyUserGroup=uGroup)  # pylint: disable=unexpected-keyword-arg
       self.assertTrue(res['OK'])
-      jobsSubmittedList.append( res['Value'] )
+      jobsSubmittedList.append(res['Value'])
 
-      res = helloWorldTestSLC6( proxyUserName = uName, proxyUserGroup = uGroup ) # pylint: disable=unexpected-keyword-arg
+      res = helloWorldTestSLC6(proxyUserName=uName, proxyUserGroup=uGroup)  # pylint: disable=unexpected-keyword-arg
       self.assertTrue(res['OK'])
-      jobsSubmittedList.append( res['Value'] )
+      jobsSubmittedList.append(res['Value'])
 
-      res = helloWorldTestSLC5( proxyUserName = uName, proxyUserGroup = uGroup ) # pylint: disable=unexpected-keyword-arg
+      res = helloWorldTestSLC5(proxyUserName=uName, proxyUserGroup=uGroup)  # pylint: disable=unexpected-keyword-arg
       self.assertTrue(res['OK'])
-      jobsSubmittedList.append( res['Value'] )
+      jobsSubmittedList.append(res['Value'])
 
 #       res = jobWithOutput( proxyUserName = uName, proxyUserGroup = uGroup )
 #       self.assertTrue(res['OK'])
@@ -103,30 +106,31 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
 #       self.assertTrue(res['OK'])
 #       jobsSubmittedList.append( res['Value'] )
 
-      res = jobWithSingleInputData( proxyUserName = uName, proxyUserGroup = uGroup ) # pylint: disable=unexpected-keyword-arg
+      res = jobWithSingleInputData(proxyUserName=uName, proxyUserGroup=uGroup)  # pylint: disable=unexpected-keyword-arg
       self.assertTrue(res['OK'])
-      jobsSubmittedList.append( res['Value'] )
+      jobsSubmittedList.append(res['Value'])
 
-      res = jobWithSingleInputDataSpreaded( proxyUserName = uName, proxyUserGroup = uGroup ) # pylint: disable=unexpected-keyword-arg
+      res = jobWithSingleInputDataSpreaded(
+          proxyUserName=uName, proxyUserGroup=uGroup)  # pylint: disable=unexpected-keyword-arg
       self.assertTrue(res['OK'])
-      jobsSubmittedList.append( res['Value'] )
+      jobsSubmittedList.append(res['Value'])
 
-      res = gaussJob( proxyUserName = uName, proxyUserGroup = uGroup ) # pylint: disable=unexpected-keyword-arg
+      res = gaussJob(proxyUserName=uName, proxyUserGroup=uGroup)  # pylint: disable=unexpected-keyword-arg
       self.assertTrue(res['OK'])
-      jobsSubmittedList.append( res['Value'] )
+      jobsSubmittedList.append(res['Value'])
 
-      res = booleJob( proxyUserName = uName, proxyUserGroup = uGroup ) # pylint: disable=unexpected-keyword-arg
+      res = booleJob(proxyUserName=uName, proxyUserGroup=uGroup)  # pylint: disable=unexpected-keyword-arg
       self.assertTrue(res['OK'])
-      jobsSubmittedList.append( res['Value'] )
+      jobsSubmittedList.append(res['Value'])
 
-      res = gaudiApplicationScriptJob( proxyUserName = uName, proxyUserGroup = uGroup ) # pylint: disable=unexpected-keyword-arg
+      res = gaudiApplicationScriptJob(
+          proxyUserName=uName, proxyUserGroup=uGroup)  # pylint: disable=unexpected-keyword-arg
       self.assertTrue(res['OK'])
-      jobsSubmittedList.append( res['Value'] )
+      jobsSubmittedList.append(res['Value'])
 
-      res = wrongJob( proxyUserName = uName, proxyUserGroup = uGroup ) # pylint: disable=unexpected-keyword-arg
+      res = wrongJob(proxyUserName=uName, proxyUserGroup=uGroup)  # pylint: disable=unexpected-keyword-arg
       self.assertTrue(res['OK'])
-      jobsSubmittedList.append( res['Value'] )
-
+      jobsSubmittedList.append(res['Value'])
 
 
 #############################################################################
@@ -134,7 +138,7 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
 #############################################################################
 
 if __name__ == '__main__':
-  suite = unittest.defaultTestLoader.loadTestsFromTestCase( GridSubmissionTestCase )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( LHCbsubmitSuccess ) )
+  suite = unittest.defaultTestLoader.loadTestsFromTestCase(GridSubmissionTestCase)
+  suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(LHCbsubmitSuccess))
 #   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( monitorSuccess ) )
-  testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
+  testResult = unittest.TextTestRunner(verbosity=2).run(suite)
