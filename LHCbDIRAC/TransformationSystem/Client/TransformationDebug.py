@@ -418,7 +418,7 @@ class TransformationDebug(object):
       res = self.transClient.getTransformationRuns(selectDict)
       if res['OK']:
         if not len(res['Value']):
-          gLogger.notice("No runs found, set to 0")
+          gLogger.notice("No runs found, set to None")
           runs = [{'RunNumber': None}]
         else:
           runs = res['Value']
@@ -1468,6 +1468,13 @@ class TransformationDebug(object):
     if not self.kickRequests:
       gLogger.notice('Use --KickRequests to fix them')
 
+  def __getRunsForFiles(self, lfnList):
+    """
+    Get run list for a set of files
+    """
+    transFiles = self.__getFilesForRun(lfnList=lfnList)
+    return list(set([str(f['RunNumber']) for f in transFiles]))
+
   def debugTransformation(self, dmScript, infoList, statusList):
     """
     Actual script execution code: parses arguments and implements the checking logic
@@ -1615,6 +1622,10 @@ class TransformationDebug(object):
                                         debug=verbose,
                                         transID=transID)
       # Select runs, or all
+      # If byRuns is requested but LFNs are provided, get the list of runs
+      if byRuns and lfnList:
+        runList = self.__getRunsForFiles(lfnList)
+        gLogger.notice("Files are from runs %s" % ','.join(runList))
       runsDictList = self.__getRuns(runList, byRuns, seList, status)
       if runList and [run['RunNumber'] for run in runsDictList] == [None]:
         gLogger.notice("None of the requested runs was found, exit")

@@ -24,9 +24,15 @@ stages:
     - cd DIRAC
     - git checkout $diracBranch
     - cd ..
-    - yum install -y mysql mysql-libs mysql-devel make ncurses-devel
+    - yum install -y mysql mysql-libs mysql-devel make ncurses-devel libcurl-devel
     - pip install --upgrade setuptools
     - pip install --upgrade pip
+    - pip install virtualenv
+    - virtualenv DIRAC_VENV
+    - source DIRAC_VENV/bin/activate
+    - pip install --upgrade setuptools
+    - pip install --upgrade pip
+    - pip list
     - pip install -r DIRAC/requirements.txt
 
   stage: test
@@ -40,16 +46,26 @@ run_pylint:
     - cd LHCbDIRAC
     - 'find . -name "*.py" -and -not -name "NotForJenkins_Test_BKK_DB_OracleBookkeepingDB.py" -exec pylint -E --rcfile=$CI_PROJECT_DIR/DIRAC/.pylintrc --msg-template="{path}:{line}: [{msg_id}({symbol}), {obj}] {msg}" --extension-pkg-whitelist=GSI,numpy {} +'
 
-# This runs py.test and generates the coverage report
+# This runs pytest and generates the coverage report
 run_pytest:
   <<: *test_setup
   script:
     - cd LHCbDIRAC
-    - py.test . --cov=. --cov-report term-missing --cov-report html --junitxml=pytests.xml
+    - pytest . --cov=. --cov-report term-missing --cov-report html --junitxml=pytests.xml
   coverage: '/\d+\%\s*$/'
   artifacts:
     paths:
       - LHCbDIRAC/htmlcov/
+
+# This runs pycodestyle
+run_pycodestyle:
+  <<: *test_setup
+  script:
+    - lhcbDiracBranch=$(head -n 50 LHCbDIRAC/releases.cfg | grep -E ' *v' | head -n 1 | grep -q pre; if [ $? -eq 0 ]; then echo "devel"; else echo "master"; fi)
+    - git remote add GL https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC.git
+    - git fetch --no-tags GL 
+    - git branch -avv
+    - git diff -U0 GL/${lhcbDiracBranch} | pycodestyle --diff
 
 # This job MUST be call pages as per https://docs.gitlab.com/ce/ci/yaml/README.html#pages
 pages:

@@ -230,11 +230,12 @@ def doCheckFC2BK(cc, fixFC=False, fixBK=False, listAffectedRuns=False):
   """
   cc.checkFC2BK()
 
-  maxFiles = 20
+  maxFiles = 10
   suffix = ''
   nb = 0
+  baseName = 'CheckFC2BK' + ('-%s' % cc.prod if cc.prod else '')
   while True:
-    fileName = 'CheckFC2BK%s.txt' % suffix
+    fileName = baseName + '%s.txt' % suffix
     if not os.path.exists(fileName):
       break
     nb += 1
@@ -330,8 +331,18 @@ def doCheckBK2FC(cc, checkAll=False, fixIt=False):
   It prints out results and calls corrective actions if required
   """
   cc.checkBK2FC(checkAll)
-  maxPrint = 20
+  maxPrint = 10
   chunkSize = 100
+  suffix = ''
+  nb = 0
+  baseName = 'CheckBK2FC' + ('-%s' % cc.prod if cc.prod else '')
+  while True:
+    fileName = baseName + '%s.txt' % suffix
+    if not os.path.exists(fileName):
+      break
+    nb += 1
+    suffix = '-%d' % nb
+  fp = None
 
   if checkAll:
     if cc.existLFNsBKRepNo:
@@ -343,6 +354,11 @@ def doCheckBK2FC(cc, checkAll=False, fixIt=False):
         comment += ' (first %d LFNs) : \n' % maxPrint
       comment += '\n'.join(cc.existLFNsBKRepNo[:maxPrint])
       gLogger.error(comment)
+      if fp is None:
+        fp = open(fileName, 'w')
+      fp.write('\nInFCButBKNo '.join([''] + sorted(cc.existLFNsBKRepNo)))
+      gLogger.notice("To get the full list:")
+      gLogger.notice("    grep InFCButBKNo %s" % fileName)
       if fixIt:
         gLogger.notice("Setting the replica flag...")
         nFiles = 0
@@ -369,6 +385,11 @@ def doCheckBK2FC(cc, checkAll=False, fixIt=False):
       comment += ' (first %d LFNs) : \n' % maxPrint
     comment += '\n'.join(cc.absentLFNsBKRepYes[:maxPrint])
     gLogger.error(comment)
+    if fp is None:
+      fp = open(fileName, 'w')
+    fp.write('\nInBKButNotInFC '.join([''] + sorted(cc.absentLFNsBKRepYes)))
+    gLogger.notice("To get the full list:")
+    gLogger.notice("    grep InBKButNotInFC %s" % fileName)
     if fixIt:
       gLogger.notice("Removing the replica flag...")
       nFiles = 0
@@ -385,6 +406,8 @@ def doCheckBK2FC(cc, checkAll=False, fixIt=False):
 
   else:
     gLogger.notice("No LFNs have replicaFlag = Yes but are not in the FC -> OK!")
+  if fp:
+    fp.close()
 
 
 def doCheckSE(cc, seList, fixIt=False):
