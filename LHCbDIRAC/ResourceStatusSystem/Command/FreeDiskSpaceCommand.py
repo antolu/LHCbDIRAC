@@ -1,10 +1,8 @@
-""" SpaceTokenOccupancyCommand
+""" FreeDiskSpaceCommand
 
   LHCbDIRAC extension adding records to the accounting
 
 """
-
-from datetime import datetime
 
 # DIRAC
 from DIRAC import S_OK
@@ -31,23 +29,27 @@ class FreeDiskSpaceCommand(FDSC):
   def _storeCommand(self, results):
     """ _storeCommand
 
-    Copy of original method adding records to accounting.
+    Adding records to accounting, on top of what does the derived method.
 
+    :param dict results: something like {'ElementName': 'CERN-HIST-EOS',
+                                         'Endpoint': 'httpg://srm-eoslhcb-bis.cern.ch:8443/srm/v2/server',
+                                         'Free': 3264963586.10073,
+                                         'Total': 8000000000.0}
+    :returns: S_OK/S_ERROR dict
     """
 
-    resQuery = self.rmClient.addOrModifySpaceTokenOccupancyCache(endpoint=results['Endpoint'],
-                                                                 lastCheckTime=datetime.utcnow(),
-                                                                 free=results['Free'],
-                                                                 total=results['Total'],
-                                                                 token=results['ElementName'])
-    if not resQuery['OK']:
-      return resQuery
+    res = super(FreeDiskSpaceCommand, self)._storeCommand(results)
 
-    siteRes = DMSHelpers().getSitesForSE(results['Endpoint'])
+    if not res['OK']:
+      return res
+
+    siteRes = DMSHelpers().getSitesForSE(results['ElementName'])
     if not siteRes['OK']:
       return siteRes
+    if not siteRes['Value']:
+      return S_OK()
 
-    se = StorageElement(results['Endpoint'])
+    se = StorageElement(results['ElementName'])
     pluginsRes = se.getPlugins()
     if not pluginsRes['OK']:
       return pluginsRes
@@ -68,7 +70,7 @@ class FreeDiskSpaceCommand(FDSC):
       spaceTokenAccounting.setNowAsStartAndEndTime()
       spaceTokenAccounting.setValuesFromDict(accountingDict)
       spaceTokenAccounting.setValueByKey('SpaceType', sType)
-      spaceTokenAccounting.setValueByKey('Space', results[sType] * 1e12)
+      spaceTokenAccounting.setValueByKey('Space', int(results[sType] * 1e6))
 
       gDataStoreClient.addRegister(spaceTokenAccounting)
     gDataStoreClient.commit()

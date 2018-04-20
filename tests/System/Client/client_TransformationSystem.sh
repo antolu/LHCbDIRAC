@@ -16,8 +16,7 @@ stamptime=$(date +%Y%m%d_%H%M%S)
 stime=$(date +"%H%M%S")
 tdate=$(date +"20%y-%m-%d")
 ttime=$(date +"%R")
-# version=${dirac-version}  +++Script is broken
-version=v6r16
+version=${dirac-version}
 mkdir -p TransformationSystemTest
 directory=/lhcb/certification/Test/INIT/$version/$tdate/$stime
 #selecting a random USER Storage Element
@@ -36,7 +35,7 @@ done
 
 echo ""
 echo "Submitting test production"
-python dirac-test-production.py -ddd
+python $DIRAC/tests/System/dirac-test-production.py -ddd
 if [ $? -ne 0 ]
 then
    exit $?

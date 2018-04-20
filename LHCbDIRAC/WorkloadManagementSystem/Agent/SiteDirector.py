@@ -8,10 +8,6 @@ import os
 from DIRAC import S_OK, rootPath
 from DIRAC.WorkloadManagementSystem.Agent.SiteDirector import SiteDirector as DIRACSiteDirector
 
-DIRAC_MODULES = [os.path.join(rootPath, 'DIRAC', 'WorkloadManagementSystem', 'PilotAgent', 'pilotCommands.py'),
-                 os.path.join(rootPath, 'DIRAC', 'WorkloadManagementSystem', 'PilotAgent', 'pilotTools.py'),
-                 os.path.join(rootPath, 'LHCbDIRAC', 'WorkloadManagementSystem', 'PilotAgent', 'LHCbPilotCommands.py')]
-
 
 class SiteDirector(DIRACSiteDirector):
   """ Simple extension of the DIRAC site director to send LHCb specific pilots (with a custom list of commands)
@@ -23,6 +19,16 @@ class SiteDirector(DIRACSiteDirector):
     res = DIRACSiteDirector.beginExecution(self)
     if not res['OK']:
       return res
+
+    if not self.pilot3:
+      self.pilotFiles = [os.path.join(rootPath,
+                                      'DIRAC', 'WorkloadManagementSystem', 'PilotAgent', 'dirac-pilot.py'),
+                         os.path.join(rootPath,
+                                      'DIRAC', 'WorkloadManagementSystem', 'PilotAgent', 'pilotCommands.py'),
+                         os.path.join(rootPath,
+                                      'DIRAC', 'WorkloadManagementSystem', 'PilotAgent', 'pilotTools.py'),
+                         os.path.join(rootPath,
+                                      'LHCbDIRAC', 'WorkloadManagementSystem', 'PilotAgent', 'LHCbPilotCommands.py')]
 
     self.devLbLogin = self.am_getOption('devLbLogin', False)
     self.lbRunOnly = self.am_getOption('lbRunOnly', False)
