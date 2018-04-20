@@ -226,10 +226,11 @@ class ConsistencyChecks(DiracConsistencyChecks):
       if self.bkQuery:
         bkQuery = self.bkQuery
       if self.prod:
+        # If production is specificed, the visibility flag is ignored
         if not self.bkQuery:
-          bkQuery = BKQuery(prods=self.prod, fileTypes=self.fileType)
+          bkQuery = BKQuery(prods=self.prod, fileTypes=self.fileType, visible=None)
         else:
-          bkQuery = BKQuery(self.bkQuery.setOption("Production", self.prod))
+          bkQuery = BKQuery(self.bkQuery.setOption("Production", self.prod), visible=None)
       if not bkQuery:
         raise ValueError("Need to specify either the bkQuery or a production id")
 
@@ -245,12 +246,15 @@ class ConsistencyChecks(DiracConsistencyChecks):
     lfns = set(lfns)
 
     chunkSize = 100
-    progressBar = ProgressBar(len(lfns),
-                              title="Checking replicas for %d files" % len(lfns) +
-                              (" (not in Failover)" if ignoreFailover else ""),
-                              chunk=chunkSize, interactive=self.interactive)
+    if not ignoreFailover:
+      progressBar = ProgressBar(len(lfns),
+                                title="Checking replicas for %d files" % len(lfns),
+                                chunk=chunkSize, interactive=self.interactive)
+    else:
+      progressBar = None
     for chunk in breakListIntoChunks(lfns, chunkSize):
-      progressBar.loop()
+      if progressBar:
+        progressBar.loop()
       for _ in range(1, 10):
         res = self.dataManager.getReplicas(chunk, getUrl=False)
         if res['OK']:
@@ -265,7 +269,8 @@ class ConsistencyChecks(DiracConsistencyChecks):
           break
         else:
           time.sleep(0.1)
-    progressBar.endLoop("found %d files with replicas and %d without" % (len(present), len(notPresent)))
+    if progressBar:
+      progressBar.endLoop("found %d files with replicas and %d without" % (len(present), len(notPresent)))
 
     if notPresent:
       self.__logVerbose("Files without replicas:", '\n'.join([''] + sorted(notPresent)))
@@ -752,7 +757,7 @@ class ConsistencyChecks(DiracConsistencyChecks):
     # For files in FC and not in BK, ignore if they are not active
     if inFCNotInBK:
       progressBar = ProgressBar(len(inFCNotInBK),
-                                title="Checking FC for %d file found in FC and not in BK" % len(inFCNotInBK),
+                                title="Checking Failover for %d files found in FC and not in BK" % len(inFCNotInBK),
                                 step=1, interactive=self.interactive)
       notInFailover, _notFound = self.getReplicasPresence(inFCNotInBK, ignoreFailover=True)
       inFailover = list(set(inFCNotInBK) - set(notInFailover))

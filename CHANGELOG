@@ -69,6 +69,20 @@ use DIRAC v6r20-pre11
 * re-migrated
 * moved to DIRAC
 
+[v9r1p10]
+use DIRAC v6r19p19
+
+* allow debug by run when giving a list of LFNs
+* add information
+* to get pipelines working
+* give more precise advice when checking a single stream, and replace always() with notice()
+* fix progress bar that was embedded
+* improve printout for summary of PFN metadata
+* backport pylint fixes
+* remove old BOINC host
+* add BOINC host for update
+* mod message
+
 [v9r1p9]
 use DIRAC v6r19p17
 
