@@ -23,20 +23,20 @@ from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import Produc
 
 __RCSID__ = "$Id$"
 
-gLogger = gLogger.getSubLogger( 'RecoStripping_run.py' )
-currentSetup = gConfig.getValue( 'DIRAC/Setup' )
+gLogger = gLogger.getSubLogger('RecoStripping_run.py')
+currentSetup = gConfig.getValue('DIRAC/Setup')
 
 pr = ProductionRequest()
 
-stepsList = [ '{{p1Step}}' ]
-stepsList.append( '{{p2Step}}' )
-stepsList.append( '{{p3Step}}' )
-stepsList.append( '{{p4Step}}' )
-stepsList.append( '{{p5Step}}' )
-stepsList.append( '{{p6Step}}' )
-stepsList.append( '{{p7Step}}' )
-stepsList.append( '{{p8Step}}' )
-stepsList.append( '{{p9Step}}' )
+stepsList = ['{{p1Step}}']
+stepsList.append('{{p2Step}}')
+stepsList.append('{{p3Step}}')
+stepsList.append('{{p4Step}}')
+stepsList.append('{{p5Step}}')
+stepsList.append('{{p6Step}}')
+stepsList.append('{{p7Step}}')
+stepsList.append('{{p8Step}}')
+stepsList.append('{{p9Step}}')
 pr.stepsList = stepsList
 
 ###########################################
@@ -61,61 +61,61 @@ pr.endRun = '{{endRun#GENERAL: run end, to set the end of the range#0}}'
 pr.derivedProduction = '{{AncestorProd#GENERAL: ancestor prod to be derived#0}}'
 
 # reco params
-recoPriority = int( '{{RecoPriority#PROD-1:RECO(Stripp): priority#2}}' )
+recoPriority = int('{{RecoPriority#PROD-1:RECO(Stripp): priority#2}}')
 recoCPU = '{{RecoMaxCPUTime#PROD-1:RECO(Stripp): Max CPU time in secs#1500000}}'
 recoPlugin = '{{RecoPluginType#PROD-1:RECO(Stripp): production plugin name#RAWProcessing}}'
 recoFilesPerJob = '{{RecoFilesPerJob#PROD-1:RECO(Stripp): Group size or number of files per job#1}}'
 recoDataSE = '{{RecoDataSE#PROD-1:RECO(Stripp): Output Data Storage Element#Tier1-Buffer}}'
 try:
-  recoDataSESpecial = ast.literal_eval( '{{RecoDataSESpecial#PROD-1:RECO(Stripp): Special SE (a dictionary Type:SE)#}}' )
+  recoDataSESpecial = ast.literal_eval('{{RecoDataSESpecial#PROD-1:RECO(Stripp): Special SE (a dictionary Type:SE)#}}')
 except SyntaxError:
   recoDataSESpecial = {}
-recoAncestorDepth = int( '{{recoAncestorDepth#PROD-1: Ancestor Depth#0}}' )
+recoAncestorDepth = int('{{recoAncestorDepth#PROD-1: Ancestor Depth#0}}')
 recoCompressionLvl = '{{recoCompressionLvl#PROD-1: compression level#LOW}}'
 recoOutputVisFlag = '{{recoOutputVisFlag#PROD-1: Visibility flag of output files #Y}}'
 try:
-  recoOutputVisFlagSpecial = ast.literal_eval( '{{recoOutputVisFlagSpecial#PROD-1: Special Visibility flag of output files (dict FType:Y|N )#}}' )
+  recoOutputVisFlagSpecial = ast.literal_eval('{{recoOutputVisFlagSpecial#PROD-1: Special Visibility flag of output files (dict FType:Y|N )#}}')
 except SyntaxError:
   recoOutputVisFlagSpecial = {}
 
 # stripp params
-strippPriority = int( '{{priority#PROD-2:Stripping: priority#2}}' )
+strippPriority = int('{{priority#PROD-2:Stripping: priority#2}}')
 strippCPU = '{{StrippMaxCPUTime#PROD-2:Stripping: Max CPU time in secs#1000000}}'
 strippPlugin = '{{StrippPluginType#PROD-2:Stripping: plugin name#ByRunWithFlush}}'
 strippFilesPerJob = '{{StrippFilesPerJob#PROD-2:Stripping: Group size or number of files per job#2}}'
 strippDataSE = '{{StrippStreamSE#PROD-2:Stripping: output data SE (un-merged streams)#Tier1-Buffer}}'
 try:
-  strippDataSESpecial = ast.literal_eval( '{{StrippDataSESpecial#PROD-2:Stripping: Special SE (a dictionary Type:SE)#}}' )
+  strippDataSESpecial = ast.literal_eval('{{StrippDataSESpecial#PROD-2:Stripping: Special SE (a dictionary Type:SE)#}}')
 except SyntaxError:
   strippDataSESpecial = {}
-strippAncestorDepth = int( '{{strippAncestorDepth#PROD-2: Ancestor Depth#0}}' )
+strippAncestorDepth = int('{{strippAncestorDepth#PROD-2: Ancestor Depth#0}}')
 strippCompressionLvl = '{{strippCompressionLvl#PROD-2: compression level#LOW}}'
 strippOutputVisFlag = '{{strippOutputVisFlag#PROD-2: Visibility flag of output files#N}}'
 try:
-  strippOutputVisFlagSpecial = ast.literal_eval( '{{strippOutputVisFlagSpecial#PROD-2: Special Visibility flag of output files (dict FType:Y|N)#}}' )
+  strippOutputVisFlagSpecial = ast.literal_eval('{{strippOutputVisFlagSpecial#PROD-2: Special Visibility flag of output files (dict FType:Y|N)#}}')
 except SyntaxError:
   strippOutputVisFlagSpecial = {}
 
 # merging params
-mergingPriority = int( '{{MergePriority#PROD-3:Merging: priority#8}}' )
+mergingPriority = int('{{MergePriority#PROD-3:Merging: priority#8}}')
 mergingCPU = '{{MergeMaxCPUTime#PROD-3:Merging: Max CPU time in secs#300000}}'
 mergingPlugin = '{{MergePlugin#PROD-3:Merging: plugin#ByRunFileTypeSizeWithFlush}}'
 mergingGroupSize = '{{MergeFileSize#PROD-3:Merging: Size (in GB) of the merged files#5}}'
 mergingDataSE = '{{MergeStreamSE#PROD-3:Merging: output data SE (merged streams)#Tier1-DST}}'
 try:
-  mergingDataSESpecial = ast.literal_eval( '{{MergingDataSESpecial#PROD-3:Merging: Special SE (a dictionary Type:SE)#}}' )
+  mergingDataSESpecial = ast.literal_eval('{{MergingDataSESpecial#PROD-3:Merging: Special SE (a dictionary Type:SE)#}}')
 except SyntaxError:
   mergingDataSESpecial = {}
 mergingRemoveInputsFlag = '{{MergeRemoveFlag#PROD-3:Merging: remove input data flag True/False#True}}'
 mergeCompressionLvl = '{{mergeCompressionLvl#PROD-3: compression level#HIGH}}'
 mergeOutputVisFlag = '{{mergeOutputVisFlag#PROD-3: Visibility flag of output files#Y}}'
 try:
-  mergeOutputVisFlagSpecial = ast.literal_eval( '{{mergeOutputVisFlagSpecial#PROD-3: Special Visibility flag of output files (dict FType:Y|N)#}}' )
+  mergeOutputVisFlagSpecial = ast.literal_eval('{{mergeOutputVisFlagSpecial#PROD-3: Special Visibility flag of output files (dict FType:Y|N)#}}')
 except SyntaxError:
   mergeOutputVisFlagSpecial = {}
 
 # indexing params
-indexingPriority = int( '{{IndexingPriority#PROD-4:indexing: priority#5}}' )
+indexingPriority = int('{{IndexingPriority#PROD-4:indexing: priority#5}}')
 indexingCPU = '{{IndexingMaxCPUTime#PROD-4:indexing: Max CPU time in secs#50000}}'
 indexingPlugin = '{{IndexingPlugin#PROD-4:indexing: plugin#ByRunFileTypeSizeWithFlush}}'
 indexingGroupSize = '{{IndexingFileSize#PROD-4:indexing: Size (in GB) of the Indexed files#50}}'
@@ -139,20 +139,20 @@ recoMulticoreFlag = strippMulticoreFlag = mergeMulticoreFlag = 'True'
 recoIDPolicy = strippIDPolicy = mergingIDPolicy = indexingIDPolicy = 'download'
 
 
-w1 = ast.literal_eval( w1 )
-w2 = ast.literal_eval( w2 )
-w3 = ast.literal_eval( w3 )
-w4 = ast.literal_eval( w4 )
-w5 = ast.literal_eval( w5 )
+w1 = ast.literal_eval(w1)
+w2 = ast.literal_eval(w2)
+w3 = ast.literal_eval(w3)
+w4 = ast.literal_eval(w4)
+w5 = ast.literal_eval(w5)
 
-localTestFlag = ast.literal_eval( localTestFlag )
-validationFlag = ast.literal_eval( validationFlag )
+localTestFlag = ast.literal_eval(localTestFlag)
+validationFlag = ast.literal_eval(validationFlag)
 
-mergeRemoveInputsFlag = ast.literal_eval( mergingRemoveInputsFlag )
+mergeRemoveInputsFlag = ast.literal_eval(mergingRemoveInputsFlag)
 
 if not w1 and not w2 and not w3 and not w4:
-  gLogger.error( 'I told you to select at least one workflow!' )
-  DIRACexit( 2 )
+  gLogger.error('I told you to select at least one workflow!')
+  DIRACexit(2)
 
 if localTestFlag:
   pr.testFlag = True
@@ -166,11 +166,11 @@ if not pr.publishFlag:
   # recoTestData = 'LFN:/lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/88162/088162_0000000020.raw'
   # this is collision11
   recoTestData = 'LFN:/lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/89333/089333_0000000003.raw'
-  recoInputDataList.append( recoTestData )
+  recoInputDataList.append(recoTestData)
   recoIDPolicy = 'protocol'
 
   strippTestData = 'LFN:/lhcb/data/2010/SDST/00008375/0001/00008375_00016947_1.sdst'
-  strippInputDataList.append( strippTestData )
+  strippInputDataList.append(strippTestData)
 #  strippTestDataRAW = 'LFN:/lhcb/data/2010/RAW/FULL/LHCb/COLLISION10/75338/075338_0000000069.raw'
 #  strippInputDataList.append( strippTestDataRAW )
   strippIDPolicy = 'protocol'
@@ -182,7 +182,8 @@ pr.outConfigName = pr.configName
 # In case we want just to test, we publish in the certification/test part of the BKK
 if currentSetup == 'LHCb-Certification' or pr.testFlag:
   pr.outConfigName = 'certification'
-  pr.configVersion = 'test'
+  if 'lhcb' not in pr.configName.lower():  # in case of reconstruction
+    pr.configVersion = 'test'
 
 if pr.testFlag:
   pr.dataTakingConditions = 'Beam3500GeV-VeloClosed-MagUp'
@@ -208,7 +209,7 @@ if w1:
   pr.prodsTypeList = [recoType]
   pr.outputSEs = [recoDataSE]
   pr.specialOutputSEs = [recoDataSESpecial]
-  pr.stepsInProds = [range( 1, len( pr.stepsList ) + 1 )]
+  pr.stepsInProds = [range(1, len(pr.stepsList) + 1)]
   pr.removeInputsFlags = [False]
   pr.priorities = [recoPriority]
   pr.cpus = [recoCPU]
@@ -221,16 +222,16 @@ if w1:
   pr.multicore = [recoMulticoreFlag]
   pr.outputModes = ['Run']
   pr.ancestorDepths = [recoAncestorDepth]
-  pr.compressionLvl = [recoCompressionLvl] * len( pr.stepsInProds[0] )
-  pr.outputVisFlag = [{str( i + 1 ):recoOutputVisFlag} for i in xrange( len( pr.stepsInProds[0] ) )]
-  pr.specialOutputVisFlag = [{"1":recoOutputVisFlagSpecial}]
+  pr.compressionLvl = [recoCompressionLvl] * len(pr.stepsInProds[0])
+  pr.outputVisFlag = [{str(i + 1): recoOutputVisFlag} for i in xrange(len(pr.stepsInProds[0]))]
+  pr.specialOutputVisFlag = [{"1": recoOutputVisFlagSpecial}]
 
 elif w2:
   pr.prodsTypeList = ['DataStripping', 'Merge']
   pr.outputSEs = [strippDataSE, mergingDataSE]
   pr.specialOutputSEs = [strippDataSESpecial, mergingDataSESpecial]
-  pr.stepsInProds = [range( 1, len( pr.stepsList ) ),
-                     [len( pr.stepsList )]]
+  pr.stepsInProds = [range(1, len(pr.stepsList)),
+                     [len(pr.stepsList)]]
   pr.removeInputsFlags = [False, mergeRemoveInputsFlag]
   pr.priorities = [strippPriority, mergingPriority]
   pr.cpus = [strippCPU, mergingCPU]
@@ -244,16 +245,16 @@ elif w2:
   pr.outputModes = ['Run', 'Run']
   pr.ancestorDepths = [strippAncestorDepth, 0]
   pr.compressionLvl = [strippCompressionLvl] * len( pr.stepsInProds[0] ) + \
-                      [mergeCompressionLvl] * len( pr.stepsInProds[1] )
-  pr.outputVisFlag = [{"1":strippOutputVisFlag}, {"2":mergeOutputVisFlag}]
-  pr.specialOutputVisFlag = [{"1":strippOutputVisFlagSpecial}, {"2":mergeOutputVisFlagSpecial}]
+                      [mergeCompressionLvl] * len(pr.stepsInProds[1])
+  pr.outputVisFlag = [{"1": strippOutputVisFlag}, {"2": mergeOutputVisFlag}]
+  pr.specialOutputVisFlag = [{"1": strippOutputVisFlagSpecial}, {"2": mergeOutputVisFlagSpecial}]
 
 elif w3:
   pr.prodsTypeList = [recoType, 'Merge']
   pr.outputSEs = [recoDataSE, mergingDataSE]
   pr.specialOutputSEs = [recoDataSESpecial, mergingDataSESpecial]
-  pr.stepsInProds = [range( 1, len( pr.stepsList ) ),
-                     [len( pr.stepsList )]]
+  pr.stepsInProds = [range(1, len(pr.stepsList)),
+                     [len(pr.stepsList)]]
   pr.removeInputsFlags = [False, mergeRemoveInputsFlag]
   pr.priorities = [recoPriority, mergingPriority]
   pr.cpus = [recoCPU, mergingCPU]
@@ -267,17 +268,17 @@ elif w3:
   pr.outputModes = ['Run', 'Run']
   pr.ancestorDepths = [recoAncestorDepth, 0]
   pr.compressionLvl = [recoCompressionLvl] * len( pr.stepsInProds[0] ) + \
-                      [mergeCompressionLvl] * len( pr.stepsInProds[1] )
-  pr.outputVisFlag = [{"1":recoOutputVisFlag}, {"2":mergeOutputVisFlag}]
-  pr.specialOutputVisFlag = [{"1":recoOutputVisFlagSpecial}, {"2":mergeOutputVisFlagSpecial}]
+                      [mergeCompressionLvl] * len(pr.stepsInProds[1])
+  pr.outputVisFlag = [{"1": recoOutputVisFlag}, {"2": mergeOutputVisFlag}]
+  pr.specialOutputVisFlag = [{"1": recoOutputVisFlagSpecial}, {"2": mergeOutputVisFlagSpecial}]
 
 elif w4:
   pr.prodsTypeList = [recoType, 'DataStripping', 'Merge']
   pr.outputSEs = [recoDataSE, strippDataSE, mergingDataSE]
   pr.specialOutputSEs = [recoDataSESpecial, strippDataSESpecial, mergingDataSESpecial]
-  pr.stepsInProds = [range( 1, len( pr.stepsList ) - 1 ),
-                     xrange( len( pr.stepsList ) - 1, len( pr.stepsList ) ),
-                     [len( pr.stepsList )]]
+  pr.stepsInProds = [range(1, len(pr.stepsList) - 1),
+                     xrange(len(pr.stepsList) - 1, len(pr.stepsList)),
+                     [len(pr.stepsList)]]
   pr.removeInputsFlags = [False, False, mergeRemoveInputsFlag]
   pr.priorities = [recoPriority, strippPriority, mergingPriority]
   pr.cpus = [recoCPU, strippCPU, mergingCPU]
@@ -292,17 +293,18 @@ elif w4:
   pr.ancestorDepths = [recoAncestorDepth, strippAncestorDepth, 0]
   pr.compressionLvl = [recoCompressionLvl] * len( pr.stepsInProds[0] ) + \
                       [strippCompressionLvl] * len( pr.stepsInProds[1] ) + \
-                      [mergeCompressionLvl] * len( pr.stepsInProds[2] )
+                      [mergeCompressionLvl] * len(pr.stepsInProds[2])
   pr.outputVisFlag = [{"1": recoOutputVisFlag}, {"2": strippOutputVisFlag}, {"3": mergeOutputVisFlag}]
-  pr.specialOutputVisFlag = [{"1": recoOutputVisFlagSpecial}, {"2": strippOutputVisFlagSpecial}, {"3": mergeOutputVisFlagSpecial}]
+  pr.specialOutputVisFlag = [{"1": recoOutputVisFlagSpecial},
+                             {"2": strippOutputVisFlagSpecial}, {"3": mergeOutputVisFlagSpecial}]
 
 elif w5:
   pr.prodsTypeList = ['DataStripping', 'Merge', 'WGProduction']
   pr.outputSEs = [strippDataSE, mergingDataSE, indexingDataSE]
   pr.specialOutputSEs = [strippDataSESpecial, mergingDataSESpecial, {}]
-  pr.stepsInProds = [range( 1, len( pr.stepsList ) - 1 ),
-                     xrange( len( pr.stepsList ) - 1, len( pr.stepsList ) ),
-                     [len( pr.stepsList )]]
+  pr.stepsInProds = [range(1, len(pr.stepsList) - 1),
+                     xrange(len(pr.stepsList) - 1, len(pr.stepsList)),
+                     [len(pr.stepsList)]]
   pr.removeInputsFlags = [False, mergeRemoveInputsFlag, False]
   pr.priorities = [strippPriority, mergingPriority, indexingPriority]
   pr.cpus = [strippCPU, mergingCPU, indexingCPU]
@@ -317,7 +319,7 @@ elif w5:
   pr.ancestorDepths = [strippAncestorDepth, 0, 0]
   pr.compressionLvl = [strippCompressionLvl] * len( pr.stepsInProds[0] ) + \
                       [mergeCompressionLvl] * len( pr.stepsInProds[1] ) + \
-                      [''] * len( pr.stepsInProds[2] )
+                      [''] * len(pr.stepsInProds[2])
   pr.outputVisFlag = [{"1": strippOutputVisFlag}, {"2": mergeOutputVisFlag}]
   pr.specialOutputVisFlag = [{"1": strippOutputVisFlagSpecial}, {"2": mergeOutputVisFlagSpecial}]
 
