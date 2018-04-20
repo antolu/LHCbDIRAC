@@ -8,6 +8,8 @@
 # TODO: decide what to do about this agent (maybe really remove it).
 # Alternatively: use elasticseach module to spit in meter.
 
+__RCSID__ = "$Id$"
+
 import time
 import xml.dom
 import xml.sax
@@ -21,8 +23,6 @@ from DIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceM
 from DIRAC.ResourceStatusSystem.Utilities import CSHelpers
 
 AGENT_NAME = 'ResourceStatus/SLSAgent'
-
-impl = xml.dom.getDOMImplementation()
 
 # Taken from utilities
 
@@ -40,11 +40,11 @@ def xml_append(doc, tag, value_=None, elt_=None, **kw):
     new_elt.appendChild(textnode)
   if elt_ is not None:
     return elt_.appendChild(new_elt)
-  else:
-    return doc.documentElement.appendChild(new_elt)
+  return doc.documentElement.appendChild(new_elt)
 
 
 def gen_xml_stub():
+  impl = xml.dom.getDOMImplementation()
   doc = impl.createDocument("http://sls.cern.ch/SLS/XML/update",
                             "serviceupdate",
                             None)
@@ -129,7 +129,7 @@ class SpaceTokenOccupancyTest(TestBase):
       gLogger.error(ses['Message'])
 
     for se in ses['Value']:
-      # Ugly, ugly, ugly.. waiting for DIRAC v7r0 to do it properly
+      # Ugly, ugly, ugly..
       if ('-' not in se) or ('_' in se):
         continue
 
@@ -155,7 +155,6 @@ class SpaceTokenOccupancyTest(TestBase):
     total = itemDict['Total']
     #guaranteed   = itemDict[ 'Guaranteed' ]
     free = itemDict['Free']
-#    availability = "available" if free > 4 else ( free * 100 / total if total != 0 else "unavailable" )
     availability = "available" if free > 4 else ("degraded" if total != 0 else "unavailable")
 
     doc = gen_xml_stub()
@@ -191,7 +190,7 @@ class SLSAgent(AgentModule):
     # Future me, forgive me for this. TO BE Fixed.
     try:
       SpaceTokenOccupancyTest(self)
-    except Exception as e:
+    except BaseException as e:
       gLogger.warn('SpaceTokenOccupancyTest crashed with %s' % e)
 
     return S_OK()
