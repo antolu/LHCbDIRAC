@@ -267,7 +267,7 @@ elif w3:
   pr.multicore = [recoMulticoreFlag, mergeMulticoreFlag]
   pr.outputModes = ['Run', 'Run']
   pr.ancestorDepths = [recoAncestorDepth, 0]
-  pr.compressionLvl = [recoCompressionLvl] * len( pr.stepsInProds[0] ) + \
+  pr.compressionLvl = [recoCompressionLvl] * len(pr.stepsInProds[0]) + \
                       [mergeCompressionLvl] * len(pr.stepsInProds[1])
   pr.outputVisFlag = [{"1": recoOutputVisFlag}, {"2": mergeOutputVisFlag}]
   pr.specialOutputVisFlag = [{"1": recoOutputVisFlagSpecial}, {"2": mergeOutputVisFlagSpecial}]
@@ -291,8 +291,8 @@ elif w4:
   pr.multicore = [recoMulticoreFlag, strippMulticoreFlag, mergeMulticoreFlag]
   pr.outputModes = ['Run', 'Run', 'Run']
   pr.ancestorDepths = [recoAncestorDepth, strippAncestorDepth, 0]
-  pr.compressionLvl = [recoCompressionLvl] * len( pr.stepsInProds[0] ) + \
-                      [strippCompressionLvl] * len( pr.stepsInProds[1] ) + \
+  pr.compressionLvl = [recoCompressionLvl] * len(pr.stepsInProds[0]) + \
+                      [strippCompressionLvl] * len(pr.stepsInProds[1]) + \
                       [mergeCompressionLvl] * len(pr.stepsInProds[2])
   pr.outputVisFlag = [{"1": recoOutputVisFlag}, {"2": strippOutputVisFlag}, {"3": mergeOutputVisFlag}]
   pr.specialOutputVisFlag = [{"1": recoOutputVisFlagSpecial},
@@ -317,8 +317,8 @@ elif w5:
   pr.multicore = [strippMulticoreFlag, mergeMulticoreFlag, False]
   pr.outputModes = ['Run', 'Run', 'Any']
   pr.ancestorDepths = [strippAncestorDepth, 0, 0]
-  pr.compressionLvl = [strippCompressionLvl] * len( pr.stepsInProds[0] ) + \
-                      [mergeCompressionLvl] * len( pr.stepsInProds[1] ) + \
+  pr.compressionLvl = [strippCompressionLvl] * len(pr.stepsInProds[0]) + \
+                      [mergeCompressionLvl] * len(pr.stepsInProds[1]) + \
                       [''] * len(pr.stepsInProds[2])
   pr.outputVisFlag = [{"1": strippOutputVisFlag}, {"2": mergeOutputVisFlag}]
   pr.specialOutputVisFlag = [{"1": strippOutputVisFlagSpecial}, {"2": mergeOutputVisFlagSpecial}]
