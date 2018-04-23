@@ -108,9 +108,8 @@ class ProductionRequestSIM(object):
     if prID in self.pr and 'RequestState' in updDict:
       self.pr[prID]['state'] = updDict['RequestState']
       return S_OK()
-    else:
-      gLogger.error( 'Unsupported parameters for updateProductionRequest' )
-      return S_ERROR( ' Unsupported ' )
+    gLogger.error( 'Unsupported parameters for updateProductionRequest' )
+    return S_ERROR( ' Unsupported ' )
 
   def updateTrackedProductions( self, toUpdate ):
     """ Update production progress
@@ -513,8 +512,8 @@ class ProductionStatusAgent( AgentModule ):
 
     if updatedT:
       self.log.info( 'Transformations updated this cycle:' )
-      for n, v in updatedT.items():
-        self.log.info( 'Transformations %s: %s => %s' % ( n, v['from'], v['to'] ) )
+      for name, value in updatedT.iteritems():
+        self.log.info( 'Transformations %s: %s => %s' % ( name, value['from'], value['to'] ) )
 
     if updatedPr:
       self.log.info( 'Production Requests updated to Done status: %s' % ( ', '.join( [str( i ) for i in updatedPr] ) ) )
@@ -683,7 +682,7 @@ class ProductionStatusAgent( AgentModule ):
       # only failed and done tasks
       # AND number of tasks created in total == number of tasks submitted
       tStats = self.__getTransformationTaskStats( tID )
-      self.log.debug( "Tasks Stats: %s" % str( tStats ) )
+      self.log.verbose( "Tasks Stats for %d: %s" % (tID, str(tStats)))
       isIdle = ( ( tStats.get( 'TotalCreated', 0 ) > 0 ) \
                   and \
                   all( [tStats.get( status, 0 ) == 0 for status in ['Checking', 'Completed', 'Created', 'Matched',
