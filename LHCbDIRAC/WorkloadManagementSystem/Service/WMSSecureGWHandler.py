@@ -191,7 +191,7 @@ class WMSSecureGWHandler( RequestHandler ):
 
 
   ##############################################################################
-  types_getJobParameter = [ list( StringTypes ) + [ IntType, LongType] , StringTypes ]
+  types_getJobParameter = [[basestring, int, long], basestring]
   @staticmethod
   def export_getJobParameter( jobID, parName ):
     monitoring = RPCClient( 'WorkloadManagement/JobMonitoring', timeout = 120 )
@@ -307,6 +307,6 @@ class WMSSecureGWHandler( RequestHandler ):
 
   types_commitRegisters = [ list ]
   def export_commitRegisters( self, entriesList ):
-    acc = RPCClient( 'AccountingSystem/DataStore' )
+    acc = RPCClient( 'Accounting/DataStore' )
     retVal = acc.commitRegisters( entriesList )
     return retVal
