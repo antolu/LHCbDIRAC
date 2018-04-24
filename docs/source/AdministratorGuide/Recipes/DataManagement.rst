@@ -146,3 +146,14 @@ We can then set these files as Removed in the removal transformation (setting th
     7 files were set Removed in transformation 69127
     8 files were set Removed in transformation 68831
     7 files were set Removed in transformation 68829
+
+
+From DEBUG
+----------
+
+
+Here we can just clean regularely what is in debug...
+
+.. code-block::
+
+  dirac-dms-list-directory --Dir /lhcb/debug/ --Rec --Days 7 --NoDirectories | dirac-transformation-add-files Remove-all-replicas

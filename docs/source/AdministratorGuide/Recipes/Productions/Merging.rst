@@ -18,12 +18,13 @@ When the Merging productions for a given Stripping are over, there are a couple 
 First case
 ----------
 
-Nothing can be done, we do not have all the info, we should just remove the file
+Nothing can be done, we do not have all the info, we should just remove the file.
+If it is a debug file, it will be cleaned anyway when cleaning the DEBUG storage.
 
 Second case
 -----------
 
-Either the file is at its final destination, and in that case the replica flag can just be toggled, or the file is in a failover. In the later case, it is enough to replicate the file to its run destination (dirac-dms-replicate-to-run-destination) and remove the replica on the failover storage.
+Either the file is at its final destination, and in that case the replica flag can just be toggled (`--FixBK` in dirac-dms-check-fc2bkk), or the file is in a failover. In the later case, it is enough to replicate the file to its run destination (dirac-dms-replicate-to-run-destination) and remove the replica on the failover storage.
 
 Third case
 ----------
@@ -177,7 +178,7 @@ After checking at the RMS whether they have matching Requests, and if so what ha
 
 .. code-block::
 
-    [localhost] ~ $ grep InFailover CheckDescendantsResults_69529-1.txt | dirac-dms-replicate-to-run-destination --SE Tier1-DST
+    [localhost] ~ $ grep InFailover CheckDescendantsResults_69529-1.txt | dirac-dms-replicate-to-run-destination --RemoveSource --SE Tier1-DST
     Got 2 LFNs
     Replicating 2 files to CERN-DST-EOS
     Successful :
@@ -188,10 +189,6 @@ After checking at the RMS whether they have matching Requests, and if so what ha
             /lhcb/LHCb/Collision16/DIMUON.DST/00069529/0001/00069529_00012853_1.dimuon.dst :
                  register : 0.632274866104
                 replicate : 46.3780457973
-    [localhost] ~ $ dirac-dms-remove-replicas --Last --SE Tier1-Failover
-    Got 2 LFNs
-    Removing replicas : completed in 7.4 seconds
-    Successfully removed 2 replicas from SARA-FAILOVER
 
 
 Finally, Check again and remove non-merged files
@@ -205,11 +202,15 @@ Finally, Check again and remove non-merged files
     Successfully removed 59 files
 
 
+
+
+.. _mergingFlush:
+
 *************
 Flushing runs
 *************
 
-When a file is problematic in the Stripping production, the run cannot be flushed automatically ( Number of ancestors != number of RAW in the run).
+When a file is problematic in the Stripping production, or if a RAW file was not processed in the Reco, the run cannot be flushed automatically ( Number of ancestors != number of RAW in the run).
 We list the runs in the Stripping productions (here 71498) that have problematic files, and we flush them in the Merging (here 71499)
 
 
@@ -262,3 +263,18 @@ Then flush the runs in the merging production
     201413,201423,201467,201602,201643,201647,201664,201719,201745,201749,201822,201833,201864,201873,201983,202031,202717,202722,2027
     52,202773,202809,202825,202835,202860,202869,202873,202887
     27 runs set to Flush in transformation 71499
+
+
+Then, starting from the runs that are not flushed in the Merging, we can check if some RAW files do not have descendant
+
+.. code-block::
+
+   dirac-bookkeeping-run-files <runNumber> | grep FULL | dirac-bookkeeping-get-file-descendants
+
+The files that are marked as NotProcessed or NoDescendants are in runs that will need to be flushed by hand
+
+Another way of understanding why a run is not flushed is by using dirac-transformation-debug. But this takes a looooong while
+
+.. code-block::
+
+   dirac-transformation-debug --Status=Unused --Info=flush <mergingProd>
