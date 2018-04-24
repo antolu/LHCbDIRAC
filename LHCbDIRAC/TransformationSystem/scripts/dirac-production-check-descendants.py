@@ -201,9 +201,9 @@ if __name__ == '__main__':
     if cc.removedFiles:
       from DIRAC.Core.Utilities.List import breakListIntoChunks
       gLogger.notice(
-          "%d input files are processed, have no descendants but are not in the FC, set them Removed" %
-          len(
-              cc.removedFiles))
+          "%d input files are Processed, have no descendants but are no longer in the FC\n"
+          "  As they cannot be reset Unused, set them Removed" %
+          len(cc.removedFiles))
       if not fp:
         fp = open(fileName, 'w')
       fp.write('\nProcNotinFC '.join([''] + cc.removedFiles))
