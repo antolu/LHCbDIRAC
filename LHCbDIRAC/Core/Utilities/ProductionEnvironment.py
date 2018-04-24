@@ -68,8 +68,7 @@ def getPlatformsFromLHCbConfig(config):
   if platformsList:
     platformsList.sort(cmp=_comparePlatforms)
     return platformsList
-  else:
-    return None
+  return None
 
 
 def getPlatformFromLHCbConfig(config):
