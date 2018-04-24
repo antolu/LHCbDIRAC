@@ -962,28 +962,47 @@ class TransformationPlugin(DIRACTransformationPlugin):
   def _ReplicateToRunDestination(self):
     """ Plugin for replicating files to the run destination
     """
-    destSEs = resolveSEGroup(self.util.getPluginParam('DestinationSEs', []))
+    # Get replication throttling parameters and destination
+    res = self.util.getMaxFilesToReplicate(self.workDirectory)
+    if not res['OK']:
+      return res
+    watermark, maxFilesAtSE = res['Value']
+    # This is a convention, to skip the loop or to stop replicating
+    if not watermark:
+      return S_OK([])
+    destSEs = list(maxFilesAtSE)
     runFileDict = self.util.getFilesGroupedByRun()
 
     maxFiles = self.util.getPluginParam('MaxFilesPerTask', 100)
     tasks = []
     alreadyReplicated = set()
     for runID in runFileDict:
-      runLfns = set(runFileDict[runID]) & set(self.transReplicas)
-      if not runLfns:
+      lfns = set(runFileDict[runID]) & set(self.transReplicas)
+      if not lfns:
         continue
       runDestination = self.util.getSEForDestination(runID, destSEs)
       if runDestination:
-        replicated = set(lfn for lfn in runLfns if runDestination in self.transReplicas[lfn])
-        runLfns -= replicated
-        alreadyReplicated.update(replicated)
-        if runLfns:
-          for lfnChunk in breakListIntoChunks(runLfns, maxFiles):
-            tasks.append((runDestination, lfnChunk))
+        candidateSE = runDestination
+        freeSpace = self.util.getStorageFreeSpace([candidateSE])
+        if freeSpace[candidateSE] < watermark:
+          self.util.logInfo("No enough space (%s TB) found at %s" % (watermark, candidateSE))
+        else:
+          replicated = set(lfn for lfn in lfns if candidateSE in self.transReplicas[lfn])
+          lfns -= replicated
+          alreadyReplicated.update(replicated)
+          if lfns:
+            maxToReplicate = maxFilesAtSE.get(candidateSE, sys.maxsize)
+            if len(lfns) < maxFilesAtSE.get(candidateSE, sys.maxsize):
+              self.util.logVerbose("Number of files for %s: %d" % (candidateSE, len(lfns)))
+              for lfnChunk in breakListIntoChunks(lfns, maxFiles):
+                tasks.append((candidateSE, lfnChunk))
+            else:
+              self.util.logInfo("Limit number of files for %s to %d (out of %d)" %
+                                (candidateSE, maxToReplicate, len(lfns)))
 
     if alreadyReplicated:
-      self.util.logInfo('Found %d files that are already present at destination SE,\
-                         set them Processed' % len(alreadyReplicated))
+      self.util.logInfo('Found %d files that are already present at destination SE,'
+                        ' set them Processed' % len(alreadyReplicated))
       res = self.transClient.setFileStatusForTransformation(self.transID, 'Processed', alreadyReplicated)
       if not res['OK']:
         self.util.logError("Error setting files Processed", res['Message'])
@@ -1561,29 +1580,14 @@ class TransformationPlugin(DIRACTransformationPlugin):
   def _ReplicateToLocalSE(self, maxFiles=None):
     """ Used for example to replicate from a buffer to a tape SE on the same site
     """
-    destSEs = set(resolveSEGroup(self.util.getPluginParam('DestinationSEs', [])))
-    watermark = self.util.getPluginParam('MinFreeSpace', 30)
-    targetFilesAtDestination = self.util.getPluginParam('TargetFilesAtDestination', 0)
-    if not destSEs:
-      self.util.logWarn('No destination SE given')
+    res = self.util.getMaxFilesToReplicate(self.workDirectory)
+    if not res['OK']:
+      return res
+    watermark, maxFilesAtSE = res['Value']
+    # This is a convention, to skip the loop or to stop replicating
+    if not watermark:
       return S_OK([])
-
-    # if there is a maximum number of files to get at destination, get the current usage
-    if targetFilesAtDestination:
-      self.util.readCacheFile(self.workDirectory)
-      # Directories limited to the top 4 directories
-      directories = stripDirectory(self.transReplicas)
-      # Get the maximum number of files that are allowed to be copied at this round (for prestaging mainly)
-      maxFilesAtSE = self.util.getMaxFilesAtSE(targetFilesAtDestination, directories, destSEs)
-      if not maxFilesAtSE['OK']:
-        return maxFilesAtSE
-      maxFilesAtSE = maxFilesAtSE['Value']
-      # This happens when the cycle is to be skipped, then return
-      if not maxFilesAtSE:
-        return S_OK([])
-    else:
-      maxFilesAtSE = {}
-
+    destSEs = list(maxFilesAtSE)
     storageElementGroups = {}
 
     for replicaSE, lfns in getFileGroups(self.transReplicas).iteritems():
