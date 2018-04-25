@@ -1474,7 +1474,7 @@ def getRemovalPlugins():
   """
   Returns list of removal plugins
   """
-  return ("DestroyDataset", 'DestroyDatasetWhenProcessed',
+  return ("DestroyDataset", 'DestroyDatasetWhenProcessed', "RemoveDatasetFromDisk",
           'RemoveReplicasKeepDestination', "ReduceReplicasKeepDestination",
           "RemoveDataset", "RemoveReplicas", 'RemoveReplicasWhenProcessed',
           'RemoveReplicasWithAncestors', 'ReduceReplicas', )
