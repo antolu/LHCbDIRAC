@@ -698,10 +698,10 @@ class ProductionStatusAgent(AgentModule):
       # AND number of tasks created in total == number of tasks submitted
       tStats = self.__getTransformationTaskStats(tID)
       self.log.verbose("Tasks Stats for %d: %s" % (tID, str(tStats)))
-      isIdle = ((tStats.get('TotalCreated', 0) > 0) and
-                all([tStats.get(status, 0) == 0 for status in ['Checking', 'Completed', 'Created', 'Matched',
-                                                               'Received', 'Reserved', 'Rescheduled', 'Running',
-                                                               'Submitted', 'Waiting']]))
+      isIdle = (tStats.get('TotalCreated', 0) > 0) and\
+          all([tStats.get(status, 0) == 0 for status in ['Checking', 'Completed', 'Created', 'Matched',
+                                                         'Received', 'Reserved', 'Rescheduled', 'Running',
+                                                         'Submitted', 'Waiting']])
       isProcIdle = isIdle
     else:
       isSimulation = False
