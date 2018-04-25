@@ -32,8 +32,6 @@ class RegressionTestCase(IntegrationTest):
     self.bkkClient = BookkeepingClient()
     os.chdir(os.environ['PILOTINSTALLDIR'])
 
-#   def tearDown( self ):
-#     pass
 
 class RecoSuccess(RegressionTestCase):
   def test_Regression_Production(self):

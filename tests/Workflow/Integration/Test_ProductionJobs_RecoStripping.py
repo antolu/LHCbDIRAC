@@ -34,6 +34,9 @@ class Reco17Success(ProductionJobTestCase):
   def test_Integration_Production(self):
     lfns = ['/lhcb/data/2017/RAW/FULL/LHCb/COLLISION17/192165/192165_0000000011.raw']
     # From request 39597
+    optionFilesDQ = '$APPCONFIGOPTS/DaVinci/DVMonitor-RealData.py;'
+    optionFilesDQ += '$APPCONFIGOPTS/DaVinci/DataType-2016.py;'
+    optionFilesDQ += '$APPCONFIGOPTS/DaVinci/DaVinci-InputType-SDST.py'
     stepsInProd = [{'StepId': '131333', 'StepName': 'Reco17a',
                     'ApplicationName': 'Brunel', 'ApplicationVersion': 'v52r4',
                     'ExtraPackages': 'AppConfig.v3r323;SQLDDDB.v7r10',
@@ -45,22 +48,17 @@ class Reco17Success(ProductionJobTestCase):
                     'fileTypesIn': ['RAW'],
                     'fileTypesOut':['BRUNELHIST', 'RDST'],
                     'visibilityFlag':[{'Visible': 'N', 'FileType': 'RDST'},
-                                      {'Visible': 'Y', 'FileType': 'BRUNELHIST'}
-                                      ]
-                    },
+                                      {'Visible': 'Y', 'FileType': 'BRUNELHIST'}]},
                    {'StepId': 131327, 'StepName': 'DataQuality-FULL',
                     'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v42r4',
                     'ExtraPackages': 'AppConfig.v3r324;SQLDDDB.v7r10',
                     'ProcessingPass': 'DataQuality-FULL', 'Visible': 'N', 'Usable': 'Yes',
                     'DDDB': 'dddb-20150724', 'CONDDB': 'cond-20170510', 'DQTag': '', 'OptionsFormat': 'DQ',
-                    'OptionFiles': '$APPCONFIGOPTS/DaVinci/DVMonitor-RealData.py;$APPCONFIGOPTS/DaVinci/DataType-2016.py;$APPCONFIGOPTS/DaVinci/DaVinci-InputType-SDST.py',
+                    'OptionFiles': optionFilesDQ,
                     'isMulticore': 'N', 'SystemConfig': '', 'mcTCK': '', 'ExtraOptions': '',
                     'fileTypesIn': ['RDST'],
                     'fileTypesOut':['DAVINCIHIST'],
-                    'visibilityFlag':[{'Visible': 'Y', 'FileType': 'DAVINCIHIST'}
-                                      ]
-                    }
-                   ]
+                    'visibilityFlag':[{'Visible': 'Y', 'FileType': 'DAVINCIHIST'}]}]
 
     prod = self.pr._buildProduction('Reconstruction', stepsInProd, {'RDST': 'Tier1-Buffer'}, 0, 100,
                                     outputMode='Run', inputDataPolicy='protocol', inputDataList=lfns, events=25)
@@ -81,12 +79,17 @@ class StrippSuccess(ProductionJobTestCase):
     lfns = ['/lhcb/LHCb/Collision15/RDST/00048427/0009/00048427_00090769_1.rdst']
     # ancestor: '/lhcb/data/2015/RAW/FULL/LHCb/COLLISION15/167123/167123_0000000379.raw'
 
+    optionFiles = '$APPCONFIGOPTS/DaVinci/DV-Stripping24r0p1-Stripping.py;'
+    optionFiles += '$APPCONFIGOPTS/DaVinci/DataType-2015.py;'
+    optionFiles += '$APPCONFIGOPTS/DaVinci/InputType-RDST.py;'
+    optionFiles += '$APPCONFIGOPTS/DaVinci/DV-RawEventJuggler-0_3-to-4_2.py;'
+    optionFiles += '$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py'
     stepsInProd = [{'StepId': 125625, 'StepName': 'Stripping24r0p1-DV-v38r1p4-AppConfig-v3r323',
                     'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v38r1p4',
                     'ExtraPackages': 'AppConfig.v3r323;SQLDDDB.v7r10',
                     'ProcessingPass': 'Stripping24r0p1', 'Visible': 'Y', 'Usable': 'Yes',
                     'DDDB': 'dddb-20150724', 'CONDDB': 'cond-20150828', 'DQTag': '', 'OptionsFormat': 'Stripping',
-                    'OptionFiles': '$APPCONFIGOPTS/DaVinci/DV-Stripping24r0p1-Stripping.py;$APPCONFIGOPTS/DaVinci/DataType-2015.py;$APPCONFIGOPTS/DaVinci/InputType-RDST.py;$APPCONFIGOPTS/DaVinci/DV-RawEventJuggler-0_3-to-4_2.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py',
+                    'OptionFiles': optionFiles,
                     'isMulticore': 'N', 'SystemConfig': 'x86_64-slc6-gcc48-opt', 'mcTCK': '', 'ExtraOptions': '',
                     'fileTypesIn': ['RDST'],
                     'fileTypesOut':['BHADRON.MDST', 'BHADRONCOMPLETEEVENT.DST', 'CHARM.MDST',
