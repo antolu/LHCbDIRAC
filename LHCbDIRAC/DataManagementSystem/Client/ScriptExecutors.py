@@ -19,6 +19,7 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClie
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import printDMResult, ProgressBar, DMScript
 from LHCbDIRAC.BookkeepingSystem.Client.ScriptExecutors import scaleSize
+from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import getProcessingPasses
 
 __RCSID__ = "$Id$"
 
@@ -93,15 +94,32 @@ def parseArguments(dmScript, allSEs=False, printOutput=True):
         bkQueries = [BKQuery(ll.strip().split()[0]) for ll in lines]
         gLogger.notice("Executing %d BKQueries" % len(bkQueries))
       else:
-        bkQueries = [bkQuery]
-      multi = len(bkQueries) > 1
+        # Handle wildcard in processing pass
+        processingPass = bkQuery.getProcessingPass().replace('...', '*')
+        if '*' in processingPass:
+          depth = None if processingPass.endswith('/*') else 1
+          progressBar = ProgressBar(1, title="Getting list of processing passes (depth=%s)" % depth)
+          processingPasses = getProcessingPasses(bkQuery, depth=depth)
+          progressBar.endLoop(message="obtained %d processing passes" % len(processingPasses))
+          if len(processingPasses) > 1:
+            gLogger.notice('\n'.join(processingPasses))
+          bkQuery.setProcessingPass(None)
+          bkQueries = [BKQuery(bkQuery.setProcessingPass(processingPass)) for processingPass in processingPasses]
+        else:
+          bkQueries = [bkQuery]
+      nbQueries = len(bkQueries)
+      progressBar = ProgressBar(nbQueries,
+                                title="Executing %d BK queries:" % nbQueries,
+                                step=1) if nbQueries > 1 else None
       for bkQuery in bkQueries:
         if isinstance(bkQuery, BKQuery):
-          if not multi:
+          if progressBar:
+            progressBar.loop()
+          else:
             gLogger.notice("Executing BKQuery:", bkQuery)
-          lfnList += bkQuery.getLFNs(printOutput=not multi and printOutput)
-      if multi:
-        gLogger.notice('Got %d LFNs' % len(lfnList))
+          lfnList += bkQuery.getLFNs(printOutput=progressBar is None and printOutput)
+      if progressBar:
+        progressBar.endLoop(message='Got %d LFNs' % len(lfnList))
 
   return sorted(lfnList), seList
 

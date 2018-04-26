@@ -13,7 +13,7 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClie
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
 
-def getProcessingPasses(bkQuery, depth=0):
+def getProcessingPasses(bkQuery, depth=None):
   """
   Get the list of processing passes for a given BK query
   The processing pass in the initial query may contain "..." or a '*', in which case this acts as a wildcard character
@@ -30,9 +30,9 @@ def getProcessingPasses(bkQuery, depth=0):
   ind = processingPass.index('*')
   basePass = os.path.dirname(processingPass[:ind])
   bkQuery.setProcessingPass(basePass)
-  return sorted(pp for pp in bkQuery.getBKProcessingPasses()
-                if fnmatch(pp, processingPass) and pp != basePass and
-                (not depth or len(pp.replace(basePass, '').split('/')) == (depth + 1)))
+  return sorted(pp for pp in bkQuery.getBKProcessingPasses(depth=depth)
+                if fnmatch(pp, processingPass) and pp != basePass)  # and
+  #(not depth or len(pp.replace(basePass, '').split('/')) == (depth + 1)))
 
 
 def makeBKPath(bkDict):
@@ -879,10 +879,12 @@ class BKQuery():
     # print 'FileTypes3', fileTypes
     return fileTypes
 
-  def getBKProcessingPasses(self, queryDict=None):
+  def getBKProcessingPasses(self, queryDict=None, depth=None):
     """
     It returns the processing pass.
     """
+    if depth is None:
+      depth = sys.maxsize
     processingPasses = {}
     if not queryDict:
       queryDict = self.__bkQueryDict.copy()
@@ -906,12 +908,13 @@ class BKQuery():
     else:
       eventTypes = []
 
-    if passes:
+    if passes and depth:
+      depth -= 1
       nextProcessingPasses = {}
       for pName in passes:
         processingPasses[pName] = []
         queryDict['ProcessingPass'] = pName
-        nextProcessingPasses.update(self.getBKProcessingPasses(queryDict))
+        nextProcessingPasses.update(self.getBKProcessingPasses(queryDict, depth=depth))
       processingPasses.update(nextProcessingPasses)
     if eventTypes:
       processingPasses[initialPP] = eventTypes
