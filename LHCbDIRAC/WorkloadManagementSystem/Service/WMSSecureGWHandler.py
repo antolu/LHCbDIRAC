@@ -211,7 +211,7 @@ class WMSSecureGWHandler(RequestHandler):
   types_getVOMSProxy = [basestring, basestring, basestring, (int, long)]
 
   def export_getVOMSProxy(self, userDN, userGroup, requestPem,
-    requiredLifetime, vomsAttribute=False):  # pylint: disable=unused-argument
+                          requiredLifetime, vomsAttribute=False):  # pylint: disable=unused-argument
     """
     Always return the Boinc proxy.
     """
