@@ -31,8 +31,7 @@ def getProcessingPasses(bkQuery, depth=None):
   basePass = os.path.dirname(processingPass[:ind])
   bkQuery.setProcessingPass(basePass)
   return sorted(pp for pp in bkQuery.getBKProcessingPasses(depth=depth)
-                if fnmatch(pp, processingPass) and pp != basePass)  # and
-  #(not depth or len(pp.replace(basePass, '').split('/')) == (depth + 1)))
+                if fnmatch(pp, processingPass) and pp != basePass)
 
 
 def makeBKPath(bkDict):
