@@ -24,6 +24,7 @@ Many transformations have a grouping by Run on top of a running by size/files. T
 *******************************
 
 Once a run is set to flush, it will stay in this state. This means that if new files arrive after flushing the run, they will not be accumulated, and a new task will be create for each and every file that arrives. This is not what you want normally.
+You can check here how to make sure that you can manually flush a run in the Merging: :ref:`_mergingFlush`
 
 2. Automatic run flushing for Merging
 *************************************
