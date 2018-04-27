@@ -1053,9 +1053,8 @@ def executeGetStats(dmScript):
       runList = {}
       if not lfns:
         nDatasets = len(processingPasses)
-        progressBar = ProgressBar(nDatasets, title='Getting info from files' +
-                                  (' for %d datasets...' % nDatasets if nDatasets > 1 else '...'),
-                                  step=1)
+        title = 'Getting info from files' + (' for %d datasets...' % nDatasets if nDatasets > 1 else '...')
+        progressBar = ProgressBar(nDatasets, title=title, step=1)
         for processingPass in processingPasses:
           if processingPass:
             queryDict['ProcessingPass'] = processingPass
