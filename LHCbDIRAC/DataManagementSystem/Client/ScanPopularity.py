@@ -140,10 +140,9 @@ def cacheDirectories(directories):
         bkPathForLfn[lfn] = bkPath
         bkPathUsage.setdefault(bkPath, {}).setdefault('LFN', [0, 0])
   if invisible:
-    gLogger.always('The following %d paths are ignored as invisible:\n' %
-                   len(invisible), '\n'.join(sorted(invisible)))
+    gLogger.always('%d paths are ignored as invisible' % len(invisible))
     cachedInvisible.update(invisible)
-  dirSet -= invisible
+    dirSet -= invisible
 
   if dirSet:
     missingSU = set(dirLong2Short[lfn] for lfn in dirSet)
@@ -153,11 +152,11 @@ def cacheDirectories(directories):
       # LFN usage
       for trial in xrange(10, -1, -1):
         res = suClient.getSummary(lfn)
-        if not res['OK'] and not trial:
+        if res['OK']:
+          break
+        if not trial:
           gLogger.fatal('Error getting LFN storage usage %s' % lfn, res['Message'])
           DIRAC.exit(1)
-        else:
-          break
       bkPath = bkPathForLfn[dirShort2Long[lfn]]
       infoType = 'LFN'
       gLogger.verbose('Directory %s: %s' % (lfn, str(res['Value'])))
