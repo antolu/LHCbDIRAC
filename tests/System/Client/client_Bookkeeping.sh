@@ -183,7 +183,7 @@ do
   sed -i s/VAR_Guid/$guid/g $bkpath$xmlName
 
   echo "/lhcb/Certification/Test/INIT/$version/$tdate/$stime/$file \
-  .$temporaryPath$file" >> $extra/LFNlist.txt
+  $temporaryPath$file" >> $extra/LFNlist.txt
 #  python $diracDir/tests/System/Client/dirac-send-bk-report.py $xmlName -ddd
   python $extra/dirac-send-bk-report.py $bkpath$xmlName -ddd
 done
