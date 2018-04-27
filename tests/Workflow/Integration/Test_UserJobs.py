@@ -9,15 +9,16 @@ import unittest
 from DIRAC.Core.Base.Script import parseCommandLine
 from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
 from DIRAC.tests.Utilities.utils import find_all
+
 from LHCbDIRAC import rootPath
+from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
+from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 
 try:
   from LHCbDIRAC.tests.Utilities.IntegrationTest import IntegrationTest, FailingUserJobTestCase
 except ImportError:
   from tests.Utilities.IntegrationTest import IntegrationTest, FailingUserJobTestCase
 
-from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
-from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 
 
 parseCommandLine()
@@ -33,8 +34,17 @@ class UserJobTestCase(IntegrationTest):
     print "\n \n ********************************* \n   Running a new test \n *********************************"
 
     self.dLHCb = DiracLHCb()
-    self.exeScriptLocation = find_all('exe-script.py', rootPath, '/tests/Workflow/Integration')[0]
-    self.exeScriptFromDIRACLocation = find_all('exe-script-fromDIRAC.py', rootPath, '/tests/Workflow/Integration')[0]
+    try:
+      self.exeScriptLocation = find_all('exe-script.py', os.environ['WORKSPACE'], '/tests/Workflow/Integration')[0]
+    except (IndexError, KeyError):
+      self.exeScriptLocation = find_all('exe-script.py', rootPath, '/tests/Workflow/Integration')[0]
+
+    try:
+      self.exeScriptFromDIRACLocation = find_all('exe-script-fromDIRAC.py',
+                                                 os.environ['WORKSPACE'],
+                                                 '/tests/Workflow/Integration')[0]
+    except (IndexError, KeyError):
+      self.exeScriptFromDIRACLocation = find_all('exe-script-fromDIRAC.py', rootPath, '/tests/Workflow/Integration')[0]
     self.lhcbJobTemplate = LHCbJob()
     self.lhcbJobTemplate.setLogLevel('DEBUG')
     try:
