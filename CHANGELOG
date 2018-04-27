@@ -1,3 +1,30 @@
+[v9r1p12]
+use DIRAC v6r19p21
+
+* code cleanup
+* code style again
+* style
+* better usage of BK path wildcards
+* add option --Summary to switch off stats per SE and sites
+* Rename RemoveDataset to RemoveDatasetFromDisk
+* getFilesSummary takes into account DQ flag
+* improve logging
+* set replication limits in ReplicateToRunDestination as well as ReplicateToLocalSE
+* remove SE group resolution in scripts
+* overwrite __checkSEs to avoid resolving SE groups upstream
+* Docs: more DMS doc
+* Docs: correction for RAWShare
+* Docs: more operational docs
+* Docs: operational docs
+* visual indent, sigh
+* code-style adjustment
+* autopip8 WMSSecureGWHandler.py
+* style
+* just adding setup.cfg file
+* backported rescheduling of Ganga jobs for lb-run errors
+* update of docs and config template
+* fixes on types_getJobParameter and commitRegisters URL
+
 [v9r1p11]
 use DIRAC v6r19p20
 
