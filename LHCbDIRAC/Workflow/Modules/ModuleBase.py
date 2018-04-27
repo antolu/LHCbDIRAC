@@ -907,7 +907,8 @@ class ModuleBase( object ):
                                 metaData = {'Checksum':'justSomething',
                                             'ChecksumType': 'ADLER32',
                                             'GUID': 'aGUID'} ):
-    """ Set a BK registration request for changing the replica flag.  Uses the global request object.
+    """ Set a BK registration request for changing the replica flag.
+        Uses the global request object (self.request).
     """
     if error:
       self.log.info( 'BK registration for %s failed with message: "%s" setting failover request' % ( lfn, error ) )
