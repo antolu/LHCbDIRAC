@@ -118,6 +118,6 @@ Other stuff
 
 
 Laurence said that we could submit directly to his HTCondor, so we would not need anymore his intervention. Much better.
-We would need a MrBoinc pilot proxy,a nd a MrBoinc user proxy (could technicaly be the same)
+We would need a MrBoinc pilot proxy, and a MrBoinc user proxy (could technicaly be the same)
 And then a site director on the BOINC gateway
 Luca should do that, with the help of Andrew.
