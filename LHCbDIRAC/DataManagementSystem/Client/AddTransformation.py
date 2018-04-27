@@ -31,7 +31,7 @@ def executeAddTransformation(pluginScript):
   fcCheck = True
   unique = False
   bkQuery = None
-  depth = 0
+  depth = None
   userGroup = None
   listProcessingPasses = False
   nameOption = None

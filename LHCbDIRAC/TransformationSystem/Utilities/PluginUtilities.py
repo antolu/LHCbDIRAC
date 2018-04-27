@@ -12,7 +12,7 @@ from DIRAC.Core.Utilities.List import breakListIntoChunks
 # from DIRAC.Core.Utilities.Time import timeThis
 from DIRAC.Core.Utilities.File import mkDir
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
-from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
+from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers, resolveSEGroup
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Resources.Storage.StorageElement import StorageElement
 
@@ -1353,7 +1353,7 @@ get from BK" % (param, self.paramName))
                      recentFiles, counters=[], log=self.logDebug)
     return S_OK()
 
-  def getMaxFilesAtSE(self, targetFilesAtDestination, directories, destSEs):
+  def __getMaxFilesAtSE(self, targetFilesAtDestination, directories, destSEs):
     """
     Get the number of files already present at SEs for a list of LFN directories
     Using the processing and RAW distribution shares, split the maximum number of files to be staged on these SEs
@@ -1415,6 +1415,36 @@ get from BK" % (param, self.paramName))
     self.printShares("Maximum number of files per SE:", maxFilesAtSE, counters=[], log=self.logInfo)
     return S_OK(maxFilesAtSE)
 
+  def getMaxFilesToReplicate(self, workDirectory):
+    """
+    Get the watermark and max files per SE if defined
+    The keys of maxFilesAtSE are the destination SEs
+    If plugin should just return, set watermark to None
+    """
+    destSEs = set(resolveSEGroup(self.getPluginParam('DestinationSEs', [])))
+    maxFilesAtSE = dict.fromkeys(destSEs, sys.maxsize)
+    if not destSEs:
+      self.logWarn('No destination SE given')
+      return S_OK((None, maxFilesAtSE))
+    watermark = self.getPluginParam('MinFreeSpace', 30)
+    targetFilesAtDestination = self.getPluginParam('TargetFilesAtDestination', 0)
+
+    # if there is a maximum number of files to get at destination, get the current usage
+    if targetFilesAtDestination:
+      self.readCacheFile(workDirectory)
+      # Directories limited to the top 4 directories
+      directories = stripDirectory(self.transReplicas)
+      # Get the maximum number of files that are allowed to be copied at this round (for prestaging mainly)
+      result = self.__getMaxFilesAtSE(targetFilesAtDestination, directories, destSEs)
+      if not result['OK']:
+        return result
+      # This happens when the cycle is to be skipped, then return None
+      if not result['Value']:
+        watermark = None
+      # Update dictionary
+      maxFilesAtSE.update(result['Value'])
+    return S_OK((watermark, maxFilesAtSE))
+
   def _getFileSize(self, lfns):
     """
     Overwrite the DIRAC method and get the file size from the TS tables
@@ -1444,7 +1474,7 @@ def getRemovalPlugins():
   """
   Returns list of removal plugins
   """
-  return ("DestroyDataset", 'DestroyDatasetWhenProcessed',
+  return ("DestroyDataset", 'DestroyDatasetWhenProcessed', "RemoveDatasetFromDisk",
           'RemoveReplicasKeepDestination', "ReduceReplicasKeepDestination",
           "RemoveDataset", "RemoveReplicas", 'RemoveReplicasWhenProcessed',
           'RemoveReplicasWithAncestors', 'ReduceReplicas', )
