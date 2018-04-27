@@ -1,3 +1,48 @@
+[v9r2-pre4]
+use DIRAC v6r20-pre23
+
+* code cleanup
+* code style again
+* style
+* better usage of BK path wildcards
+* add option --Summary to switch off stats per SE and sites
+* Rename RemoveDataset to RemoveDatasetFromDisk
+* getFilesSummary takes into account DQ flag
+* improve logging
+* set replication limits in ReplicateToRunDestination as well as ReplicateToLocalSE
+* remove SE group resolution in scripts
+* overwrite __checkSEs to avoid resolving SE groups upstream
+* Docs: more DMS doc
+* Docs: correction for RAWShare
+* Docs: more operational docs
+* Docs: operational docs
+* visual indent, sigh
+* code-style adjustment
+* autopip8 WMSSecureGWHandler.py
+* just adding setup.cfg file
+* pilot.cfg in IS
+* backported rescheduling of Ganga jobs for lb-run errors
+* split InputData in 2
+* added pilot.cfg in IS
+* split regression tests in 3
+* update of docs and config template
+* fixes on types_getJobParameter and commitRegisters URL
+* finding tests
+* remove empty spaces
+* do not change the configuration version when we run reconstruction
+* adapting to MB instead of TB
+* test fix
+* allow debug by run when giving a list of LFNs
+* add information
+* to get pipelines working
+* change the shifter proxy owner
+* correct list of pilot files
+* make the interface consistent
+* give more precise advice when checking a single stream, and replace always() with notice()
+* fix progress bar that was embedded
+* improve printout for summary of PFN metadata
+
+
 [v9r2-pre3]
 use DIRAC v6r20-pre21
 
