@@ -19,6 +19,7 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClie
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import printDMResult, ProgressBar, DMScript
 from LHCbDIRAC.BookkeepingSystem.Client.ScriptExecutors import scaleSize
+from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import getProcessingPasses
 
 __RCSID__ = "$Id$"
 
@@ -61,7 +62,7 @@ def __getSEsFromOptions(dmScript):
   return seList
 
 
-def parseArguments(dmScript, allSEs=False):
+def parseArguments(dmScript, allSEs=False, printOutput=True):
   """
   Analyse the options passed using the DMScript options,
   returns a list of LFNs and a list of SEs
@@ -93,15 +94,32 @@ def parseArguments(dmScript, allSEs=False):
         bkQueries = [BKQuery(ll.strip().split()[0]) for ll in lines]
         gLogger.notice("Executing %d BKQueries" % len(bkQueries))
       else:
-        bkQueries = [bkQuery]
-      multi = len(bkQueries) > 1
+        # Handle wildcard in processing pass
+        processingPass = bkQuery.getProcessingPass().replace('...', '*')
+        if '*' in processingPass:
+          depth = None if processingPass.endswith('/*') else 1
+          progressBar = ProgressBar(1, title="Getting list of processing passes (depth=%s)" % depth)
+          processingPasses = getProcessingPasses(bkQuery, depth=depth)
+          progressBar.endLoop(message="obtained %d processing passes" % len(processingPasses))
+          if len(processingPasses) > 1:
+            gLogger.notice('\n'.join(processingPasses))
+          bkQuery.setProcessingPass(None)
+          bkQueries = [BKQuery(bkQuery.setProcessingPass(processingPass)) for processingPass in processingPasses]
+        else:
+          bkQueries = [bkQuery]
+      nbQueries = len(bkQueries)
+      progressBar = ProgressBar(nbQueries,
+                                title="Executing %d BK queries:" % nbQueries,
+                                step=1) if nbQueries > 1 else None
       for bkQuery in bkQueries:
         if isinstance(bkQuery, BKQuery):
-          if not multi:
+          if progressBar:
+            progressBar.loop()
+          else:
             gLogger.notice("Executing BKQuery:", bkQuery)
-          lfnList += bkQuery.getLFNs(printOutput=not multi)
-      if multi:
-        gLogger.notice('Got %d LFNs' % len(lfnList))
+          lfnList += bkQuery.getLFNs(printOutput=progressBar is None and printOutput)
+      if progressBar:
+        progressBar.endLoop(message='Got %d LFNs' % len(lfnList))
 
   return sorted(lfnList), seList
 
@@ -905,6 +923,7 @@ def executeReplicaStats(dmScript):
   prSEList = []
   dumpAtSE = False
   dumpNotAtSE = False
+  summary = False
   for switch in Script.getUnprocessedSwitches():
     if switch[0] in ("S", "Size"):
       getSize = True
@@ -931,12 +950,14 @@ def executeReplicaStats(dmScript):
     elif switch[0] == 'DumpNotAtSE':
       dmScript.setSEs(switch[1])
       dumpNotAtSE = True
+    elif switch[0] == 'Summary':
+      summary = True
 
   if dumpAtSE and dumpNotAtSE:
     gLogger.notice('You cannot dump At and Not At SE!')
     return 1
 
-  lfnList, seList = parseArguments(dmScript)
+  lfnList, seList = parseArguments(dmScript, printOutput=not summary)
   if not lfnList:
     directories = dmScript.getOption('Directory')
   else:
@@ -946,12 +967,13 @@ def executeReplicaStats(dmScript):
 
   return printReplicaStats(directories, lfnList, getSize=getSize, prNoReplicas=prNoReplicas,
                            prWithReplicas=prWithReplicas, prWithArchives=prWithArchives,
-                           prFailover=prFailover, prSEList=prSEList, notAtSE=dumpNotAtSE)
+                           prFailover=prFailover, prSEList=prSEList, notAtSE=dumpNotAtSE,
+                           summary=summary)
 
 
 def printReplicaStats(directories, lfnList, getSize=False, prNoReplicas=False,
                       prWithReplicas=False, prWithArchives=False,
-                      prFailover=False, prSEList=None, notAtSE=False):
+                      prFailover=False, prSEList=None, notAtSE=False, summary=False):
   """
   get storage statistics on a dataset (directories or LFN list
   If requested, lists of LFNs with some criteria can be printed out
@@ -1085,34 +1107,35 @@ def printReplicaStats(directories, lfnList, getSize=False, prNoReplicas=False,
     gLogger.notice("%3d  other  replicas: %d files" % (nrep, repStats.setdefault(nrep, 0)))
   gLogger.notice("---------------------")
 
-  gLogger.notice("\nSE statistics:")
-  for se in orderSEs(repSEs):
-    if dmsHelper.isSEFailover(se):
-      continue
-    if not dmsHelper.isSEArchive(se):
-      res = dmsHelper.getSitesForSE(se, connectionLevel='LOCAL')
-      if res['OK']:
-        try:
-          site = res['Value'][0]
-        except IndexError:
-          continue
-        if site not in repSites:
-          repSites[site] = [0, 0]
-        repSites[site][0] += repSEs[se][0]
-        repSites[site][1] += repSEs[se][1]
-    string = "%16s: %s files" % (se, repSEs[se][0])
-    if getSize:
-      size, sizeUnit = scaleSize(repSEs[se][1])
-      string += " - %.3f %s" % (size, sizeUnit)
-    gLogger.notice(string)
+  if not summary:
+    gLogger.notice("\nSE statistics:")
+    for se in orderSEs(repSEs):
+      if dmsHelper.isSEFailover(se):
+        continue
+      if not dmsHelper.isSEArchive(se):
+        res = dmsHelper.getSitesForSE(se, connectionLevel='LOCAL')
+        if res['OK']:
+          try:
+            site = res['Value'][0]
+          except IndexError:
+            continue
+          if site not in repSites:
+            repSites[site] = [0, 0]
+          repSites[site][0] += repSEs[se][0]
+          repSites[site][1] += repSEs[se][1]
+      string = "%16s: %s files" % (se, repSEs[se][0])
+      if getSize:
+        size, sizeUnit = scaleSize(repSEs[se][1])
+        string += " - %.3f %s" % (size, sizeUnit)
+      gLogger.notice(string)
 
-  gLogger.notice("\nSites statistics:")
-  for site in sorted(repSites):
-    string = "%16s: %d files" % (site, repSites[site][0])
-    if getSize:
-      size, sizeUnit = scaleSize(repSites[site][1])
-      string += " - %.3f %s" % (size, sizeUnit)
-    gLogger.notice(string)
+    gLogger.notice("\nSites statistics:")
+    for site in sorted(repSites):
+      string = "%16s: %d files" % (site, repSites[site][0])
+      if getSize:
+        size, sizeUnit = scaleSize(repSites[site][1])
+        string += " - %.3f %s" % (size, sizeUnit)
+      gLogger.notice(string)
 
   if prNoReplicas and noReplicas:
     gLogger.notice("\nFiles without a non-archive replica:")

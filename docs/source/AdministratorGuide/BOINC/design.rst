@@ -26,8 +26,7 @@ In the BOINC Gateway there are the following components:
     - running the BOINC setup.
     - define all the URLs of all the systems to WMSSecureGW
 - WMSSecureGW:
-    - accept calls targeted at all systems (WMS, Monitoring, RMS, etc) and redirect them
-      to the trusted world. (currently, Accounting goes directly to the real system, but this should be fixed)
+    - accept calls targeted at all systems (WMS, Monitoring, RMS, Accounting, etc) and redirect them to the trusted world.
 
 
 The BOINC users only (almost, see below) talk to the WMSSecureGW, which redirects all the calls to the trusted world, using real host certificate.

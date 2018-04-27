@@ -168,7 +168,6 @@ class WMSSecureGWHandler(RequestHandler):
 
   ##########################################################################################
   types_setPilotStatus = [basestring, basestring]
-
   def export_setPilotStatus(self, pilotRef, status, destination=None, reason=None, gridSite=None, queue=None):
     """ Set the pilot agent status
     """
@@ -179,7 +178,6 @@ class WMSSecureGWHandler(RequestHandler):
 
   ##############################################################################
   types_setJobForPilot = [(basestring, int, long), basestring]
-
   def export_setJobForPilot(self, jobID, pilotRef, destination=None):
     """ Report the DIRAC job ID which is executed by the given pilot job
     """
@@ -189,7 +187,6 @@ class WMSSecureGWHandler(RequestHandler):
 
   ##########################################################################################
   types_setPilotBenchmark = [basestring, float]
-
   def export_setPilotBenchmark(self, pilotRef, mark):
     """ Set the pilot agent benchmark
     """
@@ -320,6 +317,6 @@ class WMSSecureGWHandler(RequestHandler):
   types_commitRegisters = [list]
 
   def export_commitRegisters(self, entriesList):
-    acc = RPCClient('AccountingSystem/DataStore')
+    acc = RPCClient('Accounting/DataStore')
     retVal = acc.commitRegisters(entriesList)
     return retVal

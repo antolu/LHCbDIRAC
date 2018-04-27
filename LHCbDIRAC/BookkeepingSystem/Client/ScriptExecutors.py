@@ -952,7 +952,14 @@ def executeGetStats(dmScript):
       prodList = [prodList]
     bkQuery.setOption('ProductionID', None)
     fileType = bkQuery.getFileTypeList()
-    processingPasses = getProcessingPasses(bkQuery)
+    processingPass = bkQuery.getProcessingPass().replace('...', '*')
+    if '*' in processingPass:
+      depth = None if processingPass.endswith('/*') else 1
+      progressBar = ProgressBar(1, title="Getting list of processing passes (depth=%s)" % depth)
+      processingPasses = getProcessingPasses(bkQuery, depth=depth)
+      progressBar.endLoop(message="obtained %d processing passes" % len(processingPasses))
+    else:
+      processingPasses = [processingPass]
   else:
     prodList = [None]
     fileType = None
@@ -987,29 +994,27 @@ def executeGetStats(dmScript):
         gLogger.notice("For BK query:", bkQuery)
 
     # Get information from BK
-    # if not triggerRate and not lfns and 'ReplicaFlag' not in queryDict and 'DataQuality' not in queryDict:
-    if not triggerRate and not lfns and 'DataQuality' not in queryDict:
+    if not triggerRate and not lfns:
+      #
+      # Except if we need to get the list of files, use getFilesSummary
+      #
       fileTypes = queryDict.pop('FileType', None)
       if not isinstance(fileTypes, list):
         fileTypes = [fileTypes]
       records = []
-      nDatasets = 1
-      if isinstance(fileTypes, list):
-        nDatasets = len(fileTypes)
+      nDatasets = 0
       eventTypes = queryDict.get('EventType')
-      if isinstance(eventTypes, list):
-        nDatasets *= len(eventTypes)
-      nPasses = len(processingPasses)
-      progressBar = ProgressBar(nPasses,
-                                title='Getting info from filesSummary' + (' for %d processing passes...' %
-                                                                          nPasses if nPasses > 1 else '...'),
+      nd = len(processingPasses) * len(fileTypes)
+      progressBar = ProgressBar(nd,
+                                title='Getting info from filesSummary' + (' for %d datasets...' %
+                                                                          nd if nd > 1 else '...'),
                                 step=1)
       for processingPass in processingPasses:
         # Loop on all processing passes if needed
         if processingPass:
           queryDict['ProcessingPass'] = processingPass
-        progressBar.loop()
         for fileType in fileTypes:
+          progressBar.loop()
           if fileType:
             queryDict['FileType'] = fileType
           retry = 0
@@ -1028,6 +1033,8 @@ def executeGetStats(dmScript):
           # print fileType, record
           recDict = dict(zip(paramNames, record))
           nevts = recDict.get('NumberOfEvents', 0)
+          if nevts:
+            nDatasets += len(eventTypes) if isinstance(eventTypes, list) else 1
           size = recDict.get('FileSize', 0)
           lumi = recDict.get('Luminosity', 0)
           record.append(nevts / float(lumi) if lumi else 0.)
@@ -1038,8 +1045,11 @@ def executeGetStats(dmScript):
           # print fileType, records, 'Total'
       progressBar.endLoop()
       paramNames += ['EvtsPerLumi', 'SizePerLumi']
+      # End of getFilesSummary section
     else:
-      # To be replaced with getFilesWithMetadata when it allows invisible files
+      #
+      # Here it is because we really need the list of files
+      #
       paramNames = ['NbofFiles', 'NumberOfEvents', 'FileSize', 'Luminosity', 'EvtsPerLumi', 'SizePerLumi']
       nbFiles = 0
       nbEvents = 0
@@ -1048,9 +1058,9 @@ def executeGetStats(dmScript):
       datasets = set()
       runList = {}
       if not lfns:
-        nPasses = len(processingPasses)
-        progressBar = ProgressBar(nPasses, title='Getting info from files' +
-                                  (' for %d processing passes...' % nPasses if nPasses > 1 else '...'), step=1)
+        nDatasets = len(processingPasses)
+        title = 'Getting info from files' + (' for %d datasets...' % nDatasets if nDatasets > 1 else '...')
+        progressBar = ProgressBar(nDatasets, title=title, step=1)
         for processingPass in processingPasses:
           if processingPass:
             queryDict['ProcessingPass'] = processingPass
@@ -1063,24 +1073,23 @@ def executeGetStats(dmScript):
             if res['OK']:
               break
           if not res['OK']:
+            progressBar.endLoop(message="Fatal error")
             gLogger.fatal("Error getting files with metadata", res['Message'])
             diracExit(1)
-          if 'ParameterNames' in res.get('Value', {}):
+          if 'ParameterNames' in res['Value']:
             parameterNames = res['Value']['ParameterNames']
             info = res['Value']['Records']
           else:
-            if 'Value' in res:
-              gLogger.error('ParameterNames not present:',
-                            str(res['Value'].keys()) if isinstance(res['Value'], dict) else str(res['Value']))
-            info = []
-            res = bkClient.getFiles(queryDict)
-            if res['OK']:
-              lfns = res['Value']
+            progressBar.endLoop(message="Fatal error")
+            gLogger.fatal('ParameterNames not present:',
+                          ','.join(sorted(res['Value'])) if isinstance(res['Value'], dict) else str(res['Value']))
+            diracExit(1)
           for item in info:
             metadata = dict(zip(parameterNames, item))
-            datasets.add((metadata.get('EventType', metadata['FileName'].split('/')[5]),
-                          metadata.get('FileType', metadata.get('Name'))))
             try:
+              if metadata['EventStat']:
+                datasets.add((metadata.get('EventType', metadata['FileName'].split('/')[5]),
+                              metadata.get('FileType', metadata.get('Name'))))
               fileSize += metadata['FileSize']
               lumi += metadata['Luminosity']
               run = metadata['RunNumber']
@@ -1091,7 +1100,7 @@ def executeGetStats(dmScript):
                 runList[run][1] += metadata['EventStat']
               runList[run][2] += metadata['FileSize']
               nbFiles += 1
-            except Exception as e:
+            except (KeyError, ValueError) as e:
               gLogger.exception('Exception for %s' % str(metadata.keys()), lException=e)
         progressBar.endLoop()
       if lfns:
@@ -1103,8 +1112,9 @@ def executeGetStats(dmScript):
           res = bkClient.getFileMetadata(lfnChunk)
           if res['OK']:
             for lfn, metadata in res['Value']['Successful'].iteritems():
-              datasets.add((metadata['EventType'], metadata['FileType']))
               try:
+                if metadata['EventStat']:
+                  datasets.add((metadata['EventType'], metadata['FileType']))
                 fileSize += metadata['FileSize']
                 lumi += metadata['Luminosity']
                 run = metadata['RunNumber']
@@ -1115,7 +1125,7 @@ def executeGetStats(dmScript):
                   runList[run][1] += metadata['EventStat']
                 runList[run][2] += metadata['FileSize']
                 nbFiles += 1
-              except Exception as e:
+              except (KeyError, ValueError) as e:
                 gLogger.exception('Exception for %s' % lfn, str(metadata.keys()), lException=e)
           else:
             gLogger.error("Error getting files metadata:", res['Message'])
@@ -1125,8 +1135,10 @@ def executeGetStats(dmScript):
                  nbEvents / float(lumi) if lumi else 0.,
                  fileSize / float(lumi) if lumi else 0.]
       nDatasets = max(1, len(datasets))
-
+      # End of get info from files section
+    #
     # Now printout the results
+    #
     tab = 17
     nfiles = nevts = lumi = 0
     for name, value in zip(paramNames, records):
@@ -1152,6 +1164,7 @@ def executeGetStats(dmScript):
     if lumi:
       filesPerLumi = nfiles / lumi
       gLogger.notice("%s: %.1f" % (('Files per %s' % lumiUnit).ljust(tab), filesPerLumi))
+
     if triggerRate:
       # Get information from the runs, but first get those that are Finished
       res = bkClient.getRunStatus(list(runList))
