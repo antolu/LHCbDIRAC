@@ -146,7 +146,6 @@ def cacheDirectories(directories):
   if dirSet:
     missingSU = set(dirLong2Short[lfn] for lfn in dirSet)
     gLogger.always('Get LFN Storage Usage for %d directories' % len(missingSU))
-    gLogger.info('\n'.join(sorted(missingSU)))
     for lfn in missingSU:
       # LFN usage
       for trial in xrange(10, -1, -1):
