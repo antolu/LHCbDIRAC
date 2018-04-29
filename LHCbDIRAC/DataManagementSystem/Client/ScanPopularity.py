@@ -32,7 +32,6 @@ processingPass = {}
 duClient = DataUsageClient()
 suClient = StorageUsageClient()
 bkClient = BookkeepingClient()
-fcClient = FileCatalog()
 transClient = TransformationClient()
 
 # Dictionary with weekly/dayly usage for each BK path
@@ -300,6 +299,28 @@ def scanPopularity(since, getAllDatasets, topDirectory='/lhcb', csvFile=None):
   """
   That function does the job to cache the directories, get the corresponding datasets and join with the popularity
   """
+  # Initialise global variables
+  dmsHelper = DMSHelpers()
+
+  bkPathForLfn = {}
+  cachedInvisible = set()
+  prodForBKPath = {}
+  bkPathUsage = {}
+  processingPass = {}
+
+  duClient = DataUsageClient()
+  suClient = StorageUsageClient()
+  bkClient = BookkeepingClient()
+  transClient = TransformationClient()
+
+  # Dictionary with weekly/dayly usage for each BK path
+  timeUsage = {}
+  # PFN #files and size for each BK path
+  physicalDataUsage = {}
+  storageTypes = ('Disk', 'Tape', 'Archived', 'All', 'LFN')
+  storageSites = dmsHelper.getTiers(tier=(0, 1))
+  cachedSESites = {}
+  datasetStorage = {}
 
   # set of used directories
   usedDirectories = set()
