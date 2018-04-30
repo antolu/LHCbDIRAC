@@ -1407,8 +1407,7 @@ def executeRunInfo(item):
         # First run encountered
         firstRun = run
         # Initialize count of files
-        if getRanges:
-          count = runDict[run]
+        count = 0
       elif (runValue != itemValue or gap) and firstRun is not None:
         # We are now in a new range, print out the previous range
         if lastRun != firstRun:
@@ -1421,7 +1420,9 @@ def executeRunInfo(item):
         itemDict.setdefault(itemValue, []).append(rangeStr)
         # If still same value, start a new range
         firstRun = run if runValue == itemValue else None
-      elif getRanges and run:
+        # Initialize count of files
+        count = 0
+      if run:
         count += runDict[run]
       # Update parameters with this run's information
       lastRun = run
