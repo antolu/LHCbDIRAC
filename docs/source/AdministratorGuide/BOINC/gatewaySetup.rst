@@ -81,7 +81,7 @@ Create the MrBoinc User certificate, valid for 375 days
 ::
 
     openssl ca -config ca/openssl_config_ca.cnf \
-         -extensions server_cert -days 375 -notext -md sha256 \
+         -extensions usr_cert -days 375 -notext -md sha256 \
          -in MrBoinc/request.csr.pem \
          -out MrBoinc/usercert.pem
 
