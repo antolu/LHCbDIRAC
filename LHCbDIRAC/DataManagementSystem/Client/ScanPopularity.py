@@ -42,7 +42,6 @@ storageTypes = ('Disk', 'Tape', 'Archived', 'All', 'LFN')
 storageSites = dmsHelper.getTiers(tier=(0, 1))
 cachedSESites = {}
 datasetStorage = {}
-usedDirectories = set()
 
 
 def getTimeBin(date):
@@ -306,10 +305,7 @@ def scanPopularity(since, getAllDatasets, topDirectory='/lhcb', csvFile=None):
   prodForBKPath.clear()
   bkPathUsage.clear()
   processingPass.clear()
-
-  # Dictionary with weekly/dayly usage for each BK path
   timeUsage.clear()
-  # PFN #files and size for each BK path
   physicalDataUsage.clear()
   cachedSESites.clear()
   datasetStorage.clear()
@@ -317,7 +313,7 @@ def scanPopularity(since, getAllDatasets, topDirectory='/lhcb', csvFile=None):
     datasetStorage[infoType] = set()
 
   # set of used directories
-  usedDirectories.clear()
+  usedDirectories = set()
   usedSEs = {}
   binSize = 'week'
   nbBins = int((since + 6) / 7)
