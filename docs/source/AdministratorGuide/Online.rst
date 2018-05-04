@@ -49,7 +49,7 @@ Instructions to install or update a new version of LHCbDirac ::
   ssh store06
   cd /sw/dirac/run2
   source /sw/dirac/run2/bashrc
-  dirac-install -v -r vArBpC -t client -l LHCb -e LHCb
+  dirac-install -v -r vArBpC -t server -l LHCb -e LHCb
   rm /sw/dirac/run2/pro ; ln -s versions/vArBpC_hhhhhh pro
   cd /sw/dirac/run2/pro
 
