@@ -329,7 +329,7 @@ def executeAddTransformation(pluginScript):
       transformation.setBkQuery(transBKQuery)
 
     # If the transformation uses the RemoveDataset plugin, set the files invisible in the BK...
-    setInvisiblePlugins = ("RemoveDataset", )
+    setInvisiblePlugins = ("RemoveDataset", "RemoveDatasetFromDisk", )
     # Try and let them visible such that users can see they are archived
     # setInvisiblePlugins = tuple()
     if invisible or plugin in setInvisiblePlugins:
