@@ -41,6 +41,27 @@ Finally, you need to overwrite the URLS of the RMS to make sure that they use th
     ReqProxyURLs = dips://lbdirac.cern.ch:9161/RequestManagement/ReqProxy
   }
 
+Installation/update of LHCbDirac version
+----------------------------------------
+Instructions to install or update a new version of LHCbDirac ::
+
+  ssh lhcbprod@lbgw.cern.ch
+  ssh store06
+  cd /sw/dirac/run2
+  source /sw/dirac/run2/bashrc
+  dirac-install -v -r vArBpC -t server -l LHCb -e LHCb
+  rm /sw/dirac/run2/pro ; ln -s versions/vArBpC_hhhhhh pro
+  cd /sw/dirac/run2/pro
+
+
+  foreach i (`ls`)
+  if -l $i then
+    echo $i
+    rm $i
+    ln -s ../../$i
+  endif
+  end
+  
 
 Workflow
 --------
