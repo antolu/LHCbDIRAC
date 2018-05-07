@@ -1,3 +1,21 @@
+[v9r1p13]
+use DIRAC v6r19p21
+
+* boinc docs, config template ReqProxy, generic hostname placeholder
+* TS: correct cast to set to fix exception in the ReplicateToLocalSE plugin
+* Boinc todo update, find old files in the SE
+* dirac.cfg template updated, changes in REA section
+* additions to the BOINC how-to
+* add new plugin name to set files invisible
+* boinc docs correction and additions
+* fix files count in getRanges
+* DOC: correct BOINC self signed certificate options
+* clean
+* reset global variables
+* suppress list of dirs
+* initialize global variables in the main method
+* small fix
+
 [v9r1p12]
 use DIRAC v6r19p21
 
