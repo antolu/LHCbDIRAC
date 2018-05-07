@@ -1591,7 +1591,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
     # This is a convention, to skip the loop or to stop replicating
     if not watermark:
       return S_OK([])
-    destSEs = list(maxFilesAtSE)
+    destSEs = set(maxFilesAtSE)
     storageElementGroups = {}
 
     for replicaSE, lfns in getFileGroups(self.transReplicas).iteritems():

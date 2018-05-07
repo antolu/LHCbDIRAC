@@ -12,3 +12,4 @@ DIRAC on BOINC
    boincImage.rst
    testBoinc.rst
    todo.rst
+   howto.rst

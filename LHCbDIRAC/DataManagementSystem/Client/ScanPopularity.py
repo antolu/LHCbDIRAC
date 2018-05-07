@@ -32,7 +32,6 @@ processingPass = {}
 duClient = DataUsageClient()
 suClient = StorageUsageClient()
 bkClient = BookkeepingClient()
-fcClient = FileCatalog()
 transClient = TransformationClient()
 
 # Dictionary with weekly/dayly usage for each BK path
@@ -140,24 +139,22 @@ def cacheDirectories(directories):
         bkPathForLfn[lfn] = bkPath
         bkPathUsage.setdefault(bkPath, {}).setdefault('LFN', [0, 0])
   if invisible:
-    gLogger.always('The following %d paths are ignored as invisible:\n' %
-                   len(invisible), '\n'.join(sorted(invisible)))
+    gLogger.always('%d paths are ignored as invisible' % len(invisible))
     cachedInvisible.update(invisible)
-  dirSet -= invisible
+    dirSet -= invisible
 
   if dirSet:
     missingSU = set(dirLong2Short[lfn] for lfn in dirSet)
     gLogger.always('Get LFN Storage Usage for %d directories' % len(missingSU))
-    gLogger.info('\n'.join(sorted(missingSU)))
     for lfn in missingSU:
       # LFN usage
       for trial in xrange(10, -1, -1):
         res = suClient.getSummary(lfn)
-        if not res['OK'] and not trial:
+        if res['OK']:
+          break
+        if not trial:
           gLogger.fatal('Error getting LFN storage usage %s' % lfn, res['Message'])
           DIRAC.exit(1)
-        else:
-          break
       bkPath = bkPathForLfn[dirShort2Long[lfn]]
       infoType = 'LFN'
       gLogger.verbose('Directory %s: %s' % (lfn, str(res['Value'])))
@@ -301,11 +298,22 @@ def scanPopularity(since, getAllDatasets, topDirectory='/lhcb', csvFile=None):
   """
   That function does the job to cache the directories, get the corresponding datasets and join with the popularity
   """
+  # Reset global variables
+
+  bkPathForLfn.clear()
+  cachedInvisible.clear()
+  prodForBKPath.clear()
+  bkPathUsage.clear()
+  processingPass.clear()
+  timeUsage.clear()
+  physicalDataUsage.clear()
+  cachedSESites.clear()
+  datasetStorage.clear()
+  for infoType in storageTypes:
+    datasetStorage[infoType] = set()
 
   # set of used directories
   usedDirectories = set()
-  for infoType in storageTypes:
-    datasetStorage[infoType] = set()
   usedSEs = {}
   binSize = 'week'
   nbBins = int((since + 6) / 7)

@@ -113,6 +113,13 @@ use DIRAC v6r20-pre11
 * fixes
 * re-migrated
 * moved to DIRAC
+=======
+* style
+* just adding setup.cfg file
+* backported rescheduling of Ganga jobs for lb-run errors
+* update of docs and config template
+* fixes on types_getJobParameter and commitRegisters URL
+>>>>>>> upstream/master
 
 [v9r1p11]
 use DIRAC v6r19p20

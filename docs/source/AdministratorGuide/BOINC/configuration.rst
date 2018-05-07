@@ -40,7 +40,12 @@ There is a special Operation to define in the RequestExecutingAgent: `WMSSecureO
 StorageElementProxy
 ---------------------
 
-The StorageElementProxy will try getting the MrBoinc proxy when the job asks for the input sandbox. So for this service only, we need to redefine the ProxyManager as pointing to the WMSSecureGW.
+The StorageElementProxy will try getting the MrBoinc proxy when the job asks for the input sandbox. So for this service, we need to redefine the ProxyManager as pointing to the WMSSecureGW.
+
+ReqProxy
+---------------------
+
+The ReqProxy must go through the WMSSecureGW in order to upload the request with the right ownerDN otherwise it will come up with MrBoincUser. So for this service, we need to redefine the ReqManager as pointing to the WMSSecureGW.
 
 
 Operations

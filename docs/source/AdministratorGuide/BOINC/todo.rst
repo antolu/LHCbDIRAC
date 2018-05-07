@@ -50,7 +50,15 @@ To remove, append to your find command::
   -exec rm {} \;
 
 
+Alternative (quicker find)::
 
+  find -mtime +60 -type f -print0 | xargs -0 ls -lt
+
+to keep only the path, append::
+  | awk -F' ' '{print $9}'
+
+to remove, append to the previous::
+  | xargs rm -f
 
 
 
