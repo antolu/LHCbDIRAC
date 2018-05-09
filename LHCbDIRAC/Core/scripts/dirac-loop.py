@@ -102,6 +102,8 @@ if __name__ == '__main__':
 
   argList = []
   for arg in arguments:
+    if not arg.strip():
+      continue
     # If the argument is between quotes, take what is between the quotes
     if arg[0] == "'":
       arg = arg.split("'")[1]
