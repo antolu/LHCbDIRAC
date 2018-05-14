@@ -968,7 +968,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
       return res
     watermark, maxFilesAtSE = res['Value']
     # This is a convention, to skip the loop or to stop replicating
-    if not watermark:
+    if watermark is None:
       return S_OK([])
     destSEs = list(maxFilesAtSE)
     runFileDict = self.util.getFilesGroupedByRun()
@@ -1589,7 +1589,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
       return res
     watermark, maxFilesAtSE = res['Value']
     # This is a convention, to skip the loop or to stop replicating
-    if not watermark:
+    if watermark is None:
       return S_OK([])
     destSEs = set(maxFilesAtSE)
     storageElementGroups = {}
