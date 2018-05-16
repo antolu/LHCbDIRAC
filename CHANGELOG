@@ -1,3 +1,14 @@
+[v9r1p14]
+use DIRAC v6r19p21
+
+* fix visibility for removal transformations
+* increase the size of the file type
+* fix getMaxFilesToReplicate (disabling throttling to tape SEs)
+* print BK query timing in all cases
+* make a single query for a list of prods or event types
+* avoid nDatasets==0
+* ignore empty lines
+
 [v9r1p13]
 use DIRAC v6r19p21
 
