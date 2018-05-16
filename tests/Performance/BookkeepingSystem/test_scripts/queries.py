@@ -408,6 +408,19 @@ datasets.extend([{'ConfigName': 'LHCb',
                   'fullpath': '/LHCb/Collision15/Beam6500GeV-VeloClosed-MagDown/Real Data/90000000/RAW',
                   'ConfigVersion': 'Collision15'}])
 
+datasets.extend([{'Visible': 'No',
+                  'ConfigName': 'MC',
+                  'ConditionDescription': 'Beam3500GeV-2011-MagUp-Nu2-Pythia8',
+                  'EventType': ['11104041', '11104051', '11104114', '11104141',
+                                '11104161', '11104341', '12103034', '12103044',
+                                '12103054', '12103331', '12103500', '12133041',
+                                '13104151', '13304104', '15104001', '15104141', '22104112',
+                                '41900003', '42112050', '42112051', '42112100', '42511100'],
+                  'FileType': 'ALLSTREAMS.DST',
+                  'ConfigVersion': '2011',
+                  'ProcessingPass': '/Sim08a/Digi13/Trig0x40760037/Reco14a/Stripping20r1NoPrescalingFlagged',
+                  'SimulationConditions': 'Beam3500GeV-2011-MagUp-Nu2-Pythia8'}])
+
 
 class Transaction(object):
 

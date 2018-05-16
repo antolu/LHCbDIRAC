@@ -35,7 +35,7 @@ done
 
 echo ""
 echo "Submitting test production"
-python $DIRAC/tests/System/dirac-test-production.py -ddd
+python $DIRAC/tests/System/dirac-test-production.py --UseFilter=False -ddd
 if [ $? -ne 0 ]
 then
    exit $?
@@ -74,8 +74,8 @@ dirac-dms-add-file LFNlistNew.txt
 LFNlist=$(cat LFNlist.txt | awk -vORS=, '{print $1}')
 
 echo ""
-echo "Adding the files to the test production"
-dirac-transformation-add-files $transID --LFNs=$LFNlist
+echo "Adding the files to the test production:" $transID 
+dirac-transformation-add-files $transID --LFNs $LFNlist
 
 if [ $? -ne 0 ]
 then
