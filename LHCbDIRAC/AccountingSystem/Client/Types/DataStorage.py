@@ -23,7 +23,7 @@ class DataStorage(BaseAccountingType):
                                 ('Activity', "VARCHAR(64)"),
                                 ('Conditions', "VARCHAR(64)"),
                                 ('EventType', "VARCHAR(256)"),
-                                ('FileType', "VARCHAR(32)")
+                                ('FileType', "VARCHAR(256)")
                                 ]
 
     self.definitionAccountingFields = [('LogicalSize', 'BIGINT UNSIGNED'),
