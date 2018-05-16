@@ -673,30 +673,9 @@ class BKQuery():
       query = BKQuery(self.__bkQueryDict, visible=visible)
     else:
       query = self
-    loopItem = None
-    prods = self.__bkQueryDict.get('Production')
-    eventTypes = self.__bkQueryDict.get('EventType')
-    if prods and isinstance(prods, list):
-      loopItem = 'Production'
-      loopList = prods
-    elif eventTypes and isinstance(eventTypes, list):
-      loopItem = 'EventType'
-      loopList = eventTypes
-    if loopItem:
-      # It's faster to loop on a list of prods or event types than query the BK with a list as argument
-      lfns = []
-      lfnSize = 0
-      if query == self:
-        query = BKQuery(self.__bkQueryDict, visible=visible)
-      for item in loopList:
-        query.setOption(loopItem, item)
-        lfnsAndSize = query.getLFNsAndSize()
-        lfns += lfnsAndSize['LFNs']
-        lfnSize += lfnsAndSize['LFNSize']
-    else:
-      lfnsAndSize = query.getLFNsAndSize()
-      lfns = lfnsAndSize['LFNs']
-      lfnSize = lfnsAndSize['LFNSize']
+    lfnsAndSize = query.getLFNsAndSize()
+    lfns = lfnsAndSize['LFNs']
+    lfnSize = lfnsAndSize['LFNSize']
     if len(lfns) == 0:
       gLogger.verbose("No files found for BK query %s" % str(self.__bkQueryDict))
     lfns.sort()
