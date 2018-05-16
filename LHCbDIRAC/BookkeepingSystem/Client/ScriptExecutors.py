@@ -1045,6 +1045,7 @@ def executeGetStats(dmScript):
           # print fileType, records, 'Total'
       progressBar.endLoop()
       paramNames += ['EvtsPerLumi', 'SizePerLumi']
+      nDatasets = max(1, nDatasets)
       # End of getFilesSummary section
     else:
       #

@@ -1426,6 +1426,11 @@ get from BK" % (param, self.paramName))
     if not destSEs:
       self.logWarn('No destination SE given')
       return S_OK((None, maxFilesAtSE))
+    # Check if destination is tape; no throttling is required
+    allTapeSEs = all(StorageElement(se).status()['TapeSE'] for se in destSEs)
+    if allTapeSEs:
+      self.logVerbose("All SEs are on tape: no throttling")
+      return S_OK((0, maxFilesAtSE))
     watermark = self.getPluginParam('MinFreeSpace', 30)
     targetFilesAtDestination = self.getPluginParam('TargetFilesAtDestination', 0)
 

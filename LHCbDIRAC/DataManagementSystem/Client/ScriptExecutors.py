@@ -109,17 +109,13 @@ def parseArguments(dmScript, allSEs=False, printOutput=True):
           bkQueries = [bkQuery]
       nbQueries = len(bkQueries)
       progressBar = ProgressBar(nbQueries,
-                                title="Executing %d BK queries:" % nbQueries,
-                                step=1) if nbQueries > 1 else None
+                                title=("Executing %d BK queries:" % nbQueries)
+                                if nbQueries > 1 else "Executing BK query",
+                                step=1)
       for bkQuery in bkQueries:
-        if isinstance(bkQuery, BKQuery):
-          if progressBar:
-            progressBar.loop()
-          else:
-            gLogger.notice("Executing BKQuery:", bkQuery)
-          lfnList += bkQuery.getLFNs(printOutput=progressBar is None and printOutput)
-      if progressBar:
-        progressBar.endLoop(message='Got %d LFNs' % len(lfnList))
+        progressBar.loop()
+        lfnList += bkQuery.getLFNs(printOutput=progressBar is None and printOutput)
+      progressBar.endLoop(message='Got %d LFNs' % len(lfnList))
 
   return sorted(lfnList), seList
 
