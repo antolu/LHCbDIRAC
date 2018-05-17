@@ -1809,7 +1809,9 @@ class TransformationDebug(object):
             replicas = self.__getReplicas(lfnsInTask)
           else:
             replicas = {}
-          targetSE = task.get('TargetSE', None)
+          targetSE = task.get('TargetSE')
+          if targetSE == 'None':
+            targetSE = 'Some'
           # Accounting per SE
           listSEs = targetSE.split(',')
           # If a list of LFNs is provided, we may not have all files in the task, set to False
