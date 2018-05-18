@@ -286,7 +286,7 @@ class BKQuery():
         bkQuery.setdefault('Production', []).extend([int(prod) for prod in prods])
       except ValueError as ex:  # The prods list does not contains numbers
         gLogger.warn(ex)
-        print prods, 'invalid as production list'
+        gLogger.error('Invalid production list', str(prods))
         return self.__bkQueryDict
 
     # If an event type is specified
@@ -399,7 +399,7 @@ class BKQuery():
         eventTypes = [str(int(et)) for et in eventTypes]
       except ValueError as ex:
         gLogger.warn(ex)
-        print eventTypes, 'invalid as list of event types'
+        gLogger.error('Invalid list of event types', eventTypes)
         return {}
       if isinstance(eventTypes, list) and len(eventTypes) == 1:
         eventTypes = eventTypes[0]
@@ -581,40 +581,59 @@ class BKQuery():
           gLogger.always('Error getting BK file types, retrying', res['Message'])
           warned = True
 
+  def __getBKFiles(self, bkQueryDict, retries=5):
+    """
+    Call BK getFiles() with some retries
+    """
+    if not retries:
+      retries = sys.maxsize
+    errorLogged = False
+    while retries:
+      res = self.__bkClient.getFiles(bkQueryDict)
+      if res['OK']:
+        break
+      retries -= 1
+      if not errorLogged:
+        errorLogged = True
+        gLogger.warn("Error getting files from BK, retrying...", res['Message'])
+    return res
+
   def getLFNsAndSize(self):
     """
     Returns the LFNs and their size for a given data set
     """
     self.__getAllBKFileTypes()
-    res = self.__bkClient.getFiles(self.__bkQueryDict)
+    res = self.__getBKFiles(self.__bkQueryDict)
     lfns = []
     lfnSize = 0
     if not res['OK']:
-      print "Error from BK for %s:" % self.__bkQueryDict, res['Message']
+      gLogger.error("Error from BK for %s:" % self.__bkQueryDict, res['Message'])
     else:
       lfns = set(res['Value'])
       exceptFiles = list(self.__exceptFileTypes)
       if exceptFiles and not self.__bkQueryDict.get('FileType'):
-        res = self.__bkClient.getFiles(BKQuery(self.__bkQueryDict).setOption('FileType', exceptFiles))
+        res = self.__getBKFiles(BKQuery(self.__bkQueryDict).setOption('FileType', exceptFiles))
         if res['OK']:
           lfnsExcept = set(res['Value']) & lfns
         else:
-          print "***** ERROR ***** Error in getting dataset from BK for %s files:" % exceptFiles, res['Message']
+          gLogger.error(
+              "***** ERROR ***** Error in getting dataset from BK for %s files:" %
+              exceptFiles, res['Message'])
           lfnsExcept = set()
         if lfnsExcept:
-          print "***** WARNING ***** Found %d files in BK query that will be \
-          excluded (file type in %s)!" % (len(lfnsExcept), str(exceptFiles))
-          print "                    If creating a transformation, set '--FileType ALL'"
+          gLogger.warn("***** WARNING ***** Found %d files in BK query that will be \
+          excluded (file type in %s)!" % (len(lfnsExcept), str(exceptFiles)))
+          gLogger.warn("                    If creating a transformation, set '--FileType ALL'")
           lfns = lfns - lfnsExcept
         else:
           exceptFiles = False
       query = BKQuery(self.__bkQueryDict)
       query.setOption("FileSize", True)
-      res = self.__bkClient.getFiles(query.getQueryDict())
+      res = self.__getBKFiles(query.getQueryDict())
       if res['OK'] and isinstance(res['Value'], list) and res['Value'][0]:
         lfnSize = res['Value'][0]
       if exceptFiles and not self.__bkQueryDict.get('FileType'):
-        res = self.__bkClient.getFiles(query.setOption('FileType', exceptFiles))
+        res = self.__getBKFiles(query.setOption('FileType', exceptFiles))
         if res['OK'] and isinstance(res['Value'], list) and res['Value'][0]:
           lfnSize -= res['Value'][0]
 
@@ -627,7 +646,7 @@ class BKQuery():
     """
     if visible is None:
       visible = self.isVisible()
-    res = self.__bkClient.getFiles(BKQuery(self.__bkQueryDict, visible=visible).setOption('FileSize', True))
+    res = self.__getBKFiles(BKQuery(self.__bkQueryDict, visible=visible).setOption('FileSize', True))
     if res['OK'] and isinstance(res['Value'], list) and res['Value'][0]:
       lfnSize = res['Value'][0]
     else:
@@ -682,13 +701,13 @@ class BKQuery():
 
     # Only for printing
     if lfns and printOutput:
-      print "\n%d files (%.1f TB) in directories:" % (len(lfns), lfnSize)
+      gLogger.notice("\n%d files (%.1f TB) in directories:" % (len(lfns), lfnSize))
       dirs = {}
       for lfn in lfns:
         directory = os.path.join(os.path.dirname(lfn), '')
         dirs[directory] = dirs.setdefault(directory, 0) + 1
       for directory in sorted(dirs):
-        print directory, dirs[directory], "files"
+        gLogger.notice("%s %s files" % (directory, dirs[directory]))
       if printSEUsage:
         rpc = RPCClient('DataManagement/StorageUsage')
         totalUsage = {}
@@ -702,9 +721,9 @@ class BKQuery():
         ses = sorted(totalUsage)
         totalUsage['Total'] = totalSize
         ses.append('Total')
-        print "\n%s %s" % ("SE".ljust(20), "Size (TB)")
+        gLogger.notice("\n%s %s" % ("SE".ljust(20), "Size (TB)"))
         for se in ses:
-          print "%s %s" % (se.ljust(20), ('%.1f' % (totalUsage[se] / 1000000000000.)))
+          gLogger.notice("%s %s" % (se.ljust(20), ('%.1f' % (totalUsage[se] / 1000000000000.))))
     return lfns
 
   def getDirs(self, printOutput=False, visible=None):
@@ -871,7 +890,7 @@ class BKQuery():
     res = self.__bkClient.getProcessingPass(queryDict, initialPP)
     if not res['OK']:
       if 'Empty Directory' not in res['Message']:
-        print "ERROR getting processing passes for %s" % queryDict, res['Message']
+        gLogger.error("ERROR getting processing passes for %s" % queryDict, res['Message'])
       return {}
     ppRecords = res['Value'][0]
     if 'Name' in ppRecords['ParameterNames']:
