@@ -598,7 +598,7 @@ class BKQuery():
         gLogger.warn("Error getting files from BK, retrying...", res['Message'])
     return res
 
-  def getLFNsAndSize(self):
+  def getLFNsAndSize(self, getSize=True):
     """
     Returns the LFNs and their size for a given data set
     """
@@ -627,17 +627,21 @@ class BKQuery():
           lfns = lfns - lfnsExcept
         else:
           exceptFiles = False
-      query = BKQuery(self.__bkQueryDict)
-      query.setOption("FileSize", True)
-      res = self.__getBKFiles(query.getQueryDict())
-      if res['OK'] and isinstance(res['Value'], list) and res['Value'][0]:
-        lfnSize = res['Value'][0]
-      if exceptFiles and not self.__bkQueryDict.get('FileType'):
-        res = self.__getBKFiles(query.setOption('FileType', exceptFiles))
+      if getSize:
+        # Get size only if needed
+        query = BKQuery(self.__bkQueryDict)
+        query.setOption("FileSize", True)
+        res = self.__getBKFiles(query.getQueryDict())
         if res['OK'] and isinstance(res['Value'], list) and res['Value'][0]:
-          lfnSize -= res['Value'][0]
+          lfnSize = res['Value'][0]
+        if exceptFiles and not self.__bkQueryDict.get('FileType'):
+          res = self.__getBKFiles(query.setOption('FileType', exceptFiles))
+          if res['OK'] and isinstance(res['Value'], list) and res['Value'][0]:
+            lfnSize -= res['Value'][0]
 
-      lfnSize /= 1000000000000.
+        lfnSize /= 1000000000000.
+      else:
+        lfnSize = 0.
     return {'LFNs': list(lfns), 'LFNSize': lfnSize}
 
   def getLFNSize(self, visible=None):
@@ -692,38 +696,63 @@ class BKQuery():
       query = BKQuery(self.__bkQueryDict, visible=visible)
     else:
       query = self
-    lfnsAndSize = query.getLFNsAndSize()
-    lfns = lfnsAndSize['LFNs']
-    lfnSize = lfnsAndSize['LFNSize']
-    if len(lfns) == 0:
-      gLogger.verbose("No files found for BK query %s" % str(self.__bkQueryDict))
-    lfns.sort()
 
-    # Only for printing
-    if lfns and printOutput:
-      gLogger.notice("\n%d files (%.1f TB) in directories:" % (len(lfns), lfnSize))
-      dirs = {}
-      for lfn in lfns:
-        directory = os.path.join(os.path.dirname(lfn), '')
-        dirs[directory] = dirs.setdefault(directory, 0) + 1
-      for directory in sorted(dirs):
-        gLogger.notice("%s %s files" % (directory, dirs[directory]))
-      if printSEUsage:
-        rpc = RPCClient('DataManagement/StorageUsage')
-        totalUsage = {}
-        totalSize = 0
-        for directory in dirs:
-          res = rpc.getStorageSummary(directory, '', '', [])
-          if res['OK']:
-            for se in [se for se in res['Value'] if not se.endswith("-ARCHIVE")]:
-              totalUsage[se] = totalUsage.setdefault(se, 0) + res['Value'][se]['Size']
-              totalSize += res['Value'][se]['Size']
-        ses = sorted(totalUsage)
-        totalUsage['Total'] = totalSize
-        ses.append('Total')
-        gLogger.notice("\n%s %s" % ("SE".ljust(20), "Size (TB)"))
-        for se in ses:
-          gLogger.notice("%s %s" % (se.ljust(20), ('%.1f' % (totalUsage[se] / 1000000000000.))))
+    # Loop for each production or each event type rather than make a single query
+    loopItem = None
+    prods = self.__bkQueryDict.get('Production')
+    eventTypes = self.__bkQueryDict.get('EventType')
+    if prods and isinstance(prods, list):
+      loopItem = 'Production'
+      loopList = prods
+    elif eventTypes and isinstance(eventTypes, list):
+      loopItem = 'EventType'
+      loopList = eventTypes
+    if loopItem:
+      # It's faster to loop on a list of prods or event types than query the BK with a list as argument
+      lfns = []
+      lfnSize = 0
+      if query == self:
+        query = BKQuery(self.__bkQueryDict, visible=visible)
+      for item in loopList:
+        query.setOption(loopItem, item)
+        lfnsAndSize = query.getLFNsAndSize(getSize=printOutput)
+        lfns += lfnsAndSize['LFNs']
+        lfnSize += lfnsAndSize['LFNSize']
+    else:
+      lfnsAndSize = query.getLFNsAndSize(getSize=printOutput)
+      lfns = lfnsAndSize['LFNs']
+      lfnSize = lfnsAndSize['LFNSize']
+
+    if not lfns:
+      gLogger.verbose("No files found for BK query %s" % str(self.__bkQueryDict))
+    else:
+      lfns.sort()
+
+      # Only for printing
+      if printOutput:
+        gLogger.notice("\n%d files (%.1f TB) in directories:" % (len(lfns), lfnSize))
+        dirs = {}
+        for lfn in lfns:
+          directory = os.path.join(os.path.dirname(lfn), '')
+          dirs[directory] = dirs.setdefault(directory, 0) + 1
+        for directory in sorted(dirs):
+          gLogger.notice("%s %s files" % (directory, dirs[directory]))
+        if printSEUsage:
+          rpc = RPCClient('DataManagement/StorageUsage')
+          totalUsage = {}
+          totalSize = 0
+          for directory in dirs:
+            res = rpc.getStorageSummary(directory, '', '', [])
+            if res['OK']:
+              for se in [se for se in res['Value'] if not se.endswith("-ARCHIVE")]:
+                totalUsage[se] = totalUsage.setdefault(se, 0) + res['Value'][se]['Size']
+                totalSize += res['Value'][se]['Size']
+          ses = sorted(totalUsage)
+          totalUsage['Total'] = totalSize
+          ses.append('Total')
+          gLogger.notice("\n%s %s" % ("SE".ljust(20), "Size (TB)"))
+          for se in ses:
+            gLogger.notice("%s %s" % (se.ljust(20), ('%.1f' % (totalUsage[se] / 1000000000000.))))
     return lfns
 
   def getDirs(self, printOutput=False, visible=None):
