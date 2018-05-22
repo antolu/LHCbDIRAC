@@ -61,6 +61,7 @@ if __name__ == '__main__':
 
   import sys
   import os
+  import subprocess
   from DIRAC import gLogger, exit
   from DIRAC.Core.Base import Script
 
@@ -130,7 +131,8 @@ if __name__ == '__main__':
           c = command + ' ' + arg
         if not terse:
           gLogger.notice('======= %s =========' % c)
-        with os.popen(c) as pipe:
-          output = pipe.read()
-        gLogger.notice(output[:-1] if terse else output)
-        # pipe.close()
+        try:
+          output = subprocess.check_output([x for x in c.split() if x], stderr=subprocess.STDOUT)
+          gLogger.notice(output[:-1] if terse else output)
+        except subprocess.CalledProcessError as e:
+          gLogger.exception("Error calling command", lException=e)
