@@ -3,7 +3,6 @@ Actual engine for adding a DM transformation, called by dirac-dms-add-Transforma
 """
 __RCSID__ = "$Id$"
 
-import time
 import os
 
 import DIRAC
