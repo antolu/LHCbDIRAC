@@ -5,9 +5,8 @@
     1) If --Directory is used: get files in FC directories, check if they are in BK and if the replica flag is set
     2) If --Production is used get files in the FC directories used, and proceed as with --Directory
 
-    If --FixIt is set, take actions:
-      Missing files: remove from SE and FC
-      No replica flag: set it (in the BK)
+    If --FixFC is set, remove from SE and FC
+    If --FixBK is set and no replica flag, set replica flag in the BK
 '''
 __RCSID__ = "$Id$"
 
