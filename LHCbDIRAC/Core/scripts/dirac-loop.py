@@ -135,4 +135,4 @@ if __name__ == '__main__':
           output = subprocess.check_output([x for x in c.split() if x], stderr=subprocess.STDOUT)
           gLogger.notice(output[:-1] if terse else output)
         except subprocess.CalledProcessError as e:
-          gLogger.exception("Error calling command", lException=e)
+          gLogger.error("Error calling command, return code %d\n" % e.returncode, e.output)
