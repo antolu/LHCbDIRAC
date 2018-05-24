@@ -132,7 +132,7 @@ if __name__ == '__main__':
         if not terse:
           gLogger.notice('======= %s =========' % c)
         try:
-          output = subprocess.check_output([x for x in c.split() if x], stderr=subprocess.STDOUT)
+          output = subprocess.check_output(c, stderr=subprocess.STDOUT, shell=True)
           gLogger.notice(output[:-1] if terse else output)
         except subprocess.CalledProcessError as e:
           gLogger.error("Error calling command, return code %d\n" % e.returncode, e.output)
