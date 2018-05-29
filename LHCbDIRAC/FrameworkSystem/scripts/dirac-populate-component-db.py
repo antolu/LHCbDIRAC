@@ -177,10 +177,18 @@ for host in finalSet:
       # Check for DIRAC only databases
       if db in availableDB.keys() and db != 'InstalledComponentsDB':
         # Check for 'installed' databases
-        isSection = cfg.isSection('Systems/' + availableDB[db]['System'] + '/' +
-                                  cfg.getOption('DIRAC/Setups/' + setup + '/' +
-                                                availableDB[db]['System']) + '/Databases/' + db +
-                                  '/')
+        isSection = cfg.isSection(
+            'Systems/' +
+            availableDB[db]['System'] +
+            '/' +
+            cfg.getOption(
+                'DIRAC/Setups/' +
+                setup +
+                '/' +
+                availableDB[db]['System']) +
+            '/Databases/' +
+            db +
+            '/')
         if isSection:
           record = {'Installation': {}, 'Component': {}, 'Host': {}}
           record['Component']['System'] = availableDB[db]['System']
