@@ -7,9 +7,10 @@ import subprocess
 from DIRAC import S_OK, S_ERROR
 from DIRAC.FrameworkSystem.Client.ComponentInstaller import ComponentInstaller as DIRACComponentInstaller
 
+
 class ComponentInstaller(DIRACComponentInstaller):
 
-  def runsvctrlComponent( self, system, component, mode ):
+  def runsvctrlComponent(self, system, component, mode):
     if component.lower() in ('vcycle', 'squid'):
       if mode == 'u':
         command = 'start'
@@ -24,16 +25,15 @@ class ComponentInstaller(DIRACComponentInstaller):
         command = 'service squid ' + command
 
       try:
-        result = subprocess.call( command, shell = True )
+        result = subprocess.call(command, shell=True)
         if result == 0:
-          return S_OK( '%s : Successful' % ( command ) )
-        else:
-          return S_ERROR( '%s : Failed (exit code: %s)' % ( command, result ) )
+          return S_OK('%s : Successful' % (command))
+        return S_ERROR('%s : Failed (exit code: %s)' % (command, result))
       except Exception as e:
-        return S_ERROR( repr(e) )
+        return S_ERROR(repr(e))
 
     else:
-      return super( ComponentInstaller, self ).runsvctrlComponent( system, component, mode )
+      return super(ComponentInstaller, self).runsvctrlComponent(system, component, mode)
 
 
 gComponentInstaller = ComponentInstaller()
