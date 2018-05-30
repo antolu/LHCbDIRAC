@@ -100,7 +100,7 @@ def _getUniqueFileName(name):
   return fileName
 
 
-def doCheckFC2SE(cc, bkCheck=True, fixIt=False, replace=False, maxFiles=None):
+def doCheckFC2SE(cc, bkCheck=True, fixIt=False, replace=False, maxFiles=None, fixOption='FixIt'):
   """
   Method actually calling for the the check using ConsistencyChecks module
   It prints out results and calls corrective actions if required
@@ -126,7 +126,7 @@ def doCheckFC2SE(cc, bkCheck=True, fixIt=False, replace=False, maxFiles=None):
       else:
         gLogger.error('Failed to set the replica flag', res['Message'])
     else:
-      gLogger.notice("Use --FixIt to fix it (set the replica flag)")
+      gLogger.notice("Use --%s to fix it (set the replica flag)" % fixOption)
     gLogger.notice('<<<<')
 
   elif bkCheck:
@@ -141,7 +141,7 @@ def doCheckFC2SE(cc, bkCheck=True, fixIt=False, replace=False, maxFiles=None):
       gLogger.notice("Going to fix them, by removing from the FC and storage")
       __removeFile(cc.existLFNsNotInBK)
     else:
-      gLogger.notice("Use --FixIt to fix it (remove from FC and storage)")
+      gLogger.notice("Use --%s to fix it (remove from FC and storage)" % fixOption)
     gLogger.notice('<<<<')
 
   else:
@@ -173,7 +173,7 @@ def doCheckFC2SE(cc, bkCheck=True, fixIt=False, replace=False, maxFiles=None):
     else:
       if not replace:
         fixStr += "; use --Replace if you want to re-replicate them"
-      gLogger.notice("Use --FixIt to fix it (%s)" % fixStr)
+      gLogger.notice("Use --%s to fix it (%s)" % (fixOption, fixStr))
     gLogger.notice('<<<<')
 
   else:
@@ -194,7 +194,7 @@ def doCheckFC2SE(cc, bkCheck=True, fixIt=False, replace=False, maxFiles=None):
       gLogger.notice("Going to fix them, removing files from catalogs and storage")
       __removeFile(toRemove)
     else:
-      gLogger.notice("Use --FixIt to fix it (remove files from SE and catalogs)")
+      gLogger.notice("Use --%s to fix it (remove files from SE and catalogs)" % fixOption)
     gLogger.notice('<<<<')
 
   if cc.existLFNsBadReplicas:
@@ -214,7 +214,7 @@ def doCheckFC2SE(cc, bkCheck=True, fixIt=False, replace=False, maxFiles=None):
     else:
       if not replace:
         fixStr += "; use --Replace if you want to re-replicate them"
-      gLogger.notice("Use --FixIt to fix it (%s)" % fixStr)
+      gLogger.notice("Use --%s to fix it (%s)" % (fixOption, fixStr))
     gLogger.notice('<<<<')
 
   if not cc.existLFNsBadFiles and not cc.existLFNsBadReplicas:
@@ -250,7 +250,7 @@ def doCheckFC2BK(cc, fixFC=False, fixBK=False, listAffectedRuns=False):
     ccAux = ConsistencyChecks()
     gLogger.notice("====== Now checking %d files from FC to SE ======" % len(cc.existLFNsBKRepNo))
     ccAux.lfns = cc.existLFNsBKRepNo.keys()
-    doCheckFC2SE(ccAux, False, fixFC)
+    doCheckFC2SE(ccAux, bkCheck=False, fixIt=fixFC, fixOption='FixFC')
     cc.existLFNsBKRepNo = sorted(set(cc.existLFNsBKRepNo) - set(ccAux.existLFNsNoSE) -
                                  set(ccAux.existLFNsNotExisting) - set(ccAux.existLFNsBadFiles))
     if cc.existLFNsBKRepNo:

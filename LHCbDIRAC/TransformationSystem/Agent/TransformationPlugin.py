@@ -7,6 +7,7 @@
 import time
 import random
 import sys
+from collections import defaultdict
 
 from DIRAC import S_OK, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks, randomize
@@ -1139,50 +1140,48 @@ class TransformationPlugin(DIRACTransformationPlugin):
       return res
     tasks = res['Value']
     if self.util.getPluginParam('CleanTransformations', False):
-      lfns = []
-      for task in tasks:
-        lfns += task[1]
+      lfns = sum((task[1] for task in tasks), [])
       # Check if some of these files are used by transformations
       selectDict = {'LFN': lfns}
       res = self.transClient.getTransformationFiles(selectDict)
       if not res['OK']:
         self.util.logError("Error getting transformation files for %d files" % len(lfns), res['Message'])
       else:
-        processedFiles = []
+        processedFiles = set()
         self.util.logVerbose("Out of %d files, %d occurrences were found in transformations" % (len(lfns),
                                                                                                 len(res['Value'])))
-        transDict = {}
-        runList = []
+        transDict = defaultdict(list)
         for fileDict in res['Value']:
           # Processed files are immutable, and don't kill yourself!
           if fileDict['TransformationID'] != self.transID:
             if fileDict['Status'] not in ('Processed', 'Removed'):
-              transDict.setdefault(fileDict['TransformationID'], []).append(fileDict['LFN'])
-              run = fileDict['RunNumber']
-              if run not in runList:
-                runList.append(run)
+              transDict[fileDict['TransformationID']].append(fileDict['LFN'])
             else:
-              processedFiles.append(fileDict['LFN'])
-        if runList:
-          self.util.logVerbose("Files to be set Removed in other transformations for runs %s" % str(sorted(runList)))
+              processedFiles.add(fileDict['LFN'])
+        if transDict:
+          self.util.logVerbose("Files to be set Removed in transformations %s" %
+                               ','.join('%d' % trans for trans in sorted(transDict)))
         else:
           self.util.logVerbose("No files to be set Removed in other transformations")
         if processedFiles:
-          self.util.logInfo("%d files are being removed but were already Processed or Removed" % len(processedFiles))
+          self.util.logInfo("%d files are being removed but were already"
+                            " Processed or Removed in other transformations" %
+                            len(processedFiles))
         for trans, lfns in transDict.iteritems():
+          # Do not actually take action for a fake transformation (dirac-test-plugin)
           if self.transID > 0:
-            # Do not actually take action for a fake transformation (dirac-test-plugin)
             res = self.transClient.setFileStatusForTransformation(trans, 'Removed', lfns)
             action = 'set'
           else:
-            res = {'OK': True}
+            res = {'OK': True, 'Value': lfns}
             action = 'to be set'
           if not res['OK']:
             self.util.logError("Error setting %d files in transformation %d to status Removed" % (len(lfns),
                                                                                                   trans),
                                res['Message'])
           else:
-            self.util.logInfo("%d files %s as 'Removed' in transformation %d" % (len(lfns), action, trans))
+            self.util.logInfo("%d files out of %d %s as 'Removed' in transformation %d" %
+                              (len(res['Value']), len(lfns), action, trans))
 
     return S_OK(tasks)
 
