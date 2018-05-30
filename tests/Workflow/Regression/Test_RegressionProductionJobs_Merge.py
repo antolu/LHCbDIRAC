@@ -83,5 +83,5 @@ if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase(RegressionTestCase)
   suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(MCMergeSuccess))
   suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(MergeMDFSuccess))
-  #suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(MergeHISTOSuccess))
+  #  suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(MergeHISTOSuccess))
   testResult = unittest.TextTestRunner(verbosity=2).run(suite)
