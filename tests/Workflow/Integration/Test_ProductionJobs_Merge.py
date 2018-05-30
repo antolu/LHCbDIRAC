@@ -124,7 +124,7 @@ class RootMergeSuccess(ProductionJobTestCase):
 
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase(ProductionJobTestCase)
-  #  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCMergeSuccess ) )
-  suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(MergeMDFSuccess))
+  suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(MCMergeSuccess))
+  #  suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(MergeMDFSuccess))
   suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(RootMergeSuccess))
   testResult = unittest.TextTestRunner(verbosity=2).run(suite)
