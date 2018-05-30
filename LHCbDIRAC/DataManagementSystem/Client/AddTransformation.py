@@ -3,7 +3,6 @@ Actual engine for adding a DM transformation, called by dirac-dms-add-Transforma
 """
 __RCSID__ = "$Id$"
 
-import time
 import os
 
 import DIRAC
@@ -17,6 +16,7 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClie
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import getProcessingPasses
 from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities import getRemovalPlugins, getReplicationPlugins
 from LHCbDIRAC.DataManagementSystem.Utilities.FCUtilities import chown
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import ProgressBar
 
 
 def executeAddTransformation(pluginScript):
@@ -259,14 +259,11 @@ def executeAddTransformation(pluginScript):
     if force:
       lfns = []
     elif transBKQuery:
-      gLogger.notice("Executing the BK query:", bkQuery)
-      startTime = time.time()
+      progressBar = ProgressBar(1, title="Executing the BK query: %s" % bkQuery)
       lfns = bkQuery.getLFNs(printSEUsage=(transType == 'Removal' and
                                            not pluginScript.getOption('Runs')),
                              printOutput=test)
-      bkTime = time.time() - startTime
-      nfiles = len(lfns)
-      gLogger.notice("Found %d files in %.3f seconds" % (nfiles, bkTime))
+      progressBar.endLoop(message=("found %d files" % len(lfns)))
     else:
       lfns = requestedLFNs
     nfiles = len(lfns)
@@ -296,17 +293,18 @@ def executeAddTransformation(pluginScript):
       fc = FileCatalog()
       success = 0
       missingLFNs = set()
-      startTime = time.time()
-      for chunk in breakListIntoChunks(lfns, 500):
-        res = fc.exists(chunk)
+      chunkSize = 1000
+      progressBar = ProgressBar(len(lfns), title="Checking %d files in FC" % len(lfns), chunk=chunkSize)
+      for lfnChunk in breakListIntoChunks(lfns, chunkSize):
+        progressBar.loop()
+        res = fc.exists(lfnChunk)
         if res['OK']:
-          success += res['Value']['Successful'].values().count(True)
+          success += len(res['Value']['Successful'])
           missingLFNs |= set(res['Value']['Failed'])
-          missingLFNs |= set(lfn for lfn in res['Value']['Successful'] if not res['Value']['Successful'][lfn])
         else:
-          gLogger.fatal("Error checking files in the FC", res['Message'])
+          gLogger.fatal("\nError checking files in the FC", res['Message'])
           DIRAC.exit(2)
-      gLogger.notice("Files checked in FC in %.3f seconds" % (time.time() - startTime))
+      progressBar.endLoop(message='all found' if not missingLFNs else None)
       if missingLFNs:
         gLogger.notice('%d are in the FC, %d are not. Attempting to remove GotReplica' % (success, len(missingLFNs)))
         res = bk.removeFiles(list(missingLFNs))
@@ -315,8 +313,6 @@ def executeAddTransformation(pluginScript):
         else:
           gLogger.fatal("Error removing BK flag", res['Message'])
           DIRAC.exit(2)
-      else:
-        gLogger.notice('All files are in the FC')
 
     # Prepare the transformation
     if transBKQuery:
@@ -333,20 +329,31 @@ def executeAddTransformation(pluginScript):
     # Try and let them visible such that users can see they are archived
     # setInvisiblePlugins = tuple()
     if invisible or plugin in setInvisiblePlugins:
-      res = bk.setFilesInvisible(lfns)
+      chunkSize = 1000
+      progressBar = ProgressBar(len(lfns), title='Setting %d files invisible' % len(lfns), chunk=chunkSize)
+      okFiles = 0
+      for lfnChunk in breakListIntoChunks(lfns, chunkSize):
+        progressBar.loop()
+        res = bk.setFilesInvisible(lfnChunk)
+        if not res['OK']:
+          break
+        okFiles += len(lfnChunk)
+      if okFiles == len(lfns):
+        msg = "all files successfully set invisible in BK"
+      else:
+        msg = "%d files successfully set invisible in BK" % okFiles
+      progressBar.endLoop(message=msg)
       if res['OK']:
-        gLogger.notice("%d files were successfully set invisible in the BK" % len(lfns))
         if transBKQuery:
           savedVisi = transBKQuery.get('Visible')
           transBKQuery['Visible'] = 'All'
-          transformation.setBkQuery(transBKQuery)
+          transformation.setBkQuery(transBKQuery.copy())
           if savedVisi:
             transBKQuery['Visible'] = savedVisi
           else:
             transBKQuery.pop('Visible')
       else:
-        gLogger.error("Failed to set the files invisible:", res['Message'])
-        continue
+        gLogger.error("Failed to set files invisible: ", res['Message'])
 
     trial = 0
     errMsg = ''
