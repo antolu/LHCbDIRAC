@@ -21,7 +21,7 @@ class DataStorage(BaseAccountingType):
                                 ('Production', "VARCHAR(32)"),
                                 ('DataType', "VARCHAR(32)"),
                                 ('Activity', "VARCHAR(64)"),
-                                ('Conditions', "VARCHAR(64)"),
+                                ('Conditions', "VARCHAR(256)"),
                                 ('EventType', "VARCHAR(256)"),
                                 ('FileType', "VARCHAR(256)")
                                 ]
