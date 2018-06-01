@@ -161,51 +161,6 @@ class MCSuccessMultiProcessor(ProductionJobTestCase):
     self.assertTrue(res['OK'])
 
 
-class MCSuccess_new(ProductionJobTestCase):
-  def test_Integration_Production(self):
-
-    # From request 12789
-    stepsInProd = [{'StepId': 125080, 'StepName': 'Sim08a', 'ApplicationName': 'Gauss', 'ApplicationVersion': 'v45r3',
-                    'ExtraPackages': 'AppConfig.v3r171', 'ProcessingPass': 'Sim08a', 'Visible': 'Y', 'Usable': 'Yes',
-                    'DDDB': 'Sim08-20130503-1', 'CONDDB': 'Sim08-20130503-1-vc-mu100', 'DQTag': '', 'OptionsFormat': '',
-                    'OptionFiles': '$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.py;$DECFILESROOT/options/11102400.py;$LBPYTHIA8ROOT/options/Pythia8.py;$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py',
-                    'isMulticore': 'N', 'SystemConfig': 'x86_64-slc5-gcc43-opt', 'mcTCK': '', 'ExtraOptions': '',
-                    'fileTypesIn': [],
-                    'fileTypesOut':['SIM'],
-                    'visibilityFlag':[{'Visible': 'N', 'FileType': 'SIM'}]},
-                   {'StepId': 124620, 'StepName': 'Digi13', 'ApplicationName': 'Boole', 'ApplicationVersion': 'v26r3',
-                    'ExtraPackages': 'AppConfig.v3r164', 'ProcessingPass': 'Digi13', 'Visible': 'N', 'Usable': 'Yes',
-                    'DDDB': 'Sim08-20130503-1', 'CONDDB': 'Sim08-20130503-1-vc-mu100', 'DQTag': '', 'OptionsFormat': '',
-                    'OptionFiles': '$APPCONFIGOPTS/Boole/Default.py;$APPCONFIGOPTS/Boole/DataType-2012.py;$APPCONFIGOPTS/Boole/Boole-SiG4EnergyDeposit.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py',
-                    'isMulticore': 'N', 'SystemConfig': 'x86_64-slc5-gcc43-opt', 'mcTCK': '', 'ExtraOptions': '',
-                    'fileTypesIn': ['SIM'],
-                    'fileTypesOut':['DIGI'],
-                    'visibilityFlag':[{'Visible': 'N', 'FileType': 'DIGI'}]},
-                   {'StepId': 124632, 'StepName': 'Trig0x409f0045', 'ApplicationName': 'Moore', 'ApplicationVersion': 'v14r8p1',
-                    'ExtraPackages': 'AppConfig.v3r164', 'ProcessingPass': 'Trig0x40760037Flagged', 'Visible': 'N', 'Usable': 'Yes',
-                    'DDDB': 'Sim08-20130503-1', 'CONDDB': 'Sim08-20130503-1-vc-mu100', 'DQTag': '', 'OptionsFormat': '',
-                    'OptionFiles': '$APPCONFIGOPTS/Moore/MooreSimProductionWithL0Emulation.py;$APPCONFIGOPTS/Conditions/TCK-0x409f0045.py;$APPCONFIGOPTS/Moore/DataType-2012.py;$APPCONFIGOPTS/L0/L0TCK-0x0045.py',
-                    'isMulticore': 'N', 'SystemConfig': 'x86_64-slc5-gcc43-opt', 'mcTCK': '', 'ExtraOptions': '',
-                    'fileTypesIn': ['DIGI'],
-                    'fileTypesOut':['DIGI'],
-                    'visibilityFlag':[{'Visible': 'Y', 'FileType': 'DIGI'}]}]
-
-    # First create the production object
-    prod = self.pr._buildProduction('MCSimulation', stepsInProd, {'DIGI': 'Tier1_MC-DST'}, 0, 100,
-                                    outputFileStep='3')
-    try:
-      # This is the standard location in Jenkins
-      prod.LHCbJob.setInputSandbox(find_all('pilot.cfg', os.environ['WORKSPACE'] + '/PilotInstallDIR')[0])
-    except (IndexError, KeyError):
-      prod.LHCbJob.setInputSandbox(find_all('pilot.cfg', rootPath)[0])
-    prod.LHCbJob.setConfigArgs('pilot.cfg')
-    prod.setParameter('numberOfEvents', 'string', 2, 'Number of events to test')
-    # Then launch it
-    res = self.diracProduction.launchProduction(prod, False, True, 0)
-
-    self.assertTrue(res['OK'])
-
-
 #############################################################################
 # Test Suite run
 #############################################################################
@@ -213,6 +168,5 @@ class MCSuccess_new(ProductionJobTestCase):
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase(ProductionJobTestCase)
   suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(MCSuccess))
-  suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(MCSuccessMultiProcessor))
-  suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(MCSuccess_new))
+#  suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(MCSuccessMultiProcessor))
   testResult = unittest.TextTestRunner(verbosity=2).run(suite)
