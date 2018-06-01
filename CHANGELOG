@@ -1,3 +1,20 @@
+[v9r1p15]
+use DIRAC v6r19p21
+
+* increase the size of the Conditions column
+* no files to add is not an error
+* unused import
+* fix logging
+* use shell to execute command
+* log error in command
+* replace os.popen() with subprocess.check_output()
+* revert loop on event type and productions
+* print -> gLogger and retry BK queries
+* a bit of code cleaning
+* fix small problem when debugging DestroyDataset transformation
+* accept transitions from Problematic
+* add printout for long queries
+
 [v9r1p14]
 use DIRAC v6r19p21
 
