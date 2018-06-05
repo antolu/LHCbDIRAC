@@ -46,9 +46,13 @@ gLogger.info("\n Submitting hello world job, with input, targeting DIRAC.Jenkins
 inputJ = LHCbJob()
 inputJ.setName("helloWorld-TEST-INPUT-TO-Jenkins")
 try:
-  inputJ.setInputSandbox([find_all('exe-script-with-input-jenkins.py', rootPath, '/DIRAC/tests/GridTestSubmission')[0]])
-except:
-  inputJ.setInputSandbox([find_all('exe-script-with-input-jenkins.py', os.environ['WORKSPACE'], '/DIRAC/tests/GridTestSubmission')[0]])
+  inputJ.setInputSandbox([find_all('exe-script-with-input-jenkins.py',
+                                   rootPath,
+                                   'tests/System/GridTestSubmission')[0]])
+except BaseException:
+  inputJ.setInputSandbox([find_all('exe-script-with-input-jenkins.py',
+                                   os.environ['WORKSPACE'],
+                                   'tests/System/GridTestSubmission')[0]])
 inputJ.setExecutable("exe-script-with-input-jenkins.py", "", "exeWithInput.log")
 inputJ.setInputData('/lhcb/test/DIRAC/Jenkins/jenkinsInputTestFile.txt')  # this file should be at CERN-SWTEST only
 inputJ.setInputDataPolicy('download')
