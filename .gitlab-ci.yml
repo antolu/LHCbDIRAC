@@ -24,7 +24,7 @@ stages:
     - cd DIRAC
     - git checkout $diracBranch
     - cd ..
-    - yum install -y mysql mysql-libs mysql-devel make ncurses-devel libcurl-devel
+    - yum install -y openssl mysql mysql-libs mysql-devel make ncurses-devel libcurl-devel
     - pip install --upgrade setuptools
     - pip install --upgrade pip
     - pip install virtualenv
