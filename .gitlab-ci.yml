@@ -25,6 +25,7 @@ stages:
     - git checkout $diracBranch
     - cd ..
     - yum install -y openssl mysql mysql-libs mysql-devel make ncurses-devel libcurl-devel
+    - export PYCURL_SSL_LIBRARY=openssl
     - pip install --upgrade setuptools
     - pip install --upgrade pip
     - pip install virtualenv
