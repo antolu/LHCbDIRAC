@@ -196,7 +196,7 @@ class pilotSynchronizer( object ):
           self.pilotVersion = lines[( lines.index( self.pilotVOVersion ) ) + 3].split( ':' )[1]
       repo.git.checkout( repo.tags[self.pilotVersion], b = 'pilotScripts' )
     else:
-      repo.git.checkout( 'master', b = 'pilotVOScripts' )
+      repo.git.checkout( 'releases/master', b = 'pilotVOScripts' )
     try:
       scriptDir = os.path.join( self.pilotLocalRepo, self.pilotScriptsPath, "*.py" )
       for filename in glob.glob( scriptDir ):
