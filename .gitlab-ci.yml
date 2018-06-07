@@ -16,6 +16,7 @@ stages:
 .test_setup: &test_setup
   image:  gitlab-registry.cern.ch/ci-tools/ci-worker:cc7
   before_script:
+    # diracTAG is the DIRAC tag on top of which the latest LHCbDIRAC release is built in releases.cfg
     - diracTAG=$(head -n 50 LHCbDIRAC/releases.cfg | grep -E ' *v' | head -n 3 | tail -n 1 | sed 's/ //g' | cut -d ':' -f 2)
     - echo "Using DIRAC tag $diracTAG"
     - git clone https://github.com/DIRACGrid/DIRAC.git
