@@ -185,23 +185,33 @@ def getFiles( transClient, transformationID ):
                 'Processed' : 0,
                 'Running'   : 0,
                 'Failed'    : 0,
-                'Path'      : 0,}
+                'Path'      : 'Empty',
+                'Hot'       : 0,}
 
   files = transClient.getTransformationFilesSummaryWeb( { 'TransformationID' : transformationID }, [], 0, 1000000 )
 #This gets the interesting values
   ts = TransformationClient()
-  records = ts.getTransformationSummaryWeb({ 'TransformationID' : transformationID }, [], 0, 1000000)['Value']
+  records_result = ts.getTransformationSummaryWeb({ 'TransformationID' : transformationID }, [], 0, 1000000)
+  if not records_result[ 'OK' ]:
+    print 'TransID %s: %s' % (transformationID, records_result[ 'Message' ])
+    filesDict[ 'Total' ] = -1
+    return filesDict
+  records = records_result['Value']
   parameters = records['ParameterNames']
   moreValues = dict(zip(parameters, records['Records'][0]))
   path = ts.getTransformationParameters( transformationID, ['DetailedInfo'] )
+
+  if not path[ 'OK' ]:
+    print 'TransID %s: %s' % (transformationID, path[ 'Message' ])
+    filesDict[ 'Total' ] = -1
+    return filesDict
   path = path[ 'Value' ]
   path = path.split("BK Browsing Paths:\n",1)[1]
 
-
   if not files[ 'OK' ]:
-    print files[ 'Message' ]
-    return { 'Total' : -1 }
-
+    print 'TransID %s: %s' % (transformationID, files[ 'Message' ])
+    filesDict[ 'Total' ] = -1
+    return filesDict
   files = files[ 'Value' ]
 
 #This shows the interesting values
@@ -213,10 +223,6 @@ def getFiles( transClient, transformationID ):
   filesDict[ 'Files_Processed' ] = moreValues[ 'Files_Processed' ]
   filesDict[ 'Hot' ] = moreValues[ 'Hot' ]
   filesDict[ 'Path' ] = path
-  if filesDict[ 'Hot' ] == 1:
-    filesDict[ 'Hot' ] = 'Hot'
-  else:
-    filesDict[ 'Hot' ] = 'No'
 
   if filesDict[ 'Total' ]:
     filesDict.update( files[ 'Extras' ] )
@@ -265,7 +271,16 @@ def printResults( request, mergeAction ):
 #  print 'Req. No (%d) [%s][ %s/%s ][ %s/%s ]' % infoTuple
 #  print '\tTransID\tStatus\t\tType\t\t\t\tCompleted\tTotal Files\t\tRunning\t\tFailed\t\tHot '
 
-  groupedMerge = [ 0, 0, 0 ]
+  groupedMerge = { 'Merged'         : 0,
+                   'Total'          : 0,
+                   'Processed'      : 0,
+                   'Running'        : 0,
+                   'Failed'         : 0,
+                   'Path'           : 'Empty',
+                   'Hot'            : 0,
+                   'Done'           : 0,
+                   'Waiting'        : 0,
+                   'Files_Processed': 0,}
 
   for transformationID, transformation in request[ 'transformations' ].items():
 
@@ -275,6 +290,7 @@ def printResults( request, mergeAction ):
 
     # Using switch noFiles
     if filesDict == {}:
+      printTransformation(request[ 'requestID' ], transformationID, transformation, filesDict, True)
       continue
 
     if mergeAction == 'omit' and transformation[ 'transformationType' ] in ['Merge', 'MCMerge']:
@@ -282,72 +298,99 @@ def printResults( request, mergeAction ):
 
     if mergeAction == 'group' and transformation[ 'transformationType' ] in ['Merge', 'MCMerge']:
 
-      groupedMerge[ 0 ] += 1
+      groupedMerge[ 'Merged' ] += 1
+      if groupedMerge[ 'Merged' ] == 1:
+        groupedMerge[ 'Path' ] = filesDict[ 'Path' ]
+      elif groupedMerge[ 'Path' ] != filesDict[ 'Path' ]:
+          groupedMerge[ 'Path' ] = 'Multiple'
 
-      if filesDict[ 'Total' ]:
+      if filesDict[ 'Total' ] > 0:
 
-        groupedMerge[ 1 ] += filesDict[ 'Processed' ]
-        groupedMerge[ 2 ] += filesDict[ 'Total' ]
-        groupedMerge[ 3 ] += filesDict[ 'Running' ]
-        groupedMerge[ 4 ] += filesDict[ 'Failed' ]
-        groupedMerge[ 5 ] += filesDict[ 'Hot' ]
-        groupedMerge[ 6 ] += filesDict[ 'Path' ]
-        groupedMerge[ 7 ] += filesDict[ 'Done' ]
-        groupedMerge[ 8 ] += filesDict[ 'Waiting' ]
-        groupedMerge[ 9 ] += filesDict[ 'Files_Processed' ]
+        groupedMerge[ 'Processed' ] += filesDict[ 'Processed' ]
+        groupedMerge[ 'Total' ] += filesDict[ 'Total' ]
+        groupedMerge[ 'Running' ] += filesDict[ 'Running' ]
+        groupedMerge[ 'Failed' ] += filesDict[ 'Failed' ]
+        groupedMerge[ 'Hot' ] += filesDict[ 'Hot' ]
+        groupedMerge[ 'Done' ] += filesDict[ 'Done' ]
+        groupedMerge[ 'Waiting' ] += filesDict[ 'Waiting' ]
+        groupedMerge[ 'Files_Processed' ] += filesDict[ 'Files_Processed' ]
+
       continue
 
     #prints only the HOT production
     if mergeAction == 'hot':
-      if filesDict[ 'Hot' ] == 'Hot':
-        print 'BK Browsing Path: [%s]' % (filesDict[ 'Path' ])
-        bkpath = filesDict[ 'Path' ]
-        try:
-          processed = ( float( filesDict[ 'Processed' ] ) / float( filesDict[ 'Total' ] ) ) * 100
-        except ZeroDivisionError:
-          processed = 0
-        filesMsg = '%.2f%%\t\t(%d)\t\t%d\t%d\t%d\t%d\t%s' % ( processed, filesDict['Total'],filesDict[ 'Done' ], filesDict['Running'],filesDict[ 'Waiting' ], filesDict['Failed'], filesDict[ 'Hot' ] )
+      if filesDict[ 'Total' ] > 0 and filesDict[ 'Hot' ] == 1:
 
-        msgTuple = ( ( '%d\t%d\t%s\t%s' % (request[ 'requestID' ], transformationID, transformation[ 'transformationStatus' ],
-                                           transformation[ 'transformationType' ] ) ).ljust( 40, ' ' ), filesMsg )
-
-        print '%s\t%s' % msgTuple
+        printTransformation(request[ 'requestID' ], transformationID, transformation, filesDict)
 
       continue
 
+    printTransformation(request[ 'requestID' ], transformationID, transformation, filesDict)
 
-    if filesDict[ 'Total' ] == '-1':
-      filesMsg = '..Internal error..'
-    elif filesDict[ 'Total' ] == 0:
-      filesMsg = '..No files at all..'
+  if mergeAction == 'group' and groupedMerge[ 'Merged' ]:
+
+    if groupedMerge[ 'Merged' ] > 1:
+      groupMsg = '%s merge prod(s) grouped' % groupedMerge[ 'Merged' ]
+      printTransformation(request[ 'requestID' ], None, None, groupedMerge, groupMsg=groupMsg)
     else:
-      try:
-        try:
-          processed = ( float( filesDict[ 'Processed' ] ) / float( filesDict[ 'Total' ] ) ) * 100
-        except ZeroDivisionError:
-          processed = 0
-        filesMsg = '%.2f%%\t\t(%d)\t\t%d\t%d\t%d\t%d\t%s' % ( processed, filesDict['Total'],filesDict[ 'Done' ], filesDict['Running'],filesDict[ 'Waiting' ], filesDict['Failed'], filesDict[ 'Hot' ] )
-      except KeyError:
-        print "No files processed"
-
-
-    msgTuple = ( ( '%d\t%d\t%s\t%s' % (request[ 'requestID' ], transformationID, transformation[ 'transformationStatus' ],
-                                    transformation[ 'transformationType' ] ) ).ljust( 40, ' ' ), filesMsg )
-
-    print 'BK Browsing Path: [%s]' % (filesDict[ 'Path' ])
-    print '%s\t%s' % msgTuple
-
-  if mergeAction == 'group' and groupedMerge[ 0 ]:
-
-    if groupedMerge[ 2 ]:
-      processed = ( float( groupedMerge[ 1 ] ) / float( groupedMerge[ 2 ] ) ) * 100
-      filesMsg = '%.2f%%\t\t(%d)\t\t%d\t%d\t%d\t%d\t%s' % ( processed, filesDict['Total'],filesDict[ 'Done' ], filesDict['Running'],filesDict[ 'Waiting' ], filesDict['Failed'], filesDict[ 'Hot' ] )
-    else:
-      filesMsg = '..No files at all..'
-    print 'BK Browsing Path: [%s]' % (filesDict[ 'Path' ])
-    print '%s\t%s\t' % (( '%s merge prod(s) grouped' % groupedMerge[0] ).ljust( 40, ' ' ), filesMsg )
+      printTransformation(request[ 'requestID' ], transformationID, transformation, groupedMerge)
 
   printNow()
+
+def printTransformation(requestID, transformationID, transformation, filesDict, noFiles=False, groupMsg=None):
+  """ Prints transformation information
+  :param requestID:
+  :param transformationID:
+  :param transformation: dict with keys transformationStatus and transformationType
+  :param filesDict: dict with following keys: Processed, Total, Done, Running, Waiting, Failed, Hot
+  :param noFiles: when set to True skips printout information about files
+  :param groupMsg: when set to a string will replace transformationID,
+    transformationType and transformationStatus in the printout. In this case
+    transformationID and transformation can be set to None.
+  """
+  if not noFiles and filesDict[ 'Path' ] is not None:
+    print 'BK Browsing Path: [%s]' % filesDict[ 'Path' ]
+  if noFiles:
+    filesMsg = ''
+  elif filesDict[ 'Total' ] == -1:
+    filesMsg = '..Internal error..'
+  elif filesDict[ 'Total' ] == 0:
+    filesMsg = '..No files at all..'
+  else:
+    try:
+      try:
+        _processed = ( float( filesDict[ 'Processed' ] ) / float( filesDict[ 'Total' ] ) ) * 100
+      except ZeroDivisionError:
+        _processed = 0
+      if groupMsg is None:
+        if filesDict[ 'Hot' ] == 1:
+          filesDict[ 'Hot' ] = 'Hot'
+        else:
+          filesDict[ 'Hot' ] = 'No'
+      filesMsg = '%.2f%%\t\t(%d)\t\t%d\t%d\t%d\t%d\t%s' % (
+          _processed,
+          filesDict['Total'],
+          filesDict[ 'Done' ],
+          filesDict['Running'],
+          filesDict[ 'Waiting' ],
+          filesDict['Failed'],
+          filesDict[ 'Hot' ] )
+    except KeyError:
+      print "No files processed"
+  if groupMsg is not None:
+    msgTuple = ( ('%d\t%s\t\t' % (
+      requestID,
+      groupMsg)
+      ).ljust( 40, ' ' ), filesMsg )
+  else:
+    msgTuple = ( ( '%d\t%d\t%s\t%s' % (
+      requestID,
+      transformationID,
+      transformation[ 'transformationStatus' ].ljust( 10, ' ' ),
+      transformation[ 'transformationType' ])
+      ).ljust( 40, ' ' ), filesMsg )
+  print '%s\t%s' % msgTuple
+
 
 def printRequestsInfo( requests ):
   """ Prints the number of requests
