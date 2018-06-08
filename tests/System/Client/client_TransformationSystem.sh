@@ -35,7 +35,7 @@ done
 
 echo ""
 echo "Submitting test production"
-python $DIRAC/tests/System/dirac-test-production.py --UseFilter=False -ddd
+python $DIRAC/tests/System/Client/dirac-test-production.py --UseFilter=False -ddd
 if [ $? -ne 0 ]
 then
    exit $?
