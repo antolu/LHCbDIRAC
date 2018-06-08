@@ -21,14 +21,14 @@ from DIRAC.Core.DISET.HTTPDISETConnection import HTTPDISETConnection
 __RCSID__ = '$Id:  $'
 
 
-class pilotSynchronizer( object ):
+class pilotSynchronizer(object):
   '''
   Every time there is a successful write on the CS, pilotSynchronizer().sync() is
   executed. It updates the file with the values on the CS.
 
   '''
 
-  def __init__( self, paramDict ):
+  def __init__(self, paramDict):
     ''' c'tor
 
         Just setting defaults
@@ -40,38 +40,40 @@ class pilotSynchronizer( object ):
     self.pilotVORepo = paramDict['pilotVORepo']  # repository of the VO that can contain a pilot extension
     self.pilotLocalRepo = 'pilotLocalRepo'  # local repository to be created
     self.pilotVOLocalRepo = 'pilotVOLocalRepo'  # local VO repository to be created
-    self.pilotSetup = gConfig.getValue( '/DIRAC/Setup', '' )
+    self.pilotSetup = gConfig.getValue('/DIRAC/Setup', '')
     self.projectDir = paramDict['projectDir']
     # where the find the pilot scripts in the VO pilot repository
     self.pilotVOScriptPath = paramDict['pilotVOScriptPath']
-    self.pilotScriptsPath = paramDict['pilotScriptsPath'] # where the find the pilot scripts in the pilot repository
+    self.pilotScriptsPath = paramDict['pilotScriptsPath']  # where the find the pilot scripts in the pilot repository
     self.pilotVersion = ''
-    self.pilotVOVersion =''
+    self.pilotVOVersion = ''
 
-  def sync( self, _eventName, _params ):
+  def sync(self, _eventName, _params):
     ''' Main synchronizer method.
     '''
-    gLogger.notice( '-- Synchronizing the content of the pilot file %s with the content of the CS --' % self.pilotFileName )
+    gLogger.notice(
+        '-- Synchronizing the content of the pilot file %s with the content of the CS --' %
+        self.pilotFileName)
 
     result = self._syncFile()
     if not result['OK']:
-      gLogger.error( "Error uploading the pilot file: %s" % result['Message'] )
+      gLogger.error("Error uploading the pilot file: %s" % result['Message'])
       return result
 
-    gLogger.notice( '-- Synchronizing the pilot scripts %s with the content of the repository --' % self.pilotRepo )
+    gLogger.notice('-- Synchronizing the pilot scripts %s with the content of the repository --' % self.pilotRepo)
 
     self._syncScripts()
 
     return S_OK()
 
-  def _syncFile( self ):
+  def _syncFile(self):
     ''' Creates the pilot dictionary from the CS, ready for encoding as JSON
     '''
     pilotDict = self._getCSDict()
 
-    result = self._upload( pilotDict = pilotDict )
+    result = self._upload(pilotDict=pilotDict)
     if not result['OK']:
-      gLogger.error( "Error uploading the pilot file: %s" %result['Message'] )
+      gLogger.error("Error uploading the pilot file: %s" % result['Message'])
       return result
     return S_OK()
 
@@ -82,30 +84,30 @@ class pilotSynchronizer( object ):
     :rtype: dict
     """
 
-    pilotDict = { 'Setups' : {}, 'CEs' : {} }
+    pilotDict = {'Setups': {}, 'CEs': {}}
 
-    gLogger.info( '-- Getting the content of the CS --' )
+    gLogger.info('-- Getting the content of the CS --')
 
-    gLogger.verbose( 'From Operations/[Setup]/Pilot' )
-    setups = gConfig.getSections( '/Operations/' )
+    gLogger.verbose('From Operations/[Setup]/Pilot')
+    setups = gConfig.getSections('/Operations/')
     if not setups['OK']:
-      gLogger.error( setups['Message'] )
+      gLogger.error(setups['Message'])
       return setups
     try:
-      setups['Value'].remove( 'SoftwareDistribution' ) #TODO: remove this section
+      setups['Value'].remove('SoftwareDistribution')  # TODO: remove this section
     except AttributeError:
       pass
 
     for setup in setups['Value']:
-      options = gConfig.getOptionsDict( '/Operations/%s/Pilot' % setup )
+      options = gConfig.getOptionsDict('/Operations/%s/Pilot' % setup)
       if not options['OK']:
-        gLogger.error( options['Message'] )
+        gLogger.error(options['Message'])
         return options
       # We include everything that's in the Pilot section for this setup
       if setup == self.pilotSetup:
         self.pilotVOVersion = options['Value']['Version']
       pilotDict['Setups'][setup] = options['Value']
-      ceTypesCommands = gConfig.getOptionsDict( '/Operations/%s/Pilot/Commands' % setup )
+      ceTypesCommands = gConfig.getOptionsDict('/Operations/%s/Pilot/Commands' % setup)
       if ceTypesCommands['OK']:
         # It's ok if the Pilot section doesn't list any Commands too
         pilotDict['Setups'][setup]['Commands'] = {}
@@ -114,130 +116,129 @@ class pilotSynchronizer( object ):
           pilotDict['Setups'][setup]['Commands'][ceType] = ceTypesCommands['Value'][ceType].split(', ')
           # pilotDict['Setups'][setup]['Commands'][ceType] = ceTypesCommands['Value'][ceType]
       if 'CommandExtensions' in pilotDict['Setups'][setup]:
-        # FIXME: inconsistent that we break CommandExtensionss down into a proper list but other things are comma-list strings
+        # FIXME: inconsistent that we break CommandExtensionss down into a proper
+        # list but other things are comma-list strings
         pilotDict['Setups'][setup]['CommandExtensions'] = pilotDict['Setups'][setup]['CommandExtensions'].split(', ')
         # pilotDict['Setups'][setup]['CommandExtensions'] = pilotDict['Setups'][setup]['CommandExtensions']
 
-    gLogger.verbose( 'From Resources/Sites' )
-    sitesSection = gConfig.getSections( '/Resources/Sites/' )
+    gLogger.verbose('From Resources/Sites')
+    sitesSection = gConfig.getSections('/Resources/Sites/')
     if not sitesSection['OK']:
-      gLogger.error( sitesSection['Message'] )
+      gLogger.error(sitesSection['Message'])
       return sitesSection
 
     for grid in sitesSection['Value']:
-      gridSection = gConfig.getSections( '/Resources/Sites/' + grid )
+      gridSection = gConfig.getSections('/Resources/Sites/' + grid)
       if not gridSection['OK']:
-        gLogger.error( gridSection['Message'] )
+        gLogger.error(gridSection['Message'])
         return gridSection
 
       for site in gridSection['Value']:
-        ceList = gConfig.getSections( '/Resources/Sites/' + grid + '/' + site + '/CEs/' )
+        ceList = gConfig.getSections('/Resources/Sites/' + grid + '/' + site + '/CEs/')
         if not ceList['OK']:
           # Skip but log it
-          gLogger.error( 'Site ' + site + ' has no CEs! - skipping' )
+          gLogger.error('Site ' + site + ' has no CEs! - skipping')
           continue
 
         for ce in ceList['Value']:
-          ceType = gConfig.getValue( '/Resources/Sites/' + grid + '/' + site + '/CEs/' + ce + '/CEType')
+          ceType = gConfig.getValue('/Resources/Sites/' + grid + '/' + site + '/CEs/' + ce + '/CEType')
 
           if ceType is None:
             # Skip but log it
-            gLogger.error( 'CE ' + ce + ' at ' + site + ' has no option CEType! - skipping' )
+            gLogger.error('CE ' + ce + ' at ' + site + ' has no option CEType! - skipping')
           else:
-            pilotDict['CEs'][ce] = { 'Site' : site, 'GridCEType' : ceType }
+            pilotDict['CEs'][ce] = {'Site': site, 'GridCEType': ceType}
 
-    defaultSetup = gConfig.getValue( '/DIRAC/DefaultSetup' )
+    defaultSetup = gConfig.getValue('/DIRAC/DefaultSetup')
     if defaultSetup:
       pilotDict['DefaultSetup'] = defaultSetup
 
-    gLogger.verbose( 'From DIRAC/Configuration' )
+    gLogger.verbose('From DIRAC/Configuration')
     pilotDict['ConfigurationServers'] = gConfig.getServersList()
 
-    gLogger.verbose( "Got %s"  %str(pilotDict) )
+    gLogger.verbose("Got %s" % str(pilotDict))
 
     return pilotDict
-
 
   def _syncScripts(self):
     """Clone the pilot scripts from the repository and upload them to the web server
     """
-    gLogger.info( '-- Uploading the pilot scripts --' )
-    if os.path.isdir( self.pilotVOLocalRepo ):
-      shutil.rmtree( self.pilotVOLocalRepo )
-    os.mkdir( self.pilotVOLocalRepo )
-    repo_VO = Repo.init( self.pilotVOLocalRepo )
-    upstream = repo_VO.create_remote( 'upstream', self.pilotVORepo )
+    gLogger.info('-- Uploading the pilot scripts --')
+    if os.path.isdir(self.pilotVOLocalRepo):
+      shutil.rmtree(self.pilotVOLocalRepo)
+    os.mkdir(self.pilotVOLocalRepo)
+    repo_VO = Repo.init(self.pilotVOLocalRepo)
+    upstream = repo_VO.create_remote('upstream', self.pilotVORepo)
     upstream.fetch()
-    upstream.pull( upstream.refs[0].remote_head )
+    upstream.pull(upstream.refs[0].remote_head)
     if repo_VO.tags:
-      repo_VO.git.checkout( repo_VO.tags[self.pilotVOVersion], b = 'pilotScripts' )
+      repo_VO.git.checkout(repo_VO.tags[self.pilotVOVersion], b='pilotScripts')
     else:
-      repo_VO.git.checkout( 'upstream/master', b = 'pilotVOScripts' )
-    scriptDir = ( os.path.join( self.pilotVOLocalRepo, self.projectDir, self.pilotVOScriptPath, "*.py" ) )
+      repo_VO.git.checkout('upstream/master', b='pilotVOScripts')
+    scriptDir = (os.path.join(self.pilotVOLocalRepo, self.projectDir, self.pilotVOScriptPath, "*.py"))
     tarFiles = []
-    for fileVO in glob.glob( scriptDir ):
-      result = self._upload( filename = os.path.basename( fileVO ), pilotScript = fileVO )
+    for fileVO in glob.glob(scriptDir):
+      result = self._upload(filename=os.path.basename(fileVO), pilotScript=fileVO)
       tarFiles.append(fileVO)
     if not result['OK']:
-      gLogger.error( "Error uploading the VO pilot script: %s" % result['Message'] )
+      gLogger.error("Error uploading the VO pilot script: %s" % result['Message'])
       return result
-    if os.path.isdir( self.pilotLocalRepo ):
-      shutil.rmtree( self.pilotLocalRepo )
-    os.mkdir( self.pilotLocalRepo )
-    repo = Repo.init( self.pilotLocalRepo )
-    releases = repo.create_remote( 'releases', self.pilotRepo )
+    if os.path.isdir(self.pilotLocalRepo):
+      shutil.rmtree(self.pilotLocalRepo)
+    os.mkdir(self.pilotLocalRepo)
+    repo = Repo.init(self.pilotLocalRepo)
+    releases = repo.create_remote('releases', self.pilotRepo)
     releases.fetch()
-    releases.pull( releases.refs[0].remote_head )
+    releases.pull(releases.refs[0].remote_head)
     if repo.tags:
-      with open( os.path.join( self.pilotVOLocalRepo, self.projectDir, 'releases.cfg' ), 'r' ) as releases_file:
-        lines = [line.rstrip( '\n' ) for line in releases_file]
+      with open(os.path.join(self.pilotVOLocalRepo, self.projectDir, 'releases.cfg'), 'r') as releases_file:
+        lines = [line.rstrip('\n') for line in releases_file]
         lines = [s.strip() for s in lines]
         if self.pilotVOVersion in lines:
-          self.pilotVersion = lines[( lines.index( self.pilotVOVersion ) ) + 3].split( ':' )[1]
-      repo.git.checkout( repo.tags[self.pilotVersion], b = 'pilotScripts' )
+          self.pilotVersion = lines[(lines.index(self.pilotVOVersion)) + 3].split(':')[1]
+      repo.git.checkout(repo.tags[self.pilotVersion], b='pilotScripts')
     else:
-      repo.git.checkout( 'master', b = 'pilotVOScripts' )
+      repo.git.checkout('releases/master', b='pilotVOScripts')
     try:
-      scriptDir = os.path.join( self.pilotLocalRepo, self.pilotScriptsPath, "*.py" )
-      for filename in glob.glob( scriptDir ):
-        result = self._upload(filename = os.path.basename(filename),
-                              pilotScript = filename)
+      scriptDir = os.path.join(self.pilotLocalRepo, self.pilotScriptsPath, "*.py")
+      for filename in glob.glob(scriptDir):
+        result = self._upload(filename=os.path.basename(filename),
+                              pilotScript=filename)
         tarFiles.append(filename)
       if not os.path.isfile(os.path.join(self.pilotLocalRepo,
                                          self.pilotScriptsPath,
                                          "dirac-install.py")):
-        result = self._upload(filename = 'dirac-install.py',
+        result = self._upload(filename='dirac-install.py',
                               pilotScript=os.path.join(self.pilotLocalRepo, "Core/scripts/dirac-install.py"))
         tarFiles.append('dirac-install.py')
 
-      with tarfile.TarFile(name = 'pilot.tar', mode = 'w') as tf:
+      with tarfile.TarFile(name='pilot.tar', mode='w') as tf:
         for ptf in tarFiles:
           tf.add(ptf)
-      result = self._upload(filename = 'pilot.tar',
+      result = self._upload(filename='pilot.tar',
                             pilotScript='pilot.tar')
 
     except ValueError:
-      gLogger.error( "Error uploading the pilot scripts: %s" % result['Message'] )
+      gLogger.error("Error uploading the pilot scripts: %s" % result['Message'])
       return result
     return S_OK()
 
-
-  def _upload ( self, pilotDict = None, filename = '', pilotScript = '' ):
+  def _upload(self, pilotDict=None, filename='', pilotScript=''):
     """ Method to upload the pilot json file and the pilot scripts to the server.
     """
 
     if pilotDict:
-      params = urllib.urlencode( {'filename':self.pilotFileName, 'data':json.dumps( pilotDict ) } )
+      params = urllib.urlencode({'filename': self.pilotFileName, 'data': json.dumps(pilotDict)})
     else:
-      with open( pilotScript, "rb" ) as psf:
+      with open(pilotScript, "rb") as psf:
         script = psf.read()
-      params = urllib.urlencode( {'filename':filename, 'data':script} )
+      params = urllib.urlencode({'filename': filename, 'data': script})
     headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
-    con = HTTPDISETConnection( self.pilotFileServer, '443' )
-    con.request( "POST", "/DIRAC/upload", params, headers )
+    con = HTTPDISETConnection(self.pilotFileServer, '443')
+    con.request("POST", "/DIRAC/upload", params, headers)
     resp = con.getresponse()
     if resp.status != 200:
-      return S_ERROR( resp.status )
+      return S_ERROR(resp.status)
     else:
-      gLogger.info( '-- File and scripts upload done --' )
+      gLogger.info('-- File and scripts upload done --')
     return S_OK()
