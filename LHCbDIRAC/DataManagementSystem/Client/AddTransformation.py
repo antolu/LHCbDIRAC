@@ -258,7 +258,7 @@ def executeAddTransformation(pluginScript):
       if transBKQuery:
         gLogger.notice("BK Query:", transBKQuery)
       elif requestedLFNs:
-        gLogger.notice("List of%d LFNs" % len(requestedLFNs))
+        gLogger.notice("List of %d LFNs" % len(requestedLFNs))
       else:
         # Should not happen here, but who knows ;-)
         gLogger.error("No BK query provided...")
