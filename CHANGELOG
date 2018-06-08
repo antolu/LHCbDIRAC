@@ -1,3 +1,19 @@
+[v9r2-pre6]
+use DIRAC v6r20p2
+
+* delete pilot syncronizer, becuase it is in DIRAC
+* fix conflicts v9r1p16
+* set PYCURL_SSL_LIBRARY
+* adding openssl
+* corrected location
+* handle correctly the case when some parameter is mising
+* correct the file path
+* resolve v9r1p15 conflicts
+* style
+* removed MDFmerge
+* added debug message
+* removed old tests
+
 [v9r2-pre5]
 use DIRAC v6r20
 
