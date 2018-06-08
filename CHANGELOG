@@ -1,6 +1,19 @@
 [v9r2-pre5]
 use DIRAC v6r20
 
+[v9r1p16]
+use DIRAC v6r19p21
+
+* added comment
+* style
+* need to specify fully the branch
+* using (correct) tag instead of branch)
+* adding openssl and PYCURL_SSL_LIBRARY variable
+* change the software deployment URL
+
+[v9r1p15]
+use DIRAC v6r19p21
+
 * style
 * removing some outdated stuff
 * no files to add is not an error

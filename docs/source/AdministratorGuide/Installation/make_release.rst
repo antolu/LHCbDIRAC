@@ -258,7 +258,7 @@ on lxplus please execute the following command::
 
 
 If it is the production release, and only in this case, once satisfied by the build,
-take note of the build id (you can use the direct link icon) and make the request via https://sft.its.cern.ch/jira/browse/LHCBDEP.
+take note of the build id (you can use the direct link icon) and make the request via https://its.cern.ch/jira/projects/LHCBDEP.
 
 * NOTE: If some package is already released, please do not indicate in the Jira task. For example: a Jira task when:
     * DIRAC is not released, then the message in the JIRA task: Summary:Dirac v6r14p37 and LHCbDirac v8r2p50; Description: Please release  Dirac and  LHCbDirac in  this order  based on build 1526;
