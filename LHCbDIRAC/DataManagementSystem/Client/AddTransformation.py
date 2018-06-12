@@ -182,8 +182,6 @@ def executeAddTransformation(pluginScript):
       transName += '-' + str(transBKQuery['FileType'])
     elif bkQuery:
       queryPath = bkQuery.getPath()
-      if not queryPath:
-        queryPath = bkQuery.makePath()
       longName = transGroup + " for BKQuery " + queryPath
       transName += '-' + queryPath
     else:
