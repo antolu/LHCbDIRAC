@@ -74,14 +74,14 @@ Generate the certificate request
 ********************************
 ::
 
-    openssl req -config MrBoinc/openssl_config_user.cnf -key MrBoinc/userkey.pem  -new -sha256 -out MrBoinc/request.csr.pem
+    openssl req -config MrBoinc/openssl_config_user.cnf -key MrBoinc/userkey.pem  -new -out MrBoinc/request.csr.pem
 
 Create the MrBoinc User certificate, valid for 375 days
 *******************************************************
 ::
 
     openssl ca -config ca/openssl_config_ca.cnf \
-         -extensions usr_cert -days 375 -notext -md sha256 \
+         -extensions usr_cert
          -in MrBoinc/request.csr.pem \
          -out MrBoinc/usercert.pem
 
