@@ -13,7 +13,7 @@ from DIRAC.Core.Utilities.List import breakListIntoChunks
 from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import getProcessingPasses
+from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import getProcessingPasses, BKQuery
 from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities import getRemovalPlugins, getReplicationPlugins
 from LHCbDIRAC.DataManagementSystem.Utilities.FCUtilities import chown
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import ProgressBar
@@ -109,7 +109,8 @@ def executeAddTransformation(pluginScript):
     fcCheck = False
 
   transBKQuery = {}
-  processingPasses = [None]
+  # If no BK queries are given, set to None to go once in the loop
+  bkQueries = [None]
   if not requestedLFNs:
     bkQuery = pluginScript.getBKQuery()
     if not bkQuery and not force:
@@ -117,11 +118,11 @@ def executeAddTransformation(pluginScript):
       Script.showHelp()
       DIRAC.exit(2)
     if bkQuery:
-      transBKQuery = bkQuery.getQueryDict()
-      processingPass = transBKQuery.get('ProcessingPass', '')
+      processingPass = bkQuery.getProcessingPass()
       if '...' in processingPass or '*' in processingPass:
+        bkPath = pluginScript.getOption('BKPath').replace('RealData', 'Real Data')
         if listProcessingPasses:
-          gLogger.notice("List of processing passes for BK path", pluginScript.getOption('BKPath'))
+          gLogger.notice("List of processing passes for BK path", bkPath)
         processingPasses = getProcessingPasses(bkQuery, depth=depth)
         if processingPasses:
           if not listProcessingPasses:
@@ -132,16 +133,25 @@ def executeAddTransformation(pluginScript):
           DIRAC.exit(0)
         if listProcessingPasses:
           DIRAC.exit(0)
+        # Create a list of BK queries, taking into account visibility and if needed excluded file types
+        exceptTypes = bkQuery.getExceptFileTypes()
+        visible = bkQuery.isVisible()
+        bkQueries = []
+        for pp in processingPasses:
+          query = BKQuery(bkPath.replace(processingPass, pp), visible=visible)
+          query.setExceptFileTypes(exceptTypes)
+          bkQueries.append(query)
       else:
-        processingPasses = [processingPass]
+        # Single BK query
+        bkQueries = [bkQuery]
 
   reqID = pluginScript.getRequestID()
   if not requestID and reqID:
     requestID = reqID
 
   transGroup = plugin
-  for processingPass in processingPasses:
-    if len(processingPasses) > 1:
+  for bkQuery in bkQueries:
+    if len(bkQueries) > 1:
       gLogger.notice("**************************************")
     # Create the transformation
     transformation = Transformation()
@@ -149,9 +159,8 @@ def executeAddTransformation(pluginScript):
     transName = transType
 
     # In case there is a loop on processing passes
-    if processingPass:
-      bkQuery.setProcessingPass(processingPass)
-      transBKQuery['ProcessingPass'] = processingPass
+    if bkQuery:
+      transBKQuery = bkQuery.getQueryDict()
     if requestedLFNs:
       longName = transGroup + " for %d LFNs" % len(requestedLFNs)
       transName += '-LFNs'
@@ -173,8 +182,6 @@ def executeAddTransformation(pluginScript):
       transName += '-' + str(transBKQuery['FileType'])
     elif bkQuery:
       queryPath = bkQuery.getPath()
-      if '...' in queryPath:
-        queryPath = bkQuery.makePath()
       longName = transGroup + " for BKQuery " + queryPath
       transName += '-' + queryPath
     else:
@@ -249,7 +256,7 @@ def executeAddTransformation(pluginScript):
       if transBKQuery:
         gLogger.notice("BK Query:", transBKQuery)
       elif requestedLFNs:
-        gLogger.notice("List of%d LFNs" % len(requestedLFNs))
+        gLogger.notice("List of %d LFNs" % len(requestedLFNs))
       else:
         # Should not happen here, but who knows ;-)
         gLogger.error("No BK query provided...")
