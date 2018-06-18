@@ -424,6 +424,9 @@ class BKQuery():
     self.__exceptFileTypes.update(fileTypes)
     self.setFileType([t for t in self.getFileTypeList() if t not in fileTypes])
 
+  def getExceptFileTypes(self):
+    return list(self.__exceptFileTypes)
+
   def getQueryDict(self):
     """
     Returns the bookkeeping dictionary

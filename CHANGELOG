@@ -17,6 +17,12 @@ use DIRAC v6r20p2
 [v9r2-pre5]
 use DIRAC v6r20
 
+* remove useless code
+* protect against no site for SE
+* fix printout
+* fix variable names
+* fix wildcard processing pass if all file types are given
+
 [v9r1p16]
 use DIRAC v6r19p21
 

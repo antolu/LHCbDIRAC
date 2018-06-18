@@ -746,7 +746,7 @@ class ConsistencyChecks(DiracConsistencyChecks):
 
     # File files without descendants don't exist, not important
     if filesWithoutDescendants:
-      present, removedFiles = self.getReplicasPresence(filesWithoutDescendants.keys())
+      present, removedFiles = self.getReplicasPresence(filesWithoutDescendants.keys(), ignoreFailover=True)
       filesWithoutDescendants = dict.fromkeys(present)
     else:
       removedFiles = []
@@ -757,8 +757,9 @@ class ConsistencyChecks(DiracConsistencyChecks):
     # For files in FC and not in BK, ignore if they are not active
     if inFCNotInBK:
       progressBar = ProgressBar(len(inFCNotInBK),
-                                title="Checking Failover for %d files found in FC and not in BK" % len(inFCNotInBK),
-                                step=1, interactive=self.interactive)
+                                title="Checking Failover for %d descendants found in FC and not in BK" % len(
+          inFCNotInBK),
+          step=1, interactive=self.interactive)
       notInFailover, _notFound = self.getReplicasPresence(inFCNotInBK, ignoreFailover=True)
       inFailover = list(set(inFCNotInBK) - set(notInFailover))
       progressBar.endLoop(message="found %d in Failover" % len(inFailover))

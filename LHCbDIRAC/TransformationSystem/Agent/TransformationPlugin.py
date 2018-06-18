@@ -432,6 +432,8 @@ class TransformationPlugin(DIRACTransformationPlugin):
     if not res['OK']:
       return res
     site = res['Value']
+    if site is None:
+      return S_ERROR("No site found for SE")
     res = self.transClient.setDestinationForRun(runID, site)
     if not res['OK']:
       return res
