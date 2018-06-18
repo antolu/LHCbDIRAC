@@ -1,5 +1,16 @@
 #!/bin/bash
 
+if [ $# -ne 1 ]
+then
+  echo "Usage: $0 create or $0 reduce"
+  exit 1
+fi
+
+if [[ $1 != "create" && $1 != "reduce" ]]
+then
+  echo "Invalid argument $1"
+fi
+
 echo "lhcb-proxy-init -g lhcb_prmgr"
 lhcb-proxy-init -g lhcb_prmgr
 if [ $? -ne 0 ]
@@ -15,13 +26,18 @@ then
 fi
 echo " "
 
-echo "====== dirac-dms-add-transformation --Visibility=All --BKQuery=/certification/test/Beam6500GeV-2015-MagUp-Nu1.6-25ns-Pythia8/Sim09a/Trig0x411400a2/Reco15a/Turbo02/Stripping24NoPrescalingFlagged/13714010/ALLSTREAMS.DST --Plugin=ReplicateDataset --NumberOfReplicas=2 --SecondarySEs Tier1-DST --Start"
-#dirac-dms-add-transformation --Visibility=All --BKQuery=/LHCb/Collision12//RealData/Reco13a/Stripping19a//PID.MDST --Plugin=ReplicateDataset --NumberOfReplicas=2 --SecondarySEs Tier1-DST --Start
-dirac-dms-add-transformation --Visibility=All --BKQuery=/certification/test/Beam6500GeV-2015-MagUp-Nu1.6-25ns-Pythia8/Sim09a/Trig0x411400a2/Reco15a/Turbo02/Stripping24NoPrescalingFlagged/13714010/ALLSTREAMS.DST --Plugin=ReplicateDataset --NumberOfReplicas=2 --SecondarySEs Tier1-DST --Start
-if [ $? -ne 0 ]
+if [ $1 = "create" ]
 then
-   exit $?
+   echo "====== dirac-dms-add-transformation --Visibility=All --BKQuery=/certification/test/Beam6500GeV-2015-MagUp-Nu1.6-25ns-Pythia8/Sim09a/Trig0x411400a2/Reco15a/Turbo02/Stripping24NoPrescalingFlagged/13714010/ALLSTREAMS.DST --Plugin=ReplicateDataset --NumberOfReplicas=2 --SecondarySEs Tier1-DST --Start"
+   #dirac-dms-add-transformation --Visibility=All --BKQuery=/LHCb/Collision12//RealData/Reco13a/Stripping19a//PID.MDST --Plugin=ReplicateDataset --NumberOfReplicas=2 --SecondarySEs Tier1-DST --Start
+   dirac-dms-add-transformation --Visibility=All --BKQuery=/certification/test/Beam6500GeV-2015-MagUp-Nu1.6-25ns-Pythia8/Sim09a/Trig0x411400a2/Reco15a/Turbo02/Stripping24NoPrescalingFlagged/13714010/ALLSTREAMS.DST --Plugin=ReplicateDataset --NumberOfReplicas=2 --SecondarySEs Tier1-DST --Start
+   if [ $? -ne 0 ]
+   then
+      exit $?
+   fi
+
 fi
+		
 echo " "
 echo "====== dirac-dms-replica-stats --Visibility=All --BKQuery=/certification/test/Beam6500GeV-2015-MagUp-Nu1.6-25ns-Pythia8/Sim09a/Trig0x411400a2/Reco15a/Turbo02/Stripping24NoPrescalingFlagged/13714010/ALLSTREAMS.DST"
 #dirac-dms-replica-stats  --Visibility=All --BKQuery=/LHCb/Collision12//RealData/Reco13a/Stripping19a//PID.MDST
@@ -67,9 +83,19 @@ if [ $? -ne 0 ]
 then
    exit $?
 fi
-echo " "
-echo " if 2 replicas exists you can run "
-echo "====== dirac-dms-add-transformation --Visibility=All --BKQuery=/certification/test/Beam6500GeV-2015-MagUp-Nu1.6-25ns-Pythia8/Sim09a/Trig0x411400a2/Reco15a/Turbo02/Stripping24NoPrescalingFlagged/13714010/ALLSTREAMS.DST --Plugin=ReduceReplicas --NumberOfReplicas=1 --Start ======"
-echo " "
-echo " if the files are staged you can run"
-echo "====== dirac-dms-add-transformation --Plugin=RemoveReplicas --BK=/certification/test/Beam3500GeV-VeloClosed-MagDown/RealData/91000000/RAW  --FromSEs=Tier1-Buffer --Start ======"
+
+if [ $1 = "reduce" ]
+then
+   dirac-dms-add-transformation --Visibility=All --BKQuery=/certification/test/Beam6500GeV-2015-MagUp-Nu1.6-25ns-Pythia8/Sim09a/Trig0x411400a2/Reco15a/Turbo02/Stripping24NoPrescalingFlagged/13714010/ALLSTREAMS.DST --Plugin=ReduceReplicas --NumberOfReplicas=1 --Start
+   if [ $? -ne 0 ]
+   then
+      exit $?
+   fi
+fi
+
+#echo " "
+#echo " if 2 replicas exists you can run "
+#echo "====== dirac-dms-add-transformation --Visibility=All --BKQuery=/certification/test/Beam6500GeV-2015-MagUp-Nu1.6-25ns-Pythia8/Sim09a/Trig0x411400a2/Reco15a/Turbo02/Stripping24NoPrescalingFlagged/13714010/ALLSTREAMS.DST --Plugin=ReduceReplicas --NumberOfReplicas=1 --Start ======"
+#echo " "
+#echo " if the files are staged you can run"
+#echo "====== dirac-dms-add-transformation --Plugin=RemoveReplicas --BK=/certification/test/Beam3500GeV-VeloClosed-MagDown/RealData/91000000/RAW  --FromSEs=Tier1-Buffer --Start ======"
