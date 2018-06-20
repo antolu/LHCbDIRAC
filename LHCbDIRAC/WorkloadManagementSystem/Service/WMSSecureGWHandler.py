@@ -285,7 +285,7 @@ class WMSSecureGWHandler(RequestHandler):
       failed[lfn] = True
     return S_OK({'Successful': {}, 'Failed': failed})
 
-  types_putRequest = [StringTypes]
+  types_putRequest = [basestring]
 
   def export_putRequest(self, requestJSON):
     """ put a new request into RequestDB """
