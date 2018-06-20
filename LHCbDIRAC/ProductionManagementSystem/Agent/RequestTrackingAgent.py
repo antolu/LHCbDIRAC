@@ -60,13 +60,13 @@ class RequestTrackingAgent(AgentModule):
     """
     dq = request.get('inDataQualityFlag', 'ALL')
     if dq != 'ALL':
-      dqList = [str(idq) for idq in dq.replace(' ', '').split(',')]
+      dq = [str(idq) for idq in dq.replace(' ', '').split(',')]
     condition = {'ProcessingPass': str(request.get('inProPass', '')).strip(),
                  'FileType': [str(ift) for ift in request.get('inFileType', '').replace(' ', '').split(',')],
                  'EventType': str(request.get('EventType', '')).replace(' ', ''),
                  'ConfigName': str(request.get('configName', '')).replace(' ', ''),
                  'ConfigVersion': str(request.get('configVersion', '')).replace(' ', ''),
-                 'DataQualityFlag': dqList
+                 'DataQualityFlag': dq
                  }
     if 'condType' in request and request['condType'] == 'Run':
       condition['DataTakingConditions'] = str(request['SimCondition'])
