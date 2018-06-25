@@ -17,6 +17,14 @@ use DIRAC v6r20p2
 [v9r2-pre5]
 use DIRAC v6r20
 
+[v9r1p18]
+use DIRAC v6r19p23
+
+* fix for v6r19p22
+
+[v9r1p17]
+use DIRAC v6r19p22
+
 * remove useless code
 * protect against no site for SE
 * fix printout
