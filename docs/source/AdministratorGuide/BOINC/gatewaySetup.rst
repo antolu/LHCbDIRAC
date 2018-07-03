@@ -14,8 +14,8 @@ Generate the CA certs
 
 see https://jamielinux.com/docs/openssl-certificate-authority/index.html for detailed guide.
 
-Work into ``/path/to/boincCertificate`` and there:
-::
+Work into ``/path/to/boincCertificate`` and there::
+
     mkdir -p ca/newcerts ca/certs ca/crl
     touch ca/index.txt
     echo 1000 > ca/serial
@@ -48,10 +48,10 @@ Create the CA root certificate
 On the gateway machine, the CA certificate should be copied (*sym-link*) (``ca.cert.pem``) in ``/etc/grid-security/certificates``.
 
 
+.. _mrBoincCert:
+
 Create/Renew the MrBoinc User certificate and proxy
 ===================================================
-
-.. _mrBoincCert:
 
 Then we need a user certificate (MrBoinc User) self-signed by our own CA to be used in the untrusted world to obtain a MrBoinc user proxy.
 
