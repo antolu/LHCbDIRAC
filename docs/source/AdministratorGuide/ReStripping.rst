@@ -10,7 +10,7 @@ We do the prestaging of the RDST and the RAW files before a re-stripping campaig
 
 The staging of these two can be launched with a single command:
 
-.. code-block::
+::
 
   dirac-dms-add-transformation --Start --BK=<BKPATH> --Runs=<RUNRANGES> --Plugin=ReplicateWithAncestors --DQFlags=OK,UNCHECKED --Dest=Tier1-Buffer
 
@@ -19,7 +19,7 @@ For example
 
 
 
-.. code-block::
+::
 
   dirac-dms-add-transformation --Start --BK=/LHCb/Collision17//RealData/Reco17//RDST --Runs=191782:193500 --Plugin=ReplicateWithAncestors --DQFlags=OK,UNCHECKED --Dest=Tier1-Buffer
 
@@ -44,7 +44,7 @@ Since the StorageUsageDB is refreshed only once a day, we add the number of file
 
 Example of logs in the TransformationAgent:
 
-.. code-block::
+::
 
   (V) [NoThread] [-9999] Get storage usage for directories /lhcb/LHCb/Collision16/RDST
   (V) [NoThread] [-9999] Current storage usage per SE:
@@ -93,13 +93,13 @@ Input Removal
 
 Once a given RDST has been processed, it can be removed from BUFFER, as well as the associated raw file. This can be done with a single transformation:
 
-.. code-block::
+::
 
   dirac-dms-add-transformation --Plugin=RemoveReplicasWithAncestors --FromSE=Tier1-Buffer --BK=<BKPATH> --ProcessingPass=PROCESSINGPASS> --DQFlags=OK,UNCHECKED --Runs=<RUNRANGES> --Start
 
 For example
 
-.. code-block::
+::
 
   dirac-dms-add-transformation --Plugin=RemoveReplicasWithAncestors --FromSE=Tier1-Buffer --BK=/LHCb/Collision17/Beam6500GeV-VeloClosed-MagDown/RealData/Reco17//RDST --ProcessingPass=Stripping29r2 --DQFlags=OK,UNCHECKED --Runs=199386:200000 --Start
 
@@ -116,13 +116,13 @@ Output Replication
 
 In the current computing model, the output is replicated on an archive and at a second DST storage. This is done using the LHCbDSTBroadcast plugin
 
-.. code-block::
+::
 
   dirac-dms-add-transformation --Plugin=LHCbDSTBroadcast --BK=<BKPATH> --Except <USELESSSTREAM> --Start
 
 For example
 
-.. code-block::
+::
 
   dirac-dms-add-transformation --Plugin=LHCbDSTBroadcast --BK=/LHCb/Collision15//RealData/Reco15a/Stripping24r1//ALL.DST,ALL.MDST --Except CALIBRATION.DST --Start
 
@@ -134,8 +134,8 @@ Typical useless streams are normally `CALIBRATION.DST` and `MDST.DST`
 Productions check
 *****************
 
-The productions need to be checked for consistency and from teh Datamanagement point of view.
+The productions need to be checked for consistency and from the Datamanagement point of view.
 
-For the DataManagement, please see :ref:`_strippingDMChecks` and :ref:`_mergingDMChecks`.
+For the DataManagement, please see :ref:`strippingDMChecks` and :ref:`mergingDMChecks`.
 
-Also, some files might need to be cleaned manually because they were flagged bad during the production, see :ref:`_dmCleanBadFiles`.
+Also, some files might need to be cleaned manually because they were flagged bad during the production, see :ref:`dmCleanBadFiles`.

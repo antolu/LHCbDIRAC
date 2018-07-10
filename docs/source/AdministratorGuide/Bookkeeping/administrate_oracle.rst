@@ -117,65 +117,65 @@ How to identify problematic queries:
 
         5. execute the qurey
 
-    After when the query will finish then you will have the execution plan and you will have the real execution time as well. I propose to look the following
-    parameters:
+ After when the query will finish then you will have the execution plan and you will have the real execution time as well. I propose to look the following
+ parameters::
 
-        Cost (%CPU) , consistent gets, physical reads
-
-        For example:
+   Cost (%CPU) , consistent gets, physical reads
 
 
-
-    Elapsed: 00:00:00.12
-    Execution Plan
-    ----------------------------------------------------------
-    Plan hash value: 3340191443
-    ---------------------------------------------------------------------------------------------------------------------
-    | Id  | Operation              | Name     | Rows  | Bytes | Cost (%CPU)| Time     | Pstart| Pstop |
-    ---------------------------------------------------------------------------------------------------------------------
-    |   0 | SELECT STATEMENT          |          |  4960 |  2232K| 21217   (1)| 00:00:01 |       |     |
-    |   1 |  NESTED LOOPS             |          |     |     |     |     |     |     |
-    |   2 |   NESTED LOOPS            |          |  4960 |  2232K| 21217   (1)| 00:00:01 |       |     |
-    |   3 |    PARTITION RANGE ALL          |          |  4897 |  1219K|  1619   (1)| 00:00:01 |     1 |  20 |
-    |   4 |     TABLE ACCESS BY LOCAL INDEX ROWID| JOBS      |  4897 |  1219K|  1619   (1)| 00:00:01 |     1 |  20 |
-    |*  5 |      INDEX RANGE SCAN           | PROD_CONFIG  |  4897 |     |  88   (0)| 00:00:01 |     1 |  20 |
-    |   6 |    PARTITION RANGE ITERATOR        |          |   1 |     |   3   (0)| 00:00:01 |   KEY | KEY |
-    |*  7 |     INDEX RANGE SCAN         | JOBS_REP_VIS |     1 |     |   3   (0)| 00:00:01 |   KEY | KEY |
-    |   8 |   TABLE ACCESS BY LOCAL INDEX ROWID  | FILES     |   1 | 206 |   4   (0)| 00:00:01 |     1 |   1 |
-    ---------------------------------------------------------------------------------------------------------------------
-    Predicate Information (identified by operation id):
-    ---------------------------------------------------
-       5 - access("J"."PRODUCTION"=51073)
-       7 - access("J"."JOBID"="F"."JOBID" AND "F"."GOTREPLICA"='Yes')
-    Statistics
-    ----------------------------------------------------------
-       46  recursive calls
-        0  db block gets
-      508  consistent gets
-       46  physical reads
-           1452  redo size
-          56603  bytes sent via SQL*Net to client
-      640  bytes received via SQL*Net from client
-       10  SQL*Net roundtrips to/from client
-        1  sorts (memory)
-        0  sorts (disk)
-      131  rows processed
+For example::
 
 
-      Problems:
-          - the cost is a big number.
-          - the consistent gets is very high
-          - physical reads are very high
+
+   Elapsed: 00:00:00.12
+   Execution Plan
+   ----------------------------------------------------------
+   Plan hash value: 3340191443
+   ---------------------------------------------------------------------------------------------------------------------
+   | Id  | Operation              | Name     | Rows  | Bytes | Cost (%CPU)| Time     | Pstart| Pstop |
+   ---------------------------------------------------------------------------------------------------------------------
+   |   0 | SELECT STATEMENT          |          |  4960 |  2232K| 21217   (1)| 00:00:01 |       |     |
+   |   1 |  NESTED LOOPS             |          |     |     |     |     |     |     |
+   |   2 |   NESTED LOOPS            |          |  4960 |  2232K| 21217   (1)| 00:00:01 |       |     |
+   |   3 |    PARTITION RANGE ALL          |          |  4897 |  1219K|  1619   (1)| 00:00:01 |     1 |  20 |
+   |   4 |     TABLE ACCESS BY LOCAL INDEX ROWID| JOBS      |  4897 |  1219K|  1619   (1)| 00:00:01 |     1 |  20 |
+   |*  5 |      INDEX RANGE SCAN           | PROD_CONFIG  |  4897 |     |  88   (0)| 00:00:01 |     1 |  20 |
+   |   6 |    PARTITION RANGE ITERATOR        |          |   1 |     |   3   (0)| 00:00:01 |   KEY | KEY |
+   |*  7 |     INDEX RANGE SCAN         | JOBS_REP_VIS |     1 |     |   3   (0)| 00:00:01 |   KEY | KEY |
+   |   8 |   TABLE ACCESS BY LOCAL INDEX ROWID  | FILES     |   1 | 206 |   4   (0)| 00:00:01 |     1 |   1 |
+   ---------------------------------------------------------------------------------------------------------------------
+   Predicate Information (identified by operation id):
+   ---------------------------------------------------
+    5 - access("J"."PRODUCTION"=51073)
+    7 - access("J"."JOBID"="F"."JOBID" AND "F"."GOTREPLICA"='Yes')
+   Statistics
+   ----------------------------------------------------------
+    46  recursive calls
+     0  db block gets
+   508  consistent gets
+    46  physical reads
+        1452  redo size
+       56603  bytes sent via SQL*Net to client
+   640  bytes received via SQL*Net from client
+    10  SQL*Net roundtrips to/from client
+     1  sorts (memory)
+     0  sorts (disk)
+   131  rows processed
+
+
+   Problems:
+       - the cost is a big number.
+       - the consistent gets is very high
+       - physical reads are very high
 
 
 
 Note:
 
-    -You may have query which needs to read lot of data. In this case the consistent gets and physical reads are very high numbers.
-In that example if the consistent gets and physical reads are very high for example more than 10k we have problem. This is because the query only returned 131 rows.
+    - You may have query which needs to read lot of data. In this case the consistent gets and physical reads are very high numbers. In that example if the consistent gets and physical reads are very high for example more than 10k we have problem. This is because the query only returned 131 rows.
     - TABLE ACCESS FULL is not good. You have to make sure that the query uses an index. This is not always true.
-    -parallel execution you have to make sure if the query is running parallel, the processes does not send to much data between each other. If you run a query parallel and the consistent gets is very high then you have a problem. Contact to oracle IT/DB if you do not know what to do...
-    -CARTESIAN join: If you see that word in the execution plan, the query is wrong.
+    - parallel execution you have to make sure if the query is running parallel, the processes does not send to much data between each other. If you run a query parallel and the consistent gets is very high then you have a problem. Contact to oracle IT/DB if you do not know what to do...
+    - CARTESIAN join: If you see that word in the execution plan, the query is wrong.
 
 
 =================================
@@ -183,6 +183,7 @@ Steps in the Bookkeeping database
 =================================
 
 Steps are used to process/produce data. The steps are used by the Production Management system and work flow. The steps are stored in the steps table which has the following columns::
+
    STEPID
    STEPNAME
    APPLICATIONNAME
@@ -204,6 +205,7 @@ Steps are used to process/produce data. The steps are used by the Production Man
    MCTCK
 
 The steps table has 3 triggers::
+
    STEP_INSERT: This trigger is used to replace NULL, None to an empty string.
    steps_before_insert: It checks that the processing pass contains a '/'.
    step_update: The steps which are already used can not be modified.
@@ -219,26 +221,29 @@ We may want to modify an already used steps. A step can be modified if the trigg
 ==================================
 Processing pass in the Bookkeeping
 ==================================
-The processing pass is a collection of steps. The processing pass is stored in the processing table:
+The processing pass is a collection of steps. The processing pass is stored in the processing table::
+
    ID
    ParentID
    Name
 
-The following example illustrates how to create a step:
+The following example illustrates how to create a step::
+
    select max(id)+1 from processing;
    select * from processing where name='Real Data';
    insert into processing(id,parentid, name)values(1915,12,'Reco16Smog');
+
 In this example we have created the following processing pass: /Real Data/Reco16Smog
 
-The following query can be used to check the step:
+The following query can be used to check the step::
 
-SELECT * FROM (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID
-      FROM processing v   START WITH id in (select distinct id from processing where name='Real Data')
-CONNECT BY NOCYCLE PRIOR  id=parentid) v   where v.path='/Real Data/Reco16Smog';
+   SELECT * FROM (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID
+         FROM processing v   START WITH id in (select distinct id from processing where name='Real Data')
+   CONNECT BY NOCYCLE PRIOR  id=parentid) v   where v.path='/Real Data/Reco16Smog';
 
-If we know the processing id, we can use the following query to found out the processing pass:
+If we know the processing id, we can use the following query to found out the processing pass::
 
-SELECT v.id,v.path FROM (SELECT distinct  LEVEL-1 Pathlen, SYS_CONNECT_BY_PATH(name, '/') Path, id
-   FROM processing
-   WHERE LEVEL > 0 and id=1915
-   CONNECT BY PRIOR id=parentid order by Pathlen desc) v where rownum<=1;
+   SELECT v.id,v.path FROM (SELECT distinct  LEVEL-1 Pathlen, SYS_CONNECT_BY_PATH(name, '/') Path, id
+      FROM processing
+      WHERE LEVEL > 0 and id=1915
+      CONNECT BY PRIOR id=parentid order by Pathlen desc) v where rownum<=1;

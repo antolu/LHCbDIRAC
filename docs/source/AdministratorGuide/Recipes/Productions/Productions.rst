@@ -29,7 +29,7 @@ reset the files Unused. They will be brokered to the designated hospital site, w
 Example:
 ========
 
-.. code-block::
+::
 
     [localhost] ~ $ dirac-transformation-debug 71500 --Status MaxReset --Info jobs
      Transformation 71500 (Active) of type DataStripping (plugin ByRunWithFlush, GroupSize: 1) in Real Data/Reco17/Stripping29r2
@@ -62,7 +62,7 @@ Example:
 
 So 2 files have to be hospitalised. Reset them Unused:
 
-.. code-block::
+::
 
     [localhost] ~ $ dirac-transformation-reset-files 71500 --Status MaxReset
     2 files were set Unused in transformation 71500
