@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL$
-# File :    dirac-wms-job-delete
+# File :    dirac-wms-job-parameters
 # Author :  Philippe Charpentier
 ########################################################################
 """
