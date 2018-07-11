@@ -61,9 +61,9 @@ run_pytest:
 run_pycodestyle:
   <<: *test_setup
   script:
-    - lhcbDiracBranch=$(head -n 50 LHCbDIRAC/releases.cfg | grep -E ' *v' | head -n 1 | grep -q pre; if [ $? -eq 0 ]; then echo "devel"; else echo "master"; fi)
+    - lhcbDiracBranch=$(head -n 50 LHCbDIRAC/releases.cfg | grep -E ' *v' | head -n 1 | grep -qE '(pre|v0r)'; if [ $? -eq 0 ]; then echo "devel"; else echo "master"; fi)
     - git remote add GL https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC.git
-    - git fetch --no-tags GL 
+    - git fetch --no-tags GL
     - git branch -avv
     - git diff -U0 GL/${lhcbDiracBranch} | pycodestyle --diff
 
