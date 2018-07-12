@@ -135,8 +135,8 @@ class NotifyAgent(AgentModule):
                              "<td>" + reqName + "</td>" + \
                              "<td>" + reqType + "</td>" + \
                              "<td>" + reqWG + "</td>" + \
-                             "<td>" + SimCondition + "</td>" + \
-                             "<td>" + ProPath + "</td>" + \
+                             "<td>" + SimCondition if SimCondition else '' + "</td>" + \
+                             "<td>" + ProPath if ProPath else '' + "</td>" + \
                              "<td class='link'><a href='" + link + "' target='_blank'> Link </a></td>" + \
                              "</tr>"
 
