@@ -1,4 +1,4 @@
-import threading # DO i need this??
+import threading # Do i need this??
 
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -20,16 +20,19 @@ class MCStatsElasticDBHandler(RequestHandler):
 		self.DB = MCStatsElasticDB
 		self.lock = threading.lock() # What is this??
 
+	types_set = [ dict ]
 	def export_set(self, typeName, data):
 
 		gLogger.notice('Called set() with typeName = %s' % typeName)
 		return self.DB.set(typeName, data)
 
+	types_get = [ dict ]
 	def export_get(self):
 
 		gLogger.notice('Called get()' )
 		return self.DB.get()
 
+	types_get = [ dict ]
 	def export_remove(self):
 
 		gLogger.notice('Called remove()' )
