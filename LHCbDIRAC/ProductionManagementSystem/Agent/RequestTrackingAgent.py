@@ -57,13 +57,18 @@ class RequestTrackingAgent( AgentModule ):
   def bkInputNumberOfEvents( self, request ):
     """ Extremely dirty way...
     """
-    condition = {'ProcessingPass'  : str( request['inProPass'] ).strip(),
-                 'FileType'        : [str(ift) for ift in request['inFileType'].replace(' ', '').split(',')],
-                 'EventType'       : str( request['EventType'] ).replace( ' ', '' ),
-                 'ConfigName'      : str( request['configName'] ).replace( ' ', '' ),
-                 'ConfigVersion'   : str( request['configVersion'] ).replace( ' ', '' ),
-                 'DataQualityFlag' : [str(idq) for idq in request['inDataQualityFlag'].replace(' ', '').split(',')]
-                }
+    try:
+      condition = {'ProcessingPass'  : str( request['inProPass'] ).strip(),
+                   'FileType'        : [str(ift) for ift in request['inFileType'].replace(' ', '').split(',')],
+                   'EventType'       : str( request['EventType'] ).replace( ' ', '' ),
+                  'ConfigName'      : str( request['configName'] ).replace( ' ', '' ),
+                  'ConfigVersion'   : str( request['configVersion'] ).replace( ' ', '' ),
+                  'DataQualityFlag' : [str(idq) for idq in request['inDataQualityFlag'].replace(' ', '').split(',')]
+                  }
+    except KeyError as ke:
+      gLogger.error("%s is incomplete: %s" %(request['RequestID'], repr(ke)))
+      return S_ERROR()
+
     if 'condType' in request and request['condType'] == 'Run':
       condition['DataTakingConditions'] = str( request['SimCondition'] )
     else:
