@@ -3,7 +3,7 @@ default_bits           = 4096
 encrypt_key            = yes
 distinguished_name     = req_dn
 prompt                 = no
-x509_extensions        = usr_cert
+req_extensions        = v3_req
 
 # Generates the following subject
 # Subject: O=Volunteer Computing, O=CERN, CN=MrBoinc
@@ -12,12 +12,10 @@ O                      = Volunteer Computing
 0.O                    = CERN
 CN                     = MrBoinc
 
-[ usr_cert ]
+[ v3_req ]
 # Extensions for client certificates (`man x509v3_config`).
-basicConstraints = CA:FALSE
-nsCertType = client, email
 nsComment = "OpenSSL Generated Client Certificate"
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid,issuer
 keyUsage = critical, nonRepudiation, digitalSignature, keyEncipherment
-extendedKeyUsage = clientAuth, emailProtection
+extendedKeyUsage = clientAuth

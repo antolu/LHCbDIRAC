@@ -35,6 +35,11 @@ default_days      = 375
 preserve          = no
 policy            = policy_loose
 
+# This option is dangerous, but allows to
+# set subjectAlternativeName on the Request
+# `man ca` is your friend
+copy_extensions=copy
+
 [ policy_strict ]
 # The root CA should only sign intermediate certificates that match.
 # See the POLICY FORMAT section of `man ca`.
@@ -84,19 +89,21 @@ keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 [ usr_cert ]
 # Extensions for client certificates (`man x509v3_config`).
 basicConstraints = CA:FALSE
-nsCertType = client, email
-nsComment = "OpenSSL Generated Client Certificate"
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid,issuer
 keyUsage = critical, nonRepudiation, digitalSignature, keyEncipherment
-extendedKeyUsage = clientAuth, emailProtection
+extendedKeyUsage = clientAuth
 
+
+# Whatever is in the request will be copied, unless it is already defined.
+# So we have some double definitions here with the other ssl config files,
+# but that's allright. The basicConstraints = CA:FALSE is a protection that MUST stay
 [ server_cert ]
 # Extensions for server certificates (`man x509v3_config`).
 basicConstraints = CA:FALSE
-nsCertType = server
 nsComment = "OpenSSL Generated Server Certificate"
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid,issuer:always
 keyUsage = critical, digitalSignature, keyEncipherment
-extendedKeyUsage = serverAuth
+# Our servers need both serverAuth and clientAuth
+extendedKeyUsage = serverAuth,clientAuth

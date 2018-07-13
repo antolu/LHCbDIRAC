@@ -26,12 +26,12 @@ Create the ``openssl_config_host.cnf`` file in the ``MrBoincHost/`` directory.
 
 ::
 
-    openssl req -config MrBoincHost/openssl_config_host.cnf -key MrBoincHost/hostkey.pem  -new -sha256 -out MrBoincHost/request.csr.pem
+    openssl req -config MrBoincHost/openssl_config_host.cnf -key MrBoincHost/hostkey.pem  -new -out MrBoincHost/request.csr.pem
 
 ::
 
     openssl ca -config ca/openssl_config_ca.cnf \
-         -extensions server_cert -days 375 -notext -md sha256 \
+         -extensions server_cert \
          -in MrBoincHost/request.csr.pem \
          -out MrBoincHost/hostcert.pem
 

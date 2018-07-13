@@ -12,19 +12,28 @@ encrypt_key         = yes
 # SHA-1 is deprecated, so use SHA-2 instead.
 default_md          = sha256
 
-# Extension to add when the -x509 option is used.
-x509_extensions     = v3_ca
+# Extension to add in the request
+req_extensions     = v3_req
 
 [ req_distinguished_name ]
+# CAUTION the name also needs to be in the alt_names as per RFC (don't remember the number)
 # See <https://en.wikipedia.org/wiki/Certificate_signing_request>.
 O                   = Volunteer Computing
-0.O                 = CERN # Adapt here to your institue
+0.O                 = CERN # Adapt here to your institute
 CN                  = MrBoincHost
 
 
-[ v3_ca ]
-# Extensions for a typical CA (`man x509v3_config`).
+[ v3_req ]
+# Extensions to ask for the cert (`man x509v3_config`).
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth,clientAuth
 subjectKeyIdentifier = hash
-authorityKeyIdentifier = keyid:always,issuer
-basicConstraints = critical, CA:true
-keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+subjectAltName = @alt_names
+
+
+
+
+
+[ alt_names ]
+DNS.1 = MrBoincHost
+DNS.2 = localhost
