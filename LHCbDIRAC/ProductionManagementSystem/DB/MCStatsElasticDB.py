@@ -28,7 +28,7 @@ class MCStatsElasticDB(DB):
 			}
 		}
 
-		createIndex = self.createIndex(self.indexName, self.mapping)
+		createIndex = self.createIndex(self.indexName, self.mapping, None)
 		if not createIndex['OK']:
 			gLogger.error("ERROR: Couldn't create index")
 		else:
