@@ -9,31 +9,31 @@ __RCSID__ = "$Id$"
 MCStatsElasticDB = False
 
 def initializeMCStatsHandler(self):
-	global MCStatsElasticDB
-	MCStatsElasticDB = MCStatsElasticDB()
-	return S_OK()
+  global MCStatsElasticDB
+  MCStatsElasticDB = MCStatsElasticDB()
+  return S_OK()
 
 class MCStatsElasticDBHandler(RequestHandler):
-	def __init__(self, *args, **kargs):
-		RequestHandler.__init__(self, *args, **kargs)
+  def __init__(self, *args, **kargs):
+    RequestHandler.__init__(self, *args, **kargs)
 
-		self.DB = MCStatsElasticDB
-		self.lock = threading.lock() # What is this??
+    self.DB = MCStatsElasticDB
+    self.lock = threading.lock() # What is this??
 
-	types_set = [ dict ]
-	def export_set(self, typeName, data):
+  types_set = [ dict ]
+  def export_set(self, typeName, data):
 
-		gLogger.notice('Called set() with typeName = %s' % typeName)
-		return self.DB.set(typeName, data)
+    gLogger.notice('Called set() with typeName = %s' % typeName)
+    return self.DB.set(typeName, data)
 
-	types_get = [ dict ]
-	def export_get(self):
+  types_get = [ dict ]
+  def export_get(self):
 
-		gLogger.notice('Called get()' )
-		return self.DB.get()
+    gLogger.notice('Called get()' )
+    return self.DB.get()
 
-	types_remove = [ dict ]
-	def export_remove(self):
+  types_remove = [ dict ]
+  def export_remove(self):
 
-		gLogger.notice('Called remove()' )
-		return self.DB.remove()
+    gLogger.notice('Called remove()' )
+    return self.DB.remove()
