@@ -32,7 +32,7 @@ class MCStatsElasticDBHandler(RequestHandler):
 		gLogger.notice('Called get()' )
 		return self.DB.get()
 
-	types_get = [ dict ]
+	types_remove = [ dict ]
 	def export_remove(self):
 
 		gLogger.notice('Called remove()' )
