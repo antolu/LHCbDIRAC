@@ -582,7 +582,19 @@ class ConsistencyChecks(DiracConsistencyChecks):
           break
         else:
           progressBar.comment("Error getting daughters for %d files, retry" % len(lfnChunk), resChunk['Message'])
-    progressBar.endLoop()
+    prStr = ""
+    if filesWithDescendants:
+      nb = sum(len(desc) for desc in filesWithDescendants.itervalues())
+      prStr += "found %d descendants for %d files" % (nb, len(filesWithDescendants))
+      if filesWithMultipleDescendants:
+        prStr += " of which %d are multiple" % len(filesWithMultipleDescendants)
+    if filesWithoutDescendants:
+      if not prStr:
+        prStr = "fipythonound"
+      else:
+        prStr += " and"
+      prStr += " no descendants for %d files" % len(filesWithoutDescendants)
+    progressBar.endLoop(message=prStr)
     return daughtersBKInfo
 
   def getDescendants(self, lfns, status=''):
@@ -663,7 +675,8 @@ class ConsistencyChecks(DiracConsistencyChecks):
             else:
               progressBar.comment("Error getting descendants for %d files, retry" % len(lfnChunk), res['Message'])
         uniqueDescendants = set(lfn for desc in notPresentDescendants.itervalues() for lfn in desc)
-        progressBar.endLoop(message='found %d descendants' % len(uniqueDescendants))
+        progressBar.endLoop(message='found %d descendants of %d files' %
+                            (len(uniqueDescendants), len(notPresentDescendants)))
         # Check if descendants have a replica in the FC
         setDaughtersWithDesc = set()
         if uniqueDescendants:
@@ -741,7 +754,7 @@ class ConsistencyChecks(DiracConsistencyChecks):
               filesWithMultipleDescendants[lfn] = multi
               prStr = 'multiple'
             self.__logVerbose('Found %s descendants' % prStr)
-        progressBar.endLoop()
+        progressBar.endLoop(message='found %d files with existing descendants' % len(filesWithDescendants))
     # print 'Final multiple descendants', filesWithMultipleDescendants
 
     # File files without descendants don't exist, not important
