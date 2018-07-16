@@ -1,3 +1,17 @@
+[v9r1p19]
+use DIRAC v6r19p24
+
+* returning the error message
+* autopep8
+* added try/except for incomplete requests
+* fix for NoneType
+* autopep8
+* improve printout
+* fix comment
+* Docs: fix all the warnings
+* better format + new option --Parameters
+* protect against exception opening XML summary
+
 [v9r1p18]
 use DIRAC v6r19p23
 
