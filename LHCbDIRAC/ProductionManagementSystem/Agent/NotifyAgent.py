@@ -10,20 +10,20 @@
 
 import os
 import sqlite3
-from DIRAC                                                       import gConfig, S_OK
-from DIRAC.Core.Base.AgentModule                                 import AgentModule
-from DIRAC.Interfaces.API.DiracAdmin                             import DiracAdmin
-from DIRAC.ConfigurationSystem.Client                            import PathFinder
-from LHCbDIRAC.ProductionManagementSystem.Utilities.Utils        import _getMemberMails
+from DIRAC import gConfig, S_OK
+from DIRAC.Core.Base.AgentModule import AgentModule
+from DIRAC.Interfaces.API.DiracAdmin import DiracAdmin
+from DIRAC.ConfigurationSystem.Client import PathFinder
+from LHCbDIRAC.ProductionManagementSystem.Utilities.Utils import _getMemberMails
 
-__RCSID__ = '$Id: $'
+__RCSID__ = '$Id$'
 
 AGENT_NAME = 'ProductionManagement/NotifyAgent'
 
 
-class NotifyAgent( AgentModule ):
+class NotifyAgent(AgentModule):
 
-  def __init__( self, *args, **kwargs ):
+  def __init__(self, *args, **kwargs):
 
     super(NotifyAgent, self).__init__(*args, **kwargs)
 
@@ -32,11 +32,11 @@ class NotifyAgent( AgentModule ):
     self.fromAddress = None
 
     if 'DIRAC' in os.environ:
-      self.cacheFile = os.path.join( os.getenv('DIRAC'), 'work/ProductionManagement/cache.db' )
+      self.cacheFile = os.path.join(os.getenv('DIRAC'), 'work/ProductionManagement/cache.db')
     else:
       self.cacheFile = os.path.realpath('cache.db')
 
-  def initialize( self ):
+  def initialize(self):
     ''' NotifyAgent initialization
     '''
 
@@ -57,19 +57,19 @@ class NotifyAgent( AgentModule ):
 
     self.diracAdmin = DiracAdmin()
 
-    self.csS = PathFinder.getServiceSection( 'ProductionManagement/ProductionRequest' )
+    self.csS = PathFinder.getServiceSection('ProductionManagement/ProductionRequest')
 
-    self.fromAddress = gConfig.getValue( '%s/fromAddress' % self.csS, '' )
+    self.fromAddress = gConfig.getValue('%s/fromAddress' % self.csS, '')
     if not self.fromAddress:
-      self.log.info( 'No fromAddress is defined, a default value will be used instead' )
+      self.log.info('No fromAddress is defined, a default value will be used instead')
       self.fromAddress = 'vladimir.romanovsky@cern.ch'
 
     return S_OK()
 
-  def execute( self ):
+  def execute(self):
 
     if not os.path.isfile(self.cacheFile):
-      self.log.error( self.cacheFile + " does not exist." )
+      self.log.error(self.cacheFile + " does not exist.")
       return S_OK()
 
     with sqlite3.connect(self.cacheFile) as conn:
@@ -79,7 +79,7 @@ class NotifyAgent( AgentModule ):
       # *******************************************************
 
       if not self.csS:
-        self.log.error( 'No ProductionRequest section in configuration' )
+        self.log.error('No ProductionRequest section in configuration')
         return S_OK()
 
       result = conn.execute("SELECT DISTINCT thegroup, reqName, reqWG, reqInform from ProductionManagementCache;")
@@ -117,14 +117,16 @@ class NotifyAgent( AgentModule ):
                      "or to reject the requests. In case some other member of the group has already done that, " \
                      "please ignore this mail.\n"
 
-          elif group[0] in [ 'lhcb_ppg', 'lhcb_tech' ]:
+          elif group[0] in ['lhcb_ppg', 'lhcb_tech']:
             header = "New Productions are requested. As member of <span style='color:green'>" + group[0] + "</span> group, your are asked either to sign or " \
                      "to reject it. In case some other member of the group has already done that, please ignore this mail.\n"
           else:
-            header = "As member of <span style='color:green'>" + group[0] + "</span> group, your are asked to review the below requests.\n"
+            header = "As member of <span style='color:green'>" + \
+                group[0] + "</span> group, your are asked to review the below requests.\n"
 
-          cursor = conn.execute( "SELECT reqId, reqType, reqWG, reqName, SimCondition, ProPath from ProductionManagementCache "
-                                "WHERE thegroup = ? and reqName=? and reqWG=? ", ( group[0], group[1], group[2] ) )
+          cursor = conn.execute(
+              "SELECT reqId, reqType, reqWG, reqName, SimCondition, ProPath from ProductionManagementCache "
+              "WHERE thegroup = ? and reqName=? and reqWG=? ", (group[0], group[1], group[2]))
 
           for reqId, reqType, reqWG, reqName, SimCondition, ProPath in cursor:
 
@@ -133,8 +135,8 @@ class NotifyAgent( AgentModule ):
                              "<td>" + reqName + "</td>" + \
                              "<td>" + reqType + "</td>" + \
                              "<td>" + reqWG + "</td>" + \
-                             "<td>" + SimCondition + "</td>" + \
-                             "<td>" + ProPath + "</td>" + \
+                             "<td>" + SimCondition if SimCondition else '' + "</td>" + \
+                             "<td>" + ProPath if ProPath else '' + "</td>" + \
                              "<td class='link'><a href='" + link + "' target='_blank'> Link </a></td>" + \
                              "</tr>"
 
@@ -160,7 +162,7 @@ class NotifyAgent( AgentModule ):
 
           informPeople = None
           if group[3]:
-            informPeople = group[3].split( ',' )
+            informPeople = group[3].split(',')
           if informPeople:
             for emailaddress in informPeople:
               res = self.diracAdmin.sendMail(emailaddress,
@@ -169,7 +171,7 @@ class NotifyAgent( AgentModule ):
                                                                                                            group[1]),
                                              aggregated_body, self.fromAddress, html=True)
 
-          for people in _getMemberMails( group[0] ):
+          for people in _getMemberMails(group[0]):
 
             res = self.diracAdmin.sendMail(people,
                                            "Notifications for production requests - Group %s; %s; %s" % (group[0],
@@ -180,7 +182,7 @@ class NotifyAgent( AgentModule ):
             if res['OK']:
               conn.execute("DELETE FROM ProductionManagementCache;")
             else:
-              self.log.error( "_inform_people: can't send email: %s" % res['Message'] )
+              self.log.error("_inform_people: can't send email: %s" % res['Message'])
               return S_OK()
 
       # **************************************
@@ -269,8 +271,8 @@ class NotifyAgent( AgentModule ):
 
         aggregated_body = html_header2 + html_body1 + html_body2
 
-        res = self.diracAdmin.sendMail( 'vladimir.romanovsky@cern.ch', "Transformation Status Updates", aggregated_body,
-                                        'vladimir.romanovsky@cern.ch', html = True )
+        res = self.diracAdmin.sendMail('vladimir.romanovsky@cern.ch', "Transformation Status Updates", aggregated_body,
+                                       'vladimir.romanovsky@cern.ch', html=True)
 
         if res['OK']:
 
@@ -281,7 +283,7 @@ class NotifyAgent( AgentModule ):
           conn.execute("VACUUM;")
 
         else:
-          self.log.error( "Can't send email: %s" % res['Message'] )
+          self.log.error("Can't send email: %s" % res['Message'])
           return S_OK()
 
     return S_OK()
