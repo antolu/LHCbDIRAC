@@ -42,14 +42,14 @@ class MCSuccess(ProductionJobTestCase):
                     'fileTypesIn': [],
                     'fileTypesOut':['SIM'],
                     'visibilityFlag':[{'Visible': 'N', 'FileType': 'SIM'}]},
-                   {'StepId': 133533, 'StepName': 'Digi14c', 'ApplicationName': 'Boole', 'ApplicationVersion': 'v30r3',
-                    'ExtraPackages': 'AppConfig.v3r338', 'ProcessingPass': 'Digi14c', 'Visible': 'N', 'Usable': 'Yes',
-                    'DDDB': 'dddb-20170721-3', 'CONDDB': 'sim-20161124-vc-md100', 'DQTag': '', 'OptionsFormat': '',
-                    'OptionFiles': '$APPCONFIGOPTS/Boole/Default.py;$APPCONFIGOPTS/Boole/EnableSpillover.py;$APPCONFIGOPTS/Boole/DataType-2015.py;$APPCONFIGOPTS/Boole/Boole-SetOdinRndTrigger.py',
-                    'isMulticore': 'N', 'SystemConfig': 'x86_64-slc6-gcc49-opt', 'mcTCK': '', 'ExtraOptions': '',
-                    'fileTypesIn': ['SIM'],
-                    'fileTypesOut':['DIGI'],
-                    'visibilityFlag':[{'Visible': 'N', 'FileType': 'DIGI'}]},
+                   # {'StepId': 133533, 'StepName': 'Digi14c', 'ApplicationName': 'Boole', 'ApplicationVersion': 'v30r3',
+                   #  'ExtraPackages': 'AppConfig.v3r338', 'ProcessingPass': 'Digi14c', 'Visible': 'N', 'Usable': 'Yes',
+                   #  'DDDB': 'dddb-20170721-3', 'CONDDB': 'sim-20161124-vc-md100', 'DQTag': '', 'OptionsFormat': '',
+                   #  'OptionFiles': '$APPCONFIGOPTS/Boole/Default.py;$APPCONFIGOPTS/Boole/EnableSpillover.py;$APPCONFIGOPTS/Boole/DataType-2015.py;$APPCONFIGOPTS/Boole/Boole-SetOdinRndTrigger.py',
+                   #  'isMulticore': 'N', 'SystemConfig': 'x86_64-slc6-gcc49-opt', 'mcTCK': '', 'ExtraOptions': '',
+                   #  'fileTypesIn': ['SIM'],
+                   #  'fileTypesOut':['DIGI'],
+                   #  'visibilityFlag':[{'Visible': 'N', 'FileType': 'DIGI'}]},
                   ]
 
     # First create the production object
