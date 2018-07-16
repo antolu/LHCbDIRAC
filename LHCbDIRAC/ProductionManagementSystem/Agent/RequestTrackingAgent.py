@@ -61,13 +61,18 @@ class RequestTrackingAgent(AgentModule):
     dq = request.get('inDataQualityFlag', 'ALL')
     if dq != 'ALL':
       dq = [str(idq) for idq in dq.replace(' ', '').split(',')]
-    condition = {'ProcessingPass': str(request.get('inProPass', '')).strip(),
-                 'FileType': [str(ift) for ift in request.get('inFileType', '').replace(' ', '').split(',')],
-                 'EventType': str(request.get('EventType', '')).replace(' ', ''),
-                 'ConfigName': str(request.get('configName', '')).replace(' ', ''),
-                 'ConfigVersion': str(request.get('configVersion', '')).replace(' ', ''),
-                 'DataQualityFlag': dq
-                 }
+    try:
+      condition = {'ProcessingPass': str(request.get('inProPass', '')).strip(),
+                   'FileType': [str(ift) for ift in request.get('inFileType', '').replace(' ', '').split(',')],
+                   'EventType': str(request.get('EventType', '')).replace(' ', ''),
+                   'ConfigName': str(request.get('configName', '')).replace(' ', ''),
+                   'ConfigVersion': str(request.get('configVersion', '')).replace(' ', ''),
+                   'DataQualityFlag': dq
+                   }
+    except KeyError as ke:
+      gLogger.error("%s is incomplete: %s" % (request['RequestID'], repr(ke)))
+      return S_ERROR(repr(ke))
+
     if 'condType' in request and request['condType'] == 'Run':
       condition['DataTakingConditions'] = str(request['SimCondition'])
     else:

@@ -166,7 +166,7 @@ Then click on the "BUILD" button
 * if there is a problem in the build, it can be re-started via the dedicated button (it will not restart by itself after a retag)
 
 
-When the release is finished https://lhcb-nightlies.cern.ch/release/, you can deploy to the client to afs dev area or prod. 
+When the release is finished https://lhcb-nightlies.cern.ch/release/, you can deploy to the client to afs dev area or prod.
 
 prod area
 ``````````
@@ -175,8 +175,8 @@ If you want to deploy this release to production release area, you
 have to create a JIRA task and make the request via https://its.cern.ch/jira/projects/LHCBDEP.
 
 * NOTE: If some package is already released, please do not indicate in the Jira task. For example: a Jira task when:
-    * DIRAC is not released, then the message in the JIRA task: Summary:Dirac v6r14p37 and LHCbDirac v8r2p50; Description: Please release  Dirac and  LHCbDirac in  this order  based on build 1526; 
-    * DIRAC is released, then the message in the JIRA task: Summary:LHCbDirac v8r2p50;  Description: Please release  LHCbDirac based on build 1526; 
+    * DIRAC is not released, then the message in the JIRA task: Summary:Dirac v6r14p37 and LHCbDirac v8r2p50; Description: Please release  Dirac and  LHCbDirac in  this order  based on build 1526;
+    * DIRAC is released, then the message in the JIRA task: Summary:LHCbDirac v8r2p50;  Description: Please release  LHCbDirac based on build 1526;
 
 
 afs deve area
@@ -221,3 +221,14 @@ Pilot
 ``````
 
 Update the pilot version from the CS.
+=======
+Use the following script (from, e.g., lxplus after having run `lb-run --dev LHCbDIRAC bash`)::
+
+  dirac-pilot-version
+
+for checking and updating the pilot version. Note that you'll need a proxy that can write in the CS (i.e. lhcb-admin).
+This script will make sure that the pilot version is update BOTH in the CS and in the json file used by pilots started in the vacuum. The command to update is::
+
+  dirac-pilot-version -S v8r4-pre1
+
+Make sure that you are in the certification setup (e.g. check the content of your .dirac.cfg file)

@@ -15,21 +15,20 @@ Generate the MrBoinc host certificate
 
 This certificate/key needs to be given to IT to add in the contextualization file.
 
-Work into ``/path/to/boincCertificate`` and there:
-::
+Work into ``/path/to/boincCertificate`` and there::
+
     mkdir MrBoincHost
 
-Create the ``openssl_config_host.cnf`` file in the ``MrBoincHost/`` directory.
-::
+Create the ``openssl_config_host.cnf`` file in the ``MrBoincHost/`` directory::
+
+    # Generate the key
     openssl genrsa -out MrBoincHost/hostkey.pem 4096
     chmod 400 MrBoincHost/hostkey.pem
 
-::
+    # Create the request
+    openssl req -config MrBoincHost/openssl_config_host.cnf -key MrBoincHost/hostkey.pem  -new -sha256 -out MrBoincHost/request.csr.pem
 
-    openssl req -config MrBoincHost/openssl_config_host.cnf -key MrBoincHost/hostkey.pem  -new -out MrBoincHost/request.csr.pem
-
-::
-
+    # Sign it
     openssl ca -config ca/openssl_config_ca.cnf \
          -extensions server_cert \
          -in MrBoincHost/request.csr.pem \

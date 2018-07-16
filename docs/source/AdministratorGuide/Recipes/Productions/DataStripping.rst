@@ -8,7 +8,7 @@ Stripping
 DM checks at the end of Stripping
 *********************************
 
-The procedure is very similar to the Merging production: :ref:`_mergingDMChecks`
+The procedure is very similar to the Merging production: :ref:`mergingDMChecks`
 
 
 ***************
@@ -26,7 +26,7 @@ Jobs killed, data upload failing
 This can be seen from the log files.
 In that case, we clean whatever the old job managed to produce, and we re-strip the input files
 
-.. code-block::
+::
 
     [lxplus079] ~ $ grep InFCNotInBK CheckDescendantsResults_70268.txt | dirac-dms-check-fc2bkk --FixFC
     Got 16 LFNs

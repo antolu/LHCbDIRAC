@@ -39,7 +39,7 @@ For the first two cases, the best is to use `dirac-dms-check-fc2bkk`.
 
 For example
 
-.. code-block::
+::
 
     [LHCbDirac prod] diracos $ dirac-dms-check-fc2bkk --Prod 69080,69076,68774,68772
     Processing production 69080
@@ -145,7 +145,7 @@ Examples:
 
 Get the descendants of the DataStripping production (here 69528) that still have replicas, and check their descendants in the Merging production (here 69529)
 
-.. code-block::
+::
 
     [localhost] ~ $ dirac-bookkeeping-get-files --Production 69528 --Visi No | dirac-production-check-descendants 69529
     Got 59 LFNs
@@ -176,7 +176,7 @@ Get the descendants of the DataStripping production (here 69528) that still have
 
 After checking at the RMS whether they have matching Requests, and if so what happened to it, we can replicate them to final destination and then remove from Failover
 
-.. code-block::
+::
 
     [localhost] ~ $ grep InFailover CheckDescendantsResults_69529-1.txt | dirac-dms-replicate-to-run-destination --RemoveSource --SE Tier1-DST
     Got 2 LFNs
@@ -193,7 +193,7 @@ After checking at the RMS whether they have matching Requests, and if so what ha
 
 Finally, Check again and remove non-merged files
 
-.. code-block::
+::
 
     [localhost] ~ $ dirac-dms-remove-files --Last
     Got 59 LFNs
@@ -214,7 +214,7 @@ When a file is problematic in the Stripping production, or if a RAW file was not
 We list the runs in the Stripping productions (here 71498) that have problematic files, and we flush them in the Merging (here 71499)
 
 
-.. code-block::
+::
 
     [localhost] ~ $ dirac-transformation-debug 71498 --Status Problematic --Info files | dirac-bookkeeping-file-path --GroupBy RunNumber --Summary
     --List
@@ -254,7 +254,7 @@ We list the runs in the Stripping productions (here 71498) that have problematic
 
 Then flush the runs in the merging production
 
-.. code-block::
+::
 
     [localhost] ~ $ dirac-transformation-flush-runs 71499 --Runs
     201413,201423,201467,201602,201643,201647,201664,201719,201745,201749,201822,201833,201864,201873,201983,202031,202717,202722,2027
@@ -267,7 +267,7 @@ Then flush the runs in the merging production
 
 Then, starting from the runs that are not flushed in the Merging, we can check if some RAW files do not have descendant
 
-.. code-block::
+::
 
    dirac-bookkeeping-run-files <runNumber> | grep FULL | dirac-bookkeeping-get-file-descendants
 
@@ -275,6 +275,6 @@ The files that are marked as NotProcessed or NoDescendants are in runs that will
 
 Another way of understanding why a run is not flushed is by using dirac-transformation-debug. But this takes a looooong while
 
-.. code-block::
+::
 
    dirac-transformation-debug --Status=Unused --Info=flush <mergingProd>
