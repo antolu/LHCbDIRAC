@@ -5,6 +5,10 @@ Actual executor methods of the dirac-transformation-debug script
 import sys
 import os
 import datetime
+import gzip
+import urllib
+import tarfile
+import fnmatch
 
 import DIRAC
 from DIRAC.Core.Utilities.File import mkDir
@@ -86,10 +90,6 @@ def _getLog(urlBase, logFile, debug=False):
   """
   Get a logfile and return its content
   """
-  import gzip
-  import urllib
-  import tarfile
-  import fnmatch
   # if logFile == "" it is assumed the file is directly the urlBase
   # Otherwise it can either be referenced within urlBase or contained (.tar.gz)
   if debug:
@@ -239,20 +239,24 @@ def _checkXMLSummary(job, logURL):
   Look in an XMLSummary file for partly processed files of failed files
   Return the list of bad LFNs
   """
-  xmlFile = _getLog(logURL, 'summary*.xml*', debug=False)
-  if not xmlFile:
-    xmlFile = _getSandbox(job, 'summary*.xml*', debug=False)
-  lfns = {}
-  if xmlFile:
-    for line in xmlFile:
-      if 'status="part"' in line and 'LFN:' in line:
-        event = line.split('>')[1].split('<')[0]
-        lfns.update({line.split('LFN:')[1].split('"')[0]: 'Partial (last event %s)' % event})
-      elif 'status="fail"' in line and 'LFN:' in line:
-        lfns.update({line.split('LFN:')[1].split('"')[0]: 'Failed'})
-    if not lfns:
-      lfns = {None: 'No errors found in XML summary'}
-  return lfns
+  try:
+    xmlFile = _getLog(logURL, 'summary*.xml*', debug=False)
+    if not xmlFile:
+      xmlFile = _getSandbox(job, 'summary*.xml*', debug=False)
+    lfns = {}
+    if xmlFile:
+      for line in xmlFile:
+        if 'status="part"' in line and 'LFN:' in line:
+          event = line.split('>')[1].split('<')[0]
+          lfns.update({line.split('LFN:')[1].split('"')[0]: 'Partial (last event %s)' % event})
+        elif 'status="fail"' in line and 'LFN:' in line:
+          lfns.update({line.split('LFN:')[1].split('"')[0]: 'Failed'})
+      if not lfns:
+        lfns = {None: 'No errors found in XML summary'}
+    return lfns
+  except tarfile.ReadError as e:
+    gLogger.exception("Exception while checking XML summary", lException=e)
+    return {None: 'Could not open XML summary'}
 
 
 def _checkLog(logURL):
