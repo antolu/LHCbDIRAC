@@ -64,11 +64,10 @@ class RequestTrackingAgent(AgentModule):
                    'EventType': str(request['EventType']).replace(' ', ''),
                    'ConfigName': str(request['configName']).replace(' ', ''),
                    'ConfigVersion': str(request['configVersion']).replace(' ', ''),
-                   'DataQualityFlag': [str(idq) for idq in request['inDataQualityFlag'].replace(' ', '').split(',')]
-                   }
+                   'DataQualityFlag': [str(idq) for idq in request['inDataQualityFlag'].replace(' ', '').split(',')]}
     except KeyError as ke:
       gLogger.error("%s is incomplete: %s" % (request['RequestID'], repr(ke)))
-      return S_ERROR()
+      return S_ERROR(repr(ke))
 
     if 'condType' in request and request['condType'] == 'Run':
       condition['DataTakingConditions'] = str(request['SimCondition'])
