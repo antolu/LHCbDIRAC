@@ -18,9 +18,9 @@ An example of such file can be found :download:`here <cfgTemplates/dirac.cfg>`.
 First of all, because the components on the gateway will interact with the real system, this configuration file has to refer to the real CS and the setup used should be the same as the one the jobs will run it (so in fact, your production setup normally).
 
 Systems
-======
+=======
 
-Even if all the services and agents definition could be left in the central CS if standard, we rather recommend to redefine them locally to have a self contained configuration file. For a list of components, please see :ref:`_listOfBOINCComponents`.
+Even if all the services and agents definition could be left in the central CS if standard, we rather recommend to redefine them locally to have a self contained configuration file. For a list of components, please see :ref:`here <listOfBOINCComponents>`.
 
 We strongly recommend to define a  database section  totally different from the production one.
 
@@ -73,7 +73,7 @@ The DefaultGroup should be boinc_users.
 Users
 ^^^^^
 
-Only MrBoinc needs to be defined. The DN is the one of the user certificate you self generated (see :ref:`_mrBoincCert`)
+Only MrBoinc needs to be defined. The DN is the one of the user certificate you self generated (see :ref:`mrBoincCert`)
 
 CAUTION: not sure now, probably need to redefine all the shifter users.
 

@@ -70,7 +70,7 @@ If there are no MRs, or none ready: please skip to the "update the CHANGELOG" su
 Otherwise, simply click the "Accept merge request" button for each of them.
 
 If you are making a Major release please merge devel to master follow the instruction: Basic instruction how to merging the devel branch into master (NOT for PATCH release).
-															
+
 Then, from the LHCbDIRAC local fork you need to update some files::
 
 
@@ -247,7 +247,7 @@ go to this `web page <https://jenkins-lhcb-nightlies.web.cern.ch/job/nightly-bui
 
 Then click on the "BUILD" button
 
-on lxplus please execute the following command:: 
+on lxplus please execute the following command::
 
   lb-sdb-import LHCbDIRAC vArBpC --platforms=which platform(s) to build
   for example:
@@ -279,12 +279,12 @@ ask the CVMFS librarians to change the prod version for the pilot on cvmfs. The 
 
 
 Changing the prod version for LHCbGrid
-```````````````````````````````````
+``````````````````````````````````````
 
 ask the CVMFS librarians to change the prod version for the LHCbGrid on cvmfs::
 
-   cd /cvmfs/lhcb.cern.ch/lib/lhcb/LHCBGRID
-   rm LHCBGRID_prod; ln -s LHCBGRID_vArBpC LHCBGRID_prod
+	cd /cvmfs/lhcb.cern.ch/lib/lhcb/LHCBGRID
+	rm LHCBGRID_prod; ln -s LHCBGRID_vArBpC LHCBGRID_prod
 
 
 Server
@@ -315,12 +315,12 @@ This command will create 6 files called "vobox_update_MyLetter" then you can run
                [host] : execfile vobox_update_MyLetter
                [host] : quit
 
-Note::
+Note:
 
-It is normal if you see the following errors:
+It is normal if you see the following errors::
 
-      --> Executing restart Framework SystemAdministrator
-      [ERROR] Exception while reading from peer: (-1, 'Unexpected EOF')
+   --> Executing restart Framework SystemAdministrator
+   [ERROR] Exception while reading from peer: (-1, 'Unexpected EOF')
 
 
 In case of failure you have to update the machine by hand.
