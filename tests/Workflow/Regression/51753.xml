@@ -284,7 +284,7 @@ from LHCbDIRAC.Workflow.Modules.StepAccounting import StepAccounting
 <Parameter name="StepProcPass" type="string" linked_module="" linked_parameter="" in="True" out="False" description="StepProcessingPass"><value><![CDATA[Merge14]]></value></Parameter>
 <Parameter name="HistogramName" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NameOfHistogram"><value><![CDATA[@{applicationName}_@{STEP_ID}.Hist.root]]></value></Parameter>
 <Parameter name="optionsFormat" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ProdConf configuration"><value><![CDATA[Merge]]></value></Parameter>
-<Parameter name="CondDBTag" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ConditionDatabaseTag"><value><![CDATA[sim-20141210-1-vc-md100]]></value></Parameter>
+<Parameter name="CondDBTag" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ConditionDatabaseTag"><value><![CDATA[sim-20130522-1-vc-md100]]></value></Parameter>
 <Parameter name="DDDBTag" type="string" linked_module="" linked_parameter="" in="True" out="False" description="DetDescTag"><value><![CDATA[dddb-20130929-1]]></value></Parameter>
 <Parameter name="DQTag" type="string" linked_module="" linked_parameter="" in="True" out="False" description="DataQualityTag"><value><![CDATA[]]></value></Parameter>
 <Parameter name="multiCore" type="string" linked_module="" linked_parameter="" in="True" out="False" description="MultiCore Flag"><value><![CDATA[N]]></value></Parameter>
