@@ -33,24 +33,24 @@ class ProductionJobTestCase(IntegrationTest):
 class MCSuccess(ProductionJobTestCase):
   def test_Integration_Production(self):
 
+    options = '$APPCONFIGOPTS/Gauss/Beam6500GeV-md100-2015-nu1.6.py;'
+    options += '$APPCONFIGOPTS/Gauss/EnableSpillover-25ns.py;'
+    options += '$APPCONFIGOPTS/Gauss/DataType-2015.py;'
+    options += '$APPCONFIGOPTS/Gauss/RICHRandomHits.py;'
+    options += '$DECFILESROOT/options/28144011.py;'
+    options += '$LBPYTHIA8ROOT/options/Pythia8.py;'
+    options += '$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py'
+
     # From request 48257
     stepsInProd = [{'StepId': 133659, 'StepName': 'Sim09d', 'ApplicationName': 'Gauss', 'ApplicationVersion': 'v49r10',
-                    'ExtraPackages': 'AppConfig.v3r359;DecFiles.v30r17', 'ProcessingPass': 'Sim09d', 'Visible': 'Y', 'Usable': 'Yes',
+                    'ExtraPackages': 'AppConfig.v3r359;DecFiles.v30r17',
+                    'ProcessingPass': 'Sim09d', 'Visible': 'Y', 'Usable': 'Yes',
                     'DDDB': 'dddb-20170721-3', 'CONDDB': 'sim-20161124-vc-md100', 'DQTag': '', 'OptionsFormat': '',
-                    'OptionFiles': ' $APPCONFIGOPTS/Gauss/Beam6500GeV-md100-2015-nu1.6.py;$APPCONFIGOPTS/Gauss/EnableSpillover-25ns.py;$APPCONFIGOPTS/Gauss/DataType-2015.py;$APPCONFIGOPTS/Gauss/RICHRandomHits.py;$DECFILESROOT/options/28144011.py;$LBPYTHIA8ROOT/options/Pythia8.py;$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py',
+                    'OptionFiles': options,
                     'isMulticore': 'N', 'SystemConfig': 'x86_64-slc6-gcc48-opt', 'mcTCK': '', 'ExtraOptions': '',
                     'fileTypesIn': [],
                     'fileTypesOut':['SIM'],
-                    'visibilityFlag':[{'Visible': 'N', 'FileType': 'SIM'}]},
-                   # {'StepId': 133533, 'StepName': 'Digi14c', 'ApplicationName': 'Boole', 'ApplicationVersion': 'v30r3',
-                   #  'ExtraPackages': 'AppConfig.v3r338', 'ProcessingPass': 'Digi14c', 'Visible': 'N', 'Usable': 'Yes',
-                   #  'DDDB': 'dddb-20170721-3', 'CONDDB': 'sim-20161124-vc-md100', 'DQTag': '', 'OptionsFormat': '',
-                   #  'OptionFiles': '$APPCONFIGOPTS/Boole/Default.py;$APPCONFIGOPTS/Boole/EnableSpillover.py;$APPCONFIGOPTS/Boole/DataType-2015.py;$APPCONFIGOPTS/Boole/Boole-SetOdinRndTrigger.py',
-                   #  'isMulticore': 'N', 'SystemConfig': 'x86_64-slc6-gcc49-opt', 'mcTCK': '', 'ExtraOptions': '',
-                   #  'fileTypesIn': ['SIM'],
-                   #  'fileTypesOut':['DIGI'],
-                   #  'visibilityFlag':[{'Visible': 'N', 'FileType': 'DIGI'}]},
-                  ]
+                    'visibilityFlag':[{'Visible': 'N', 'FileType': 'SIM'}]}]
 
     # First create the production object
     prod = self.pr._buildProduction(prodType='MCSimulation', stepsInProd=stepsInProd, outputSE={'DIGI': 'Tier1_MC-DST'},
