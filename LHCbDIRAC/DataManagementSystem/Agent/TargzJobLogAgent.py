@@ -153,9 +153,9 @@ class TargzJobLogAgent(AgentModule):
   def _iFindOldJob(path, g1, g2, g3, agedays):
     """ old job directory generator """
 
-    c1 = re.compile('^\d{8}$')
-    c2 = re.compile('^\d{4}$')
-    c3 = re.compile('^\d{8}$')
+    c1 = re.compile(r'^\d{8}$')
+    c2 = re.compile(r'^\d{4}$')
+    c3 = re.compile(r'^\d{8}$')
 
     def iFindDir(path, gl, reobject):
       """ directory generator """
@@ -200,8 +200,8 @@ class TargzJobLogAgent(AgentModule):
   def _iFindOldSubProd(path, g1, g2, agedays):
     """ subprod directory generator """
 
-    c1 = re.compile('^\d{8}$')
-    c2 = re.compile('^\d{4}$')
+    c1 = re.compile(r'^\d{8}$')
+    c2 = re.compile(r'^\d{4}$')
 
     def iFindDir(path, gl, reobject):
       """ directory generator """

@@ -80,9 +80,9 @@ class EmailAgent(DiracEmAgent):
 
         result = conn.execute("SELECT DISTINCT SiteName from ResourceStatusCache;")
         for site in result:
-          cursor = conn.execute(
-              "SELECT StatusType, ResourceName, Status, Time, PreviousStatus from ResourceStatusCache " +
-              "WHERE SiteName='site[0]';")
+          cmd = "SELECT StatusType, ResourceName, Status, Time, PreviousStatus from ResourceStatusCache " + \
+                "WHERE SiteName='site[0]';"
+          cursor = conn.execute(cmd)
 
           elements = ""
           if site[0] != 'Unassigned Resources':
