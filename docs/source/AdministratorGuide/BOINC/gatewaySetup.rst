@@ -42,10 +42,13 @@ Create the CA root certificate
 
     openssl req -config openssl_config_ca.cnf  -key ca.key.pem  -new -x509 -days 7300 -sha256 -extensions v3_ca -out ca.cert.pem
 
-# Sure ?
-#On the gateway machine, the CA certificate and key should be copied (*sym-linked*) in ``/opt/dirac/etc/grid-security/``, a copy (*sym-link*) of the CA certificate (``cacert.pem``) should also be in ``/etc/grid-security/certificates``.
-
 On the gateway machine, the CA certificate should be copied (*sym-link*) (``ca.cert.pem``) in ``/etc/grid-security/certificates``.
+And the index hash link should be created
+::
+
+    caHash=$(openssl x509 -in ca.cert.pem -noout -hash)
+    ln -s /etc/grid-security/certificates/ca.cert.pem /etc/grid-security/certificates/"$caHash".0
+
 
 
 .. _mrBoincCert:
@@ -81,7 +84,7 @@ Create the MrBoinc User certificate, valid for 375 days
 ::
 
     openssl ca -config ca/openssl_config_ca.cnf \
-         -extensions usr_cert
+         -extensions usr_cert \
          -in MrBoinc/request.csr.pem \
          -out MrBoinc/usercert.pem
 
