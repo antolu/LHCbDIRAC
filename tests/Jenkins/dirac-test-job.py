@@ -70,14 +70,14 @@ gLogger.info("\n Submitting hello world job targeting DIRAC.Jenkins.ch and a MP 
 helloJMP = LHCbJob()
 helloJMP.setName("helloWorld-TEST-TO-Jenkins-MP")
 try:
-  helloJMP.setInputSandbox([find_all('exe-script.py', rootPath, '/DIRAC/tests/GridTestSubmission')[0]])
+  helloJMP.setInputSandbox([find_all('exe-script.py', rootPath, '/DIRAC/tests/Workflow/')[0]])
 except IndexError:
-  helloJMP.setInputSandbox([find_all('exe-script.py', os.environ['WORKSPACE'], '/DIRAC/tests/GridTestSubmission')[0]])
+  helloJMP.setInputSandbox([find_all('exe-script.py', os.environ['WORKSPACE'], '/DIRAC/tests/Workflow/')[0]])
 helloJMP.setExecutable("exe-script.py", "", "helloWorld.log")
 helloJMP.setCPUTime(17800)
 helloJMP.setDestination('DIRAC.Jenkins.ch')
-helloJMP.setTag('MultiProcessor')
-result = dirac.submit(helloJMP)  # this should make the difference!
+helloJMP.setTag('MultiProcessor')  # this should make the difference!
+result = dirac.submit(helloJMP)
 gLogger.info("Hello world job MP: ", result)
 if not result['OK']:
   gLogger.error("Problem submitting job", result['Message'])
