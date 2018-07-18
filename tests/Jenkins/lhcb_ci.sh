@@ -455,6 +455,8 @@ function installLHCbDIRACClient(){
 
   echo '==> Installing LHCbDIRAC client'
 
+  # Hum, maybe we do not want to take the dirac-install from the testcode, but from integration ?
+  #curl -o $CLIENTINSTALLDIR/dirac-install -L https://raw.githubusercontent.com/DIRACGrid/DIRAC/integration/Core/scripts/dirac-install.py
   cp $TESTCODE/DIRAC/Core/scripts/dirac-install.py $CLIENTINSTALLDIR/dirac-install
   chmod +x $CLIENTINSTALLDIR/dirac-install
   cd $CLIENTINSTALLDIR
@@ -463,7 +465,17 @@ function installLHCbDIRACClient(){
     echo 'ERROR: cannot change to ' $CLIENTINSTALLDIR
     return
   fi
-  ./dirac-install -l LHCb -r `cat $WORKSPACE/project.version` -e LHCb -t client -g `cat $WORKSPACE/lcg.version` $DEBUG
+
+  # If DIRACOSVER is not defined, use LcgBundle
+  if [ -z $DIRACOSVER ];
+  then
+     echo "Installing with LcgBundle";
+    ./dirac-install -l LHCb -r `cat $WORKSPACE/project.version` -e LHCb -t client -g `cat $WORKSPACE/lcg.version` $DEBUG
+  else
+     echo "Installing with DIRACOS $DIRACOSVER";
+    ./dirac-install -l LHCb -r `cat $WORKSPACE/project.version` -e LHCb -t client --dirac-os --dirac-os-version=$DIRACOSVER $DEBUG;
+
+  fi
 
   DIRAC='' source bashrc
 
