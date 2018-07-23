@@ -16,7 +16,14 @@ use DIRAC v6r20p2
 
 [v9r2-pre5]
 use DIRAC v6r20
-=======
+
+[v9r1p20]
+use DIRAC v6r19p25
+
+* CI: adapt gitlab-ci.yml to Runner v11
+
+[v9r1p19]
+use DIRAC v6r19p24
 
 * returning the error message
 * autopep8
