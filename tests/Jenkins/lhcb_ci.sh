@@ -147,7 +147,7 @@ function findRelease(){
 diracServices(){
   echo '==> [diracServices]'
 
-  services=`cat services | cut -d '.' -f 1 | grep -v IRODSStorageElementHandler | grep -v ^ConfigurationSystem | grep -v Plotting | grep -v RAWIntegrity | grep -v RunDBInterface | grep -v ComponentMonitoring | grep -v WMSSecureGW | sed 's/System / /g' | sed 's/Handler//g' | sed 's/ /\//g'`
+  services=$(cat services |  cut -d '.' -f 1 | grep -Ev '(PilotsLogging|FTSManagerHandler|IRODSStorageElementHandler|^ConfigurationSystem|Plotting|RAWIntegrity|RunDBInterface|ComponentMonitoring|WMSSecureGW)' | sed -e 's/System / /g' -e 's/Handler//g' -e 's/ /\//g')
 
   for serv in $services
   do
@@ -181,7 +181,7 @@ diracServices(){
 diracAgents(){
   echo '==> [diracAgents]'
 
-  agents=`cat agents | cut -d '.' -f 1 | grep -v FTSAgent | grep -v CleanFTSDBAgent | grep -v MyProxy | grep -v CAUpdate | grep -v GOCDB2CS | grep -v Bdii2CS | grep -v CacheFeeder | grep -v NetworkAgent | grep -v FrameworkSystem | grep -v StatesMonitoringAgent | grep -v DataProcessingProgressAgent | grep -v RAWIntegrityAgent  | grep -v Nagios | grep -v AncestorFiles | grep -v BKInputData | grep -v LHCbPRProxyAgent | grep -v StorageUsageAgent | grep -v PopularityAnalysisAgent | grep -v SEUsageAgent | grep -v NotifyAgent | grep -v TargzJobLogAgent | grep -v ShiftDBAgent | sed 's/System / /g' | sed 's/ /\//g'`
+  agents=$(cat agents | cut -d '.' -f 1 | grep -Ev '(FTSAgent|CleanFTSDBAgent|MyProxy|CAUpdate|GOCDB2CS|Bdii2CS|CacheFeederNetworkAgent|FrameworkSystem|StatesMonitoringAgent|DataProcessingProgressAgent|RAWIntegrityAgent|Nagios|AncestorFiles|BKInputData|LHCbPRProxyAgent|StorageUsageAgent|PopularityAnalysisAgent|SEUsageAgent|NotifyAgent|TargzJobLogAgent|ShiftDBAgent)' | sed 's/System / /g' | sed 's/ /\//g')
 
   for agent in $agents
   do
