@@ -4,7 +4,6 @@
 #pylint: disable=protected-access, missing-docstring, invalid-name, line-too-long
 
 import unittest
-import mock
 
 from DIRAC import gLogger
 import LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient as moduleTested
