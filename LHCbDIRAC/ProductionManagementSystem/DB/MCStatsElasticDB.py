@@ -3,10 +3,10 @@ A database wrapper for ElasticDB
 author: Lara Sheik
 version: 17/07/18
 """
+import json
 from elasticsearch import Elasticsearch
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Base.ElasticDB import ElasticDB as DB
-import json
 ES = Elasticsearch()
 # import os
 
@@ -72,7 +72,7 @@ class MCStatsElasticDB(DB):
 
   def set(self, typeName, data):
     """
-    Inserts data into specified index using data given in argument'
+    Inserts data into specified index using data given in argument
 
     :param str typeName: The type in the index in ElasticSearch
     :param dict data: The data to be inserted in ElasticSearch in JSON format
@@ -86,21 +86,26 @@ class MCStatsElasticDB(DB):
 
 #############################################################################
 
-  def get(self, ID):
-    # write code that performs query on id
+  def get(self, jobID):
+    """
+    Retrieves data given a specific JobID
+
+    :param str JobID: The JobID Of the data in elasticsearch
+    """
+
     query = {
       "query": {
         "bool": {
           "must": {
             "match": {
-              "Errors.ID.JobID": ID
+              "Errors.ID.JobID": jobID
             }
           }
         }
       }
     }
-    
-    gLogger.notice('Getting results for JobID: ', ID)
+
+    gLogger.notice('Getting results for JobID: ', jobID)
     result = self.query('mcstatsdb*', query)
 
     resultDict = {}
@@ -109,29 +114,34 @@ class MCStatsElasticDB(DB):
 
     sources = result['Value']['hits']['hits']
     for source in sources:
-        data = source['_source']
-        resultDict.update(data)
+      data = source['_source']
+      resultDict.update(data)
     resultDict = json.dumps(resultDict)
     return S_OK(resultDict)
-  
 #############################################################################
 
-  def remove(self, ID):
+  def remove(self, jobID):
+    """
+    Removes data given a specific JobID
+
+    :param str JobID: The JobID Of the data in elasticsearch
+    """
     query = {
       "query": {
         "bool": {
           "must": {
             "match": {
-              "Errors.ID.JobID": ID
+              "Errors.ID.JobID": jobID
             }
           }
         }
       }
     }
 
-    gLogger.notice('Attempting to delete data with JobID ', ID)
+    gLogger.notice('Attempting to delete data with JobID ', jobID)
     try:
       ES.delete_by_query(index = self.indexName, body = query)
     except Exception as inst:
       return S_ERROR(inst)
-    return S_OK('Successfully deleted data with JobID: %s' %ID)
+    return S_OK('Successfully deleted data with JobID: %s' %jobID)
+
