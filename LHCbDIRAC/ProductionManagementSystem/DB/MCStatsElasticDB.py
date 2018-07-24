@@ -68,6 +68,8 @@ class MCStatsElasticDB(DB):
 
     #   self.index(self.indexName, typeName, data)
 
+#############################################################################
+
   def set(self, typeName, data):
     """
     Inserts data into specified index using data given in argument'
@@ -132,5 +134,4 @@ class MCStatsElasticDB(DB):
       ES.delete_by_query(index = self.indexName, body = query)
     except Exception as inst:
       return S_ERROR(inst)
-    print 'hi'
     return S_OK('Successfully deleted data with JobID: %s' %ID)
