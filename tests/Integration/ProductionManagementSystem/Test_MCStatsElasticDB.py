@@ -1,4 +1,6 @@
-import unittest, json
+import time
+import json
+import unittest
 
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
@@ -14,29 +16,29 @@ class MCStatsElasticDBTestCase(unittest.TestCase):
     self.ID2 = 2
     self.falseID = 3
 
-    self.data = {
+    self.data1 = {
         "Errors": {
             "ID": {
                 "JobID": self.ID1,
-                "TransformationID": "TransID_test2",
-                "ProductionID": "ProdID_test2"
+                "TransformationID": "TransID_test1",
+                "ProductionID": "ProdID_test1"
             },
             "Counter": 2,
             "Error type": "Test error 1",
             "Events": [
                 {
-                    "runnr": "1",
-                    "eventnr": "1"
+                    "runnr": "Run 1",
+                    "eventnr": "Evt 1"
                 },
                 {
-                    "runnr": "2",
-                    "eventnr": "2"
+                    "runnr": "Run 2",
+                    "eventnr": "Evt 2"
                 }
             ]
         }
     }
 
-    self.moreData = {
+    self.data2 = {
         "Errors":
         {
             "ID": {
@@ -69,8 +71,8 @@ class MCStatsElasticDBTestCase(unittest.TestCase):
     }
 
     # This is needed to convert '' to ""
-    self.data = json.dumps(self.data)
-    self.moreData = json.dumps(self.moreData)
+    self.data1 = json.dumps(self.data1)
+    self.data2 = json.dumps(self.data2)
 
     self.typeName = 'test'
     self.indexName = 'mcstatsdb'
@@ -80,53 +82,66 @@ class MCStatsElasticDBTestCase(unittest.TestCase):
     self.DB = MCStatsElasticDB()
 
   def tearDown(self):
-    self.MCStatsElasticDB = False
+    self.DB.deleteIndex(self.indexName)
+    self.MCStatsElasticDB = None
 
 
 class TestMCStatsElasticDB(MCStatsElasticDBTestCase):
 
-  def test_set(self):
+  def test_SetandGetandRemove(self):
 
-    # Test setting data
-    result = self.DB.set(self.typeName, self.data)
+    ############ Set
+
+    # Set data1
+    result = self.DB.set(self.typeName, self.data1)
     self.assertTrue(result['OK'])
 
-    # Test setting data
-    result = self.DB.set(self.typeName, self.moreData)
+    # Set data2
+    result = self.DB.set(self.typeName, self.data2)
     self.assertTrue(result['OK'])
 
-  #def test_get(self):
+    # Data insertion is not instantaneous, so sleep is needed
+    time.sleep(1)
+
+    ############ Get
+
+    # Get data1
     result = self.DB.get(self.ID1)
-    # Test get function is OK
     self.assertTrue(result['OK'])
-    # Test if get function retrieves correct informatio
-    self.assertEqual(result['Value'], self.data)
+    self.assertEqual(result['Value'], self.data1)
 
+    # Get data2
     result = self.DB.get(self.ID2)
     self.assertTrue(result['OK'])
-    self.assertEqual(result['Value'], self.moreData)
+    self.assertEqual(result['Value'], self.data2)
 
-    # Test if get function on non-existant data works
+    # Get empty 
     result = self.DB.get(self.falseID)
     self.assertTrue(result['OK'])
     self.assertEqual(result['Value'], '{}')
 
-  # def test_remove(self):
-    # Delete result
-    result = self.DB.remove(self.ID1)
-    self.assertTrue(result['OK'])
+    ############ Remove
 
-    # Make sure we get empty dict after delete
+    # Remove data1
+    self.DB.remove(self.ID1)
+    time.sleep(1)
     result = self.DB.get(self.ID1)
     self.assertTrue(result['OK'])
     self.assertEqual(result['Value'], '{}')
 
-    # Make sure we cannot delete again
-    result = self.DB.remove(self.ID1)
-    self.assertFalse(result['OK'])
-
-    result = self.DB.remove(self.ID2)
+    # Remove data2
+    self.DB.remove(self.ID2)
+    time.sleep(1)
+    result = self.DB.get(self.ID2)
     self.assertTrue(result['OK'])
+    self.assertEqual(result['Value'], '{}')
+
+    # Remove empty
+    self.DB.remove(self.falseID)
+    time.sleep(1)
+    result = self.DB.get(self.falseID)
+    self.assertTrue(result['OK'])
+    self.assertEqual(result['Value'], '{}')
 
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase(MCStatsElasticDBTestCase)
