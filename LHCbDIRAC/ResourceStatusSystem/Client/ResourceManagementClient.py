@@ -10,12 +10,12 @@ __RCSID__ = "$Id$"
 # pylint: disable=unused-argument,too-many-arguments
 
 from DIRAC import S_ERROR, S_OK
-from DIRAC.ResourceStatusSystem.Client.ResourceManagementClient import \
-    ResourceManagementClient as DIRACResourceManagementClient
+from DIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient as DIRACRMClient
+from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.ResourceStatusSystem.Utilities import CSHelpers
 
 
-class ResourceManagementClient(DIRACResourceManagementClient):
+class ResourceManagementClient(DIRACRMClient):
   """
   Extension for the DIRAC version of the ResourceManagementClient.
 
@@ -141,7 +141,7 @@ class ResourceManagementClient(DIRACResourceManagementClient):
     :return: S_OK() || S_ERROR()
     """
 
-    return self.rmService.select('MonitoringTest', self._prepare(locals()))
+    return RPCClient("ResourceStatus/ResourceManagement").select('MonitoringTest', self._prepare(locals()))
 
   def deleteMonitoringTest(self, metricName=None, serviceURI=None,
                            siteName=None, serviceFlavour=None,
@@ -171,7 +171,7 @@ class ResourceManagementClient(DIRACResourceManagementClient):
     :return: S_OK() || S_ERROR()
     """
 
-    return self.rmService.delete('MonitoringTest', self._prepare(locals()))
+    return RPCClient("ResourceStatus/ResourceManagement").delete('MonitoringTest', self._prepare(locals()))
 
   def addOrModifyMonitoringTest(self, metricName, serviceURI, siteName,
                                 serviceFlavour, metricStatus, summaryData,
@@ -201,7 +201,7 @@ class ResourceManagementClient(DIRACResourceManagementClient):
     :return: S_OK() || S_ERROR()
     """
 
-    return self.rmService.addOrModify('MonitoringTest', self._prepare(locals()))
+    return RPCClient("ResourceStatus/ResourceManagement").addOrModify('MonitoringTest', self._prepare(locals()))
 
   ##############################################################################
   # JOB ACCOUNTING CACHE METHODS
@@ -238,7 +238,7 @@ class ResourceManagementClient(DIRACResourceManagementClient):
     :return: S_OK() || S_ERROR()
     """
 
-    return self.rmService.select('JobAccountingCache', self._prepare(locals()))
+    return RPCClient("ResourceStatus/ResourceManagement").select('JobAccountingCache', self._prepare(locals()))
 
   def deleteJobAccountingCache(self, name=None, checking=None, completed=None,
                                done=None, failed=None, killed=None,
@@ -271,7 +271,7 @@ class ResourceManagementClient(DIRACResourceManagementClient):
 
     :return: S_OK() || S_ERROR()
     """
-    return self.rmService.delete('JobAccountingCache', self._prepare(locals()))
+    return RPCClient("ResourceStatus/ResourceManagement").delete('JobAccountingCache', self._prepare(locals()))
 
   def addOrModifyJobAccountingCache(self, name=None, checking=None, completed=None,
                                     done=None, failed=None, killed=None,
@@ -306,7 +306,7 @@ class ResourceManagementClient(DIRACResourceManagementClient):
     :return: S_OK() || S_ERROR()
     """
 
-    return self.rmService.addOrModify('JobAccountingCache', self._prepare(locals()))
+    return RPCClient("ResourceStatus/ResourceManagement").addOrModify('JobAccountingCache', self._prepare(locals()))
 
   ##############################################################################
   # PILOT ACCOUNTING CACHE METHODS
@@ -333,7 +333,7 @@ class ResourceManagementClient(DIRACResourceManagementClient):
 
     :return: S_OK() || S_ERROR()
     """
-    return self.rmService.select('PilotAccountingCache', self._prepare(locals()))
+    return RPCClient("ResourceStatus/ResourceManagement").select('PilotAccountingCache', self._prepare(locals()))
 
   def deletePilotAccountingCache(self, name=None, aborted=None, deleted=None,
                                  done=None, failed=None, lastCheckTime=None,
@@ -357,7 +357,7 @@ class ResourceManagementClient(DIRACResourceManagementClient):
 
     :return: S_OK() || S_ERROR()
     """
-    return self.rmService.delete('PilotAccountingCache', self._prepare(locals()))
+    return RPCClient("ResourceStatus/ResourceManagement").delete('PilotAccountingCache', self._prepare(locals()))
 
   def addOrModifyPilotAccountingCache(self, name=None, aborted=None, deleted=None,
                                       done=None, failed=None, lastCheckTime=None,
@@ -383,7 +383,7 @@ class ResourceManagementClient(DIRACResourceManagementClient):
     :return: S_OK() || S_ERROR()
     """
 
-    return self.rmService.addOrModify('PilotAccountingCache', self._prepare(locals()))
+    return RPCClient("ResourceStatus/ResourceManagement").addOrModify('PilotAccountingCache', self._prepare(locals()))
 
   def getSEStorageSpace(self, seName):
     """ getSEStorageSpace

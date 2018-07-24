@@ -1,10 +1,9 @@
 ''' Test_RSS_Client_ResourceManagementClient
 '''
 
-#pylint: disable=protected-access, missing-docstring, invalid-name, line-too-long
+# pylint: disable=protected-access, missing-docstring, invalid-name, line-too-long
 
 import unittest
-import mock
 
 from DIRAC import gLogger
 import LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient as moduleTested
@@ -13,9 +12,10 @@ __RCSID__ = "$Id$"
 
 ################################################################################
 
-class ResourceManagementClient_TestCase( unittest.TestCase ):
 
-  def setUp( self ):
+class ResourceManagementClient_TestCase(unittest.TestCase):
+
+  def setUp(self):
     '''
     Setup
     '''
@@ -23,7 +23,7 @@ class ResourceManagementClient_TestCase( unittest.TestCase ):
     self.moduleTested = moduleTested
     self.testClass = self.moduleTested.ResourceManagementClient
 
-  def tearDown( self ):
+  def tearDown(self):
     '''
     Tear down
     '''
@@ -33,20 +33,21 @@ class ResourceManagementClient_TestCase( unittest.TestCase ):
 
 ################################################################################
 
-class ResourceManagementClient_Success( ResourceManagementClient_TestCase ):
 
-  def test_instantiate( self ):
+class ResourceManagementClient_Success(ResourceManagementClient_TestCase):
+
+  def test_instantiate(self):
     ''' tests that we can instantiate one object of the tested class
     '''
 
     module = self.testClass()
-    self.assertEqual( 'ResourceManagementClient', module.__class__.__name__ )
+    self.assertEqual('ResourceManagementClient', module.__class__.__name__)
 
-  def test_init( self ):
+  def test_init(self):
     ''' test the __init__ method
     '''
 
     module = self.testClass()
 
 ################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

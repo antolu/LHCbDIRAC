@@ -49,16 +49,27 @@ Session.vim
 .idea/
 LHCbDIRAC.iml
 
+# MaxOSX files
+.DS_Store
+
 # test stuff
+.pytest_cache
 .cache
 __pycache__
 pytests.xml
 nosetests.xml
 coverage.xml
+Local_*
+.hypothesis
 *.gz
 
 #remove in case we want a specific LHCb one
 .pylintrc 
+
+# docs
+# this is auto generated
+docs/source/CodeDocumentation/
+docs/_build
 
 # CMT junk
 /*/*/x86_64-*-*-*/
