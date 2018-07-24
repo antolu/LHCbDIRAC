@@ -12,14 +12,14 @@ class MCStatsElasticDBTestCase(unittest.TestCase):
   def __init__(self, *args, **kwargs):
     super(MCStatsElasticDBTestCase, self).__init__(*args, **kwargs)
 
-    self.ID1 = 1
-    self.ID2 = 2
+    self.id1 = 1
+    self.id2 = 2
     self.falseID = 3
 
     self.data1 = {
         "Errors": {
             "ID": {
-                "JobID": self.ID1,
+                "JobID": self.id1,
                 "TransformationID": "TransID_test1",
                 "ProductionID": "ProdID_test1"
             },
@@ -42,7 +42,7 @@ class MCStatsElasticDBTestCase(unittest.TestCase):
         "Errors":
         {
             "ID": {
-                "JobID": self.ID2,
+                "JobID": self.id2,
                 "TransformationID": "TransID_test2",
                 "ProductionID": "ProdID_test2"
             },
@@ -79,11 +79,11 @@ class MCStatsElasticDBTestCase(unittest.TestCase):
 
   def setUp(self):
     gLogger.setLevel('DEBUG')
-    self.DB = MCStatsElasticDB()
+    self.db = MCStatsElasticDB()
 
   def tearDown(self):
-    self.DB.deleteIndex(self.indexName)
-    self.MCStatsElasticDB = None
+    self.db.deleteIndex(self.indexName)
+    self.db = None
 
 
 class TestMCStatsElasticDB(MCStatsElasticDBTestCase):
@@ -93,11 +93,11 @@ class TestMCStatsElasticDB(MCStatsElasticDBTestCase):
     ############ Set
 
     # Set data1
-    result = self.DB.set(self.typeName, self.data1)
+    result = self.db.set(self.typeName, self.data1)
     self.assertTrue(result['OK'])
 
     # Set data2
-    result = self.DB.set(self.typeName, self.data2)
+    result = self.db.set(self.typeName, self.data2)
     self.assertTrue(result['OK'])
 
     # Data insertion is not instantaneous, so sleep is needed
@@ -106,40 +106,40 @@ class TestMCStatsElasticDB(MCStatsElasticDBTestCase):
     ############ Get
 
     # Get data1
-    result = self.DB.get(self.ID1)
+    result = self.db.get(self.id1)
     self.assertTrue(result['OK'])
     self.assertEqual(result['Value'], self.data1)
 
     # Get data2
-    result = self.DB.get(self.ID2)
+    result = self.db.get(self.id2)
     self.assertTrue(result['OK'])
     self.assertEqual(result['Value'], self.data2)
 
-    # Get empty 
-    result = self.DB.get(self.falseID)
+    # Get empty
+    result = self.db.get(self.falseID)
     self.assertTrue(result['OK'])
     self.assertEqual(result['Value'], '{}')
 
     ############ Remove
 
     # Remove data1
-    self.DB.remove(self.ID1)
+    self.db.remove(self.id1)
     time.sleep(1)
-    result = self.DB.get(self.ID1)
+    result = self.db.get(self.id1)
     self.assertTrue(result['OK'])
     self.assertEqual(result['Value'], '{}')
 
     # Remove data2
-    self.DB.remove(self.ID2)
+    self.db.remove(self.id2)
     time.sleep(1)
-    result = self.DB.get(self.ID2)
+    result = self.db.get(self.id2)
     self.assertTrue(result['OK'])
     self.assertEqual(result['Value'], '{}')
 
     # Remove empty
-    self.DB.remove(self.falseID)
+    self.db.remove(self.falseID)
     time.sleep(1)
-    result = self.DB.get(self.falseID)
+    result = self.db.get(self.falseID)
     self.assertTrue(result['OK'])
     self.assertEqual(result['Value'], '{}')
 
