@@ -1,3 +1,10 @@
+[v9r2-pre8]
+use DIRAC v6r20p6
+
+* autopep8
+* adapting to v6r20p6
+* added some stuff to ignore
+
 [v9r2-pre7]
 use DIRAC v6r20p6
 
