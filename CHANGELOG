@@ -1,3 +1,23 @@
+[v9r2-pre7]
+use DIRAC v6r20p6
+
+* docs: more doc on TLS
+* corrected location
+* removed mergeMDF, added mergeHISTOs
+* removed unused
+* pycodestyle fixes
+* autopep8 and style
+* avoiding back tick
+* autopep8
+* removed not-anymore-useful tests
+* changed tag
+* only gauss
+* updated test, removed old MP
+* add some components to exclude
+* resolve conflicts v9r1p19
+* CI: take the devel branch for v0r versions
+* BOINC: stricter TLS options
+
 [v9r2-pre6]
 use DIRAC v6r20p2
 
