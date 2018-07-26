@@ -20,6 +20,15 @@ We start from the Reconstruction production (here 67722)
 
 
 
+You can also give a run range
+::
+
+    [LHCbDirac prod] SRPM $ dirac-bookkeeping-run-information 205957:212325 --Information Finished --ByValue
+    Successful :
+         No : (1 runs) - 212325
+        Yes : (2129 runs) - 205957,205958,[...]
+
+
 
 A bit of cleaning
 =================
