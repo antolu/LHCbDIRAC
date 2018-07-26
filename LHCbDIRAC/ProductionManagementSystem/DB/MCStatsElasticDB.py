@@ -17,25 +17,29 @@ class MCStatsElasticDB(DB):
     self.indexName = 'mcstatsdb'
     # self.typeName = 'LogErr'    # We assume the type of the data is from LogErr
     self.mapping = {
-        "Errors": {
+      "Log_output": {
+        "properties": {
+          "ID": {
             "properties": {
-                "ID": {
-                    "properties": {
-                        "JobID": {"type": "integer"},
-                        "TransformationID": {"type": "text"},
-                        "ProductionID": {"type": "text"}
-                    }
-                },
-                "Counter": {"type": "integer"},
-                "Error type": {"type": "text"},
-                "Events": {
-                    "properties": {
-                        "runnr": {"type": "text"},
-                        "eventnr": {"type": "text"}
-                    }
-                }
+              "JobID": {"type": "text"},
+              "TransformationID": {"type": "text"},
+              "ProductionID": {"type": "text"}
             }
+          },
+          "Errors" : {
+            "properties" : {
+              "Counter": {"type": "integer"},
+              "Error type": {"type": "text"},
+              "Events": {
+                "properties": {
+                  "runnr": {"type": "text"},
+                  "eventnr": {"type": "text"}
+                }
+              }
+            }
+          }
         }
+      }
     }
 
     createIndex = self.createIndex(self.indexName, self.mapping, None)
@@ -79,9 +83,9 @@ class MCStatsElasticDB(DB):
     """
     result = self.index(self.indexName, typeName, data)
     if self.exists(self.indexName) and result['OK']:
-      gLogger.notice('Inserting data in index', self.indexName)
+      gLogger.notice('Inserting data in index:', self.indexName)
     else:
-      gLogger.error("ERROR: Couldn't find file")
+      gLogger.error("ERROR: Couldn't insert data")
     return result
 
 #############################################################################
@@ -98,7 +102,7 @@ class MCStatsElasticDB(DB):
         "bool": {
           "must": {
             "match": {
-              "Errors.ID.JobID": jobID
+              "Log_output.ID.JobID": jobID
             }
           }
         }
@@ -131,17 +135,17 @@ class MCStatsElasticDB(DB):
         "bool": {
           "must": {
             "match": {
-              "Errors.ID.JobID": jobID
+              "Log_output.ID.JobID": jobID
             }
           }
         }
       }
     }
 
-    gLogger.notice('Attempting to delete data with JobID ', jobID)
+    gLogger.notice('Attempting to delete data with JobID: ', jobID)
     try:
       ES.delete_by_query(index = self.indexName, body = query)
     except Exception as inst:
+      gLogger.error("ERROR: Couldn't delete data")
       return S_ERROR(inst)
     return S_OK('Successfully deleted data with JobID: %s' %jobID)
-
