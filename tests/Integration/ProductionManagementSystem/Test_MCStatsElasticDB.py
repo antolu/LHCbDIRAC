@@ -123,7 +123,7 @@ class TestMCStatsElasticDB(MCStatsElasticDBTestCase):
     self.assertTrue(result['OK'])
 
     # Data insertion is not instantaneous, so sleep is needed
-    time.sleep(1)
+    time.sleep(5)
 
     # Get
 
@@ -146,21 +146,21 @@ class TestMCStatsElasticDB(MCStatsElasticDBTestCase):
 
     # Remove data1
     self.db.remove(self.id1)
-    time.sleep(1)
+    time.sleep(5)
     result = self.db.get(self.id1)
     self.assertTrue(result['OK'])
     self.assertEqual(result['Value'], '{}')
 
     # Remove data2
     self.db.remove(self.id2)
-    time.sleep(1)
+    time.sleep(5)
     result = self.db.get(self.id2)
     self.assertTrue(result['OK'])
     self.assertEqual(result['Value'], '{}')
 
     # Remove empty
     self.db.remove(self.falseID)
-    time.sleep(1)
+    time.sleep(5)
     result = self.db.get(self.falseID)
     self.assertTrue(result['OK'])
     self.assertEqual(result['Value'], '{}')
