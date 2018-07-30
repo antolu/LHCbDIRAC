@@ -156,7 +156,7 @@ diracServices(){
     then
       # start BKK DB setup
       setupBKKDB
-      wget http://lhcb-portal-dirac.cern.ch/defaults/cx_Oracle-5.1.tar.gz -O cx_Oracle-5.1.tar.gz
+      curl http://lhcb-portal-dirac.cern.ch/defaults/cx_Oracle-5.1.tar.gz -o cx_Oracle-5.1.tar.gz
       source /afs/cern.ch/project/oracle/script/setoraenv.sh
       # -s 11203
       export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/afs/cern.ch/project/oracle/amd64_linux26/prod/lib/
@@ -548,6 +548,54 @@ function sourcingEnv(){
 function setupBKKDB(){
   echo -e "==> Setting up the Bookkeeping Database"
   python $TESTCODE/LHCbDIRAC/tests/Jenkins/dirac-bkk-cfg-update.py -p $ORACLEDB_PASSWORD $DEBUG
+}
+
+
+
+#.............................................................................
+#
+# lhcbDiracReplace
+#
+#   This function gets LHCbDIRAC sources from an alternative gitlab repository,
+#   and replace the existing sources used for installation by these ones.
+#
+#   It is done only the environment variable $LHCbDIRAC_ALTERNATIVE_SRC_ZIP is set
+#
+# Define it in your environment if you want to replace the LHCbDIRAC source with custom ones
+# The URL has to be a zip file provided by gitlab
+# LHCbDIRAC_ALTERNATIVE_SRC_ZIP=''
+#
+#.............................................................................
+
+function lhcbDiracReplace(){
+  echo '==> [lhcbDiracReplace]'
+
+  if [[ -z $LHCbDIRAC_ALTERNATIVE_SRC_ZIP ]]
+  then
+    echo '==> Variable $LHCbDIRAC_ALTERNATIVE_SRC_ZIP not defined';
+    return
+  fi
+
+  cwd=$PWD
+  cd $SERVERINSTALLDIR
+
+  zipName=$(basename $LHCbDIRAC_ALTERNATIVE_SRC_ZIP)
+  curl $LHCbDIRAC_ALTERNATIVE_SRC_ZIP -o zipName
+  unzip $zipName
+  cd $SERVERINSTALLDIR
+  dirName=$(unzip -l $zipName | head | tail -n 1 | sed 's/  */ /g' | cut -f 5 -d ' ' | cut -f 1 -d '/')
+  if [ -d "LHCbDIRAC" ]
+  then
+    mv LHCbDIRAC LHCbDIRAC.bak
+  else
+    echo "There is no previous LHCbDIRAC directory ??!!!"
+    ls
+  fi
+  cd $SERVERINSTALLDIR
+  mv $dirName/LHCbDIRAC LHCbDIRAC
+
+  cd $cwd
+
 }
 
 #-------------------------------------------------------------------------------

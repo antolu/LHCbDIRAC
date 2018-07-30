@@ -1,6 +1,6 @@
 #!/bin/bash
 
-: '
+'
 This is a script that tests:
 dirac-rss-query-db,
 dirac-rss-list-status,,
@@ -10,7 +10,7 @@ dirac-rss-query-dtcache
 It is based on script outputs and exit codes
 '
 
-echo -e "\n\n TESTING: dirac-rss-query-db --name=test123 --status=Banned --statusType=ReadAccess --reason=test add resource status"
+echo -e "\n\n TESTING: dirac-rss-query-db --name=test123 --status=Banned --statusType=ReadAccess --elementType=StorageElement --reason=test add resource status"
 dirac-rss-query-db --name=test123 --status=Banned --statusType=ReadAccess --elementType=StorageElement --reason=test add resource status
 if [ $? -ne 0 ]
 then

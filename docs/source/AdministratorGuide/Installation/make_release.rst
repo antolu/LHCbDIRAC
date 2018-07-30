@@ -36,7 +36,7 @@ The following of this guide assumes the above is true.
 Creating a release of LHCbDIRAC means creating a tarball that contains the release code. This is done in 3 steps:
 
 1. Merging "Merge Requests"
-2. Propagating to the devel branch
+2. Propagating to the devel branch (for patches)
 3. Creating the release tarball, add uploading it to the LHCb web service
 
 But before:
@@ -69,7 +69,7 @@ If there are no MRs, or none ready: please skip to the "update the CHANGELOG" su
 
 Otherwise, simply click the "Accept merge request" button for each of them.
 
-If you are making a Major release please merge devel to master follow the instruction: Basic instruction how to merging the devel branch into master (NOT for PATCH release).
+If you are making a Major release please merge devel to master follow the instruction: :ref:`devel_to_master` (NOT for PATCH release).
 
 Then, from the LHCbDIRAC local fork you need to update some files::
 
@@ -390,12 +390,16 @@ for checking and updating the pilot version. Note that you'll need a proxy that 
 This script will make sure that the pilot version is update BOTH in the CS and in the json file used by pilots started in the vacuum.
 
 
+.. _devel_to_master:
 
-Basic instruction how to merging the devel branch into master (NOT for PATCH release)
-```````````````````````````````````````````````````````````````````````````````````````
+Basic instruction how to merge the devel branch into master (NOT for PATCH release)
+```````````````````````````````````````````````````````````````````````````````````
 
-Our developer model is to keep only two branches: master and devel. When we made a major release we have to merge devel to master. Before the
-merging please create a new branch based on master using the web interface of GitLab. This is for safety. After you can merege devel to master::
+Our developer model is to keep only two branches: master and devel. When we make a major release, we have to merge devel to master.
+Before the merging,  create a new branch based on master using the web interface of GitLab. 
+This is for safety: save the in a new branch, named e.g. "v9r1" the last commit done for "v9r1" branch.
+
+After, you can merge devel to master (the following does it in a new directory, for safety)::
 
     mkdir $(date +20%y%m%d) && cd $(date +20%y%m%d)
     git clone ssh://git@gitlab.cern.ch:7999/lhcb-dirac/LHCbDIRAC.git
@@ -406,7 +410,8 @@ merging please create a new branch based on master using the web interface of Gi
     git merge upstream/devel
     git push upstream newMaster:master
 
-After when you merged devel to master you can make the tag!
+After when you merged devel to master, the 2 branches will be strictly equivalent. 
+You can make the tag for the new release starting from the master branch.
 
 5. Mesos cluster
 ========================

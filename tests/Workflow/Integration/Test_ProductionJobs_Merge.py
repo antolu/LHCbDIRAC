@@ -33,8 +33,8 @@ class ProductionJobTestCase(IntegrationTest):
 class MCMergeSuccess(ProductionJobTestCase):
   def test_Integration_Production(self):
 
-    lfns = ['/lhcb/MC/2012/BDSTH.STRIP.DST/00051752/0000/00051752_00001269_1.bdsth.Strip.dst',
-            '/lhcb/MC/2012/BDSTH.STRIP.DST/00051752/0000/00051752_00001263_1.bdsth.Strip.dst']
+    lfns = ['/lhcb/MC/2012/BDSTH.STRIP.DST/00051752/0000/00051752_00001269_2.bdsth.Strip.dst',
+            '/lhcb/MC/2012/BDSTH.STRIP.DST/00051752/0000/00051752_00001263_2.bdsth.Strip.dst']
     # From request 31139
     optionFiles = '$APPCONFIGOPTS/DaVinci/DV-Stripping24-Stripping-MC-NoPrescaling.py;'
     optionFiles += '$APPCONFIGOPTS/DaVinci/DataType-2015.py;$APPCONFIGOPTS/DaVinci/InputType-DST.py'
