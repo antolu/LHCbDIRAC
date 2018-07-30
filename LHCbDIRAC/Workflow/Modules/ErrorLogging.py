@@ -38,10 +38,12 @@ class ErrorLogging( ModuleBase ):
     # Internal parameters
     self.executable = '$APPCONFIGROOT/scripts/LogErr.py'
     self.errorLogFile = ''
-    self.errorLogName = ''
+    self.errorLogNameHTML = ''
+    self.errorLogNamejson = ''
     self.stdError = ''
     # Error log parameters
-    self.defaultName = 'errors.html'
+    self.defaultNameHTML = 'errors.html'
+    self.defaultNamejson = 'errors.json'
 
   #############################################################################
 
@@ -54,10 +56,15 @@ class ErrorLogging( ModuleBase ):
     self.errorLogFile = 'Error_Log_%s_%s_%s.log' % ( self.applicationName,
                                                      self.applicationVersion,
                                                      self.step_number )
-    self.errorLogName = '%d_Errors_%s_%s_%s.html' % ( self.jobID,
+    self.errorLogNameHTML = '%d_Errors_%s_%s_%s.html' % ( self.jobID,
                                                       self.applicationName,
                                                       self.applicationVersion,
                                                       self.step_number )
+    self.errorLogNamejson = '%d_Errors_%s_%s_%s.json' % ( self.jobID,
+                                                      self.applicationName,
+                                                      self.applicationVersion,
+                                                      self.step_number )
+
 
   #############################################################################
 
@@ -90,14 +97,20 @@ class ErrorLogging( ModuleBase ):
         self.log.info( 'Application log file from previous module not found locally: %s' % self.applicationLog )
         return S_OK()
 
-      command = 'python %s %s %s %s' % ( self.executable, self.applicationLog, self.applicationName, self.applicationVersion )
+      command = 'python %s %s %s %s %s %s %s' % ( self.executable, 
+                                                  self.applicationLog, 
+                                                  self.applicationName, 
+                                                  self.applicationVersion,
+                                                  prod_job_id,
+                                                  production_id,
+                                                  wms_job_id )
 
       # Set some parameter names
       scriptName = 'Error_Log_%s_%s_Run_%s.sh' % ( self.applicationName,
                                                    self.applicationVersion,
                                                    self.step_number )
 
-      for x in [self.defaultName, scriptName, self.errorLogFile]:
+      for x in [self.defaultNameHTML, self.defaultNamejson, scriptName, self.errorLogFile]:
         if os.path.exists( x ):
           os.remove( x )
 
@@ -120,14 +133,19 @@ class ErrorLogging( ModuleBase ):
         self.log.info( 'Exiting without affecting workflow status' )
         return S_OK()
 
-      if not os.path.exists( self.defaultName ):
-        self.log.info( '%s not found locally, exiting without affecting workflow status' % self.defaultName )
+      if not os.path.exists( self.defaultNameHTML ):
+        self.log.info( '%s not found locally, exiting without affecting workflow status' % self.defaultNameHTML )
+        return S_OK()
+
+      if not os.path.exists( self.defaultNamejson ):
+        self.log.info( '%s not found locally, exiting without affecting workflow status' % self.defaultNamejson )
         return S_OK()
 
       self.log.info( "Error logging for %s %s step %s completed successfully:" % ( self.applicationName,
                                                                                    self.applicationVersion,
                                                                                    self.step_number ) )
-      shutil.copy( self.defaultName, self.errorLogName )
+      shutil.copy( self.defaultNameHTML, self.errorLogNameHTML )
+      shutil.copy(self.defaultNamejson, self.errorLogNamejson)
 
       return S_OK()
 
