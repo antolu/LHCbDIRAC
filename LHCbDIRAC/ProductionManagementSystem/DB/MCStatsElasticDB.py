@@ -1,7 +1,5 @@
 """
 A database wrapper for ElasticDB
-author: Lara Sheik
-version: 17/07/18
 """
 import json
 from elasticsearch import Elasticsearch
@@ -12,34 +10,34 @@ ES = Elasticsearch()
 
 
 class MCStatsElasticDB(DB):
-  def __init__(self):
+  def __init__(self, indexName='mcstatsdb'):
     DB.__init__(self, 'MCStatsDB', 'ProductionManagement/MCStatsDB')
-    self.indexName = 'mcstatsdb'
+    self.indexName = indexName
     # self.typeName = 'LogErr'    # We assume the type of the data is from LogErr
     self.mapping = {
-      "Log_output": {
-        "properties": {
-          "ID": {
+        "Log_output": {
             "properties": {
-              "JobID": {"type": "text"},
-              "TransformationID": {"type": "text"},
-              "ProductionID": {"type": "text"}
-            }
-          },
-          "Errors" : {
-            "properties" : {
-              "Counter": {"type": "integer"},
-              "Error type": {"type": "text"},
-              "Events": {
-                "properties": {
-                  "runnr": {"type": "text"},
-                  "eventnr": {"type": "text"}
+                "ID": {
+                    "properties": {
+                        "JobID": {"type": "text"},
+                        "TransformationID": {"type": "text"},
+                        "ProductionID": {"type": "text"}
+                    }
+                },
+                "Errors": {
+                    "properties": {
+                        "Counter": {"type": "integer"},
+                        "Error type": {"type": "text"},
+                        "Events": {
+                            "properties": {
+                                "runnr": {"type": "text"},
+                                "eventnr": {"type": "text"}
+                            }
+                        }
+                    }
                 }
-              }
             }
-          }
         }
-      }
     }
 
     createIndex = self.createIndex(self.indexName, self.mapping, None)
@@ -98,15 +96,15 @@ class MCStatsElasticDB(DB):
     """
 
     query = {
-      "query": {
-        "bool": {
-          "must": {
-            "match": {
-              "Log_output.ID.JobID": jobID
+        "query": {
+            "bool": {
+                "must": {
+                    "match": {
+                        "Log_output.ID.JobID": jobID
+                    }
+                }
             }
-          }
         }
-      }
     }
 
     gLogger.notice('Getting results for JobID: ', jobID)
@@ -131,21 +129,21 @@ class MCStatsElasticDB(DB):
     :param str JobID: The JobID Of the data in elasticsearch
     """
     query = {
-      "query": {
-        "bool": {
-          "must": {
-            "match": {
-              "Log_output.ID.JobID": jobID
+        "query": {
+            "bool": {
+                "must": {
+                    "match": {
+                        "Log_output.ID.JobID": jobID
+                    }
+                }
             }
-          }
         }
-      }
     }
 
     gLogger.notice('Attempting to delete data with JobID: ', jobID)
     try:
-      ES.delete_by_query(index = self.indexName, body = query)
+      ES.delete_by_query(index=self.indexName, body=query)
     except Exception as inst:
       gLogger.error("ERROR: Couldn't delete data")
       return S_ERROR(inst)
-    return S_OK('Successfully deleted data with JobID: %s' %jobID)
+    return S_OK('Successfully deleted data with JobID: %s' % jobID)

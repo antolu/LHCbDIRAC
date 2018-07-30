@@ -1,3 +1,7 @@
+"""
+Tests set(), get() and remove() from MCStatsElasticDB
+"""
+
 import time
 import json
 import unittest
@@ -17,75 +21,75 @@ class MCStatsElasticDBTestCase(unittest.TestCase):
     self.falseID = 3
 
     self.data1 = {
-      "Log_output": {
-        "ID": {
-          "JobID": self.id1,
-          "TransformationID": "TransID_test1",
-          "ProductionID": "ProdID_test1"
-        },
-        "Errors": {
-          "Counter": 2,
-          "Error type": "Test error 1",
-          "Events": [
-            {
-              "runnr": "Run 1",
-              "eventnr": "Evt 1"
+        "Log_output": {
+            "ID": {
+                "JobID": self.id1,
+                "TransformationID": "TransID_test1",
+                "ProductionID": "ProdID_test1"
             },
-            {
-              "runnr": "Run 2",
-              "eventnr": "Evt 2"
+            "Errors": {
+                "Counter": 2,
+                "Error type": "Test error 1",
+                "Events": [
+                    {
+                        "runnr": "Run 1",
+                        "eventnr": "Evt 1"
+                    },
+                    {
+                        "runnr": "Run 2",
+                        "eventnr": "Evt 2"
+                    }
+                ]
             }
-          ]
         }
-      }
     }
 
     self.data2 = {
-      "Log_output": {
-        "ID": {
-          "JobID": self.id2,
-          "TransformationID": "TransID_test2",
-          "ProductionID": "ProdID_test2"
-        },
-        "Errors": [
-          {
-            "Counter": 4,
-            "Error type": "Test error 1",
-            "Events": [
-              {
-                "runnr": "Run 1",
-                "eventnr": "Evt 1"
-              },
-              {
-                "runnr": "Run 2",
-                "eventnr": "Evt 2"
-              },
-              {
-                "runnr": "Run 3",
-                "eventnr": "Evt 3"
-              },
-              {
-                "runnr": "Run 4",
-                "eventnr": "Evt 4"
-              }
+        "Log_output": {
+            "ID": {
+                "JobID": self.id2,
+                "TransformationID": "TransID_test2",
+                "ProductionID": "ProdID_test2"
+            },
+            "Errors": [
+                {
+                    "Counter": 4,
+                    "Error type": "Test error 1",
+                    "Events": [
+                        {
+                            "runnr": "Run 1",
+                            "eventnr": "Evt 1"
+                        },
+                        {
+                            "runnr": "Run 2",
+                            "eventnr": "Evt 2"
+                        },
+                        {
+                            "runnr": "Run 3",
+                            "eventnr": "Evt 3"
+                        },
+                        {
+                            "runnr": "Run 4",
+                            "eventnr": "Evt 4"
+                        }
+                    ]
+                },
+                {
+                    "Counter": 2,
+                    "Error type": "Test error 2",
+                    "Events": [
+                        {
+                            "runnr": "Run 1",
+                            "eventnr": "Evt 1"
+                        },
+                        {
+                            "runnr": "Run 2",
+                            "eventnr": "Evt 2"
+                        }
+                    ]
+                }
             ]
-          },
-          {
-            "Counter": 2,
-            "Error type": "Test error 2",
-            "Events": [
-              {
-                "runnr": "Run 1",
-                "eventnr": "Evt 1"
-              },
-              {
-                "runnr": "Run 2",
-                "eventnr": "Evt 2"
-              }
-            ]
-          }
-        ]
-      }
+        }
     }
 
     # This is needed to convert '' to ""
@@ -108,7 +112,7 @@ class TestMCStatsElasticDB(MCStatsElasticDBTestCase):
 
   def test_setandGetandRemove(self):
 
-    ############ Set
+    # Set
 
     # Set data1
     result = self.db.set(self.typeName, self.data1)
@@ -121,7 +125,7 @@ class TestMCStatsElasticDB(MCStatsElasticDBTestCase):
     # Data insertion is not instantaneous, so sleep is needed
     time.sleep(1)
 
-    ############ Get
+    # Get
 
     # Get data1
     result = self.db.get(self.id1)
@@ -138,7 +142,7 @@ class TestMCStatsElasticDB(MCStatsElasticDBTestCase):
     self.assertTrue(result['OK'])
     self.assertEqual(result['Value'], '{}')
 
-    ############ Remove
+    # Remove
 
     # Remove data1
     self.db.remove(self.id1)
@@ -160,6 +164,7 @@ class TestMCStatsElasticDB(MCStatsElasticDBTestCase):
     result = self.db.get(self.falseID)
     self.assertTrue(result['OK'])
     self.assertEqual(result['Value'], '{}')
+
 
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase(MCStatsElasticDBTestCase)
