@@ -2,11 +2,16 @@
 Data distribution
 =================
 
+
+Policy
+======
+
+
 *******
 Archive
 *******
 
-The defautl option is at `Operations/<Setup>/TransformationPlugins/Archive2SEs`. it can be overwritten in each plugin.
+The default option is at `Operations/<Setup>/TransformationPlugins/Archive2SEs`. it can be overwritten in each plugin.
 The choice is done randomly.
 
 *************
@@ -15,7 +20,7 @@ DST broadcast
 
 The broadcast done by LHCbDSTBroadcast plugin is done according to the free space
 
-=====================================
+
 RAW files processing and distribution
 =====================================
 
@@ -94,3 +99,50 @@ Obviously, since we have an extra constraint, we have to give a degree of freedo
 CPUFraction corresponds to `Operations/<Setup>/Shares/CPUforRAW`
 
 RAWShare corresponds to `Operations/<Setup>/Shares/RAW`
+
+
+
+MonteCarlo distribution
+=======================
+
+The distribution of MC relies on the `LHCbMCDstBroadcast` plugin. In order to know what to replicate, we use a wildcard in the bookkeeping query, and for each of the individual path, we start a transformation. To be sure not to start several time the same, we use the `--Unique` option.
+
+The difficulty is to know for which year and which sim version to start. Gloria or Vladimir can tell you...
+
+In order to list the BK paths that are going to be replicated:
+
+::
+
+    for year in 2011 2012 2015 2016;
+    do
+      for sim in Sim09b Sim09c;
+      do
+        dirac-dms-add-transformation --List --BK=/MC/$year//$sim/...Reco...;
+      done;
+    done
+
+
+    List of processing passes for BK path /MC/2011//Sim09b/...Reco...
+
+    /Sim09b/Reco14c
+    /Sim09b/Reco14c/Stripping21r1NoPrescalingFlagged
+    /Sim09b/Trig0x40760037/Reco14c
+    /Sim09b/Trig0x40760037/Reco14c/Stripping20r1Filtered
+    /Sim09b/Trig0x40760037/Reco14c/Stripping20r1NoPrescalingFlagged
+    /Sim09b/Trig0x40760037/Reco14c/Stripping21r1Filtered
+    /Sim09b/Trig0x40760037/Reco14c/Stripping21r1NoPrescalingFlagged
+    /Sim09b/Trig0x40760037/Reco14c/Stripping21r1p1Filtered
+    /Sim09b/Trig0x40760037/Reco14c/Stripping21r1p1NoPrescalingFlagged
+
+
+In order to actually start these replications:
+
+::
+
+    for year in 2011 2012 2015 2016;
+    do
+      for sim in Sim09b Sim09c;
+      do
+        dirac-dms-add-transformation --Plugin LHCbMCDSTBroadcastRandom --BK=/MC/$year//$sim/...Reco... --Unique --Start;
+      done;
+    done

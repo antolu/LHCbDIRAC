@@ -13,7 +13,7 @@ This page is the work in progress. See more material here soon !
    Installation/make_release.rst
    Installation/certificate.rst
    Online.rst
-   Bookkeeping/administrate_oracle.rst
+   Bookkeeping/index.rst
    dataDistribution.rst
    ReStripping.rst
    flushing.rst

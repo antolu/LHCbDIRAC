@@ -73,9 +73,10 @@ In that case, we clean whatever the old job managed to produce, and we re-strip 
 
 
 
-RDST files should be reset Unused automatically by the DRA:
-NotProcWithDesc /lhcb/LHCb/Collision16/RDST/00051872/0000/00051872_00004324_1.rdst
-NotProcWithDesc /lhcb/LHCb/Collision16/RDST/00051872/0007/00051872_00073248_1.rdst
-NotProcWithDesc /lhcb/LHCb/Collision16/RDST/00051872/0007/00051872_00075929_1.rdst
-NotProcWithDesc /lhcb/LHCb/Collision16/RDST/00051872/0013/00051872_00134216_1.rdst
-NotProcWithDesc /lhcb/LHCb/Collision16/RDST/00051872/0013/00051872_00138382_1.rdst
+RDST files should be reset Unused automatically by the DRA::
+
+   NotProcWithDesc /lhcb/LHCb/Collision16/RDST/00051872/0000/00051872_00004324_1.rdst
+   NotProcWithDesc /lhcb/LHCb/Collision16/RDST/00051872/0007/00051872_00073248_1.rdst
+   NotProcWithDesc /lhcb/LHCb/Collision16/RDST/00051872/0007/00051872_00075929_1.rdst
+   NotProcWithDesc /lhcb/LHCb/Collision16/RDST/00051872/0013/00051872_00134216_1.rdst
+   NotProcWithDesc /lhcb/LHCb/Collision16/RDST/00051872/0013/00051872_00138382_1.rdst
