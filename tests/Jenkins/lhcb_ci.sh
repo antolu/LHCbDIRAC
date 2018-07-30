@@ -156,7 +156,7 @@ diracServices(){
     then
       # start BKK DB setup
       setupBKKDB
-      wget http://lhcb-portal-dirac.cern.ch/defaults/cx_Oracle-5.1.tar.gz -O cx_Oracle-5.1.tar.gz
+      curl http://lhcb-portal-dirac.cern.ch/defaults/cx_Oracle-5.1.tar.gz -o cx_Oracle-5.1.tar.gz
       source /afs/cern.ch/project/oracle/script/setoraenv.sh
       # -s 11203
       export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/afs/cern.ch/project/oracle/amd64_linux26/prod/lib/
@@ -579,8 +579,8 @@ function lhcbDiracReplace(){
   cwd=$PWD
   cd $SERVERINSTALLDIR
 
-  wget $LHCbDIRAC_ALTERNATIVE_SRC_ZIP
   zipName=$(basename $LHCbDIRAC_ALTERNATIVE_SRC_ZIP)
+  curl $LHCbDIRAC_ALTERNATIVE_SRC_ZIP -o zipName
   unzip $zipName
   cd $SERVERINSTALLDIR
   dirName=$(unzip -l $zipName | head | tail -n 1 | sed 's/  */ /g' | cut -f 5 -d ' ' | cut -f 1 -d '/')
