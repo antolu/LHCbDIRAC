@@ -25,6 +25,11 @@ from LHCbDIRAC.Workflow.Modules.BookkeepingReport import BookkeepingReport
 rv_m = importlib.import_module("LHCbDIRAC.Workflow.Modules.ModuleBase")
 rv_m.RequestValidator = MagicMock()
 
+mock_pxc = MagicMock()
+mock_pxc.return_value = dict()
+p_m = importlib.import_module("LHCbDIRAC.Resources.Catalog.PoolXMLFile")
+p_m.getOutputType = mock_pxc
+
 bkr = BookkeepingReport(bkClient=bkc_mock, dm=dm_mock)
 
 allCombinations = list(product(wf_commons, step_commons))
