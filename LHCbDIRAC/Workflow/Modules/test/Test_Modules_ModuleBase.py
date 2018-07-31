@@ -1,7 +1,7 @@
 """ Test class for ModuleBase
 """
 
-#pylint: disable=protected-access, missing-docstring, invalid-name
+# pylint: disable=protected-access, missing-docstring, invalid-name
 
 __RCSID__ = "$Id$"
 
@@ -15,20 +15,22 @@ from DIRAC.DataManagementSystem.Client.test.mock_DM import dm_mock
 from DIRAC.Resources.Catalog.test.mock_FC import fc_mock
 from LHCbDIRAC.BookkeepingSystem.Client.test.mock_BookkeepingClient import bkc_mock
 from LHCbDIRAC.Workflow.Modules.test.mock_Commons import version, prod_id, prod_job_id, wms_job_id, \
-                                                         workflowStatus, stepStatus, step_id, step_number,\
-                                                         step_commons, wf_commons,\
-                                                         rc_mock
+    workflowStatus, stepStatus, step_id, step_number,\
+    step_commons, wf_commons,\
+    rc_mock
 
 # sut
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
+
 def test__enableModule():
   mb = ModuleBase(bkClientIn=bkc_mock, dm=dm_mock)
-  mb.execute( version, prod_id, prod_job_id, wms_job_id,
-              workflowStatus, stepStatus,
-              wf_commons, step_commons[0],
-              step_number, step_id )
+  mb.execute(version, prod_id, prod_job_id, wms_job_id,
+             workflowStatus, stepStatus,
+             wf_commons, step_commons[0],
+             step_number, step_id)
   assert mb._enableModule() is True
+
 
 def test__checkLocalExistance():
   mb = ModuleBase(bkClientIn=bkc_mock, dm=dm_mock)
@@ -36,9 +38,8 @@ def test__checkLocalExistance():
     mb._checkLocalExistance(['aaa', 'bbb'])
 
 
-
 candidateFiles = {'00012345_00012345_4.dst': {'lfn': '/lhcb/MC/2010/DST/123/123_45_4.dst',
-                                               'type': 'dst'},
+                                              'type': 'dst'},
                   '00012345_00012345_2.digi': {'type': 'digi'},
                   '00012345_00012345_3.digi': {'type': 'digi'},
                   '00012345_00012345_5.AllStreams.dst': {'lfn': '/lhcb/MC/2010/DST/123/123_45_5.AllStreams.dst',
@@ -46,23 +47,23 @@ candidateFiles = {'00012345_00012345_4.dst': {'lfn': '/lhcb/MC/2010/DST/123/123_
                   '00012345_00012345_1.sim': {'type': 'sim'},
                   '00038941_00000004_6.B2_D2.Strip.dst': {'lfn': '/lhcb/MC/2012/B2_D2.STRIP.DST/B2_D2.Strip.dst',
                                                           'type': 'B2_D2.strip.dst'},
-                  'Gauss_HIST_1.root': {'type':'GAUSSHIST'}}
+                  'Gauss_HIST_1.root': {'type': 'GAUSSHIST'}}
 
 fileMasks = (['dst'], 'dst', ['sim'], ['digi'], ['digi', 'sim'], 'allstreams.dst',
              'B2_D2.strip.dst', [],
              ['B2_D2.strip.dst', 'digi'],
              ['gausshist', 'digi'],
-            )
-stepMasks = ('', '5', '', ['2'], ['1', '3'], '', 
+             )
+stepMasks = ('', '5', '', ['2'], ['1', '3'], '',
              '', ['6'],
              [],
              ['1', '3'], )
 
-results = ({'00012345_00012345_4.dst':{'lfn': '/lhcb/MC/2010/DST/123/123_45_4.dst',
-                                       'type': 'dst'}},
+results = ({'00012345_00012345_4.dst': {'lfn': '/lhcb/MC/2010/DST/123/123_45_4.dst',
+                                        'type': 'dst'}},
            {},
            {'00012345_00012345_1.sim': {'type': 'sim'}},
-           {'00012345_00012345_2.digi': {'type': 'digi'},},
+           {'00012345_00012345_2.digi': {'type': 'digi'}, },
            {'00012345_00012345_3.digi': {'type': 'digi'},
             '00012345_00012345_1.sim': {'type': 'sim'}},
            {'00012345_00012345_5.AllStreams.dst':
@@ -79,24 +80,24 @@ results = ({'00012345_00012345_4.dst':{'lfn': '/lhcb/MC/2010/DST/123/123_45_4.ds
             '00038941_00000004_6.B2_D2.Strip.dst':
             {'lfn': '/lhcb/MC/2012/B2_D2.STRIP.DST/B2_D2.Strip.dst',
              'type': 'B2_D2.strip.dst'}
-           },
+            },
            {'00012345_00012345_3.digi': {'type': 'digi'},
-            'Gauss_HIST_1.root':{'type':'GAUSSHIST'}},)
+            'Gauss_HIST_1.root': {'type': 'GAUSSHIST'}},)
 
 allCombinations = list(zip(fileMasks, stepMasks, results))
+
 
 @pytest.mark.parametrize("fileMask, stepMask, result", allCombinations)
 def test__applyMask(fileMask, stepMask, result):
   mb = ModuleBase(bkClientIn=bkc_mock, dm=dm_mock)
   res = mb._applyMask(candidateFiles, fileMask, stepMask)
-  assert res ==result
+  assert res == result
 
 
 def test__checkSanity():
   mb = ModuleBase(bkClientIn=bkc_mock, dm=dm_mock)
   with pytest.raises(ValueError):
     mb._checkSanity(candidateFiles)
-
 
 
 outputList = [{'outputDataType': 'txt', 'outputDataName': 'foo_1.txt'},
@@ -122,17 +123,18 @@ results = [{'foo_1.txt': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/foo_1.txt',
            {'bar_2.py': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
                          'type': outputList[1]['outputDataType']}},
            {}
-          ]
+           ]
 
 allCombinations = list(zip(fileMasks, stepMasks, results))
+
 
 @pytest.mark.parametrize("fileMask, stepMask, result", allCombinations)
 def test_getCandidateFiles(fileMask, stepMask, result):
   mb = ModuleBase(bkClientIn=bkc_mock, dm=dm_mock)
 
-  with open( 'foo_1.txt', 'w' ):
-    with open( 'bar_2.py', 'w' ):
-      with open( 'myfoo.blah', 'w' ):
+  with open('foo_1.txt', 'w'):
+    with open('bar_2.py', 'w'):
+      with open('myfoo.blah', 'w'):
         res = mb.getCandidateFiles(outputList, outputLFNs, fileMask, stepMask)
         assert res == result
 
@@ -150,9 +152,6 @@ def test_getCandidateFiles(fileMask, stepMask, result):
         os.remove('myfoo.blah')
 
 
-
-
-
 inputDatas = ['previousStep', 'previousStep', 'LFN:123.raw']
 workflow_commons = [{'outputList': [{'stepName': 'Brunel_1',
                                      'outputDataType': 'brunelhist',
@@ -162,8 +161,8 @@ workflow_commons = [{'outputList': [{'stepName': 'Brunel_1',
                                      'outputDataType': 'sdst',
                                      'outputBKType': 'SDST',
                                      'outputDataName': '00012345_00006789_1.sdst'}
-                                   ]
-                    },
+                                    ]
+                     },
                     {'outputList': [{'stepName': 'Brunel_1',
                                      'outputDataType': 'brunelhist',
                                      'outputBKType': 'BRUNELHIST',
@@ -176,8 +175,8 @@ workflow_commons = [{'outputList': [{'stepName': 'Brunel_1',
                                      'outputDataType': 'sdst',
                                      'outputBKType': 'SDST',
                                      'outputDataName': '00012345_00006789_1.sdst'}
-                                   ]
-                    },
+                                    ]
+                     },
                     {'outputList': [{'stepName': 'Brunel_1',
                                      'outputDataType': 'brunelhist',
                                      'outputBKType': 'BRUNELHIST',
@@ -190,14 +189,15 @@ workflow_commons = [{'outputList': [{'stepName': 'Brunel_1',
                                      'outputDataType': 'sdst',
                                      'outputBKType': 'SDST',
                                      'outputDataName': '00012345_00006789_1.sdst'}
-                                   ]
-                    }
-                   ]
+                                    ]
+                     }
+                    ]
 results = [['00012345_00006789_1.sdst'],
            ['some.sdst', '00012345_00006789_1.sdst'],
            ['123.raw']]
 
 allCombinations = list(zip(inputDatas, workflow_commons, results))
+
 
 @pytest.mark.parametrize("inputData, wf_c, result", allCombinations)
 def test__determineStepInputData(inputData, wf_c, result):
@@ -208,9 +208,7 @@ def test__determineStepInputData(inputData, wf_c, result):
   mb.workflow_commons = wf_c
   mb.inputDataType = 'SDST'
   res = mb._determineStepInputData(inputData)
-  assert res ==result
-
-
+  assert res == result
 
 
 @pytest.mark.parametrize("s_cs", list(step_commons))
@@ -252,7 +250,6 @@ def test__determineOutputs(s_cs):
   assert histos is False
 
 
-
 def test__findOutputs():
   mb = ModuleBase(bkClientIn=bkc_mock, dm=dm_mock)
 
@@ -260,17 +257,19 @@ def test__findOutputs():
     with open('aaa.Bhadron.dst', 'w'):
       with open('ccc.charm.mdst', 'w'):
         with open('prova.txt', 'w'):
-          stepOutput = [{'outputDataType': 'BHADRON.DST', 'outputDataName': 'aaa.bhadron.dst'},
-                        {'outputDataType': 'CALIBRATION.DST', 'outputDataName': 'bbb.calibration.dst'},
-                        {'outputDataType': 'CHARM.MDST', 'outputDataName': 'ccc.charm.mdst'},
-                        {'outputDataType': 'CHARMCONTROL.DST', 'outputDataName': '00012345_00012345_2.CHARMCONTROL.DST'},
-                        {'outputDataType': 'CHARMFULL.DST', 'outputDataName': '00012345_00012345_2.CHARMFULL.DST'},
-                        {'outputDataType': 'LEPTONIC.MDST', 'outputDataName': '00012345_00012345_2.LEPTONIC.MDST'},
-                        {'outputDataType': 'LEPTONICFULL.DST', 'outputDataName': '00012345_00012345_2.LEPTONICFULL.DST'},
-                        {'outputDataType': 'MINIBIAS.DST', 'outputDataName': '00012345_00012345_2.MINIBIAS.DST'},
-                        {'outputDataType': 'RADIATIVE.DST', 'outputDataName': '00012345_00012345_2.RADIATIVE.DST'},
-                        {'outputDataType': 'SEMILEPTONIC.DST', 'outputDataName': '00012345_00012345_2.SEMILEPTONIC.DST'},
-                        {'outputDataType': 'HIST', 'outputDataName': 'DaVinci_00012345_00012345_2_Hist.root'}]
+          stepOutput = [
+              {
+                  'outputDataType': 'BHADRON.DST', 'outputDataName': 'aaa.bhadron.dst'}, {
+                  'outputDataType': 'CALIBRATION.DST', 'outputDataName': 'bbb.calibration.dst'}, {
+                  'outputDataType': 'CHARM.MDST', 'outputDataName': 'ccc.charm.mdst'}, {
+                  'outputDataType': 'CHARMCONTROL.DST', 'outputDataName': '00012345_00012345_2.CHARMCONTROL.DST'}, {
+                  'outputDataType': 'CHARMFULL.DST', 'outputDataName': '00012345_00012345_2.CHARMFULL.DST'}, {
+                  'outputDataType': 'LEPTONIC.MDST', 'outputDataName': '00012345_00012345_2.LEPTONIC.MDST'}, {
+                  'outputDataType': 'LEPTONICFULL.DST', 'outputDataName': '00012345_00012345_2.LEPTONICFULL.DST'}, {
+                  'outputDataType': 'MINIBIAS.DST', 'outputDataName': '00012345_00012345_2.MINIBIAS.DST'}, {
+                  'outputDataType': 'RADIATIVE.DST', 'outputDataName': '00012345_00012345_2.RADIATIVE.DST'}, {
+                      'outputDataType': 'SEMILEPTONIC.DST', 'outputDataName': '00012345_00012345_2.SEMILEPTONIC.DST'}, {
+                  'outputDataType': 'HIST', 'outputDataName': 'DaVinci_00012345_00012345_2_Hist.root'}]
           mb._findOutputs(stepOutput)
           os.remove('aaa.Bhadron.dst')
           os.remove('ccc.charm.mdst')
@@ -281,7 +280,7 @@ def test__findOutputs():
              'stepName': 'someApp_1'}]
   bkExp = ['BHADRON.DST']
   mb.stepName = 'someApp_1'
-  out, bk = mb._findOutputs( stepOutput )
+  out, bk = mb._findOutputs(stepOutput)
   assert out == outExp
   assert bk == bkExp
 
@@ -295,7 +294,7 @@ def test_getFileMetadata():
                     'bar_2.py': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
                                  'type': 'py',
                                  'workflowSE': 'SE2'},
-                   }
+                    }
 
   expectedResult = {'bar_2.py': {'filedict': {'Status': 'Waiting',
                                               'LFN': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
@@ -319,10 +318,10 @@ def test_getFileMetadata():
                                   'localpath': os.getcwd() + '/foo_1.txt',
                                   'guid': 'D41D8CD9-8F00-B204-E980-0998ECF8427E',
                                   'type': 'txt'}
-                   }
+                    }
 
-  with open( 'foo_1.txt', 'w' ):
-    with open( 'bar_2.py', 'w' ):
+  with open('foo_1.txt', 'w'):
+    with open('bar_2.py', 'w'):
       result = mb.getFileMetadata(candidateFiles)
       assert result == expectedResult
       os.remove('foo_1.txt')
@@ -331,6 +330,7 @@ def test_getFileMetadata():
 
 allCombinations = product(list(workflow_commons), step_commons)
 
+
 @pytest.mark.parametrize("wf_c, s_cs", allCombinations)
 def test_createProdConfFile(wf_c, s_cs):
   mb = ModuleBase(bkClientIn=bkc_mock, dm=dm_mock)
@@ -338,5 +338,5 @@ def test_createProdConfFile(wf_c, s_cs):
   mb.step_commons = s_cs
   mb._resolveInputVariables()
   mb._resolveInputStep()
-  res = mb.createProdConfFile( ['DST', 'GAUSSHIST'], True, 123, 1 )
+  res = mb.createProdConfFile(['DST', 'GAUSSHIST'], True, 123, 1)
   print res

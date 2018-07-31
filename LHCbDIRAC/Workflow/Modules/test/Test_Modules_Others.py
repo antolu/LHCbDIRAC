@@ -374,7 +374,7 @@ class UploadOutputDataSuccess(ModulesTestCase):
             continue
           wf_cs['outputList'] = [{'outputDataType': 'txt', 'outputDataName': 'foo.txt'},
                                  {'outputDataType': 'txt', 'outputDataName': 'bar.txt'},
-                                ]
+                                 ]
           wf_cs['ProductionOutputData'] = ['/lhcb/MC/2010/DST/00012345/0001/foo.txt',
                                            '/lhcb/MC/2010/DST/00012345/0001/bar.txt']
 #          bkc_mock.getFileDescendants.return_value = {'OK': False,

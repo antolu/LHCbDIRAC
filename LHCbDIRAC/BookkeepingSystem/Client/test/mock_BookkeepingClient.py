@@ -37,7 +37,7 @@ bkc_mock.getFileMetadata.return_value = {'OK': True,
                                                                          'FileSize': 2000,
                                                                          'GUID': '7EA19086-1E36-E611-9457-001E67398520',
                                                                          'RunNumber': 93720}}},
-                                         'rpcStub': ( ( 'Bookkeeping/BookkeepingManager', ) )}
+                                         'rpcStub': (('Bookkeeping/BookkeepingManager',))}
 bkc_mock.getFileTypeVersion.return_value = {'OK': True,
                                             'Value': {'lfn1': 'ROOT',
                                                       'lfn2': 'MDF'}}
