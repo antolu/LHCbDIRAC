@@ -351,12 +351,12 @@ class UploadOutputDataSuccess(ModulesTestCase):
         continue
       for s_cs in step_commons:
         fileDescendants = {}
-        self.assertTrue(uod.execute(prod_id, prod_job_id, wms_job_id,
-                                    workflowStatus, stepStatus,
-                                    wf_cs, s_cs,
-                                    step_number, step_id,
-                                    SEs=['SomeSE'],
-                                    fileDescendants=fileDescendants)['OK'])
+        self.assertFalse(uod.execute(prod_id, prod_job_id, wms_job_id,
+                                     workflowStatus, stepStatus,
+                                     wf_cs, s_cs,
+                                     step_number, step_id,
+                                     SEs=['SomeSE'],
+                                     fileDescendants=fileDescendants)['OK'])
 
     # no errors, input data
     for wf_cs in copy.deepcopy(wf_commons):
