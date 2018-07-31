@@ -2,6 +2,8 @@
     common utility methods
 """
 
+__RCSID__ = "$Id$"
+
 import os
 import copy
 import time
@@ -23,7 +25,6 @@ from LHCbDIRAC.Core.Utilities.ProductionData                  import getLogPath,
 from LHCbDIRAC.Core.Utilities.ProdConf                        import ProdConf
 from LHCbDIRAC.Workflow.Modules.ModulesUtilities              import getEventsToProduce
 
-__RCSID__ = "$Id$"
 
 class ModuleBase( object ):
   """ Base class for Modules - works only within DIRAC workflows
@@ -491,10 +492,9 @@ class ModuleBase( object ):
 
     if 'JobReport' in self.workflow_commons:
       return self.workflow_commons['JobReport']
-    else:
-      jobReport = JobReport( self.jobID )
-      self.workflow_commons['JobReport'] = jobReport
-      return jobReport
+    jobReport = JobReport( self.jobID )
+    self.workflow_commons['JobReport'] = jobReport
+    return jobReport
 
   #############################################################################
 
@@ -504,10 +504,9 @@ class ModuleBase( object ):
 
     if 'FileReport' in self.workflow_commons:
       return self.workflow_commons['FileReport']
-    else:
-      fileReport = FileReport()
-      self.workflow_commons['FileReport'] = fileReport
-      return fileReport
+    fileReport = FileReport()
+    self.workflow_commons['FileReport'] = fileReport
+    return fileReport
 
   #############################################################################
 
@@ -517,10 +516,9 @@ class ModuleBase( object ):
 
     if 'Request' in self.workflow_commons:
       return self.workflow_commons['Request']
-    else:
-      request = Request()
-      self.workflow_commons['Request'] = request
-      return request
+    request = Request()
+    self.workflow_commons['Request'] = request
+    return request
 
   #############################################################################
 
@@ -611,16 +609,16 @@ class ModuleBase( object ):
 
     if fileMask and fileMask != ['']:
       for fileName, metadata in candidateFiles.items():
-        if metadata['type'].lower() not in fileMask:  # and ( fileName.split( '.' )[-1] not in fileMask ) ):
+        if metadata['type'].lower() not in [fm.lower() for fm in fileMask]:
           del candidateFiles[fileName]
-          self.log.info( 'Output file %s was produced but will not be treated (fileMask is %s)' % ( fileName,
-                                                                                                    ', '.join( fileMask ) ) )
+          self.log.info('Output file %s was produced but will not be treated (fileMask is %s)' % (fileName,
+                                                                                                  ', '.join(fileMask)))
     else:
       self.log.info( 'No outputDataFileMask provided, the files with all the extensions will be considered' )
 
     if stepMask and stepMask != ['']:
       for fileName, metadata in candidateFiles.items():
-        if fileName.lower().replace( metadata['type'], '' ).split( '_' )[-1].split( '.' )[0] not in stepMask:
+        if fileName.lower().replace( metadata['type'].lower(), '' ).split( '_' )[-1].split( '.' )[0] not in stepMask:
           del candidateFiles[fileName]
           self.log.info( 'Output file %s was produced but will not be treated (stepMask is %s)' % ( fileName,
                                                                                                     ', '.join( stepMask ) ) )
@@ -723,8 +721,7 @@ class ModuleBase( object ):
 
       return stepInputData
 
-    else:
-      return [x.strip( 'LFN:' ) for x in inputData.split( ';' )]
+    return [x.strip( 'LFN:' ) for x in inputData.split( ';' )]
 
   #############################################################################
 
@@ -819,9 +816,8 @@ class ModuleBase( object ):
     if not self._WMSJob():
       self.log.info( 'No WMS JobID found, disabling module via control flag' )
       return False
-    else:
-      self.log.verbose( 'Found WMS JobID = %d' % self.jobID )
-      return True
+    self.log.verbose( 'Found WMS JobID = %d' % self.jobID )
+    return True
 
   #############################################################################
 
