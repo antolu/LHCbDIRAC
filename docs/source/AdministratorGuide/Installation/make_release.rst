@@ -69,7 +69,7 @@ If there are no MRs, or none ready: please skip to the "update the CHANGELOG" su
 
 Otherwise, simply click the "Accept merge request" button for each of them.
 
-If you are making a Major release please merge devel to master follow the instruction: :ref:`devel_to_master` (NOT for PATCH release).
+If you are making a Major release please merge devel to master follow the instruction: :ref:`devel_to_master`.
 
 Then, from the LHCbDIRAC local fork you need to update some files::
 
@@ -77,7 +77,8 @@ Then, from the LHCbDIRAC local fork you need to update some files::
   # if you start from scratch otherwise skip the first 2 commands
   mkdir $(date +20%y%m%d) && cd $(date +20%y%m%d)
   git clone https://:@gitlab.cern.ch:8443/lhcb-dirac/LHCbDIRAC.git
-  git remote add upstream https://:@gitlab.cern.ch:8443/lhcb-dirac/LHCbDIRAC.git
+  cd LHCbDIRAC
+  git remote rename origin upstream
   # update your "local" upstream/master branch
   git fetch upstream
   # create a "newMaster" branch which from the upstream/master branch
@@ -164,7 +165,7 @@ Login on lxplus, run ::
 
   lb-run LHCbDirac/prod bash -norc
 
-  git archive --remote ssh://git@gitlab.cern.ch:7999/lhcb-dirac/LHCbDIRAC.git devel LHCbDIRAC/releases.cfg  | tar -x -v -f - --transform 's|^LHCbDIRAC/||' LHCbDIRAC/releases.cfg
+  git archive --remote ssh://git@gitlab.cern.ch:8443/lhcb-dirac/LHCbDIRAC.git devel LHCbDIRAC/releases.cfg  | tar -x -v -f - --transform 's|^LHCbDIRAC/||' LHCbDIRAC/releases.cfg
 
   dirac-distribution -r v8r3p1 -l LHCb -C file:///`pwd`/releases.cfg (this may take some time)
 
@@ -402,7 +403,7 @@ This is for safety: save the in a new branch, named e.g. "v9r1" the last commit 
 After, you can merge devel to master (the following does it in a new directory, for safety)::
 
     mkdir $(date +20%y%m%d) && cd $(date +20%y%m%d)
-    git clone ssh://git@gitlab.cern.ch:7999/lhcb-dirac/LHCbDIRAC.git
+    git clone ssh://git@gitlab.cern.ch:8443/lhcb-dirac/LHCbDIRAC.git
     cd LHCbDIRAC
     git remote rename origin upstream
     git fetch upstream

@@ -1,67 +1,66 @@
-[v9r2-pre8]
-use DIRAC v6r20p6
+[v9r2]
+use DIRAC v6r20p7
 
-* autopep8
-* adapting to v6r20p6
-* added some stuff to ignore
-
-[v9r2-pre7]
-use DIRAC v6r20p6
-
-* docs: more doc on TLS
-* corrected location
-* removed mergeMDF, added mergeHISTOs
-* removed unused
-* pycodestyle fixes
-* autopep8 and style
-* avoiding back tick
-* autopep8
-* removed not-anymore-useful tests
-* changed tag
-* only gauss
-* updated test, removed old MP
-* add some components to exclude
-* resolve conflicts v9r1p19
-* CI: take the devel branch for v0r versions
-* BOINC: stricter TLS options
-
-[v9r2-pre6]
-use DIRAC v6r20p2
-
-* delete pilot syncronizer, becuase it is in DIRAC
-* fix conflicts v9r1p16
+* delete pilot syncronizer, because it is in DIRAC
 * set PYCURL_SSL_LIBRARY
-* adding openssl
-* corrected location
-* handle correctly the case when some parameter is mising
+* handle correctly the case when some parameter is missing
 * correct the file path
-* resolve v9r1p15 conflicts
-* style
-* removed MDFmerge
-* added debug message
-* removed old tests
-
-[v9r2-pre5]
-use DIRAC v6r20
-
-[v9r1p20]
-use DIRAC v6r19p25
-
-* CI: adapt gitlab-ci.yml to Runner v11
-
-[v9r1p19]
-use DIRAC v6r19p24
-
-* returning the error message
-* autopep8
 * added try/except for incomplete requests
 * fix for NoneType
-* autopep8
 * improve printout
-* fix comment
-* Docs: fix all the warnings
 * better format + new option --Parameters
 * protect against exception opening XML summary
+* fix visibility for removal transformations
+* increase the size of the file type
+* fix getMaxFilesToReplicate (disabling throttling to tape SEs)
+* print BK query timing in all cases
+* make a single query for a list of prods or event types
+* avoid nDatasets==0
+* Release locks in ProductionRequestDB.py when file type checks fail
+* Fix outdated comments in ProductionRequestDB.py
+* Require any previous step to have created a suitable input
+* Move file type check so that pre-existing bad productions can still be updated
+* Remove redundant cPickle.load in ProductionRequestDB
+* Check input and output file types match when creating/updating production requests
+* installing libcurl-devel
+* removed UsersAndGroups.py
+* several fixes to adapt to DIRAC v6r20
+* remove old BOINC host
+* add BOINC host for update
+* removed HammerCloud
+* removed GridCollectorAgent
+* removed useless script
+* removed scripts moved to vanilla DIRAC
+* removed old/unmaintained scripts
+* cleaning only for Idle prods
+* postponing BK registration if there's a request to register the LFN in the DFC
+* removed part of SLSAGent
+* backported rescheduling of Ganga jobs for lb-run errors
+* update of docs and config template
+* fixes on types_getJobParameter and commitRegisters URL
+* BOINC: stricter TLS options
+* CI: use curl instead of wget 
+* CI: added lhcbDiracReplace function
+* CI: don't use SSL for ES
+* CI: added some stuff to ignore
+* CI: corrected location
+* CI: removed mergeMDF, added mergeHISTOs
+* CI: avoiding back tick
+* CI: removed not-anymore-useful tests
+* CI: removed MDFmerge
+* CI: removed old tests
+* CI: removed old/deprecated stuff for Jenkins
+* CI: add more performance tests
+* CI: add bookkeeping performance tests
+* CI: test discovery for pytest for Integration tests in Jenkins
+* CI: adapt gitlab-ci.yml to Runner v11
+* CI: added pycodestyle
+* CI: build slc6 based image for docker
+* Docs: added doc on MC distribution
+* Docs: more doc on TLS
+* Docs: fix all the warnings
+* Docs: updated doc for release
+
 
 [v9r1p18]
 use DIRAC v6r19p23
@@ -112,17 +111,6 @@ use DIRAC v6r19p21
 * correct the script
 * fix integration test
 * add "how to install/upgrade" LHCbDirac in HLTFarm
-
-[v9r2-pre4]
-use DIRAC v6r20-pre23
-
-* fix visibility for removal transformations
-* increase the size of the file type
-* fix getMaxFilesToReplicate (disabling throttling to tape SEs)
-* print BK query timing in all cases
-* make a single query for a list of prods or event types
-* avoid nDatasets==0
-* ignore empty lines
 
 [v9r1p13]
 use DIRAC v6r19p21
@@ -186,84 +174,6 @@ use DIRAC v6r19p21
 * fix progress bar that was embedded
 * improve printout for summary of PFN metadata
 
-
-[v9r2-pre3]
-use DIRAC v6r20-pre21
-
-* Fix pycodestyle issues with ProductionRequestDB.py
-* Release locks in ProductionRequestDB.py when file type checks fail
-* Fix outdated comments in ProductionRequestDB.py
-* Require any previous step to have created a suitable input
-* Move file type check so that pre-existing bad productions can still be updated
-* Remove redundant cPickle.load in ProductionRequestDB
-* Check input and output file types match when creating/updating production requests
-* installing libcurl-devel
-* some debug
-* use virtualenv
-* removed UsersAndGroups.py
-* several fixes to adapt to DIRAC v6r20
-* backport pylint fixes
-* remove old BOINC host
-* add BOINC host for update
-* test discovery for pytest for Integration tests in Jenkins
-* fix pycode style
-* fix pylint
-* fix
-* debug
-* @@typo
-* pylint and style
-* getting correct branch
-* added pycodestyle
-* pycodestyle fixes
-* added setup.cfg file for pycodestyle
-* change the location of the parseCommandLine
-* added some imports
-* mod message
-* remove non used import
-* add more tests
-* add more performance tests
-* add bookkeeping performance tests
-
-[v9r2-pre2]
-use DIRAC v6r20-pre18
-* Port to devel changes for platforms in master
-* removed old/deprecated stuff for Jenkins
-* removed more useless stuff
-* finding correct location
-* try different location
-* removed old stuff
-* removed HammerCloud
-* removed GridCollectorAgent
-* updated doc for release
-* removed useless script
-* removed empty dir
-* removed scripts moved to vanilla DIRAC
-* removed old/unmaintained scripts
-* removed unduly created file
-* cleaning only for Idle prods
-* update release docs
-* just different order, for pipelines
-* autopep8
-* postponing BK registration if there's a request to register the LFN in the DFC
-
-[v9r2-pre1]
-use DIRAC v6r20-pre11
-
-* CI: build slc6 based image for docker
-* Keep pre first in the list
-* fixes
-* removed part of SLSAGent
-* style
-* fixes
-* re-migrated
-* moved to DIRAC
-=======
-* style
-* just adding setup.cfg file
-* backported rescheduling of Ganga jobs for lb-run errors
-* update of docs and config template
-* fixes on types_getJobParameter and commitRegisters URL
->>>>>>> upstream/master
 
 [v9r1p11]
 use DIRAC v6r19p20
