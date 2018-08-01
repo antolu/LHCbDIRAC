@@ -20,9 +20,9 @@ from DIRAC.Resources.Catalog.test.mock_FC import fc_mock
 from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummary
 # mocks
 from LHCbDIRAC.Workflow.Modules.mock_Commons import step_commons, wf_commons, \
-                                                         prod_id, prod_job_id, wms_job_id, \
-                                                         workflowStatus, stepStatus, step_id, step_number,\
-                                                         rc_mock
+    prod_id, prod_job_id, wms_job_id, \
+    workflowStatus, stepStatus, step_id, step_number,\
+    rc_mock
 from LHCbDIRAC.BookkeepingSystem.Client.test.mock_BookkeepingClient import bkc_mock
 
 # sut
