@@ -1,3 +1,8 @@
+[v9r2p1]
+use DIRAC v6r20p7
+
+* fix for Workflow/ModuleBase
+
 [v9r2]
 use DIRAC v6r20p7
 
