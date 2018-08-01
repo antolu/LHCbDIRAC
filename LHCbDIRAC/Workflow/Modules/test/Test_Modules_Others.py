@@ -20,7 +20,7 @@ from DIRAC.RequestManagementSystem.Client.Operation import Operation
 from DIRAC.RequestManagementSystem.Client.File import File
 
 # mocks
-from LHCbDIRAC.Workflow.Modules.test.mock_Commons import prod_id, prod_job_id, wms_job_id, \
+from LHCbDIRAC.Workflow.Modules.mock_Commons import prod_id, prod_job_id, wms_job_id, \
     workflowStatus, stepStatus, step_id, step_number,\
     step_commons, wf_commons,\
     rc_mock

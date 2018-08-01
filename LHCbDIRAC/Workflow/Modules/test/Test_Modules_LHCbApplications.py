@@ -13,7 +13,7 @@ from DIRAC import gLogger
 
 from DIRAC.DataManagementSystem.Client.test.mock_DM import dm_mock
 from LHCbDIRAC.BookkeepingSystem.Client.test.mock_BookkeepingClient import bkc_mock
-from LHCbDIRAC.Workflow.Modules.test.mock_Commons import prod_id, prod_job_id, wms_job_id, \
+from LHCbDIRAC.Workflow.Modules.mock_Commons import prod_id, prod_job_id, wms_job_id, \
                                                          workflowStatus, stepStatus, step_id, step_number,\
                                                          step_commons, wf_commons
 
