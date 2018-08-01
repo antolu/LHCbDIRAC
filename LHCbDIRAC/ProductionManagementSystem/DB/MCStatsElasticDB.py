@@ -10,7 +10,7 @@ ES = Elasticsearch()
 
 
 class MCStatsElasticDB(DB):
-  def __init__(self, indexName='mcstatsdb'):
+  def __init__(self, indexName = 'mcstatsdb'):
     DB.__init__(self, 'MCStatsDB', 'ProductionManagement/MCStatsDB')
     self.indexName = indexName
     # self.typeName = 'LogErr'    # We assume the type of the data is from LogErr
@@ -142,7 +142,7 @@ class MCStatsElasticDB(DB):
 
     gLogger.notice('Attempting to delete data with JobID: ', jobID)
     try:
-      ES.delete_by_query(index=self.indexName, body=query)
+      ES.delete_by_query(index = self.indexName, body=query)
     except Exception as inst:
       gLogger.error("ERROR: Couldn't delete data")
       return S_ERROR(inst)
