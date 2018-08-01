@@ -1,6 +1,8 @@
 """
 This tests the chain
-MCStatsClient >
+MCStatsElasticDBClient > MCStatsElasticDBHandler > MCStatsElasticDB
+
+It assumes the server is running
 """
 import unittest
 import json
@@ -140,9 +142,6 @@ class MCHandlerClientChain(TestClientMCStatsTestCase):
     self.mcStatsClient.remove(self.id1)
     time.sleep(3)
     result = self.mcStatsClient.get(self.id1)
-    print '\n\n'
-    print result
-    print '\n\n'
     self.assertTrue(result['OK'])
     self.assertEqual(result['Value'], '{}')
 
@@ -150,9 +149,6 @@ class MCHandlerClientChain(TestClientMCStatsTestCase):
     self.mcStatsClient.remove(self.id2)
     time.sleep(3)
     result = self.mcStatsClient.get(self.id2)
-    print '\n\n'
-    print result
-    print '\n\n'
     self.assertTrue(result['OK'])
     self.assertEqual(result['Value'], '{}')
 
