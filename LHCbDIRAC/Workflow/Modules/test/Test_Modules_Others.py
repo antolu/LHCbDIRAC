@@ -20,7 +20,7 @@ from DIRAC.RequestManagementSystem.Client.Operation import Operation
 from DIRAC.RequestManagementSystem.Client.File import File
 
 # mocks
-from LHCbDIRAC.Workflow.Modules.test.mock_Commons import prod_id, prod_job_id, wms_job_id, \
+from LHCbDIRAC.Workflow.Modules.mock_Commons import prod_id, prod_job_id, wms_job_id, \
     workflowStatus, stepStatus, step_id, step_number,\
     step_commons, wf_commons,\
     rc_mock
@@ -351,12 +351,12 @@ class UploadOutputDataSuccess(ModulesTestCase):
         continue
       for s_cs in step_commons:
         fileDescendants = {}
-        self.assertTrue(uod.execute(prod_id, prod_job_id, wms_job_id,
-                                    workflowStatus, stepStatus,
-                                    wf_cs, s_cs,
-                                    step_number, step_id,
-                                    SEs=['SomeSE'],
-                                    fileDescendants=fileDescendants)['OK'])
+        self.assertFalse(uod.execute(prod_id, prod_job_id, wms_job_id,
+                                     workflowStatus, stepStatus,
+                                     wf_cs, s_cs,
+                                     step_number, step_id,
+                                     SEs=['SomeSE'],
+                                     fileDescendants=fileDescendants)['OK'])
 
     # no errors, input data
     for wf_cs in copy.deepcopy(wf_commons):
@@ -374,7 +374,7 @@ class UploadOutputDataSuccess(ModulesTestCase):
             continue
           wf_cs['outputList'] = [{'outputDataType': 'txt', 'outputDataName': 'foo.txt'},
                                  {'outputDataType': 'txt', 'outputDataName': 'bar.txt'},
-                                ]
+                                 ]
           wf_cs['ProductionOutputData'] = ['/lhcb/MC/2010/DST/00012345/0001/foo.txt',
                                            '/lhcb/MC/2010/DST/00012345/0001/bar.txt']
 #          bkc_mock.getFileDescendants.return_value = {'OK': False,
