@@ -13,32 +13,40 @@ class MCStatsElasticDB(DB):
   def __init__(self, indexName = 'mcstatsdb'):
     DB.__init__(self, 'MCStatsDB', 'ProductionManagement/MCStatsDB')
     self.indexName = indexName
-    # self.typeName = 'LogErr'    # We assume the type of the data is from LogErr
+    self.typeName = 'LogErr'    # We assume the type of the data is from LogErr
     self.mapping = {
-        "Log_output": {
+        str(self.typeName): {
             "properties": {
-                "ID": {
+                "Log_output": {
+                    "type": "nested",
                     "properties": {
-                        "JobID": {"type": "text"},
-                        "TransformationID": {"type": "text"},
-                        "ProductionID": {"type": "text"}
-                    }
-                },
-                "Errors": {
-                    "properties": {
-                        "Counter": {"type": "integer"},
-                        "Error type": {"type": "text"},
-                        "Events": {
+                        "ID": {
                             "properties": {
-                                "runnr": {"type": "text"},
-                                "eventnr": {"type": "text"}
+                                "JobID": {"type": "text"},
+                                "TransformationID": {"type": "text"},
+                                "ProductionID": {"type": "text"}
+                            }
+                        },
+                        "Errors": {
+                            "type": "nested",
+                            "properties": {
+                                "Error_type": {"type": "text"},
+                                "Events": {
+                                    "properties": {
+                                        "runnr": {"type": "text"},
+                                        "eventnr": {"type": "text"}
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
-        }
+        }  
     }
+
+
+    #print self.mapping
 
     createIndex = self.createIndex(self.indexName, self.mapping, None)
     if not createIndex['OK']:
