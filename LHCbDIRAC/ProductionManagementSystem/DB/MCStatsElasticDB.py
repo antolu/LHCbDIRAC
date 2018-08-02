@@ -44,8 +44,6 @@ class MCStatsElasticDB(DB):
             }
         }  
     }
-
-
     #print self.mapping
 
     createIndex = self.createIndex(self.indexName, self.mapping, None)
