@@ -30,6 +30,7 @@ class MCStatsElasticDB(DB):
                         "Errors": {
                             "type": "nested",
                             "properties": {
+                                "Counter" : {"type": "long"},
                                 "Error_type": {"type": "text"},
                                 "Events": {
                                     "properties": {
@@ -38,6 +39,9 @@ class MCStatsElasticDB(DB):
                                     }
                                 }
                             }
+                        },
+                        "test": {
+                            "type": "nested"
                         }
                     }
                 }
