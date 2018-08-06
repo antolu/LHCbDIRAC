@@ -1,14 +1,15 @@
+
 """
 Handler for MCStatsElasticDB
 """
 
-from DIRAC import gLogger, S_OK
+from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
 from LHCbDIRAC.ProductionManagementSystem.DB.MCStatsElasticDB import MCStatsElasticDB
 
 __RCSID__ = "$Id$"
 
-#global mcStatsDB
+global mcStatsDB
 mcStatsDB = False
 
 def initializeMCStatsElasticDBHandler(_serviceinfo):
