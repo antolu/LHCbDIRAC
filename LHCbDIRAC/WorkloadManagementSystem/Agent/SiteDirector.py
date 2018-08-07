@@ -35,6 +35,16 @@ class SiteDirector(DIRACSiteDirector):
 
     return S_OK()
 
+  def _getTQDictForMatching(self):
+    """ We skip the check of platforms: https://its.cern.ch/jira/browse/LHCBDIRAC-711
+
+	:returns dict: tqDict of task queue descriptions
+    """
+    tqDict = DIRACSiteDirector._getTQDictForMatching(self)
+    tqDict.pop('Platform', None)
+
+    return tqDict
+
   def _getPilotOptions(self, queue, pilotsToSubmit):
     """ Adding LHCb specific options
     """
