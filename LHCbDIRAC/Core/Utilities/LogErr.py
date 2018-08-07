@@ -11,8 +11,8 @@ def main(log_file):
 
   dict_total = []
 
-  #global LOG_STRING
-  #global STRING_FILE
+  # global LOG_STRING
+  # global STRING_FILE
 
   FILE_OK = get_log_string(log_file)
   if not FILE_OK:
@@ -217,7 +217,7 @@ def get_log_string(log_file):
 
 
 def pick_string_file(project, version):
-  #source_dir = commands.getoutput('echo $PWD') + '/errstrings'
+  # source_dir = commands.getoutput('echo $PWD') + '/errstrings'
   source_dir = os.getcwd()
   file_string = project + '_' + version + '_errors.txt'
   STRING_FILE = os.path.join(source_dir, os.path.basename(file_string))
