@@ -5,6 +5,7 @@ import sys
 import os
 import json
 
+
 def main(log_file):
   read_error_dict(STRING_FILE, dict_G4_errors)
 
@@ -21,7 +22,7 @@ def main(log_file):
   reversed_keys = sorted(dict_G4_errors.keys(), reverse=True)
 
   for error_string in reversed_keys:
-    dict_count_dump_error_string = dict() #
+    dict_count_dump_error_string = dict()
     dict_test = dict()
     ctest = LOG_STRING.count(error_string)
     test = LOG_STRING.find(error_string)
@@ -34,7 +35,7 @@ def main(log_file):
       for error in reversed_keys:
         if error == error_string:
           break
-        checke = LOG_STRING[test:test+100].find(error)
+        checke = LOG_STRING[test:test + 100].find(error)
         if checke != -1:
           already_found = True
           test = test + len(error)
@@ -46,16 +47,16 @@ def main(log_file):
         eventnr = ''
         runnr = ''
 
-        eventnr_point = LOG_STRING.rfind('INFO Evt', test-5000, test)
+        eventnr_point = LOG_STRING.rfind('INFO Evt', test - 5000, test)
         if eventnr_point != -1:
           eventnr = 'Evt ' + LOG_STRING[eventnr_point:test].split('INFO Evt')[1].strip().split(',')[0]
           runnr = LOG_STRING[eventnr_point:].split('INFO Evt')[1].strip().split(',')[1]
 
         if error_string.find('G4') != -1:
-          check = LOG_STRING[test:test+250].find('***')
+          check = LOG_STRING[test:test + 250].find('***')
           if check != -1:
-            error_base = LOG_STRING[test:test+250].split('***')[0]
-            dict_count_dump_error_string[i] = eventnr + "  " + runnr + "  -->" + error_base #
+            error_base = LOG_STRING[test:test + 250].split('***')[0]
+            dict_count_dump_error_string[i] = eventnr + "  " + runnr + "  -->" + error_base
 
             array.append(dict())
             array[-1]['eventnr'] = eventnr
@@ -64,8 +65,8 @@ def main(log_file):
             length_dump = len(error_base)
             test = test + length_dump
         else:
-          error_base = LOG_STRING[test:test+250].split('\n')[0]
-          dict_count_dump_error_string[i] = eventnr + "  " + runnr + "  -->" + error_base #
+          error_base = LOG_STRING[test:test + 250].split('\n')[0]
+          dict_count_dump_error_string[i] = eventnr + "  " + runnr + "  -->" + error_base
 
           array.append(dict())
           array[-1]['eventnr'] = eventnr
@@ -74,7 +75,7 @@ def main(log_file):
           length_dump = len(error_base)
           test = test + length_dump
 
-        if array[-1] != None:
+        if array[-1] is not None:
           dict_test[error_string] = dict()
           dict_test[error_string] = array
 
@@ -98,7 +99,7 @@ def main(log_file):
 #   ids['TransformationID'] = TRANS_ID
 
 #   errors = []
-  
+
 #   with open(name, 'w') as output:
 #     for error in dict_total:
 #       newrow = {}
@@ -120,7 +121,8 @@ def main(log_file):
 
 #####################################################
 
-def create_json_table(dict_total,name):
+
+def create_json_table(dict_total, name):
   result = {}
   temp = {}
   ids = {}
@@ -135,13 +137,14 @@ def create_json_table(dict_total,name):
     temp['ID'] = ids
     result['Errors'] = temp
     print result
-    output.write(json.dumps(result, indent = 2))
-  return 
+    output.write(json.dumps(result, indent=2))
+  return
 
 #####################################################
 
-def create_HTML_table(dict_G4_errors_count,name):
-  f = open(name,'w')
+
+def create_HTML_table(dict_G4_errors_count, name):
+  f = open(name, 'w')
   f.write("<HTML>\n")
 
   f.write("<table border=1 bordercolor=#000000 width=100% bgcolor=#BCCDFE>")
@@ -153,24 +156,25 @@ def create_HTML_table(dict_G4_errors_count,name):
 
   orderedKeys = sorted(dict_G4_errors_count.keys())
   for errString in orderedKeys:
-    if dict_G4_errors_count[errString] !={}:
+    if dict_G4_errors_count[errString] != {}:
       f.write("<tr>")
-      f.write("<td>"+errString+"</td>")
-      f.write("<td>"+str(len(dict_G4_errors_count[errString].keys()))+"</td>")
+      f.write("<td>" + errString + "</td>")
+      f.write("<td>" + str(len(dict_G4_errors_count[errString].keys())) + "</td>")
       f.write("<td>")
       f.write("<lu>")
       for y in dict_G4_errors_count[errString].keys():
         f.write("<li>")
-        f.write(" "+dict_G4_errors_count[errString][y]+" ")
+        f.write(" " + dict_G4_errors_count[errString][y] + " ")
       f.write("</lu>")
       f.write("</td>")
       f.write("</tr>")
 
   f.write("</table>")
 
-  return 
+  return
 
 #######################################################
+
 
 def read_error_dict(string_file, dict_name):
   'Reads errors in a stringfile and puts them in dict_name'
@@ -183,6 +187,7 @@ def read_error_dict(string_file, dict_name):
 
 ################################################
 
+
 def get_lines(string_file):
   'Reads lines from string file'
   print '>>> Processed STRINGFILE -> ', string_file
@@ -191,6 +196,7 @@ def get_lines(string_file):
   return lines
 
 ################################################
+
 
 def get_log_string(log_file):
   global LOG_STRING, FILE_OK
@@ -209,6 +215,7 @@ def get_log_string(log_file):
 
 ################################################
 
+
 def pick_string_file(project, version):
   #source_dir = commands.getoutput('echo $PWD') + '/errstrings'
   source_dir = os.getcwd()
@@ -219,7 +226,7 @@ def pick_string_file(project, version):
     file_list = [os.path.join(source_dir, f) for f in os.listdir(source_dir) if f.find(project) != -1]
     if len(file_list) != 0:
       file_list.sort()
-      STRING_FILE = file_list[len(file_list)-1]
+      STRING_FILE = file_list[len(file_list) - 1]
     else:
       print 'WARNING: no string files for this project'
       return None
@@ -227,6 +234,7 @@ def pick_string_file(project, version):
   return STRING_FILE
 
 ################################################
+
 
 global LOG_STRING
 global STRING_FILE
@@ -256,7 +264,7 @@ dict_G4_errors = dict()
 dict_G4_errors_count = dict()
 STRING_FILE = pick_string_file(PROJECT, VERSION)
 
-if STRING_FILE != None:
+if STRING_FILE is not None:
   if os.stat(STRING_FILE)[6] != 0:
     main(LOG_FILE)
   else:
