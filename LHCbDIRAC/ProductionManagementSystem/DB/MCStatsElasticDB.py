@@ -6,42 +6,44 @@ from elasticsearch import Elasticsearch
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Base.ElasticDB import ElasticDB as DB
 ES = Elasticsearch()
-# import os
-
 
 class MCStatsElasticDB(DB):
   def __init__(self, indexName='mcstatsdb'):
     DB.__init__(self, 'MCStatsDB', 'ProductionManagement/MCStatsDB')
     self.indexName = indexName
     # self.typeName = 'LogErr'    # We assume the type of the data is from LogErr
-    self.mapping = {
-        "Log_output": {
-            "properties": {
-                "ID": {
-                    "properties": {
-                        "JobID": {"type": "text"},
-                        "TransformationID": {"type": "text"},
-                        "ProductionID": {"type": "text"}
-                    }
-                },
-                "Errors": {
-                    "properties": {
-                        "Counter": {"type": "integer"},
-                        "Error type": {"type": "text"},
-                        "Events": {
-                            "properties": {
-                                "runnr": {"type": "text"},
-                                "eventnr": {"type": "text"}
-                            }
-                        }
-                    }
-                }
-            }
-        }  
-    }
+    # self.mapping = {
+    #     "Log_output": {
+    #         "properties": {
+    #             #"type": "nested",
+    #             "ID": {
+    #                 "properties": {
+    #                     "JobID": {"type": "text"},
+    #                     "TransformationID": {"type": "text"},
+    #                     "ProductionID": {"type": "text"}
+    #                 }
+    #             },
+    #             "Errors": {
+    #                 "properties": {
+    #                     #"type": "nested",
+    #                     "Counter": {"type": "integer"},
+    #                     "Error type": {"type": "text"},
+    #                     "Events": {
+    #                         "properties": {
+    #                             "runnr": {"type": "text"},
+    #                             "eventnr": {"type": "text"}
+    #                         }
+    #                     }
+    #                 }
+    #             }
+    #         }
+    #     }
+    # }
 
+    # Mapping is defined at runtime
+    self.mapping = None
 
-    createIndex = self.createIndex(self.indexName, self.mapping, None)
+    createIndex = self.createIndex(self.indexName, self.mapping)
     if not createIndex['OK']:
       gLogger.error("ERROR: Couldn't create index")
     else:
@@ -101,7 +103,7 @@ class MCStatsElasticDB(DB):
             "bool": {
                 "must": {
                     "match": {
-                        "Log_output.ID.JobID": jobID
+                        "Errors.ID.JobID": jobID
                     }
                 }
             }
@@ -121,6 +123,7 @@ class MCStatsElasticDB(DB):
       resultDict.update(data)
     resultDict = json.dumps(resultDict)
     return S_OK(resultDict)
+
 #############################################################################
 
   def remove(self, jobID):
@@ -134,7 +137,7 @@ class MCStatsElasticDB(DB):
             "bool": {
                 "must": {
                     "match": {
-                        "Log_output.ID.JobID": jobID
+                        "Errors.ID.JobID": jobID
                     }
                 }
             }
