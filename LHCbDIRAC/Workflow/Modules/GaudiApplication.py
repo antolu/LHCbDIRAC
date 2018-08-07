@@ -60,17 +60,17 @@ class GaudiApplication(ModuleBase):
   #############################################################################
 
   def execute(self, production_id=None, prod_job_id=None, wms_job_id=None,
-	      workflowStatus=None, stepStatus=None,
-	      wf_commons=None, step_commons=None,
-	      step_id=None, step_number=None):
+              workflowStatus=None, stepStatus=None,
+              wf_commons=None, step_commons=None,
+              step_id=None, step_number=None):
     """ The main execution method of GaudiApplication. It runs a gaudirun app using RunApplication module.
         This is the module used for each and every job of productions. It can also be used by users.
     """
 
     try:
       super(GaudiApplication, self).execute(__RCSID__, production_id, prod_job_id, wms_job_id,
-					    workflowStatus, stepStatus,
-					    wf_commons, step_commons, step_number, step_id)
+                                            workflowStatus, stepStatus,
+                                            wf_commons, step_commons, step_number, step_id)
 
       if not self._checkWFAndStepStatus():
         return S_OK()
@@ -78,25 +78,25 @@ class GaudiApplication(ModuleBase):
       self._resolveInputVariables()
 
       self.log.info("Executing application %s %s for CMT configuration %s" % (self.applicationName,
-									      self.applicationVersion,
-									      self.systemConfig))
+                                                                              self.applicationVersion,
+                                                                              self.systemConfig))
       if self.jobType.lower() == 'merge' or 'BOINC' in self.siteName:
         self._disableWatchdogCPUCheck()
 
       # Resolve options files
       commandOptions = []
       if self.optionsFile and self.optionsFile != "None":
-	for fileopt in self.optionsFile.split(';'):
-	  if os.path.exists('%s/%s' % (os.getcwd(), os.path.basename(fileopt))):
-	    commandOptions.append(fileopt)
+        for fileopt in self.optionsFile.split(';'):
+          if os.path.exists('%s/%s' % (os.getcwd(), os.path.basename(fileopt))):
+            commandOptions.append(fileopt)
           # Otherwise take the one from the application options directory
-	  elif re.search(r'\$', fileopt):
-	    self.log.info('Found options file containing environment variable: %s' % fileopt)
-	    commandOptions.append(fileopt)
+          elif re.search(r'\$', fileopt):
+            self.log.info('Found options file containing environment variable: %s' % fileopt)
+            commandOptions.append(fileopt)
           else:
-	    self.log.error(
-		'Cannot process options: "%s" not found via environment variable or in local directory' %
-		(fileopt))
+            self.log.error(
+                'Cannot process options: "%s" not found via environment variable or in local directory' %
+                (fileopt))
 
       self.log.info('Final options files: %s' % (', '.join(commandOptions)))
 
@@ -108,47 +108,47 @@ class GaudiApplication(ModuleBase):
         else:
           # maintaining backward compatibility
           eventsMax = self.maxNumberOfEvents if self.maxNumberOfEvents else self.numberOfEvents
-	runNumberGauss = int(self.production_id) * 100 + int(self.prod_job_id)
-	firstEventNumberGauss = eventsMax * (int(self.prod_job_id) - 1) + 1
+        runNumberGauss = int(self.production_id) * 100 + int(self.prod_job_id)
+        firstEventNumberGauss = eventsMax * (int(self.prod_job_id) - 1) + 1
 
       if self.optionsLine or self.jobType.lower() == 'user':
-	self.log.debug("Won't get any step outputs (USER job)")
+        self.log.debug("Won't get any step outputs (USER job)")
         stepOutputs = []
         stepOutputTypes = []
         histogram = False
       else:
-	self.log.debug("Getting the step outputs")
+        self.log.debug("Getting the step outputs")
         stepOutputs, stepOutputTypes, histogram = self._determineOutputs()
-	self.log.debug(
-	    "stepOutputs, stepOutputTypes, histogram  ==>  %s, %s, %s" %
-	    (stepOutputs, stepOutputTypes, histogram))
+        self.log.debug(
+            "stepOutputs, stepOutputTypes, histogram  ==>  %s, %s, %s" %
+            (stepOutputs, stepOutputTypes, histogram))
 
       prodConfFileName = ''
       if self.optionsLine or self.jobType.lower() == 'user':
         # Prepare standard project run time options
         generatedOpts = 'gaudi_extra_options.py'
-	if os.path.exists(generatedOpts):
-	  os.remove(generatedOpts)
-	inputDataOpts = getDataOptions(self.applicationName,
-				       self.stepInputData,
-				       self.inputDataType,
-				       self.poolXMLCatName)['Value']  # always OK
-	projectOpts = getModuleOptions(self.applicationName,
-				       self.numberOfEvents,
-				       inputDataOpts,
-				       self.optionsLine,
-				       runNumberGauss,
-				       firstEventNumberGauss,
-				       self.jobType)['Value']  # always OK
-	self.log.info('Extra options generated for %s %s step:' % (self.applicationName, self.applicationVersion))
+        if os.path.exists(generatedOpts):
+          os.remove(generatedOpts)
+        inputDataOpts = getDataOptions(self.applicationName,
+                                       self.stepInputData,
+                                       self.inputDataType,
+                                       self.poolXMLCatName)['Value']  # always OK
+        projectOpts = getModuleOptions(self.applicationName,
+                                       self.numberOfEvents,
+                                       inputDataOpts,
+                                       self.optionsLine,
+                                       runNumberGauss,
+                                       firstEventNumberGauss,
+                                       self.jobType)['Value']  # always OK
+        self.log.info('Extra options generated for %s %s step:' % (self.applicationName, self.applicationVersion))
         print projectOpts  # Always useful to see in the logs (don't use gLogger as we often want to cut n' paste)
-	options = open(generatedOpts, 'w')
-	options.write(projectOpts)
+        options = open(generatedOpts, 'w')
+        options.write(projectOpts)
         options.close()
-	commandOptions.append(generatedOpts)
+        commandOptions.append(generatedOpts)
 
       else:
-	prodConfFileName = self.createProdConfFile(stepOutputTypes, histogram, runNumberGauss, firstEventNumberGauss)
+        prodConfFileName = self.createProdConfFile(stepOutputTypes, histogram, runNumberGauss, firstEventNumberGauss)
 
       # How to run the application
       ra = RunApplication()
@@ -171,21 +171,21 @@ class GaudiApplication(ModuleBase):
 
       # Now really running
       try:
-	self.setApplicationStatus('%s step %s' % (self.applicationName, self.step_number))
-	ra.run()  # This would trigger an exception in case of failure, or application status != 0
+        self.setApplicationStatus('%s step %s' % (self.applicationName, self.step_number))
+        ra.run()  # This would trigger an exception in case of failure, or application status != 0
       except LHCbApplicationError as appError:
         # Running gdb in case of core dump
         if 'core' in [fileProduced.split('.')[0] for fileProduced in os.listdir('.')]:
-	  # getting the environment where the application executed
-	  app = ra.applicationName + '/' + ra.applicationVersion
-	  envCommand = ra.lbrunCommand.split(app)[0] + ' --py -A ' + app
-	  # this may raise CalledProcessError if the application is not lb-run native
-	  lhcbApplicationEnv = eval(subprocess.check_output(shlex.split(envCommand)))
+          # getting the environment where the application executed
+          app = ra.applicationName + '/' + ra.applicationVersion
+          envCommand = ra.lbrunCommand.split(app)[0] + ' --py -A ' + app
+          # this may raise CalledProcessError if the application is not lb-run native
+          lhcbApplicationEnv = eval(subprocess.check_output(shlex.split(envCommand)))
 
-	  # now running the GDB command
-	  gdbCommand = "gdb python core.* >> %s_Step%s_coredump.log" % (self.applicationName, self.step_number)
-	  rg = RunApplication()
-	  rg._runApp(gdbCommand, lhcbApplicationEnv)
+          # now running the GDB command
+          gdbCommand = "gdb python core.* >> %s_Step%s_coredump.log" % (self.applicationName, self.step_number)
+          rg = RunApplication()
+          rg._runApp(gdbCommand, lhcbApplicationEnv)
         raise appError
 
       self.log.info("Going to manage %s output" % self.applicationName)

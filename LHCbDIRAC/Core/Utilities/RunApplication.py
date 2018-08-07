@@ -101,9 +101,9 @@ class RunApplication(object):
       command = self.command
 
     self.lbrunCommand = ' '.join([self.runApp, lbRunOptions,
-				  configString, extraPackagesString,
-				  runtimeProjectString, externalsString,
-				  app])
+                                  configString, extraPackagesString,
+                                  runtimeProjectString, externalsString,
+                                  app])
 
     finalCommand = ' '.join([self.lbrunCommand, command])
 
