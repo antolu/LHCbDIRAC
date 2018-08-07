@@ -21,28 +21,28 @@ class MCStatsElasticDBTestCase(unittest.TestCase):
     self.falseID = 3
 
     self.data1 = {
-      "Errors": {
-        "ID": {
-          "TransformationID": "6", 
-          "ProductionID": "5", 
-          "JobID": self.id1
-        }, 
-        "Error1": 10,
-        "Error2" : 5,
-        "Error3": 3
-      }
+        "Errors": {
+            "ID": {
+                "TransformationID": "6",
+                "ProductionID": "5",
+                "JobID": self.id1
+            },
+            "Error1": 10,
+            "Error2": 5,
+            "Error3": 3
+        }
     }
 
     self.data2 = {
-      "Errors": {
-        "ID": {
-          "TransformationID": "6", 
-          "ProductionID": "5", 
-          "JobID": self.id2
-        }, 
-        "Error1": 7,
-        "Error2" : 9
-      }
+        "Errors": {
+            "ID": {
+                "TransformationID": "6",
+                "ProductionID": "5",
+                "JobID": self.id2
+            },
+            "Error1": 7,
+            "Error2": 9
+        }
     }
 
     # self.data1 = {

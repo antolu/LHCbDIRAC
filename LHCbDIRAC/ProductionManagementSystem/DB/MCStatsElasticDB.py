@@ -7,6 +7,7 @@ from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Base.ElasticDB import ElasticDB as DB
 ES = Elasticsearch()
 
+
 class MCStatsElasticDB(DB):
   def __init__(self, indexName='mcstatsdb'):
     DB.__init__(self, 'MCStatsDB', 'ProductionManagement/MCStatsDB')
@@ -41,13 +42,14 @@ class MCStatsElasticDB(DB):
     # }
 
     # Mapping is defined at runtime
-    self.mapping = None
+    #self.mapping = None
 
-    createIndex = self.createIndex(self.indexName, self.mapping)
-    if not createIndex['OK']:
-      gLogger.error("ERROR: Couldn't create index")
-    else:
-      gLogger.notice("Creating index: ", self.indexName)
+    # createIndex = self.createIndex(self.indexName, self.mapping, None)
+    # if not createIndex['OK']:
+    #   print createIndex
+    #   gLogger.error("ERROR: Couldn't create index")
+    # else:
+    #   gLogger.notice("Creating index: ", self.indexName)
 
 #############################################################################
 
@@ -146,7 +148,7 @@ class MCStatsElasticDB(DB):
 
     gLogger.notice('Attempting to delete data with JobID: ', jobID)
     try:
-      ES.delete_by_query(index = self.indexName, body=query)
+      ES.delete_by_query(index=self.indexName, body=query)
     except Exception as inst:
       gLogger.error("ERROR: Couldn't delete data")
       return S_ERROR(inst)
