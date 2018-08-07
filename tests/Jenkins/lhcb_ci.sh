@@ -580,7 +580,7 @@ function lhcbDiracReplace(){
   cd $SERVERINSTALLDIR
 
   zipName=$(basename $LHCbDIRAC_ALTERNATIVE_SRC_ZIP)
-  curl $LHCbDIRAC_ALTERNATIVE_SRC_ZIP -o zipName
+  curl $LHCbDIRAC_ALTERNATIVE_SRC_ZIP -o $zipName
   unzip $zipName
   cd $SERVERINSTALLDIR
   dirName=$(unzip -l $zipName | head | tail -n 1 | sed 's/  */ /g' | cut -f 5 -d ' ' | cut -f 1 -d '/')
