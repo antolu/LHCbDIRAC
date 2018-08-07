@@ -11,8 +11,8 @@ parseCommandLine()
 from DIRAC import gLogger
 from LHCbDIRAC.ProductionManagementSystem.DB.MCStatsElasticDB import MCStatsElasticDB
 
-
 class MCStatsElasticDBTestCase(unittest.TestCase):
+  
   def __init__(self, *args, **kwargs):
     super(MCStatsElasticDBTestCase, self).__init__(*args, **kwargs)
 
