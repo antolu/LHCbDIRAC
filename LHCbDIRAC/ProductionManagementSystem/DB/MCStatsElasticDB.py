@@ -42,7 +42,7 @@ class MCStatsElasticDB(DB):
     # }
 
     # Mapping is defined at runtime
-    #self.mapping = None
+    # self.mapping = None
 
     # createIndex = self.createIndex(self.indexName, self.mapping, None)
     # if not createIndex['OK']:
