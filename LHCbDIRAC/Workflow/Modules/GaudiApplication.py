@@ -179,7 +179,11 @@ class GaudiApplication(ModuleBase):
           # getting the environment where the application executed
           app = ra.applicationName + '/' + ra.applicationVersion
           envCommand = ra.lbrunCommand.split(app)[0] + ' --py -A ' + app
-          # this may raise CalledProcessError if the application is not lb-run native
+
+          # FIXME: The following may raise CalledProcessError if the application is not lb-run native.
+          # The exception will be caught at the end of the module.
+          # We enter here iff the application fails, and there's a core dump, so it's ~OKish.
+          # Nevertheless, it would be better if it was handled correctly.
           lhcbApplicationEnv = eval(subprocess.check_output(shlex.split(envCommand)))
 
           # now running the GDB command
