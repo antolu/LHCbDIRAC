@@ -6,16 +6,23 @@ import os
 import json
 
 
-def main(log_file):
-  read_error_dict(STRING_FILE, dict_G4_errors)
+def readLogFile(log_file, project, version, jobID, prodID, wksID):
 
+  fileOK = False
+  logString = ''
+  stringFile = ''
+  stringFile = pick_string_file(project, version, stringFile)
   dict_total = []
+  dict_G4_errors = dict()
+  dict_G4_errors_count = dict()
 
-  # global LOG_STRING
-  # global STRING_FILE
+  if stringFile is None or os.stat(stringFile)[6] == 0:
+    print 'WARNING: STRINGFILE %s is empty' % stringFile
 
-  FILE_OK = get_log_string(log_file)
-  if not FILE_OK:
+  read_error_dict(stringFile, dict_G4_errors)
+
+  fileOK = get_log_string(log_file, logString, fileOK)
+  if not fileOK:
     print 'WARNING: Problems in reading ', log_file
     return
 
@@ -24,18 +31,18 @@ def main(log_file):
   for error_string in reversed_keys:
     dict_count_dump_error_string = dict()
     dict_test = dict()
-    ctest = LOG_STRING.count(error_string)
-    test = LOG_STRING.find(error_string)
+    ctest = logString.count(error_string)
+    test = logString.find(error_string)
     array = []
     for i in range(0, ctest):
 
       start = test
-      test = LOG_STRING.find(error_string, start)
+      test = logString.find(error_string, start)
       already_found = False
       for error in reversed_keys:
         if error == error_string:
           break
-        checke = LOG_STRING[test:test + 100].find(error)
+        checke = logString[test:test + 100].find(error)
         if checke != -1:
           already_found = True
           test = test + len(error)
@@ -47,15 +54,15 @@ def main(log_file):
         eventnr = ''
         runnr = ''
 
-        eventnr_point = LOG_STRING.rfind('INFO Evt', test - 5000, test)
+        eventnr_point = logString.rfind('INFO Evt', test - 5000, test)
         if eventnr_point != -1:
-          eventnr = 'Evt ' + LOG_STRING[eventnr_point:test].split('INFO Evt')[1].strip().split(',')[0]
-          runnr = LOG_STRING[eventnr_point:].split('INFO Evt')[1].strip().split(',')[1]
+          eventnr = 'Evt ' + logString[eventnr_point:test].split('INFO Evt')[1].strip().split(',')[0]
+          runnr = logString[eventnr_point:].split('INFO Evt')[1].strip().split(',')[1]
 
         if error_string.find('G4') != -1:
-          check = LOG_STRING[test:test + 250].find('***')
+          check = logString[test:test + 250].find('***')
           if check != -1:
-            error_base = LOG_STRING[test:test + 250].split('***')[0]
+            error_base = logString[test:test + 250].split('***')[0]
             dict_count_dump_error_string[i] = eventnr + "  " + runnr + "  -->" + error_base
 
             array.append(dict())
@@ -65,7 +72,7 @@ def main(log_file):
             length_dump = len(error_base)
             test = test + length_dump
         else:
-          error_base = LOG_STRING[test:test + 250].split('\n')[0]
+          error_base = logString[test:test + 250].split('\n')[0]
           dict_count_dump_error_string[i] = eventnr + "  " + runnr + "  -->" + error_base
 
           array.append(dict())
@@ -82,16 +89,16 @@ def main(log_file):
     if dict_test != {}:
       dict_total.append(dict_test)
     dict_G4_errors_count[error_string] = dict_count_dump_error_string
-  create_json_table(dict_total, "errors.json")
+  create_json_table(dict_total, "errors.json", jobID, prodID, wksID)
   create_HTML_table(dict_G4_errors_count, "errors.html")
 
 ################################################
 
-# def create_json_table(dict_total, name):
-
 #   # Due to issues in the mapping of the ES DB, this mapping
 #   (which is more clear than the one below) couldn't be used.
 #   # I have still saved the function here.
+
+# def create_json_table(dict_total, name):
 
 #   ids = {}
 #   ids['JobID'] = JOB_ID
@@ -122,13 +129,14 @@ def main(log_file):
 #####################################################
 
 
-def create_json_table(dict_total, name):
+def create_json_table(dict_total, name, jobID, prodID, wksID):
+
   result = {}
   temp = {}
   ids = {}
-  ids['JobID'] = JOB_ID
-  ids['ProductionID'] = PROD_ID
-  ids['TransformationID'] = TRANS_ID
+  ids['JobID'] = jobID
+  ids['ProductionID'] = prodID
+  ids['TransformationID'] = wksID
 
   with open(name, 'w') as output:
     for error in dict_total:
@@ -136,7 +144,6 @@ def create_json_table(dict_total, name):
         temp[key] = len(value)
     temp['ID'] = ids
     result['Errors'] = temp
-    print result
     output.write(json.dumps(result, indent=2))
   return
 
@@ -144,6 +151,7 @@ def create_json_table(dict_total, name):
 
 
 def create_HTML_table(dict_G4_errors_count, name):
+
   f = open(name, 'w')
   f.write("<HTML>\n")
 
@@ -198,9 +206,7 @@ def get_lines(string_file):
 ################################################
 
 
-def get_log_string(log_file):
-  global LOG_STRING, FILE_OK
-  FILE_OK = False
+def get_log_string(log_file, logString, fileOK):
   print 'Attempting to open %s' % log_file
   if not os.path.exists(log_file):
     print '%s could not be found' % log_file
@@ -209,63 +215,63 @@ def get_log_string(log_file):
     print '%s is empty' % log_file
     return
   with open(log_file, 'r') as f:
-    LOG_STRING = f.read()
-  FILE_OK = True
-  return FILE_OK
+    logString = f.read()
+  fileOK = True
+  return fileOK
 
 ################################################
 
 
-def pick_string_file(project, version):
+def pick_string_file(project, version, stringFile):
   # source_dir = commands.getoutput('echo $PWD') + '/errstrings'
   source_dir = os.getcwd()
   file_string = project + '_' + version + '_errors.txt'
-  STRING_FILE = os.path.join(source_dir, os.path.basename(file_string))
-  if not os.path.exists(STRING_FILE):
-    print 'string file %s does not exist, attempting to take the most recent file ...' % STRING_FILE
+  stringFile = os.path.join(source_dir, os.path.basename(file_string))
+  if not os.path.exists(stringFile):
+    print 'string file %s does not exist, attempting to take the most recent file ...' % stringFile
     file_list = [os.path.join(source_dir, f) for f in os.listdir(source_dir) if f.find(project) != -1]
     if len(file_list) != 0:
       file_list.sort()
-      STRING_FILE = file_list[len(file_list) - 1]
+      stringFile = file_list[len(file_list) - 1]
     else:
       print 'WARNING: no string files for this project'
       return None
 
-  return STRING_FILE
+  return stringFile
 
 ################################################
 
+# This is a relic from the previous version of the file, I'll keep it for the while
 
-global LOG_STRING
-global STRING_FILE
-global FILE_OK
+#global LOG_STRING
+#global STRING_FILE
+#global FILE_OK
 
-LOG_FILE = sys.argv[1]
-PROJECT = sys.argv[2]
-VERSION = sys.argv[3]
+# LOG_FILE = sys.argv[1]
+# PROJECT = sys.argv[2]
+# VERSION = sys.argv[3]
 
-global JOB_ID
-global PROD_ID
-global TRANS_ID
-###
-global COUNT
-###
+# global JOB_ID
+# global PROD_ID
+# global TRANS_ID
 
-JOB_ID = sys.argv[4]
-PROD_ID = sys.argv[5]
-TRANS_ID = sys.argv[6]
-###
-COUNT = sys.argv[7]
-###
+# JOB_ID = sys.argv[4]
+# PROD_ID = sys.argv[5]
+# TRANS_ID = sys.argv[6]
 
-LOG_STRING = ''
-FILE_OK = ''
-dict_G4_errors = dict()
-dict_G4_errors_count = dict()
-STRING_FILE = pick_string_file(PROJECT, VERSION)
+# #LOG_STRING = ''
+# #FILE_OK = ''
+# dict_G4_errors = dict()
+# dict_G4_errors_count = dict()
+# STRING_FILE = pick_string_file(PROJECT, VERSION)
 
-if STRING_FILE is not None:
-  if os.stat(STRING_FILE)[6] != 0:
-    main(LOG_FILE)
-  else:
-    print 'WARNING: STRINGFILE %s is empty' % STRING_FILE
+# if STRING_FILE is not None:
+#   if os.stat(STRING_FILE)[6] != 0:
+#     main(LOG_FILE)
+#   else:
+#     print 'WARNING: STRINGFILE %s is empty' % STRING_FILE
+
+################################################
+
+# The file is run as follows:
+## readLogFile('Example.log', 'project', 'version', 'jobID', 'prodID', 'wksID')
