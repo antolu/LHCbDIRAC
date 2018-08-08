@@ -1,9 +1,9 @@
 '''
 Reads .log-files and outputs summary of counters as a .json-file
 '''
-import sys
 import os
 import json
+from DIRAC import gLogger, S_ERROR, S_OK
 
 
 def readLogFile(log_file, project, version, jobID, prodID, wksID):
@@ -17,14 +17,14 @@ def readLogFile(log_file, project, version, jobID, prodID, wksID):
   dict_G4_errors_count = dict()
 
   if stringFile is None or os.stat(stringFile)[6] == 0:
-    print 'WARNING: STRINGFILE %s is empty' % stringFile
+    gLogger.warn('WARNING: STRINGFILE %s is empty' % stringFile)
 
   read_error_dict(stringFile, dict_G4_errors)
 
   fileOK = get_log_string(log_file, logString, fileOK)
   if not fileOK:
-    print 'WARNING: Problems in reading ', log_file
-    return
+    gLogger.warn('WARNING: Problems in reading %s' % log_file)
+    return S_ERROR()
 
   reversed_keys = sorted(dict_G4_errors.keys(), reverse=True)
 
@@ -198,7 +198,7 @@ def read_error_dict(string_file, dict_name):
 
 def get_lines(string_file):
   'Reads lines from string file'
-  print '>>> Processed STRINGFILE -> ', string_file
+  gLogger.notice('>>> Processed STRINGFILE -> ', string_file)
   with open(string_file, 'r') as f:
     lines = f.readlines()
   return lines
@@ -207,16 +207,17 @@ def get_lines(string_file):
 
 
 def get_log_string(log_file, logString, fileOK):
-  print 'Attempting to open %s' % log_file
+  gLogger.notice('Attempting to open %s' % log_file)
   if not os.path.exists(log_file):
-    print '%s could not be found' % log_file
-    return
+    gLogger.error('%s could not be found' % log_file)
+    return S_ERROR()
   if os.stat(log_file)[6] == 0:
-    print '%s is empty' % log_file
-    return
+    gLogger.error('%s is empty' % log_file)
+    return S_ERROR()
   with open(log_file, 'r') as f:
     logString = f.read()
   fileOK = True
+  gLogger.notice("Successfully read %s" % log_file)
   return fileOK
 
 ################################################
@@ -228,13 +229,13 @@ def pick_string_file(project, version, stringFile):
   file_string = project + '_' + version + '_errors.txt'
   stringFile = os.path.join(source_dir, os.path.basename(file_string))
   if not os.path.exists(stringFile):
-    print 'string file %s does not exist, attempting to take the most recent file ...' % stringFile
+    gLogger.notice('string file %s does not exist, attempting to take the most recent file ...' % stringFile)
     file_list = [os.path.join(source_dir, f) for f in os.listdir(source_dir) if f.find(project) != -1]
     if len(file_list) != 0:
       file_list.sort()
       stringFile = file_list[len(file_list) - 1]
     else:
-      print 'WARNING: no string files for this project'
+      gLogger.warn('WARNING: no string files for this project')
       return None
 
   return stringFile
