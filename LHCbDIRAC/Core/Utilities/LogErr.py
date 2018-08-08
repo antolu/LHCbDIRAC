@@ -271,6 +271,5 @@ def pick_string_file(project, version, stringFile):
 #   else:
 #     print 'WARNING: STRINGFILE %s is empty' % STRING_FILE
 
-
 # The file is run as follows:
-## readLogFile('Example.log', 'project', 'version', 'jobID', 'prodID', 'wksID')
+# readLogFile('Example.log', 'project', 'version', 'jobID', 'prodID', 'wksID')
