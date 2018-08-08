@@ -11,8 +11,12 @@ from LHCbDIRAC.ProductionManagementSystem.Client.Production import Production
 from DIRAC.Core.Workflow.Workflow import fromXMLString
 from DIRAC import gLogger
 
-with open('./LHCbDIRAC/TransformationSystem/Agent/test/testWF.xml') as fd:
-  storedJobDescription = fd.read()
+try:
+  with open('./LHCbDIRAC/TransformationSystem/Agent/test/testWF.xml') as fd:
+    storedJobDescription = fd.read()
+except IOError:
+  with open('./TransformationSystem/Agent/test/testWF.xml') as fd:
+    storedJobDescription = fd.read()
 
 
 class MCSimulationTestingAgentTestCase(unittest.TestCase):
