@@ -723,6 +723,10 @@ class ProductionRequest( object ):
     if target:
       if target == 'Tier2':
         prod.banTier1s()
+      elif 'BAN' in target:
+        sitesToBan = target.split(':')
+        if len(sitesToBan)>1:
+          prod.banSites(sitesToBan[1:])
       elif target != 'ALL':
         prod.LHCbJob.setDestination( target )
     prod.LHCbJob.setInputData( inputDataList )
