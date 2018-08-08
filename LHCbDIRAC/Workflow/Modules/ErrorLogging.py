@@ -9,6 +9,9 @@
 import os
 import shutil
 
+# fix path
+# import LogErr
+
 from DIRAC import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities import DErrno
 
@@ -97,6 +100,7 @@ class ErrorLogging(ModuleBase):
         self.log.info('Application log file from previous module not found locally: %s' % self.applicationLog)
         return S_OK()
 
+      # REMOVE
       command = 'python %s %s %s %s %s %s %s' % (self.executable,
                                                  self.applicationLog,
                                                  self.applicationName,
@@ -110,9 +114,11 @@ class ErrorLogging(ModuleBase):
                                                   self.applicationVersion,
                                                   self.step_number)
 
+      # keep this small part
       for x in [self.defaultNameHTML, self.defaultNamejson, scriptName, self.errorLogFile]:
         if os.path.exists(x):
           os.remove(x)
+      ####
 
       # How to run the application
       ra = RunApplication()
@@ -123,9 +129,20 @@ class ErrorLogging(ModuleBase):
       # actual stuff to run
       ra.command = command
 
+      ############################
+
       # Now really running
       try:
+
         ra.run()  # This would trigger an exception in case of failure, or application status != 0
+
+        # UNCOMMENT THIS
+
+        # LogErr.readLogFile(self.applicationLog, self.applicationName, self.applicationVersion,
+        #                    prod_job_id, production_id, wms_job_id)
+
+        #####
+
       except RuntimeError as e:
         self.log.info("Error logging for %s %s step %s completed with errors:" % (self.applicationName,
                                                                                   self.applicationVersion,
