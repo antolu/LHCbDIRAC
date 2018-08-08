@@ -32,7 +32,7 @@ class ProductionJobTestCase(IntegrationTest):
 
 class Reco17Success(ProductionJobTestCase):
   def test_Integration_Production(self):
-    lfns = ['/lhcb/data/2017/RAW/FULL/LHCb/COLLISION17/192165/192165_0000000011.raw']
+    lfns = ['/lhcb/data/2017/RAW/FULL/LHCb/COLLISION17/192165/192165_0000000011_1.raw']
     # From request 39597
     optionFilesDQ = '$APPCONFIGOPTS/DaVinci/DVMonitor-RealData.py;'
     optionFilesDQ += '$APPCONFIGOPTS/DaVinci/DataType-2016.py;'

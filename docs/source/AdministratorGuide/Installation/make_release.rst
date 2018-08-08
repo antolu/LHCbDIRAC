@@ -248,15 +248,8 @@ go to this `web page <https://jenkins-lhcb-nightlies.web.cern.ch/job/nightly-bui
 
 Then click on the "BUILD" button
 
-on lxplus please execute the following command::
-
-  lb-sdb-import LHCbDIRAC vArBpC --platforms=which platform(s) to build
-  for example:
-  lb-sdb-import LHCbDIRAC v9r1p7 --platforms=x86_64-slc6-gcc49-opt
-
 * within 10-15 min the build should start to appear in the nightlies page https://lhcb-nightlies.cern.ch/release/
 * if there is a problem in the build, it can be re-started via the dedicated button (it will not restart by itself after a retag)
-
 
 If it is the production release, and only in this case, once satisfied by the build,
 take note of the build id (you can use the direct link icon) and make the request via https://its.cern.ch/jira/projects/LHCBDEP.
@@ -304,8 +297,8 @@ The (better) alternative is using the web portal or using the following script: 
 The recommended way is the following::
 
       ssh lxplus
-      mkdir DiracInstall; cd  DiracInstall
-      wget https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/raw/devel/dist-tools/create_vobox_update.py
+      mkdir -p DiracInstall && cd  DiracInstall
+      curl https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/raw/devel/dist-tools/create_vobox_update.py -O
       python create_vobox_update.py vArBpC
 
 This command will create 6 files called "vobox_update_MyLetter" then you can run in 6 windows the recipe for one single machine like that::

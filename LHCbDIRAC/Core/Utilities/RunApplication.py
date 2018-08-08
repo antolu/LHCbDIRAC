@@ -1,6 +1,8 @@
 """ Utility for invoking running LHCb applications
 """
 
+__RCSID__ = "$Id$"
+
 import sys
 import os
 import multiprocessing
@@ -10,8 +12,6 @@ from DIRAC import gConfig, gLogger
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.List import fromChar
 from DIRAC.Core.Utilities.Subprocess import systemCall
-
-__RCSID__ = "$Id$"
 
 
 class LbRunError(RuntimeError):
@@ -42,6 +42,7 @@ class RunApplication(object):
     # Standard LHCb scripts
     self.runApp = 'lb-run'
     self.lhcbEnvironment = None  # This may be added (the result of LbLogin)
+    self.lbrunCommand = ''  # Command that will be constructed at run time
 
     # What to run
     self.applicationName = ''  # e.g. Gauss
@@ -99,10 +100,12 @@ class RunApplication(object):
     else:
       command = self.command
 
-    finalCommand = ' '.join([self.runApp, lbRunOptions,
-                             configString, extraPackagesString,
-                             runtimeProjectString, externalsString,
-                             app, command])
+    self.lbrunCommand = ' '.join([self.runApp, lbRunOptions,
+                                  configString, extraPackagesString,
+                                  runtimeProjectString, externalsString,
+                                  app])
+
+    finalCommand = ' '.join([self.lbrunCommand, command])
 
     # get the environment
     # if self.lhcbEnvironment is None:
@@ -213,10 +216,10 @@ class RunApplication(object):
     return command
 
   def _runApp(self, command, env=None):
-    """ Actual call of a command
+    """ Safe system call of a command
 
-    Args:
-        env (dict): LHCb environment (from LbLogin)
+       :param command basestring: the command to run
+       :param env dict: environment where to run -- maybe the LHCb environment from LbLogin
     """
     print 'Command called: \n%s' % command  # Really printing here as we want to see and maybe cut/paste
 
