@@ -250,7 +250,6 @@ class Production( object ):
                         ['XMLSummary', 'string', '', 'XMLSummaryFile'],
                         ['optionsFile', 'string', '', 'OptionsFile'],
                         ['extraOptionsLine', 'string', '', 'extraOptionsLines'],
-                        ['numberOfEventsInput', 'string', '', 'NumberOfEventsInput'],
                         ['listoutput', 'list', [], 'StepOutputList'],
                         ['extraPackages', 'string', '', 'ExtraPackages'],
                         ['BKStepID', 'string', '', 'BKKStepID'],

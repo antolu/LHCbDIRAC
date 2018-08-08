@@ -179,7 +179,6 @@ data
 <Parameter name="XMLSummary" type="string" linked_module="" linked_parameter="" in="True" out="False" description="XMLSummaryFile"><value><![CDATA[]]></value></Parameter>
 <Parameter name="optionsFile" type="string" linked_module="" linked_parameter="" in="True" out="False" description="OptionsFile"><value><![CDATA[]]></value></Parameter>
 <Parameter name="extraOptionsLine" type="string" linked_module="" linked_parameter="" in="True" out="False" description="extraOptionsLines"><value><![CDATA[]]></value></Parameter>
-<Parameter name="numberOfEventsInput" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NumberOfEventsInput"><value><![CDATA[]]></value></Parameter>
 <Parameter name="listoutput" type="list" linked_module="" linked_parameter="" in="True" out="False" description="StepOutputList"><value><![CDATA[[]]]></value></Parameter>
 <Parameter name="extraPackages" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ExtraPackages"><value><![CDATA[]]></value></Parameter>
 <Parameter name="BKStepID" type="string" linked_module="" linked_parameter="" in="True" out="False" description="BKKStepID"><value><![CDATA[]]></value></Parameter>
@@ -256,7 +255,6 @@ data
 <Parameter name="XMLSummary" type="string" linked_module="" linked_parameter="" in="True" out="False" description="XMLSummaryFile"><value><![CDATA[summary@{applicationName}_@{STEP_ID}.xml]]></value></Parameter>
 <Parameter name="optionsFile" type="string" linked_module="" linked_parameter="" in="True" out="False" description="OptionsFile"><value><![CDATA[$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.py;$DECFILESROOT/options/11102400.py;$LBPYTHIA8ROOT/options/Pythia8.py;$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py]]></value></Parameter>
 <Parameter name="extraOptionsLine" type="string" linked_module="" linked_parameter="" in="True" out="False" description="extraOptionsLines"><value><![CDATA[]]></value></Parameter>
-<Parameter name="numberOfEventsInput" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NumberOfEventsInput"><value><![CDATA[]]></value></Parameter>
 <Parameter name="listoutput" type="list" linked_module="" linked_parameter="" in="True" out="False" description="StepOutputList"><value><![CDATA[[{'outputDataType': 'sim', 'outputDataName': '@{STEP_ID}.sim'}, {'outputDataType': 'gausshist', 'outputDataName': '@{applicationName}_@{STEP_ID}_Hist.root'}]]]></value></Parameter>
 <Parameter name="extraPackages" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ExtraPackages"><value><![CDATA[AppConfig.v3r171;ProdConf]]></value></Parameter>
 <Parameter name="BKStepID" type="string" linked_module="" linked_parameter="" in="True" out="False" description="BKKStepID"><value><![CDATA[125080]]></value></Parameter>
