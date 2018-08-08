@@ -271,15 +271,14 @@ class ProductionRequestDB(DB):
         proDetail = cPickle.loads(requestDict['ProDetail'])
       except cPickle.UnpicklingError:
         return S_ERROR('Content of ProDetail field cannot be unpickled')
-      previousOutputFileTypes = []
-      for i in range(20):
+      for i in xrange(20):
         outputKey = 'p' + str(i) + 'OFT'
         inputKey = 'p' + str(i + 1) + 'IFT'
         if outputKey in proDetail and inputKey in proDetail:
-          inputFileTypes = proDetail[inputKey].split(',')
-          if not any(fileType in previousOutputFileTypes for fileType in inputFileTypes):
+          inputFileTypes = set(proDetail[inputKey].replace('(N)', '').replace('(Y)', '').split(','))
+          outputFileTypes = set(proDetail[outputKey].replace('(N)', '').replace('(Y)', '').split(','))
+          if not inputFileTypes.issubset(outputFileTypes):
             return S_ERROR('Input for step ' + str(i + 1) + ' does not match the output of step ' + str(i))
-          previousOutputFileTypes.extend(proDetail[outputKey].split(','))
     return S_OK()
 
   @staticmethod
