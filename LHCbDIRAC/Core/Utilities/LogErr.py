@@ -243,9 +243,9 @@ def pick_string_file(project, version, stringFile):
 
 # This is a relic from the previous version of the file, I'll keep it for the while
 
-#global LOG_STRING
-#global STRING_FILE
-#global FILE_OK
+# global LOG_STRING
+# global STRING_FILE
+# global FILE_OK
 
 # LOG_FILE = sys.argv[1]
 # PROJECT = sys.argv[2]
@@ -271,7 +271,6 @@ def pick_string_file(project, version, stringFile):
 #   else:
 #     print 'WARNING: STRINGFILE %s is empty' % STRING_FILE
 
-################################################
 
 # The file is run as follows:
 ## readLogFile('Example.log', 'project', 'version', 'jobID', 'prodID', 'wksID')
