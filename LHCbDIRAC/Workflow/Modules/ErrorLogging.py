@@ -8,7 +8,7 @@
 
 import os
 import shutil
-import LHCbDIRAC.Core.Utilities.LogErr
+import LHCbDIRAC.Core.Utilities.LogErr as LogErr
 
 # fix path
 # import LogErr
@@ -133,13 +133,17 @@ class ErrorLogging(ModuleBase):
       # Now really running
       try:
 
-        #ra.run()  # This would trigger an exception in case of failure, or application status != 0
+        # ra.run()  # This would trigger an exception in case of failure, or application status != 0
 
         # UNCOMMENT THIS
 
-        LogErr.readLogFile(self.applicationLog, self.applicationName, self.applicationVersion, 
-                          prod_job_id, production_id, wms_job_id)
-
+        LogErr.readLogFile(
+            self.applicationLog,
+            self.applicationName,
+            self.applicationVersion,
+            prod_job_id,
+            production_id,
+            wms_job_id)
         #####
 
       except RuntimeError as e:
