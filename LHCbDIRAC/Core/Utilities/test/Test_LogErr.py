@@ -77,6 +77,7 @@ class LogErrTestCase(unittest.TestCase):
 
     self.name = None
 
+
 class TestLogErr(LogErrTestCase):
   def test_createJsonMultiple(self):
 
