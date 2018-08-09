@@ -8,6 +8,7 @@
 
 import os
 import shutil
+import LHCbDIRAC.Core.Utilities.LogErr
 
 # fix path
 # import LogErr
