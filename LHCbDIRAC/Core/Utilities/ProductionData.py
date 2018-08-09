@@ -48,7 +48,7 @@ def constructProductionLFNs(paramDict, bkClient=None, quick=True):
       # Nasty check on whether the created code parameters were not updated e.g. when changing defaults in a workflow
       fileName = info['outputDataName'].split('_')
       index = 0
-      if not re.search('^\d', fileName[index]):
+      if not re.search(r'^\d', fileName[index]):
         index += 1
       if not fileName[index] == str(productionID).zfill(8):
         fileName[index] = str(productionID).zfill(8)
