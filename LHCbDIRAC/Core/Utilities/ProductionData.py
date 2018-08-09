@@ -57,7 +57,7 @@ def constructProductionLFNs( paramDict, bkClient = None, quick = True ):
     #Strip output data according to file mask
     fileTupleListMasked = _applyMask( wfMask, fileTupleList )
     lfnRoot = _getLFNRoot( '', wfConfigName, wfConfigVersion, bkClient, quick = quick )
-    gLogger.verbose( 'LFN_ROOT is: %s' % ( lfnRoot ) )
+    gLogger.debug( 'LFN_ROOT is: %s' % ( lfnRoot ) )
     debugRoot = _getLFNRoot( '', 'debug', wfConfigVersion, bkClient, quick = quick )
 
     gLogger.verbose( 'LFN_ROOT is: %s' % ( lfnRoot ) )
@@ -300,7 +300,7 @@ def _getLFNRoot( lfn, namespace = '', configVersion = 0, bkClient = None, quick 
 
   if not lfn:
     LFN_ROOT = '/lhcb/%s/%s' % ( namespace, configVersion )
-    gLogger.verbose( 'LFN_ROOT will be %s' % ( LFN_ROOT ) )
+    gLogger.debug( 'LFN_ROOT will be %s' % ( LFN_ROOT ) )
     return LFN_ROOT
 
   lfn = [fname.replace( ' ', '' ).replace( 'LFN:', '' ) for fname in lfn.split( ';' )]
