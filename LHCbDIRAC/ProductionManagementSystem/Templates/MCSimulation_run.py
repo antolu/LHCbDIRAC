@@ -108,6 +108,7 @@ pr.configName = '{{BKConfigName#GENERAL: BK configuration name e.g. MC #MC}}'
 extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepID:options#}}'
 
 targets = '{{Target#PROD-1:MC: Target for MC (e.g. Tier2, ALL, LCG.CERN.cern or BAN:site1:site2#ALL}}'
+eventsPerJob = '{{eventsPerJob#PROD-1:MC: Number of events per job#-1}}'
 MCPriority = '{{MCPriority#PROD-1:MC: Production priority#0}}'
 MCmulticoreFlag = '{{MCMulticoreFLag#PROD-1: multicore flag#True}}'
 simulationCompressionLvl = '{{simulationCompressionLvl#PROD-1: Compression level#LOW}}'

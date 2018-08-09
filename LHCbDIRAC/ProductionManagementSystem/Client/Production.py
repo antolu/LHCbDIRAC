@@ -780,7 +780,7 @@ class Production( object ):
       if site in sites:
           sitesToBan.append(site)
 
-    self.LHCbJob.setBannedSites( sitesToBan )
+    self.LHCbJob.setBannedSites(sitesToBan)
 
   #############################################################################
 
