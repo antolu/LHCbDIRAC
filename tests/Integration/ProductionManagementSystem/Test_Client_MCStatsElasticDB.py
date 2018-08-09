@@ -128,7 +128,8 @@ class TestClientMCStatsTestCase(unittest.TestCase):
     self.mcStatsClient = MCStatsClient()
 
   def tearDown(self):
-    pass
+    self.mcStatsClient.deleteIndex(self.indexName)
+    self.mcStatsClient = None
 
 
 class MCHandlerClientChain(TestClientMCStatsTestCase):
