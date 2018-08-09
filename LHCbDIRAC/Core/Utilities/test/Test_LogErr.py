@@ -3,10 +3,9 @@
 import unittest
 import json
 import ast
+import os
 
 from LHCbDIRAC.Core.Utilities.LogErr import create_json_table
-from DIRAC.Core.Base.Script import parseCommandLine
-parseCommandLine()
 from DIRAC import gLogger
 
 
@@ -68,14 +67,15 @@ class LogErrTestCase(unittest.TestCase):
     self.name = 'test_create_JSON_table.json'
 
   def tearDown(self):
+
+    # Remove file
+    os.remove(self.name)
+
     self.jsonDataMultiple = None
     self.jsonDataSingle = None
     self.jsonDataEmpty = None
 
     self.name = None
-
-    # Remove file
-
 
 class TestLogErr(LogErrTestCase):
   def test_createJsonMultiple(self):
@@ -85,7 +85,7 @@ class TestLogErr(LogErrTestCase):
             "Errors": {
                 "ERROR Gap not found!": 1,
                 "ID": {
-                    "TransformationID": "5",
+                    "wmsID": "5",
                     "ProductionID": "4",
                     "JobID": "3"
                 },
@@ -113,7 +113,7 @@ class TestLogErr(LogErrTestCase):
             "Errors": {
                 "G4Exception : InvalidSetup": 10,
                 "ID": {
-                    "TransformationID": "5",
+                    "wmsID": "5",
                     "ProductionID": "4",
                     "JobID": "3"
                 }
@@ -135,7 +135,7 @@ class TestLogErr(LogErrTestCase):
         {
             "Errors": {
                 "ID": {
-                    "TransformationID": "5",
+                    "wmsID": "5",
                     "ProductionID": "4",
                     "JobID": "3"
                 }
