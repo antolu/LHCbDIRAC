@@ -10,6 +10,8 @@
     - Uses __getOutputLFNs() function to add production output directory parameter
 """
 
+__RCSID__ = "$Id$"
+
 import shutil
 import re
 import os
@@ -24,8 +26,6 @@ from LHCbDIRAC.Core.Utilities.ProductionData import preSubmissionLFNs
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
-
-__RCSID__ = "$Id$"
 
 
 class Production(object):
@@ -769,7 +769,7 @@ class Production(object):
 
   #############################################################################
 
-  def banSites( self, listOfSites ):
+  def banSites(self, listOfSites):
     """ Sets Sites as banned.
     """
     sitesToBan = []
@@ -780,13 +780,13 @@ class Production(object):
     sites = sites['Value']
     for site in listOfSites:
       if site in sites:
-         sitesToBan.append(site)
+        sitesToBan.append(site)
 
     self.LHCbJob.setBannedSites(sitesToBan)
 
   #############################################################################
 
-  def setOutputMode( self, outputMode ):
+  def setOutputMode(self, outputMode):
     """ Sets output mode for all jobs, this can be 'Local' or 'Any'.
     """
     if not outputMode.lower().capitalize() in ('Local', 'Any', 'Run'):
