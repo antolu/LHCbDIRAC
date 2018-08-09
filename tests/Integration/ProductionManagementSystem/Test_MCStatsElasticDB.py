@@ -142,16 +142,16 @@ class TestMCStatsElasticDB(MCStatsElasticDBTestCase):
 
     # Set data1
     result = self.db.set(self.typeName, self.data1)
-    time.sleep(1)
+    time.sleep(5)
     self.assertTrue(result['OK'])
 
     # Set data2
     result = self.db.set(self.typeName, self.data2)
-    time.sleep(1)
+    time.sleep(5)
     self.assertTrue(result['OK'])
 
     # Data insertion is not instantaneous, so sleep is needed
-    time.sleep(1)
+    time.sleep(5)
 
     # Get
 
