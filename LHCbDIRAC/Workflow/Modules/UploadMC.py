@@ -5,9 +5,9 @@ __RCSID__ = "$Id$"
 
 import json
 
-from DIRAC import S_ERROR, gLogger
+from DIRAC import S_OK, S_ERROR, gLogger
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
-#from LHCbDIRAC.ProductionManagementSystem.Client.MCStatsClient import MCStatsClient
+from LHCbDIRAC.ProductionManagementSystem.Client.MCStatsClient import MCStatsClient
 
 class UploadMC(ModuleBase):
   """ Upload to LogSE
@@ -45,13 +45,17 @@ class UploadMC(ModuleBase):
 
       self._resolveInputVariables()
 
+      if self.applicationName.lower() not in ('gauss', 'boole'):
+        self.log.info('Not Gauss nor Boole, exiting')
+        return S_OK()
+
       # looking for json files that are
       # 'self.jobID_Errors_self.applicationName_self.applicationVersion_self.step_number.json'
       jsonData = json.loads('%s_Errors_%s_%s_%s.json' %(self.jobID,
                                                         self.applicationName,
                                                         self.applicationVersion,
                                                         self.step_number))
-      # MCStatsClient.set('LogErr', jsonData)
+      MCStatsClient.set('LogErr', jsonData)
 
 
     except Exception as e:  # pylint:disable=broad-except
