@@ -145,7 +145,7 @@ class MCHandlerClientChain(TestClientMCStatsTestCase):
     result = self.mcStatsClient.set(self.typeName, self.data2)
     self.assertTrue(result['OK'])
 
-    time.sleep(5)
+    time.sleep(1)
 
     # Get data1
     result = self.mcStatsClient.get(self.id1)
