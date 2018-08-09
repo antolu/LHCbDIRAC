@@ -16,7 +16,6 @@ class MCStatsElasticDB(DB):
     # self.mapping = {
     #     "Log_output": {
     #         "properties": {
-    #             #"type": "nested",
     #             "ID": {
     #                 "properties": {
     #                     "JobID": {"type": "text"},
@@ -26,7 +25,6 @@ class MCStatsElasticDB(DB):
     #             },
     #             "Errors": {
     #                 "properties": {
-    #                     #"type": "nested",
     #                     "Counter": {"type": "integer"},
     #                     "Error type": {"type": "text"},
     #                     "Events": {
