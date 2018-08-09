@@ -39,40 +39,6 @@ class MCStatsElasticDB(DB):
     #     }
     # }
 
-    # Mapping is defined at runtime
-    # self.mapping = None
-
-    # createIndex = self.createIndex(self.indexName, self.mapping, None)
-    # if not createIndex['OK']:
-    #   print createIndex
-    #   gLogger.error("ERROR: Couldn't create index")
-    # else:
-    #   gLogger.notice("Creating index: ", self.indexName)
-
-#############################################################################
-
-    # Not sure if this function is needed, but I'll keep it for the time being
-
-    # def setFromFile(self, typeName, jsonName = 'errors.json'):
-    #   """
-    #   Inserts data into specified index using the data from a json file.
-
-    #   :param str typeName: The type in the index in ElasticSearch
-    #   :param str jsonName: The json file name
-
-    #   """
-    #   data = ''
-    #   if os.path.exists(jsonName):
-    #     with open(jsonName, 'r') as f: # file must be in same directory...
-    #       data = f.read()
-    #     gLogger.notice('Creating data in index ', self.indexName)
-
-    #   else:
-    #     gLogger.error("ERROR: Couldn't find file")
-    #     return S_ERROR()
-
-    #   self.index(self.indexName, typeName, data)
-
 #############################################################################
 
   def set(self, typeName, data):
