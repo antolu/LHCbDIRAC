@@ -121,8 +121,8 @@ class TestClientMCStatsTestCase(unittest.TestCase):
     self.data1 = json.dumps(self.data1)
     self.data2 = json.dumps(self.data2)
 
-    self.typeName = 'test-client'
-    self.indexName = 'mcstatsdb-client'
+    self.typeName = 'test'
+    self.indexName = 'mcstatsdb'
 
     # Note: index is created without self.indexName
     self.mcStatsClient = MCStatsClient()
@@ -139,6 +139,7 @@ class MCHandlerClientChain(TestClientMCStatsTestCase):
 
     # Set data1
     result = self.mcStatsClient.set(self.typeName, self.data1)
+    print result
     self.assertTrue(result['OK'])
 
     # Set data2
