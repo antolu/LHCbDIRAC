@@ -69,7 +69,8 @@ validationFlag = '{{validationFlag#GENERAL: Set True for validation prod - will 
 pr.configName = '{{BKConfigName#GENERAL: BK configuration name e.g. MC #MC}}'
 extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepID:options#}}'
 
-targets = '{{Target#PROD-1:MC: Target for MC (e.g. Tier2, ALL, LCG.CERN.cern#ALL}}'
+targets = '{{Target#PROD-1:MC: Target for MC (e.g. Tier2, ALL, LCG.CERN.cern or BAN:site1:site2#ALL}}'
+eventsPerJob = '{{eventsPerJob#PROD-1:MC: Number of events per job#-1}}'
 MCPriority = '{{MCPriority#PROD-1:MC: Production priority#0}}'
 MCmulticoreFlag = '{{MCMulticoreFLag#PROD-1: multicore flag#True}}'
 simulationOutputVisFlagSpecial = {}
@@ -142,6 +143,7 @@ elif w1:
   pr.cpus = [100000]
   pr.outputFileSteps = [str( len( pr.stepsList ) )]
   pr.targets = [targets]
+  pr.events = [eventsPerJob]
   pr.groupSizes = [1]
   pr.plugins = ['']
   pr.inputDataPolicies = ['']
@@ -161,6 +163,7 @@ elif w2:
   pr.priorities = [MCPriority, selectionPriority]
   pr.cpus = [100000, selectionCPU]
   pr.targets = [targets, '']
+  pr.events = [eventsPerJob,-1]
   pr.groupSizes = [1, selectionGroupSize]
   pr.plugins = ['', selectionPlugin]
   pr.inputDataPolicies = ['', 'download']
@@ -179,6 +182,7 @@ elif w3:
   pr.priorities = [MCPriority, selectionPriority, mergingPriority]
   pr.cpus = [100000, selectionCPU, mergingCPU]
   pr.targets = [targets, '', '']
+  pr.events = [eventsPerJob,-1,-1]
   pr.groupSizes = [1, selectionGroupSize, mergingGroupSize]
   pr.plugins = ['', selectionPlugin, mergingPlugin]
   pr.inputDataPolicies = ['', 'download', 'download']

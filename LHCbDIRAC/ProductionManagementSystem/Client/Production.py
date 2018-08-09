@@ -769,7 +769,24 @@ class Production(object):
 
   #############################################################################
 
-  def setOutputMode(self, outputMode):
+  def banSites( self, listOfSites ):
+    """ Sets Sites as banned.
+    """
+    sitesToBan = []
+    sites = getSites()
+    if not sites['OK']:
+      return sites
+
+    sites = sites['Value']
+    for site in listOfSites:
+      if site in sites:
+         sitesToBan.append(site)
+
+    self.LHCbJob.setBannedSites(sitesToBan)
+
+  #############################################################################
+
+  def setOutputMode( self, outputMode ):
     """ Sets output mode for all jobs, this can be 'Local' or 'Any'.
     """
     if not outputMode.lower().capitalize() in ('Local', 'Any', 'Run'):
