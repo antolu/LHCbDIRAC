@@ -100,14 +100,13 @@ class ErrorLogging(ModuleBase):
         self.log.info('Application log file from previous module not found locally: %s' % self.applicationLog)
         return S_OK()
 
-      # REMOVE
-      command = 'python %s %s %s %s %s %s %s' % (self.executable,
-                                                 self.applicationLog,
-                                                 self.applicationName,
-                                                 self.applicationVersion,
-                                                 prod_job_id,
-                                                 production_id,
-                                                 wms_job_id)
+      # command = 'python %s %s %s %s %s %s %s' % (self.executable,
+      #                                            self.applicationLog,
+      #                                            self.applicationName,
+      #                                            self.applicationVersion,
+      #                                            prod_job_id,
+      #                                            production_id,
+      #                                            wms_job_id)
 
       # Set some parameter names
       scriptName = 'Error_Log_%s_%s_Run_%s.sh' % (self.applicationName,
@@ -118,28 +117,27 @@ class ErrorLogging(ModuleBase):
       for x in [self.defaultNameHTML, self.defaultNamejson, scriptName, self.errorLogFile]:
         if os.path.exists(x):
           os.remove(x)
-      ####
 
-      # How to run the application
-      ra = RunApplication()
-      # lb-run stuff
-      ra.applicationName = self.applicationName
-      ra.applicationVersion = self.applicationVersion
-      ra.systemConfig = self.systemConfig
-      # actual stuff to run
-      ra.command = command
+      ####
+      # ra = RunApplication()
+      # # lb-run stuff
+      # ra.applicationName = self.applicationName
+      # ra.applicationVersion = self.applicationVersion
+      # ra.systemConfig = self.systemConfig
+      # # actual stuff to run
+      # ra.command = command
 
       ############################
 
       # Now really running
       try:
 
-        ra.run()  # This would trigger an exception in case of failure, or application status != 0
+        #ra.run()  # This would trigger an exception in case of failure, or application status != 0
 
         # UNCOMMENT THIS
 
-        # LogErr.readLogFile(self.applicationLog, self.applicationName, self.applicationVersion,
-        #                    prod_job_id, production_id, wms_job_id)
+        LogErr.readLogFile(self.applicationLog, self.applicationName, self.applicationVersion, 
+                          prod_job_id, production_id, wms_job_id)
 
         #####
 
