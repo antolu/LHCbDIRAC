@@ -31,26 +31,26 @@ class UploadMC(ModuleBase):
 
 
   def execute(self, production_id=None, prod_job_id=None, wms_job_id=None,
-	      workflowStatus=None, stepStatus=None,
-	      wf_commons=None, step_commons=None,
-	      step_number=None, step_id=None):
+              workflowStatus=None, stepStatus=None,
+              wf_commons=None, step_commons=None,
+              step_number=None, step_id=None):
     """ Main executon method
     """
 
     try:
 
       super(UploadMC, self).execute(self.version, production_id, prod_job_id, wms_job_id,
-				    workflowStatus, stepStatus,
-				    wf_commons, step_commons, step_number, step_id)
+                                    workflowStatus, stepStatus,
+                                    wf_commons, step_commons, step_number, step_id)
 
       self._resolveInputVariables()
 
       # looking for json files that are
       # 'self.jobID_Errors_self.applicationName_self.applicationVersion_self.step_number.json'
       jsonData = json.loads('%s_Errors_%s_%s_%s.json' %(self.jobID,
-							self.applicationName,
-							self.applicationVersion,
-							self.step_number))
+                                                        self.applicationName,
+                                                        self.applicationVersion,
+                                                        self.step_number))
       # MCStatsClient.set('LogErr', jsonData)
 
 
