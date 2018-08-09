@@ -23,7 +23,7 @@ class TestClientMCStatsTestCase(unittest.TestCase):
     self.data1 = {
         "Errors": {
             "ID": {
-                "TransformationID": "6",
+                "wmsID": "6",
                 "ProductionID": "5",
                 "JobID": self.id1
             },
@@ -36,7 +36,7 @@ class TestClientMCStatsTestCase(unittest.TestCase):
     self.data2 = {
         "Errors": {
             "ID": {
-                "TransformationID": "6",
+                "wmsID": "6",
                 "ProductionID": "5",
                 "JobID": self.id2
             },

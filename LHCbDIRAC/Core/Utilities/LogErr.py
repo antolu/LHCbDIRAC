@@ -6,7 +6,7 @@ import json
 from DIRAC import gLogger, S_ERROR, S_OK
 
 
-def readLogFile(log_file, project, version, jobID, prodID, wksID):
+def readLogFile(log_file, project, version, jobID, prodID, wmsID):
 
   fileOK = False
   logString = ''
@@ -89,7 +89,7 @@ def readLogFile(log_file, project, version, jobID, prodID, wksID):
     if dict_test != {}:
       dict_total.append(dict_test)
     dict_G4_errors_count[error_string] = dict_count_dump_error_string
-  create_json_table(dict_total, "errors.json", jobID, prodID, wksID)
+  create_json_table(dict_total, "errors.json", jobID, prodID, wmsID)
   create_HTML_table(dict_G4_errors_count, "errors.html")
 
 ################################################
@@ -129,14 +129,14 @@ def readLogFile(log_file, project, version, jobID, prodID, wksID):
 #####################################################
 
 
-def create_json_table(dict_total, name, jobID, prodID, wksID):
+def create_json_table(dict_total, name, jobID, prodID, wmsID):
 
   result = {}
   temp = {}
   ids = {}
   ids['JobID'] = jobID
   ids['ProductionID'] = prodID
-  ids['TransformationID'] = wksID
+  ids['wmsID'] = wmsID
 
   with open(name, 'w') as output:
     for error in dict_total:
@@ -273,4 +273,4 @@ def pick_string_file(project, version, stringFile):
 #     print 'WARNING: STRINGFILE %s is empty' % STRING_FILE
 
 # The file is run as follows:
-# readLogFile('Example.log', 'project', 'version', 'jobID', 'prodID', 'wksID')
+# readLogFile('Example.log', 'project', 'version', 'jobID', 'prodID', 'wmsID')
