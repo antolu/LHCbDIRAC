@@ -139,7 +139,6 @@ class MCHandlerClientChain(TestClientMCStatsTestCase):
 
     # Set data1
     result = self.mcStatsClient.set(self.typeName, self.data1)
-    print result
     self.assertTrue(result['OK'])
 
     # Set data2
