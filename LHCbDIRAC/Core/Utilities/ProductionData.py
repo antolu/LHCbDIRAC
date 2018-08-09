@@ -7,14 +7,14 @@
 
 """
 
+__RCSID__ = "$Id$"
+
 import re
 import os
 import datetime
 import copy
 
 from DIRAC import S_OK, S_ERROR, gLogger
-
-__RCSID__ = "$Id$"
 
 gLogger = gLogger.getSubLogger('ProductionData')
 
@@ -70,7 +70,7 @@ def constructProductionLFNs(paramDict, bkClient=None, quick=True):
     bkLFNs = []
     debugLFNs = []
 
-    #outputData is masked
+    # outputData is masked
     for fileTuple in fileTupleListMasked:
       lfn = _makeProductionLFN(str(jobID).zfill(8), lfnRoot, fileTuple, str(productionID).zfill(8))
       outputData.append(lfn)
@@ -96,7 +96,7 @@ def constructProductionLFNs(paramDict, bkClient=None, quick=True):
                                   log=True)
     logFilePath = ['%s/%s' % (logPath, str(jobID).zfill(8))]
     logTargetPath = ['%s/%s_%s.tar' % (logPath, str(productionID).zfill(8), str(jobID).zfill(8))]
-    #[ aside, why does makeProductionPath not append the jobID itself ????
+    # [ aside, why does makeProductionPath not append the jobID itself ????
     # this is really only used in one place since the logTargetPath is just
     # written to a text file (should be reviewed)... ]
 
