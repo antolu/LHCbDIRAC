@@ -9,6 +9,7 @@ from DIRAC import S_OK, S_ERROR, gLogger
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.ProductionManagementSystem.Client.MCStatsClient import MCStatsClient
 
+
 class UploadMC(ModuleBase):
   """ Upload to LogSE
   """
@@ -22,13 +23,11 @@ class UploadMC(ModuleBase):
 
     self.version = __RCSID__
 
-
   def _resolveInputVariables(self):
     """ standard method for resolving the input variables
     """
 
     super(UploadMC, self)._resolveInputVariables()
-
 
   def execute(self, production_id=None, prod_job_id=None, wms_job_id=None,
               workflowStatus=None, stepStatus=None,
@@ -51,16 +50,15 @@ class UploadMC(ModuleBase):
 
       # looking for json files that are
       # 'self.jobID_Errors_self.applicationName_self.applicationVersion_self.step_number.json'
-      jsonData = json.loads('%s_Errors_%s_%s_%s.json' %(self.jobID,
-                                                        self.applicationName,
-                                                        self.applicationVersion,
-                                                        self.step_number))
+      jsonData = json.loads('%s_Errors_%s_%s_%s.json' % (self.jobID,
+                                                         self.applicationName,
+                                                         self.applicationVersion,
+                                                         self.step_number))
       MCStatsClient.set('LogErr', jsonData)
 
-
     except Exception as e:  # pylint:disable=broad-except
-      self.log.exception( "Failure in UploadMC execute module", lException = e )
-      return S_ERROR( str(e) )
+      self.log.exception("Failure in UploadMC execute module", lException=e)
+      return S_ERROR(str(e))
 
     finally:
-      super( UploadMC, self ).finalize( self.version )
+      super(UploadMC, self).finalize(self.version)

@@ -15,10 +15,12 @@ from LHCbDIRAC.Workflow.Modules.mock_Commons import wf_commons, step_commons
 # sut
 from LHCbDIRAC.Workflow.Modules.UploadMC import UploadMC
 
+
 def test_instantiation(mocker):
   mocker.patch("LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect=MagicMock())
   uploadMC = UploadMC()
   assert isinstance(uploadMC, UploadMC)
+
 
 def test__resolveInputVariables(mocker):
   mocker.patch("LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect=MagicMock())
@@ -28,7 +30,9 @@ def test__resolveInputVariables(mocker):
   uploadMC.step_commons = {}
   uploadMC._resolveInputVariables()
 
+
 allCombinations = list(product(wf_commons + [{}], step_commons + [{}]))
+
 
 @pytest.mark.parametrize("wf_common, s_common", allCombinations)
 def test_execute(mocker, wf_common, s_common):
