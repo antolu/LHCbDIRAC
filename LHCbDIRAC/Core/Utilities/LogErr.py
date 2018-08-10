@@ -6,7 +6,7 @@ import json
 from DIRAC import gLogger, S_ERROR, S_OK
 
 
-def readLogFile(log_file, project, version, jobID, prodID, wmsID):
+def readLogFile(log_file, project, version, jobID, prodID, wmsID, name='errors.json'):
 
   fileOK = False
   logString = ''
@@ -89,7 +89,7 @@ def readLogFile(log_file, project, version, jobID, prodID, wmsID):
     if dict_test != {}:
       dict_total.append(dict_test)
     dict_G4_errors_count[error_string] = dict_count_dump_error_string
-  create_json_table(dict_total, "errors.json", jobID, prodID, wmsID)
+  create_json_table(dict_total, name, jobID, prodID, wmsID)
   create_HTML_table(dict_G4_errors_count, "errors.html")
 
 ################################################

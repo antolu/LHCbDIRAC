@@ -135,16 +135,14 @@ class ErrorLogging(ModuleBase):
 
         # ra.run()  # This would trigger an exception in case of failure, or application status != 0
 
-        # UNCOMMENT THIS
-
         LogErr.readLogFile(
             self.applicationLog,
             self.applicationName,
             self.applicationVersion,
             prod_job_id,
             production_id,
-            wms_job_id)
-        #####
+            wms_job_id,
+            self.errorLogNamejson)
 
       except RuntimeError as e:
         self.log.info("Error logging for %s %s step %s completed with errors:" % (self.applicationName,
