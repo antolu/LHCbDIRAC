@@ -10,6 +10,8 @@ import urllib
 import tarfile
 import fnmatch
 
+from collections import defaultdict
+
 import DIRAC
 from DIRAC.Core.Utilities.File import mkDir
 from DIRAC import gLogger
@@ -789,27 +791,39 @@ class TransformationDebug(object):
       # If some files are Scheduled, try and get information about the FTS jobs
       if statFiles.get('Scheduled', 0) and request:
         try:
-          from DIRAC.DataManagementSystem.Client.FTSClient import FTSClient
-          ftsClient = FTSClient()
-          res = ftsClient.getAllFTSFilesForRequest(request.RequestID)
-          if res['OK']:
-            statusCount = {}
-            for ftsFile in res['Value']:
-              statusCount[ftsFile.Status] = statusCount.setdefault(ftsFile.Status, 0) + 1
-            prStr = []
-            for status in statusCount:
-              if statusCount[status]:
-                prStr.append('%s:%d' % (status, statusCount[status]))
-            gLogger.notice('\tFTS files statuses: %s' % ', '.join(prStr))
-          res = ftsClient.getFTSJobsForRequest(request.RequestID)
-          if res['OK']:
-            ftsJobs = res['Value']
-            if ftsJobs:
-              for job in ftsJobs:
-                gLogger.notice('\tFTS jobs associated:', '%s@%s (%s) from %s to %s' %
-                               (job.FTSGUID, job.FTSServer, job.Status, job.SourceSE, job.TargetSE))
-            else:
-              gLogger.notice('\tNo FTS jobs found for that request')
+          from DIRAC.DataManagementSystem.Client.FTS3Client import FTS3Client
+          fts3Client = FTS3Client()
+          # We take all the operationIDs
+          rmsOpIDs = [o.OperationID for o in request if o.Type == 'ReplicateAndRegister']
+          fts3Ops = []
+          for rmsOpID in rmsOpIDs:
+
+            res = fts3Client.getOperationsFromRMSOpID(rmsOpID)
+            if not res['OK']:
+              gLogger.warn("Could not get FTS operations associated to RMS Operation %s: %s" % (rmsOpID, res))
+              continue
+            fts3Ops.extend(res['Value'])
+
+          fts3FileStatusCount = defaultdict(int)
+          for fts3Op in fts3Ops:
+            for fts3File in fts3Op.ftsFiles:
+              fts3FileStatusCount[fts3File.status] += 1
+
+          prStr = []
+          for status, statusCount in fts3FileStatusCount.iteritems():
+            if statusCount:
+              prStr.append('%s:%d' % (status, statusCount))
+          gLogger.notice('\tFTS files statuses: %s' % ', '.join(prStr))
+
+          fts3Jobs = []
+          for fts3Op in fts3Ops:
+            fts3Jobs.extend(fts3Op.ftsJobs)
+
+          for job in fts3Jobs:
+            gLogger.notice('\tFTS jobs associated:', '%s@%s (%s completed at %d %%)' %
+                           (job.ftsGUID, job.ftsServer, job.status, job.completeness))
+          if not fts3Jobs:
+            gLogger.notice('\tNo FTS jobs found for that request')
         except ImportError as e:
           gLogger.notice("\tNo FTS information:", repr(e))
 
