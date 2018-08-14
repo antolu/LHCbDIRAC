@@ -98,14 +98,6 @@ class ErrorLogging(ModuleBase):
         self.log.info('Application log file from previous module not found locally: %s' % self.applicationLog)
         return S_OK()
 
-      # command = 'python %s %s %s %s %s %s %s' % (self.executable,
-      #                                            self.applicationLog,
-      #                                            self.applicationName,
-      #                                            self.applicationVersion,
-      #                                            prod_job_id,
-      #                                            production_id,
-      #                                            wms_job_id)
-
       # Set some parameter names
       scriptName = 'Error_Log_%s_%s_Run_%s.sh' % (self.applicationName,
                                                   self.applicationVersion,
@@ -116,21 +108,8 @@ class ErrorLogging(ModuleBase):
         if os.path.exists(x):
           os.remove(x)
 
-      ####
-      # ra = RunApplication()
-      # # lb-run stuff
-      # ra.applicationName = self.applicationName
-      # ra.applicationVersion = self.applicationVersion
-      # ra.systemConfig = self.systemConfig
-      # # actual stuff to run
-      # ra.command = command
-
-      ############################
-
       # Now really running
       try:
-
-        # ra.run()  # This would trigger an exception in case of failure, or application status != 0
 
         LogErr.readLogFile(
             self.applicationLog,
