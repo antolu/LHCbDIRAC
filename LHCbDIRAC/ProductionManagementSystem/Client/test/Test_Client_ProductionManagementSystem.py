@@ -37,7 +37,7 @@ class ProductionSuccess(ClientTestCase):
 
   def test__constructOutputFilesList(self):
     prod = Production()
-    res = prod._constructOutputFilesList(['T1.pippo', 'T2.pluto'])
+    res = prod._constructOutputFilesList(['T1', 'T2'])
     resExpected = [{'outputDataType': 't1'},
                    {'outputDataType': 't2'}]
     self.assertEqual(res, resExpected)
