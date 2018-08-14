@@ -1,5 +1,5 @@
 """
-A database wrapper for ElasticDB
+A database wrapper for ElasticDB to insert data into elasticsearch from Gauss & Boole simulations
 """
 import json
 from elasticsearch import Elasticsearch
@@ -79,10 +79,11 @@ class MCStatsElasticDB(DB):
     gLogger.notice('Getting results for JobID: ', jobID)
     result = self.query('mcstatsdb*', query)
 
-    resultDict = {}
+
     if not result['OK']:
       return S_ERROR(result)
 
+    resultDict = {}
     sources = result['Value']['hits']['hits']
     for source in sources:
       data = source['_source']
