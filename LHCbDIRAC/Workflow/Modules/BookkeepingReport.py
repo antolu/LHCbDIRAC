@@ -56,16 +56,16 @@ class BookkeepingReport(ModuleBase):
   ################################################################################
 
   def execute(self, production_id=None, prod_job_id=None, wms_job_id=None,
-	      workflowStatus=None, stepStatus=None,
-	      wf_commons=None, step_commons=None,
-	      step_number=None, step_id=None, saveOnFile=True):
+              workflowStatus=None, stepStatus=None,
+              wf_commons=None, step_commons=None,
+              step_number=None, step_id=None, saveOnFile=True):
     """ Usual executor
     """
     try:
 
       super(BookkeepingReport, self).execute(self.version, production_id, prod_job_id, wms_job_id,
-					     workflowStatus, stepStatus,
-					     wf_commons, step_commons, step_number, step_id)
+                                             workflowStatus, stepStatus,
+                                             wf_commons, step_commons, step_number, step_id)
 
       if not self._checkWFAndStepStatus():
         return S_OK()
@@ -76,7 +76,7 @@ class BookkeepingReport(ModuleBase):
 
       if saveOnFile:
         bfilename = 'bookkeeping_' + self.step_id + '.xml'
-	with open(bfilename, 'w') as bfile:
+        with open(bfilename, 'w') as bfile:
           print >> bfile, doc
       else:
         print doc
@@ -109,26 +109,26 @@ class BookkeepingReport(ModuleBase):
     if 'outputList' in self.workflow_commons:
       for outputItem in self.stepOutputs:
         if outputItem not in self.workflow_commons['outputList']:
-	  self.workflow_commons['outputList'].append(outputItem)
+          self.workflow_commons['outputList'].append(outputItem)
     else:
       self.workflow_commons['outputList'] = self.stepOutputs
 
     if 'BookkeepingLFNs' in self.workflow_commons and \
-	'LogFilePath' in self.workflow_commons and \
-	    'ProductionOutputData' in self.workflow_commons:
+        'LogFilePath' in self.workflow_commons and \
+            'ProductionOutputData' in self.workflow_commons:
 
       logFilePath = self.workflow_commons['LogFilePath']
       bkLFNs = self.workflow_commons['BookkeepingLFNs']
 
       if not isinstance(bkLFNs, list):
-	bkLFNs = [i.strip() for i in bkLFNs.split(';')]
+        bkLFNs = [i.strip() for i in bkLFNs.split(';')]
 
     else:
       self.log.info('LogFilePath / BookkeepingLFNs parameters not found, creating on the fly')
       result = constructProductionLFNs(self.workflow_commons, self.bkClient)
       if not result['OK']:
-	self.log.error('Could not create production LFNs', result['Message'])
-	raise ValueError(result['Message'])
+        self.log.error('Could not create production LFNs', result['Message'])
+        raise ValueError(result['Message'])
 
       bkLFNs = result['Value']['BookkeepingLFNs']
       logFilePath = result['Value']['LogFilePath'][0]
@@ -148,26 +148,26 @@ class BookkeepingReport(ModuleBase):
       try:
         xmlSummaryFile = self.step_commons['XMLSummary']
       except KeyError:
-	self.log.warn('XML Summary file name not found, will try to guess it')
-	xmlSummaryFile = 'summary%s_%s_%s_%s.xml' % (self.applicationName,
-						     self.production_id,
-						     self.prod_job_id,
-						     self.step_number)
-	self.log.warn('Trying %s' % xmlSummaryFile)
-	if xmlSummaryFile not in os.listdir('.'):
-	  self.log.warn('XML Summary file %s not found, will try to guess a second time' % xmlSummaryFile)
-	  xmlSummaryFile = 'summary%s_%s.xml' % (self.applicationName,
-						 self.step_id)
-	  self.log.warn('Trying %s' % xmlSummaryFile)
-	  if xmlSummaryFile not in os.listdir('.'):
-	    self.log.warn('XML Summary file %s not found, will try to guess a third and last time' % xmlSummaryFile)
-	    xmlSummaryFile = 'summary%s_%s.xml' % (self.applicationName,
-						   self.step_number)
-	    self.log.warn('Trying %s' % xmlSummaryFile)
+        self.log.warn('XML Summary file name not found, will try to guess it')
+        xmlSummaryFile = 'summary%s_%s_%s_%s.xml' % (self.applicationName,
+                                                     self.production_id,
+                                                     self.prod_job_id,
+                                                     self.step_number)
+        self.log.warn('Trying %s' % xmlSummaryFile)
+        if xmlSummaryFile not in os.listdir('.'):
+          self.log.warn('XML Summary file %s not found, will try to guess a second time' % xmlSummaryFile)
+          xmlSummaryFile = 'summary%s_%s.xml' % (self.applicationName,
+                                                 self.step_id)
+          self.log.warn('Trying %s' % xmlSummaryFile)
+          if xmlSummaryFile not in os.listdir('.'):
+            self.log.warn('XML Summary file %s not found, will try to guess a third and last time' % xmlSummaryFile)
+            xmlSummaryFile = 'summary%s_%s.xml' % (self.applicationName,
+                                                   self.step_number)
+            self.log.warn('Trying %s' % xmlSummaryFile)
       try:
-	self.xf_o = XMLSummary(xmlSummaryFile)
+        self.xf_o = XMLSummary(xmlSummaryFile)
       except XMLSummaryError as e:
-	self.log.warn('No XML summary available: %s' % repr(e))
+        self.log.warn('No XML summary available: %s' % repr(e))
         self.xf_o = None
 
     return bkLFNs, logFilePath
@@ -336,7 +336,7 @@ class BookkeepingReport(ModuleBase):
       # This happens iff the XML summary can't be created (e.g. for merging MDF files)
       res = self.bkClient.getFileMetadata(self.stepInputData)
       if not res['OK']:
-	raise AttributeError("Can't get the BKK file metadata")
+        raise AttributeError("Can't get the BKK file metadata")
       noOfEvents = sum(fileMeta['EventStat'] for fileMeta in res['Value']['Successful'].itervalues())
 
     typedParams.append(("NumberOfEvents", noOfEvents))
@@ -358,11 +358,11 @@ class BookkeepingReport(ModuleBase):
       intermediateInputs = False
       for inputname in self.stepInputData:
         for bkLFN in bkLFNs:
-	  if os.path.basename(bkLFN) == os.path.basename(inputname):
-	    jobNode = addChildNode(jobNode, "InputFile", 0, (bkLFN, ))
+          if os.path.basename(bkLFN) == os.path.basename(inputname):
+            jobNode = addChildNode(jobNode, "InputFile", 0, (bkLFN, ))
             intermediateInputs = True
         if not intermediateInputs:
-	  jobNode = addChildNode(jobNode, "InputFile", 0, (inputname, ))
+          jobNode = addChildNode(jobNode, "InputFile", 0, (inputname, ))
 
     return jobNode
 
@@ -391,10 +391,10 @@ class BookkeepingReport(ModuleBase):
     bkTypeDict = {}
     while count < len(self.stepOutputs):
       if 'outputDataName' in self.stepOutputs[count]:
-	outputs.append(((self.stepOutputs[count]['outputDataName']),
-			(self.stepOutputs[count]['outputDataType'])))
+        outputs.append(((self.stepOutputs[count]['outputDataName']),
+                        (self.stepOutputs[count]['outputDataType'])))
       if 'outputBKType' in self.stepOutputs[count]:
-	bkTypeDict[self.stepOutputs[count]['outputDataName']] = self.stepOutputs[count]['outputBKType']
+        bkTypeDict[self.stepOutputs[count]['outputDataName']] = self.stepOutputs[count]['outputBKType']
       count = count + 1
     outputs.append(((self.applicationLog), ('LOG')))
     self.log.info(outputs)
@@ -407,85 +407,85 @@ class BookkeepingReport(ModuleBase):
       typeVersion = '1'
       fileStats = '0'
       if output in bkTypeDict:
-	typeVersion = getOutputType(output, self.stepInputData)[output]
-	self.log.info('Setting POOL XML catalog type for %s to %s' % (output, typeVersion))
-	typeName = bkTypeDict[output].upper()
-	self.log.info('Setting explicit BK type version for %s to %s and file type to %s' % (output,
-											     typeVersion,
-											     typeName))
+        typeVersion = getOutputType(output, self.stepInputData)[output]
+        self.log.info('Setting POOL XML catalog type for %s to %s' % (output, typeVersion))
+        typeName = bkTypeDict[output].upper()
+        self.log.info('Setting explicit BK type version for %s to %s and file type to %s' % (output,
+                                                                                             typeVersion,
+                                                                                             typeName))
 
         try:
-	  fileStats = str(self.xf_o.outputsEvents[output])
+          fileStats = str(self.xf_o.outputsEvents[output])
         except AttributeError as e:
           # This happens iff the XML summary can't be created (e.g. for merging MDF files)
-	  self.log.warn(
-	      "XML summary not created, unable to determine the output events and setting to 'Unknown': %s" % repr(e))
+          self.log.warn(
+              "XML summary not created, unable to determine the output events and setting to 'Unknown': %s" % repr(e))
           fileStats = 'Unknown'
         except KeyError as e:
-	  self.log.warn(repr(e))
-	  if ('hist' in outputtype.lower()) or ('.root' in outputtype.lower()):
-	    self.log.warn("HIST file %s not found in XML summary, event stats set to 'Unknown'" % output)
+          self.log.warn(repr(e))
+          if ('hist' in outputtype.lower()) or ('.root' in outputtype.lower()):
+            self.log.warn("HIST file %s not found in XML summary, event stats set to 'Unknown'" % output)
             fileStats = 'Unknown'
           else:
-	    raise KeyError(e)
+            raise KeyError(e)
 
       if not os.path.exists(output):
-	self.log.error("Output file %s does not exist" % output)
+        self.log.error("Output file %s does not exist" % output)
         continue
       # Output file size
       if 'size' not in self.step_commons or output not in self.step_commons['size']:
         try:
-	  outputsize = str(os.path.getsize(output))
+          outputsize = str(os.path.getsize(output))
         except OSError:
           outputsize = '0'
       else:
-	outputsize = self.step_commons['size'][output]
+        outputsize = self.step_commons['size'][output]
 
       if 'md5' not in self.step_commons or output not in self.step_commons['md5']:
-	comm = 'md5sum ' + str(output)
-	resultTuple = systemCall(0, shlex.split(comm))
-	status = resultTuple['Value'][0]
-	out = resultTuple['Value'][1]
+        comm = 'md5sum ' + str(output)
+        resultTuple = systemCall(0, shlex.split(comm))
+        status = resultTuple['Value'][0]
+        out = resultTuple['Value'][1]
       else:
         status = 0
-	out = self.step_commons['md5'][output]
+        out = self.step_commons['md5'][output]
 
       if status:
-	self.log.info("Failed to get md5sum of %s" % str(output))
-	self.log.info(str(out))
+        self.log.info("Failed to get md5sum of %s" % str(output))
+        self.log.info(str(out))
         md5sum = '000000000000000000000000000000000000'
       else:
-	md5sum = out.split()[0]
+        md5sum = out.split()[0]
 
       if 'guid' not in self.step_commons or output not in self.step_commons['guid']:
-	guidResult = getGUID(output)
+        guidResult = getGUID(output)
         guid = ''
-	if not guidResult['OK']:
-	  self.log.error('Could not find GUID for %s with message' % (output), guidResult['Message'])
-	elif guidResult['generated']:
-	  self.log.warn('PoolXMLFile generated GUID(s) for the following files ',
-			', '.join(guidResult['generated']))
-	  guid = guidResult['Value'][output]
+        if not guidResult['OK']:
+          self.log.error('Could not find GUID for %s with message' % (output), guidResult['Message'])
+        elif guidResult['generated']:
+          self.log.warn('PoolXMLFile generated GUID(s) for the following files ',
+                        ', '.join(guidResult['generated']))
+          guid = guidResult['Value'][output]
         else:
-	  guid = guidResult['Value'][output]
-	  self.log.info('Setting POOL XML catalog GUID for %s to %s' % (output, guid))
+          guid = guidResult['Value'][output]
+          self.log.info('Setting POOL XML catalog GUID for %s to %s' % (output, guid))
       else:
-	guid = self.step_commons['guid'][output]
+        guid = self.step_commons['guid'][output]
 
       if not guid:
-	raise NameError('No GUID found for %s' % output)
+        raise NameError('No GUID found for %s' % output)
 
       # find the constructed lfn
       lfn = ''
       if not re.search('.log$', output):
         for outputLFN in bkLFNs:
-	  if os.path.basename(outputLFN) == output:
+          if os.path.basename(outputLFN) == output:
             lfn = outputLFN
         if not lfn:
-	  self.log.error('Could not find LFN for %s' % output)
-	  raise NameError('Could not find LFN of output file')
+          self.log.error('Could not find LFN for %s' % output)
+          raise NameError('Could not find LFN of output file')
       else:
-	lfn = '%s/%s' % (logFilePath, self.applicationLog)
+        lfn = '%s/%s' % (logFilePath, self.applicationLog)
 
       oldTypeName = None
       if 'HIST' in typeName.upper():
@@ -493,7 +493,7 @@ class BookkeepingReport(ModuleBase):
 
       # PROTECTION for old production XMLs
       if typeName.upper() == 'HIST':
-	typeName = '%sHIST' % (self.applicationName.upper())
+        typeName = '%sHIST' % (self.applicationName.upper())
 
       # Add Output to the XML file
       oFileAttributes = (lfn, typeName, typeVersion)
@@ -504,9 +504,9 @@ class BookkeepingReport(ModuleBase):
         typeName = oldTypeName
 
       if outputtype != 'LOG':
-	oFile = addChildNode(oFile, "Parameter", 0, ("EventTypeId", eventtype))
+        oFile = addChildNode(oFile, "Parameter", 0, ("EventTypeId", eventtype))
         if fileStats != 'Unknown':
-	  oFile = addChildNode(oFile, "Parameter", 0, ("EventStat", fileStats))
+          oFile = addChildNode(oFile, "Parameter", 0, ("EventStat", fileStats))
 
       oFile = addChildNode(oFile, "Parameter", 0, ("FileSize", outputsize))
 
@@ -518,7 +518,7 @@ class BookkeepingReport(ModuleBase):
         if logfile == output:
           logurl = 'http://lhcb-logs.cern.ch/storage'
           url = logurl + logFilePath + '/' + self.applicationLog
-	  oFile = addChildNode(oFile, "Replica", 0, (url, ))
+          oFile = addChildNode(oFile, "Replica", 0, (url, ))
 
       oFile = addChildNode(oFile, "Parameter", 0, ("MD5Sum", md5sum))
       oFile = addChildNode(oFile, "Parameter", 0, ("Guid", guid))

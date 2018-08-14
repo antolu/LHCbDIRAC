@@ -30,7 +30,7 @@ def tarFiles(outputFile, files=None, compression='gz', deleteInput=False):
   if deleteInput:
     for fileIn in files:
       try:
-	os.remove(fileIn)
+        os.remove(fileIn)
       except OSError:
         pass
 
@@ -67,7 +67,7 @@ def lowerExtension():
 
 
 def getEventsToProduce(CPUe, CPUTime=None, CPUNormalizationFactor=None,
-		       maxNumberOfEvents=None, jobMaxCPUTime=None):
+                       maxNumberOfEvents=None, jobMaxCPUTime=None):
   """ Returns the number of events to produce considering the CPU time available.
       CPUTime and CPUNormalizationFactor are taken from the LocalSite configuration if not provided.
       No checks are made on the values passed !
@@ -82,12 +82,12 @@ def getEventsToProduce(CPUe, CPUTime=None, CPUNormalizationFactor=None,
     CPUTime = getCPUTime(CPUNormalizationFactor)
   if jobMaxCPUTime:
     gLogger.verbose("CPUTimeLeft from the WN perspective: %d; Job maximum CPUTime (in seconds): %d" % (CPUTime,
-												       jobMaxCPUTime))
+                                                                                                       jobMaxCPUTime))
     CPUTime = min(CPUTime, jobMaxCPUTime)
 
   gLogger.verbose("CPUTime = %d, CPUNormalizationFactor = %f, CPUe = %d" % (CPUTime,
-									    CPUNormalizationFactor,
-									    CPUe))
+                                                                            CPUNormalizationFactor,
+                                                                            CPUe))
 
   eventsToProduce = int(math.floor(CPUTime * CPUNormalizationFactor) / float(CPUe))
   gLogger.verbose("Without limits, we can produce %d events" % eventsToProduce)
@@ -135,7 +135,7 @@ def getCPUNormalizationFactorAvg():
         for queue in ce['Queues'].values():
           if 'SI00' in queue:
             # convert from SI00 to HS06
-	    factorsSum += float(queue['SI00']) / 250
+            factorsSum += float(queue['SI00']) / 250
             nQueues += 1
 
   if nQueues == 0:
