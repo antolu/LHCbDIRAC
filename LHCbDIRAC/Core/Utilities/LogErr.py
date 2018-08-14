@@ -245,15 +245,14 @@ def getLines(stringFile):
 
 
 def getLogString(logFile, logString, fileOK):
+  """
+  Checks if the log file can be opened, and saves the text in logFile into logString
 
+  :param str logFile: the name of the logFile
+  :param str logStr: the name of the variable that will save the contents of logFile
+  :param fileOK bool: checks if logFile is ok
+  """
 
-"""
-Checks if the log file can be opened, and saves the text in logFile into logString
-
-:param str logFile: the name of the logFile
-:param str logStr: the name of the variable that will save the contents of logFile
-:param fileOK bool: checks if logFile is ok
-"""
   gLogger.notice('Attempting to open %s' % logFile)
   if not os.path.exists(logFile):
     gLogger.error('%s could not be found' % logFile)
@@ -271,15 +270,13 @@ Checks if the log file can be opened, and saves the text in logFile into logStri
 
 
 def pickStringFile(project, version, stringFile):
+  """
+  Picks the string file from the current directory
 
-
-"""
-Picks the string file from the current directory
-
-:param str project: the project name
-:param str version: the version of the project
-:param str stringFile: the
-"""
+  :param str project: the project name
+  :param str version: the version of the project
+  :param str stringFile: the
+  """
 
 # sourceDir = commands.getoutput('echo $PWD') + '/errstrings'
   sourceDir = os.getcwd()
