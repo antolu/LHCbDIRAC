@@ -30,10 +30,7 @@ class GaudiApplication(ModuleBase):
     self.log = gLogger.getSubLogger("GaudiApplication")
     super(GaudiApplication, self).__init__(self.log, bkClientIn=bkClient, dm=dm)
 
-    self.applicationName = ''
-    self.applicationVersion = ''
     self.systemConfig = ''
-    self.applicationLog = ''
     self.stdError = ''
     self.runTimeProjectName = ''
     self.runTimeProjectVersion = ''

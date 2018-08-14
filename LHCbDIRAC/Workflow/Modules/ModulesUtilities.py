@@ -79,8 +79,8 @@ def getEventsToProduce( CPUe, CPUTime = None, CPUNormalizationFactor = None,
   if CPUTime is None:
     CPUTime = getCPUTime( CPUNormalizationFactor )
   if jobMaxCPUTime:
-    gLogger.verbose( "CPUTimeLeft from the WN perspective is %d, the job maximum CPUTime (in seconds) is %d" % ( CPUTime,
-                                                                                                                 jobMaxCPUTime ) )
+    gLogger.verbose("CPUTimeLeft from the WN perspective: %d; Job maximum CPUTime (in seconds): %d" % (CPUTime,
+												       jobMaxCPUTime))
     CPUTime = min( CPUTime, jobMaxCPUTime )
 
   gLogger.verbose( "CPUTime = %d, CPUNormalizationFactor = %f, CPUe = %d" % ( CPUTime,
@@ -158,7 +158,7 @@ def getProductionParameterValue( productionXML, parameterName ):
   for parameterElement in tree.childrens( 'Parameter' ):
     if parameterElement.attributes['name'].lower() == parameterName:
       valueElement = parameterElement.children
-      if valueElement is []:
+      if not valueElement:
         return None
       valueElement = valueElement[0]
 

@@ -2,6 +2,8 @@
     (which is done in the uploadOutput)
 """
 
+__RCSID__ = "$Id$"
+
 import os
 import time
 import re
@@ -21,8 +23,6 @@ from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
 from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummary, XMLSummaryError
 from LHCbDIRAC.Core.Utilities.XMLTreeParser import addChildNode
 
-__RCSID__ = "$Id$"
-
 class BookkeepingReport( ModuleBase ):
   """ BookkeepingReport class
   """
@@ -41,8 +41,6 @@ class BookkeepingReport( ModuleBase ):
     self.eventType = ''
     self.poolXMLCatName = ''
     self.stepInputData = []
-    self.applicationName = ''
-    self.applicationLog = ''
     self.firstStepInput = ''
     self.jobType = ''
     self.stepOutputs = []
@@ -514,7 +512,7 @@ class BookkeepingReport( ModuleBase ):
       ############################################################
       # Log file replica information
 #      if typeName == "LOG":
-      if self.applicationLog != None:
+      if self.applicationLog:
         logfile = self.applicationLog
         if logfile == output:
           logurl = 'http://lhcb-logs.cern.ch/storage'
