@@ -930,6 +930,7 @@ def executeGetStats(dmScript):
   triggerRate = False
   listRuns = False
   listFills = False
+  paramNames = []
   for switch in Script.getUnprocessedSwitches():
     if switch[0] == 'TriggerRate':
       triggerRate = True
