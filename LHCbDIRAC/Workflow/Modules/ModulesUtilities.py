@@ -13,24 +13,24 @@ from LHCbDIRAC.Core.Utilities.XMLTreeParser import XMLTreeParser
 __RCSID__ = "$Id$"
 
 
-def tarFiles( outputFile, files = None, compression = 'gz', deleteInput = False ):
+def tarFiles(outputFile, files=None, compression='gz', deleteInput=False):
   """ just make a tar
   """
   if files is None:
     files = []
 
   try:
-    tar = tarfile.open( outputFile, 'w:' + compression )
+    tar = tarfile.open(outputFile, 'w:' + compression)
     for fileIn in files:
-      tar.add( fileIn )
+      tar.add(fileIn)
     tar.close()
   except tarfile.CompressionError:
-    return S_ERROR( 'Compression not available' )
+    return S_ERROR('Compression not available')
 
   if deleteInput:
     for fileIn in files:
       try:
-        os.remove( fileIn )
+	os.remove(fileIn)
       except OSError:
         pass
 
@@ -38,34 +38,36 @@ def tarFiles( outputFile, files = None, compression = 'gz', deleteInput = False 
 
 #############################################################################
 
+
 def lowerExtension():
   """
     Lowers the file extension of the produced files (on disk!).
     E.g.: fileName.EXTens.ION -> fileName.extens.ion
   """
 
-  filesInDir = [x for x in os.listdir( '.' ) if not os.path.isdir( x )]
+  filesInDir = [x for x in os.listdir('.') if not os.path.isdir(x)]
 
   lowers = []
 
   for fileIn in filesInDir:
-    splitted = fileIn.split( '.' )
-    if len( splitted ) > 1:
+    splitted = fileIn.split('.')
+    if len(splitted) > 1:
       lowered = ''
       for toBeLowered in splitted[1:]:
         lowered = lowered + '.' + toBeLowered.lower()
         final = splitted[0] + lowered
     else:
       final = splitted[0]
-    lowers.append( ( fileIn, final ) )
+    lowers.append((fileIn, final))
 
   for fileIn in lowers:
-    os.rename( fileIn[0], fileIn[1] )
+    os.rename(fileIn[0], fileIn[1])
 
 #############################################################################
 
-def getEventsToProduce( CPUe, CPUTime = None, CPUNormalizationFactor = None,
-                        maxNumberOfEvents = None, jobMaxCPUTime = None ):
+
+def getEventsToProduce(CPUe, CPUTime=None, CPUNormalizationFactor=None,
+		       maxNumberOfEvents=None, jobMaxCPUTime=None):
   """ Returns the number of events to produce considering the CPU time available.
       CPUTime and CPUNormalizationFactor are taken from the LocalSite configuration if not provided.
       No checks are made on the values passed !
@@ -74,36 +76,37 @@ def getEventsToProduce( CPUe, CPUTime = None, CPUNormalizationFactor = None,
   """
 
   if CPUNormalizationFactor is None:
-    CPUNormalizationFactor = gConfig.getValue( '/LocalSite/CPUNormalizationFactor', 1.0 )
+    CPUNormalizationFactor = gConfig.getValue('/LocalSite/CPUNormalizationFactor', 1.0)
 
   if CPUTime is None:
-    CPUTime = getCPUTime( CPUNormalizationFactor )
+    CPUTime = getCPUTime(CPUNormalizationFactor)
   if jobMaxCPUTime:
     gLogger.verbose("CPUTimeLeft from the WN perspective: %d; Job maximum CPUTime (in seconds): %d" % (CPUTime,
 												       jobMaxCPUTime))
-    CPUTime = min( CPUTime, jobMaxCPUTime )
+    CPUTime = min(CPUTime, jobMaxCPUTime)
 
-  gLogger.verbose( "CPUTime = %d, CPUNormalizationFactor = %f, CPUe = %d" % ( CPUTime,
-                                                                              CPUNormalizationFactor,
-                                                                              CPUe ) )
+  gLogger.verbose("CPUTime = %d, CPUNormalizationFactor = %f, CPUe = %d" % (CPUTime,
+									    CPUNormalizationFactor,
+									    CPUe))
 
-  eventsToProduce = int( math.floor( CPUTime * CPUNormalizationFactor ) / float( CPUe ) )
-  gLogger.verbose( "Without limits, we can produce %d events" % eventsToProduce )
+  eventsToProduce = int(math.floor(CPUTime * CPUNormalizationFactor) / float(CPUe))
+  gLogger.verbose("Without limits, we can produce %d events" % eventsToProduce)
 
-  gLogger.info( "We can produce %d events" % eventsToProduce )
-  willProduce = int( eventsToProduce * 0.8 )
-  gLogger.info( "But we take a conservative approach, so 80%% of those: %d" % willProduce )
+  gLogger.info("We can produce %d events" % eventsToProduce)
+  willProduce = int(eventsToProduce * 0.8)
+  gLogger.info("But we take a conservative approach, so 80%% of those: %d" % willProduce)
 
   if maxNumberOfEvents:
-    gLogger.verbose( "Limit for MaxNumberOfEvents: %d" % maxNumberOfEvents )
-    willProduce = min( willProduce, maxNumberOfEvents )
+    gLogger.verbose("Limit for MaxNumberOfEvents: %d" % maxNumberOfEvents)
+    willProduce = min(willProduce, maxNumberOfEvents)
 
   if willProduce < 1:
-    raise RuntimeError( "No time left to produce events" )
+    raise RuntimeError("No time left to produce events")
 
   return willProduce
 
 #############################################################################
+
 
 def getCPUNormalizationFactorAvg():
   """
@@ -114,15 +117,15 @@ def getCPUNormalizationFactorAvg():
   factorsSum = 0.0
   nQueues = 0
 
-  sites = gConfig.getSections( 'Resources/Sites/LCG' )
+  sites = gConfig.getSections('Resources/Sites/LCG')
   if not sites['OK']:
-    raise RuntimeError( sites['Message'] )
+    raise RuntimeError(sites['Message'])
   else:
     sites = sites['Value']
 
-  queuesRequest = Resources.getQueues( sites )
+  queuesRequest = Resources.getQueues(sites)
   if not queuesRequest['OK']:
-    raise RuntimeError( queuesRequest['Message'] )
+    raise RuntimeError(queuesRequest['Message'])
   else:
     queuesRequest = queuesRequest['Value']
 
@@ -132,19 +135,20 @@ def getCPUNormalizationFactorAvg():
         for queue in ce['Queues'].values():
           if 'SI00' in queue:
             # convert from SI00 to HS06
-            factorsSum += float ( queue['SI00'] ) / 250
+	    factorsSum += float(queue['SI00']) / 250
             nQueues += 1
 
   if nQueues == 0:
-    raise RuntimeError( "No queues to get CPU normalization factor from" )
+    raise RuntimeError("No queues to get CPU normalization factor from")
   else:
-    CPUNormalizationFactorAvg = float( factorsSum / nQueues )
+    CPUNormalizationFactorAvg = float(factorsSum / nQueues)
 
   return CPUNormalizationFactorAvg
 
 ###############################################################################
 
-def getProductionParameterValue( productionXML, parameterName ):
+
+def getProductionParameterValue(productionXML, parameterName):
   """ Get a parameter value from a production XML description
   """
 
@@ -152,10 +156,10 @@ def getProductionParameterValue( productionXML, parameterName ):
   parameterName = parameterName.lower()
 
   parser = XMLTreeParser()
-  parser.parseString( productionXML )
+  parser.parseString(productionXML)
   tree = parser.tree.pop()
 
-  for parameterElement in tree.childrens( 'Parameter' ):
+  for parameterElement in tree.childrens('Parameter'):
     if parameterElement.attributes['name'].lower() == parameterName:
       valueElement = parameterElement.children
       if not valueElement:

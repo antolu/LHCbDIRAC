@@ -23,17 +23,18 @@ from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
 from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummary, XMLSummaryError
 from LHCbDIRAC.Core.Utilities.XMLTreeParser import addChildNode
 
-class BookkeepingReport( ModuleBase ):
+
+class BookkeepingReport(ModuleBase):
   """ BookkeepingReport class
   """
 
-  def __init__( self, bkClient = None, dm = None ):
+  def __init__(self, bkClient=None, dm=None):
     """ Usual c'tor
     """
 
-    self.log = gLogger.getSubLogger( "BookkeepingReport" )
+    self.log = gLogger.getSubLogger("BookkeepingReport")
 
-    super( BookkeepingReport, self ).__init__( self.log, bkClientIn = bkClient, dm = dm )
+    super(BookkeepingReport, self).__init__(self.log, bkClientIn=bkClient, dm=dm)
 
     self.version = __RCSID__
 
@@ -54,28 +55,28 @@ class BookkeepingReport( ModuleBase ):
 
   ################################################################################
 
-  def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
-               workflowStatus = None, stepStatus = None,
-               wf_commons = None, step_commons = None,
-               step_number = None, step_id = None, saveOnFile = True ):
+  def execute(self, production_id=None, prod_job_id=None, wms_job_id=None,
+	      workflowStatus=None, stepStatus=None,
+	      wf_commons=None, step_commons=None,
+	      step_number=None, step_id=None, saveOnFile=True):
     """ Usual executor
     """
     try:
 
-      super( BookkeepingReport, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
-                                                workflowStatus, stepStatus,
-                                                wf_commons, step_commons, step_number, step_id )
+      super(BookkeepingReport, self).execute(self.version, production_id, prod_job_id, wms_job_id,
+					     workflowStatus, stepStatus,
+					     wf_commons, step_commons, step_number, step_id)
 
       if not self._checkWFAndStepStatus():
         return S_OK()
 
       bkLFNs, logFilePath = self._resolveInputVariables()
 
-      doc = self.__makeBookkeepingXML( bkLFNs, logFilePath )
+      doc = self.__makeBookkeepingXML(bkLFNs, logFilePath)
 
       if saveOnFile:
         bfilename = 'bookkeeping_' + self.step_id + '.xml'
-        with open( bfilename, 'w' ) as bfile:
+	with open(bfilename, 'w') as bfile:
           print >> bfile, doc
       else:
         print doc
@@ -83,23 +84,23 @@ class BookkeepingReport( ModuleBase ):
       return S_OK()
 
     except Exception as e:  # pylint:disable=broad-except
-      self.log.exception( "Failure in BookkeepingReport execute module", lException = e )
-      self.setApplicationStatus( repr( e ) )
-      return S_ERROR( str( e ) )
+      self.log.exception("Failure in BookkeepingReport execute module", lException=e)
+      self.setApplicationStatus(repr(e))
+      return S_ERROR(str(e))
 
     finally:
-      super( BookkeepingReport, self ).finalize( self.version )
+      super(BookkeepingReport, self).finalize(self.version)
 
 ################################################################################
 # AUXILIAR FUNCTIONS
 ################################################################################
 
-  def _resolveInputVariables( self ):
+  def _resolveInputVariables(self):
     """ By convention the module parameters are resolved here.
     """
 
-    super( BookkeepingReport, self )._resolveInputVariables()
-    super( BookkeepingReport, self )._resolveInputStep()
+    super(BookkeepingReport, self)._resolveInputVariables()
+    super(BookkeepingReport, self)._resolveInputStep()
 
     self.stepOutputs, _sot, _hist = self._determineOutputs()
 
@@ -108,65 +109,65 @@ class BookkeepingReport( ModuleBase ):
     if 'outputList' in self.workflow_commons:
       for outputItem in self.stepOutputs:
         if outputItem not in self.workflow_commons['outputList']:
-          self.workflow_commons['outputList'].append( outputItem )
+	  self.workflow_commons['outputList'].append(outputItem)
     else:
       self.workflow_commons['outputList'] = self.stepOutputs
 
     if 'BookkeepingLFNs' in self.workflow_commons and \
-        'LogFilePath' in self.workflow_commons    and \
-        'ProductionOutputData' in self.workflow_commons:
+	'LogFilePath' in self.workflow_commons and \
+	    'ProductionOutputData' in self.workflow_commons:
 
       logFilePath = self.workflow_commons['LogFilePath']
       bkLFNs = self.workflow_commons['BookkeepingLFNs']
 
-      if not isinstance( bkLFNs, list ):
-        bkLFNs = [i.strip() for i in bkLFNs.split( ';' )]
+      if not isinstance(bkLFNs, list):
+	bkLFNs = [i.strip() for i in bkLFNs.split(';')]
 
     else:
-      self.log.info( 'LogFilePath / BookkeepingLFNs parameters not found, creating on the fly' )
-      result = constructProductionLFNs( self.workflow_commons, self.bkClient )
+      self.log.info('LogFilePath / BookkeepingLFNs parameters not found, creating on the fly')
+      result = constructProductionLFNs(self.workflow_commons, self.bkClient)
       if not result['OK']:
-        self.log.error( 'Could not create production LFNs', result['Message'] )
-        raise ValueError( result['Message'] )
+	self.log.error('Could not create production LFNs', result['Message'])
+	raise ValueError(result['Message'])
 
       bkLFNs = result['Value']['BookkeepingLFNs']
       logFilePath = result['Value']['LogFilePath'][0]
 
-    self.ldate = time.strftime( "%Y-%m-%d", time.localtime( time.time() ) )
-    self.ltime = time.strftime( "%H:%M", time.localtime( time.time() ) )
+    self.ldate = time.strftime("%Y-%m-%d", time.localtime(time.time()))
+    self.ltime = time.strftime("%H:%M", time.localtime(time.time()))
 
     if 'StartTime' in self.step_commons:
       startTime = self.step_commons['StartTime']
-      self.ldatestart = time.strftime( "%Y-%m-%d", time.localtime( startTime ) )
-      self.ltimestart = time.strftime( "%H:%M", time.localtime( startTime ) )
+      self.ldatestart = time.strftime("%Y-%m-%d", time.localtime(startTime))
+      self.ltimestart = time.strftime("%H:%M", time.localtime(startTime))
 
     try:
       self.xf_o = self.step_commons['XMLSummary_o']
     except KeyError:
-      self.log.warn( 'XML Summary object not found, will try to create it (again?)' )
+      self.log.warn('XML Summary object not found, will try to create it (again?)')
       try:
         xmlSummaryFile = self.step_commons['XMLSummary']
       except KeyError:
-        self.log.warn( 'XML Summary file name not found, will try to guess it' )
-        xmlSummaryFile = 'summary%s_%s_%s_%s.xml' % ( self.applicationName,
-                                                      self.production_id,
-                                                      self.prod_job_id,
-                                                      self.step_number )
-        self.log.warn( 'Trying %s' % xmlSummaryFile )
-        if not xmlSummaryFile in os.listdir( '.' ):
-          self.log.warn( 'XML Summary file %s not found, will try to guess a second time' % xmlSummaryFile )
-          xmlSummaryFile = 'summary%s_%s.xml' % ( self.applicationName,
-                                                  self.step_id )
-          self.log.warn( 'Trying %s' % xmlSummaryFile )
-          if not xmlSummaryFile in os.listdir( '.' ):
-            self.log.warn( 'XML Summary file %s not found, will try to guess a third and last time' % xmlSummaryFile )
-            xmlSummaryFile = 'summary%s_%s.xml' % ( self.applicationName,
-                                                    self.step_number )
-            self.log.warn( 'Trying %s' % xmlSummaryFile )
+	self.log.warn('XML Summary file name not found, will try to guess it')
+	xmlSummaryFile = 'summary%s_%s_%s_%s.xml' % (self.applicationName,
+						     self.production_id,
+						     self.prod_job_id,
+						     self.step_number)
+	self.log.warn('Trying %s' % xmlSummaryFile)
+	if xmlSummaryFile not in os.listdir('.'):
+	  self.log.warn('XML Summary file %s not found, will try to guess a second time' % xmlSummaryFile)
+	  xmlSummaryFile = 'summary%s_%s.xml' % (self.applicationName,
+						 self.step_id)
+	  self.log.warn('Trying %s' % xmlSummaryFile)
+	  if xmlSummaryFile not in os.listdir('.'):
+	    self.log.warn('XML Summary file %s not found, will try to guess a third and last time' % xmlSummaryFile)
+	    xmlSummaryFile = 'summary%s_%s.xml' % (self.applicationName,
+						   self.step_number)
+	    self.log.warn('Trying %s' % xmlSummaryFile)
       try:
-        self.xf_o = XMLSummary( xmlSummaryFile )
+	self.xf_o = XMLSummary(xmlSummaryFile)
       except XMLSummaryError as e:
-        self.log.warn( 'No XML summary available: %s' % repr( e ) )
+	self.log.warn('No XML summary available: %s' % repr(e))
         self.xf_o = None
 
     return bkLFNs, logFilePath
@@ -174,8 +175,7 @@ class BookkeepingReport( ModuleBase ):
 ################################################################################
 ################################################################################
 
-  def __makeBookkeepingXML( self, bkLFNs, logFilePath ):
-
+  def __makeBookkeepingXML(self, bkLFNs, logFilePath):
     ''' Bookkeeping xml looks like this:
 
         <Job ConfigName="" ConfigVersion="" Date="" Time="">
@@ -198,50 +198,50 @@ class BookkeepingReport( ModuleBase ):
     '''
     # Generate XML document
     doc = Document()
-    docType = DocumentType( "Job" )
+    docType = DocumentType("Job")
     docType.systemId = "book.dtd"
-    doc.appendChild( docType )
+    doc.appendChild(docType)
 
     # Generate JobNode
-    doc, jobNode = self.__generateJobNode( doc )
+    doc, jobNode = self.__generateJobNode(doc)
     # Generate TypedParams
-    jobNode = self.__generateTypedParams( jobNode )
+    jobNode = self.__generateTypedParams(jobNode)
     # Generate InputFiles
-    jobNode = self.__generateInputFiles( jobNode, bkLFNs )
+    jobNode = self.__generateInputFiles(jobNode, bkLFNs)
     # Generate OutputFiles
-    jobNode = self.__generateOutputFiles( jobNode, bkLFNs, logFilePath )
+    jobNode = self.__generateOutputFiles(jobNode, bkLFNs, logFilePath)
     # Generate SimulationConditions
-    jobNode = self.__generateSimulationCondition( jobNode )
+    jobNode = self.__generateSimulationCondition(jobNode)
 
-    prettyXMLDoc = doc.toprettyxml( indent = "    ", encoding = "ISO-8859-1" )
+    prettyXMLDoc = doc.toprettyxml(indent="    ", encoding="ISO-8859-1")
 
     # horrible, necessary hack!
-    prettyXMLDoc = prettyXMLDoc.replace( '\'book.dtd\'', '\"book.dtd\"' )
+    prettyXMLDoc = prettyXMLDoc.replace('\'book.dtd\'', '\"book.dtd\"')
 
     return prettyXMLDoc
 
 ################################################################################
 
-  def __generateJobNode( self, doc ):
+  def __generateJobNode(self, doc):
     ''' Node looks like
         <Job ConfigName="" ConfigVersion="" Date="" Time="">
     '''
 
     # Get the Config name from the environment if any
     if 'configName' in self.workflow_commons:
-      configName = self.workflow_commons[ 'configName' ]
-      configVersion = self.workflow_commons[ 'configVersion' ]
+      configName = self.workflow_commons['configName']
+      configVersion = self.workflow_commons['configVersion']
     else:
       configName = self.applicationName
       configVersion = self.applicationVersion
 
-    jobAttributes = ( configName, configVersion, self.ldate, self.ltime )
+    jobAttributes = (configName, configVersion, self.ldate, self.ltime)
 
-    return addChildNode( doc, "Job", 1, jobAttributes )
+    return addChildNode(doc, "Job", 1, jobAttributes)
 
 ################################################################################
 
-  def __generateTypedParams( self, jobNode ):
+  def __generateTypedParams(self, jobNode):
     """ TypedParameter looks like
         <TypedParameter Name="" Type="" Value="">
 
@@ -275,81 +275,81 @@ class BookkeepingReport( ModuleBase ):
     typedParams = []
 
     # Timing
-    exectime, cputime = getStepCPUTimes( self.step_commons )
+    exectime, cputime = getStepCPUTimes(self.step_commons)
 
-    typedParams.append( ( "CPUTIME", cputime ) )
-    typedParams.append( ( "ExecTime", exectime ) )
+    typedParams.append(("CPUTIME", cputime))
+    typedParams.append(("ExecTime", exectime))
 
     nodeInfo = self.__getNodeInformation()
     if nodeInfo['OK']:
 
-      typedParams.append( ( "WNMODEL", nodeInfo[ "ModelName" ] ) )
-      typedParams.append( ( "WNCPUPOWER", nodeInfo[ "CPU(MHz)" ] ) )
-      typedParams.append( ( "WNCACHE", nodeInfo[ "CacheSize(kB)" ] ) )
+      typedParams.append(("WNMODEL", nodeInfo["ModelName"]))
+      typedParams.append(("WNCPUPOWER", nodeInfo["CPU(MHz)"]))
+      typedParams.append(("WNCACHE", nodeInfo["CacheSize(kB)"]))
       # THIS OR THE NEXT
       # typedParams.append( ( "WorkerNode", nodeInfo['HostName'] ) )
 
-    host = os.environ.get( "HOSTNAME", os.environ.get( "HOST" ) )
+    host = os.environ.get("HOSTNAME", os.environ.get("HOST"))
     if host is not None:
-      typedParams.append( ( "WorkerNode", host ) )
+      typedParams.append(("WorkerNode", host))
 
     try:
       memory = self.xf_o.memory
     except AttributeError:
-      memory = nodeInfo[ "Memory(kB)" ]
+      memory = nodeInfo["Memory(kB)"]
 
-    typedParams.append( ( "WNMEMORY", memory ) )
+    typedParams.append(("WNMEMORY", memory))
 
-    diracPower = gConfig.getValue( "/LocalSite/CPUNormalizationFactor", "0" )
-    typedParams.append( ( "WNCPUHS06", diracPower ) )
-    mjfPower = gConfig.getValue( "/LocalSite/CPUScalingFactor", "0" )
+    diracPower = gConfig.getValue("/LocalSite/CPUNormalizationFactor", "0")
+    typedParams.append(("WNCPUHS06", diracPower))
+    mjfPower = gConfig.getValue("/LocalSite/CPUScalingFactor", "0")
     # Trick to know that the value is obtained from MJF: # from diracPower
     if mjfPower != diracPower:
-      typedParams.append( ( "WNMJFHS06", mjfPower ) )
-    typedParams.append( ( "Production", self.production_id ) )
-    typedParams.append( ( "DiracJobId", str( self.jobID ) ) )
-    typedParams.append( ( "Name", self.step_id ) )
-    typedParams.append( ( "JobStart", '%s %s' % ( self.ldatestart, self.ltimestart ) ) )
-    typedParams.append( ( "JobEnd", '%s %s' % ( self.ldate, self.ltime ) ) )
-    typedParams.append( ( "Location", self.siteName ) )
-    typedParams.append( ( "JobType", self.jobType ) )
+      typedParams.append(("WNMJFHS06", mjfPower))
+    typedParams.append(("Production", self.production_id))
+    typedParams.append(("DiracJobId", str(self.jobID)))
+    typedParams.append(("Name", self.step_id))
+    typedParams.append(("JobStart", '%s %s' % (self.ldatestart, self.ltimestart)))
+    typedParams.append(("JobEnd", '%s %s' % (self.ldate, self.ltime)))
+    typedParams.append(("Location", self.siteName))
+    typedParams.append(("JobType", self.jobType))
 
     if 'XMLDDDB_VERSION' in os.environ:
-      typedParams.append( ( "GeometryVersion", os.environ[ "XMLDDDB_VERSION" ] ) )
+      typedParams.append(("GeometryVersion", os.environ["XMLDDDB_VERSION"]))
 
-    typedParams.append( ( "ProgramName", self.applicationName ) )
-    typedParams.append( ( "ProgramVersion", self.applicationVersion ) )
+    typedParams.append(("ProgramName", self.applicationName))
+    typedParams.append(("ProgramVersion", self.applicationVersion))
 
     # DIRAC version
-    tempVar = "v%dr%dp%d" % ( LHCbDIRAC.majorVersion, LHCbDIRAC.minorVersion, LHCbDIRAC.patchLevel )
-    typedParams.append( ( "DiracVersion", tempVar ) )
+    tempVar = "v%dr%dp%d" % (LHCbDIRAC.majorVersion, LHCbDIRAC.minorVersion, LHCbDIRAC.patchLevel)
+    typedParams.append(("DiracVersion", tempVar))
 
-    typedParams.append( ( "FirstEventNumber", 1 ) )
+    typedParams.append(("FirstEventNumber", 1))
 
-    typedParams.append( ( "StatisticsRequested", self.numberOfEvents ) )
+    typedParams.append(("StatisticsRequested", self.numberOfEvents))
 
-    typedParams.append( ( "StepID", self.BKstepID ) )
+    typedParams.append(("StepID", self.BKstepID))
 
     try:
       noOfEvents = self.xf_o.inputEventsTotal if self.xf_o.inputEventsTotal else self.xf_o.outputEventsTotal
     except AttributeError:
       # This happens iff the XML summary can't be created (e.g. for merging MDF files)
-      res = self.bkClient.getFileMetadata( self.stepInputData )
+      res = self.bkClient.getFileMetadata(self.stepInputData)
       if not res['OK']:
-        raise AttributeError( "Can't get the BKK file metadata" )
-      noOfEvents = sum( fileMeta['EventStat'] for fileMeta in res['Value']['Successful'].itervalues() )
+	raise AttributeError("Can't get the BKK file metadata")
+      noOfEvents = sum(fileMeta['EventStat'] for fileMeta in res['Value']['Successful'].itervalues())
 
-    typedParams.append( ( "NumberOfEvents", noOfEvents ) )
+    typedParams.append(("NumberOfEvents", noOfEvents))
 
     # Add TypedParameters to the XML file
     for typedParam in typedParams:
-      jobNode = addChildNode( jobNode, "TypedParameter", 0, typedParam )
+      jobNode = addChildNode(jobNode, "TypedParameter", 0, typedParam)
 
     return jobNode
 
 ################################################################################
 
-  def __generateInputFiles( self, jobNode, bkLFNs ):
+  def __generateInputFiles(self, jobNode, bkLFNs):
     ''' InputData looks like this
         <InputFile Name=""/>
     '''
@@ -358,17 +358,17 @@ class BookkeepingReport( ModuleBase ):
       intermediateInputs = False
       for inputname in self.stepInputData:
         for bkLFN in bkLFNs:
-          if os.path.basename( bkLFN ) == os.path.basename( inputname ):
-            jobNode = addChildNode( jobNode, "InputFile", 0, ( bkLFN, ) )
+	  if os.path.basename(bkLFN) == os.path.basename(inputname):
+	    jobNode = addChildNode(jobNode, "InputFile", 0, (bkLFN, ))
             intermediateInputs = True
         if not intermediateInputs:
-          jobNode = addChildNode( jobNode, "InputFile", 0, ( inputname, ) )
+	  jobNode = addChildNode(jobNode, "InputFile", 0, (inputname, ))
 
     return jobNode
 
 ################################################################################
 
-  def __generateOutputFiles( self, jobNode, bkLFNs, logFilePath ):
+  def __generateOutputFiles(self, jobNode, bkLFNs, logFilePath):
     '''OutputFile looks like this:
 
        <OutputFile Name="" TypeName="" TypeVersion="">
@@ -379,112 +379,113 @@ class BookkeepingReport( ModuleBase ):
        </OutputFile>
     '''
 
-    if self.eventType != None:
+    if self.eventType is not None:
       eventtype = self.eventType
     else:
-      self.log.warn( 'BookkeepingReport: no eventType specified' )
+      self.log.warn('BookkeepingReport: no eventType specified')
       eventtype = 'Unknown'
-    self.log.info( 'Event type = %s' % ( str( self.eventType ) ) )
+    self.log.info('Event type = %s' % (str(self.eventType)))
 
     outputs = []
     count = 0
     bkTypeDict = {}
-    while count < len( self.stepOutputs ):
+    while count < len(self.stepOutputs):
       if 'outputDataName' in self.stepOutputs[count]:
-        outputs.append( ( ( self.stepOutputs[ count ][ 'outputDataName' ] ),
-                          ( self.stepOutputs[ count ][ 'outputDataType' ] ) ) )
-      if 'outputBKType' in self.stepOutputs[ count ]:
-        bkTypeDict[ self.stepOutputs[ count ][ 'outputDataName' ]] = self.stepOutputs[ count ][ 'outputBKType' ]
+	outputs.append(((self.stepOutputs[count]['outputDataName']),
+			(self.stepOutputs[count]['outputDataType'])))
+      if 'outputBKType' in self.stepOutputs[count]:
+	bkTypeDict[self.stepOutputs[count]['outputDataName']] = self.stepOutputs[count]['outputBKType']
       count = count + 1
-    outputs.append( ( ( self.applicationLog ), ( 'LOG' ) ) )
-    self.log.info( outputs )
-    if isinstance( logFilePath, list ):
-      logFilePath = logFilePath[ 0 ]
+    outputs.append(((self.applicationLog), ('LOG')))
+    self.log.info(outputs)
+    if isinstance(logFilePath, list):
+      logFilePath = logFilePath[0]
 
-    for output, outputtype in list( outputs ):
-      self.log.info( 'Looking at output %s %s' % ( output, outputtype ) )
+    for output, outputtype in list(outputs):
+      self.log.info('Looking at output %s %s' % (output, outputtype))
       typeName = outputtype.upper()
       typeVersion = '1'
       fileStats = '0'
       if output in bkTypeDict:
-        typeVersion = getOutputType( output, self.stepInputData )[output]
-        self.log.info( 'Setting POOL XML catalog type for %s to %s' % ( output, typeVersion ) )
-        typeName = bkTypeDict[ output ].upper()
-        self.log.info( 'Setting explicit BK type version for %s to %s and file type to %s' % ( output,
-                                                                                               typeVersion,
-                                                                                               typeName ) )
+	typeVersion = getOutputType(output, self.stepInputData)[output]
+	self.log.info('Setting POOL XML catalog type for %s to %s' % (output, typeVersion))
+	typeName = bkTypeDict[output].upper()
+	self.log.info('Setting explicit BK type version for %s to %s and file type to %s' % (output,
+											     typeVersion,
+											     typeName))
 
         try:
-          fileStats = str( self.xf_o.outputsEvents[output] )
+	  fileStats = str(self.xf_o.outputsEvents[output])
         except AttributeError as e:
           # This happens iff the XML summary can't be created (e.g. for merging MDF files)
-          self.log.warn( "XML summary not created, unable to determine the output events and setting to 'Unknown': %s" % repr( e ) )
+	  self.log.warn(
+	      "XML summary not created, unable to determine the output events and setting to 'Unknown': %s" % repr(e))
           fileStats = 'Unknown'
         except KeyError as e:
-          self.log.warn( repr( e ) )
-          if ( 'hist' in outputtype.lower() ) or ( '.root' in outputtype.lower() ):
-            self.log.warn( "HIST file %s not found in XML summary, event stats set to 'Unknown'" % output )
+	  self.log.warn(repr(e))
+	  if ('hist' in outputtype.lower()) or ('.root' in outputtype.lower()):
+	    self.log.warn("HIST file %s not found in XML summary, event stats set to 'Unknown'" % output)
             fileStats = 'Unknown'
           else:
-            raise KeyError( e )
+	    raise KeyError(e)
 
-      if not os.path.exists( output ):
-        self.log.error( "Output file %s does not exist" % output )
+      if not os.path.exists(output):
+	self.log.error("Output file %s does not exist" % output)
         continue
       # Output file size
-      if 'size' not in self.step_commons or output not in self.step_commons[ 'size' ]:
+      if 'size' not in self.step_commons or output not in self.step_commons['size']:
         try:
-          outputsize = str( os.path.getsize( output ) )
+	  outputsize = str(os.path.getsize(output))
         except OSError:
           outputsize = '0'
       else:
-        outputsize = self.step_commons[ 'size' ][ output ]
+	outputsize = self.step_commons['size'][output]
 
-      if 'md5' not in self.step_commons or output not in self.step_commons[ 'md5' ]:
-        comm = 'md5sum ' + str( output )
-        resultTuple = systemCall( 0, shlex.split( comm ) )
-        status = resultTuple[ 'Value' ][ 0 ]
-        out = resultTuple[ 'Value' ][ 1 ]
+      if 'md5' not in self.step_commons or output not in self.step_commons['md5']:
+	comm = 'md5sum ' + str(output)
+	resultTuple = systemCall(0, shlex.split(comm))
+	status = resultTuple['Value'][0]
+	out = resultTuple['Value'][1]
       else:
         status = 0
-        out = self.step_commons[ 'md5' ][ output ]
+	out = self.step_commons['md5'][output]
 
       if status:
-        self.log.info( "Failed to get md5sum of %s" % str( output ) )
-        self.log.info( str( out ) )
+	self.log.info("Failed to get md5sum of %s" % str(output))
+	self.log.info(str(out))
         md5sum = '000000000000000000000000000000000000'
       else:
-        md5sum = out.split()[ 0 ]
+	md5sum = out.split()[0]
 
-      if 'guid' not in self.step_commons or output not in self.step_commons[ 'guid' ]:
-        guidResult = getGUID( output )
+      if 'guid' not in self.step_commons or output not in self.step_commons['guid']:
+	guidResult = getGUID(output)
         guid = ''
-        if not guidResult[ 'OK' ]:
-          self.log.error( 'Could not find GUID for %s with message' % ( output ), guidResult[ 'Message' ] )
-        elif guidResult[ 'generated' ]:
-          self.log.warn( 'PoolXMLFile generated GUID(s) for the following files ',
-                         ', '.join( guidResult[ 'generated' ] ) )
-          guid = guidResult[ 'Value' ][ output ]
+	if not guidResult['OK']:
+	  self.log.error('Could not find GUID for %s with message' % (output), guidResult['Message'])
+	elif guidResult['generated']:
+	  self.log.warn('PoolXMLFile generated GUID(s) for the following files ',
+			', '.join(guidResult['generated']))
+	  guid = guidResult['Value'][output]
         else:
-          guid = guidResult[ 'Value' ][ output ]
-          self.log.info( 'Setting POOL XML catalog GUID for %s to %s' % ( output, guid ) )
+	  guid = guidResult['Value'][output]
+	  self.log.info('Setting POOL XML catalog GUID for %s to %s' % (output, guid))
       else:
-        guid = self.step_commons[ 'guid' ][ output ]
+	guid = self.step_commons['guid'][output]
 
       if not guid:
-        raise NameError( 'No GUID found for %s' % output )
+	raise NameError('No GUID found for %s' % output)
 
       # find the constructed lfn
       lfn = ''
-      if not re.search( '.log$', output ):
+      if not re.search('.log$', output):
         for outputLFN in bkLFNs:
-          if os.path.basename( outputLFN ) == output:
+	  if os.path.basename(outputLFN) == output:
             lfn = outputLFN
         if not lfn:
-          self.log.error( 'Could not find LFN for %s' % output )
-          raise NameError( 'Could not find LFN of output file' )
+	  self.log.error('Could not find LFN for %s' % output)
+	  raise NameError('Could not find LFN of output file')
       else:
-        lfn = '%s/%s' % ( logFilePath, self.applicationLog )
+	lfn = '%s/%s' % (logFilePath, self.applicationLog)
 
       oldTypeName = None
       if 'HIST' in typeName.upper():
@@ -492,22 +493,22 @@ class BookkeepingReport( ModuleBase ):
 
       # PROTECTION for old production XMLs
       if typeName.upper() == 'HIST':
-        typeName = '%sHIST' % ( self.applicationName.upper() )
+	typeName = '%sHIST' % (self.applicationName.upper())
 
       # Add Output to the XML file
-      oFileAttributes = ( lfn, typeName, typeVersion )
-      jobNode, oFile = addChildNode( jobNode, "OutputFile", 1, oFileAttributes )
+      oFileAttributes = (lfn, typeName, typeVersion)
+      jobNode, oFile = addChildNode(jobNode, "OutputFile", 1, oFileAttributes)
 
       # HIST is in the dataTypes e.g. we may have new names in the future ;)
       if oldTypeName:
         typeName = oldTypeName
 
       if outputtype != 'LOG':
-        oFile = addChildNode( oFile, "Parameter", 0, ( "EventTypeId", eventtype ) )
+	oFile = addChildNode(oFile, "Parameter", 0, ("EventTypeId", eventtype))
         if fileStats != 'Unknown':
-          oFile = addChildNode( oFile, "Parameter", 0, ( "EventStat", fileStats ) )
+	  oFile = addChildNode(oFile, "Parameter", 0, ("EventStat", fileStats))
 
-      oFile = addChildNode( oFile, "Parameter", 0, ( "FileSize", outputsize ) )
+      oFile = addChildNode(oFile, "Parameter", 0, ("FileSize", outputsize))
 
       ############################################################
       # Log file replica information
@@ -517,50 +518,50 @@ class BookkeepingReport( ModuleBase ):
         if logfile == output:
           logurl = 'http://lhcb-logs.cern.ch/storage'
           url = logurl + logFilePath + '/' + self.applicationLog
-          oFile = addChildNode( oFile, "Replica", 0, ( url, ) )
+	  oFile = addChildNode(oFile, "Replica", 0, (url, ))
 
-      oFile = addChildNode( oFile, "Parameter", 0, ( "MD5Sum", md5sum ) )
-      oFile = addChildNode( oFile, "Parameter", 0, ( "Guid", guid ) )
+      oFile = addChildNode(oFile, "Parameter", 0, ("MD5Sum", md5sum))
+      oFile = addChildNode(oFile, "Parameter", 0, ("Guid", guid))
 
     return jobNode
 
 ################################################################################
 
-  def __generateSimulationCondition( self, jobNode ):
+  def __generateSimulationCondition(self, jobNode):
     '''SimulationCondition looks like this:
        <SimulationCondition>
          <Parameter Name="" Value=""/>
        </SimulationCondition>
     '''
     if self.applicationName == "Gauss":
-      jobNode, sim = addChildNode( jobNode, "SimulationCondition", 1, () )
-      sim = addChildNode( sim, "Parameter", 0, ( "SimDescription", self.simDescription ) )
+      jobNode, sim = addChildNode(jobNode, "SimulationCondition", 1, ())
+      sim = addChildNode(sim, "Parameter", 0, ("SimDescription", self.simDescription))
 
     return jobNode
 
 ################################################################################
 
-  def __getNodeInformation( self ):
+  def __getNodeInformation(self):
     """Try to obtain system HostName, CPU, Model, cache and memory.  This information
        is not essential to the running of the jobs but will be reported if
        available.
     """
     result = S_OK()
     try:
-      result[ "HostName"  ] = socket.gethostname()
+      result["HostName"] = socket.gethostname()
 
-      with open ( "/proc/cpuinfo", "r" ) as cpuInfo:
+      with open("/proc/cpuinfo", "r") as cpuInfo:
         info = cpuInfo.readlines()
-      result[ "CPU(MHz)"  ] = info[6].split( ":" )[1].replace( " ", "" ).replace( "\n", "" )
-      result[ "ModelName" ] = info[4].split( ":" )[1].replace( " ", "" ).replace( "\n", "" )
-      result[ "CacheSize(kB)" ] = info[7].split( ":" )[1].replace( " ", "" ).replace( "\n", "" )
+      result["CPU(MHz)"] = info[6].split(":")[1].replace(" ", "").replace("\n", "")
+      result["ModelName"] = info[4].split(":")[1].replace(" ", "").replace("\n", "")
+      result["CacheSize(kB)"] = info[7].split(":")[1].replace(" ", "").replace("\n", "")
 
-      with open( "/proc/meminfo", "r" ) as memInfo:
+      with open("/proc/meminfo", "r") as memInfo:
         info = memInfo.readlines()
-      result["Memory(kB)"] = info[3].split( ":" )[1].replace( " ", "" ).replace( "\n", "" )
+      result["Memory(kB)"] = info[3].split(":")[1].replace(" ", "").replace("\n", "")
     except Exception as x:
-      self.log.fatal( 'BookkeepingReport failed to obtain node information with Exception:' )
-      self.log.fatal( str( x ) )
+      self.log.fatal('BookkeepingReport failed to obtain node information with Exception:')
+      self.log.fatal(str(x))
       result = S_ERROR()
       result['Message'] = 'Failed to obtain system information'
       return result

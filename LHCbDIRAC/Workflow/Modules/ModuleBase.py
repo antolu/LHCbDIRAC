@@ -360,7 +360,6 @@ class ModuleBase(object):
 
     self.inputDataType = self.step_commons.get('inputDataType', self.inputDataType)
 
-
     self.applicationType = self.step_commons.get('applicationType', self.applicationType)
 
     self.optionsFile = self.step_commons.get('optionsFile', self.optionsFile)
