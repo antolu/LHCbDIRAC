@@ -10,9 +10,6 @@ import os
 import shutil
 import LHCbDIRAC.Core.Utilities.LogErr as LogErr
 
-# fix path
-# import LogErr
-
 from DIRAC import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities import DErrno
 
