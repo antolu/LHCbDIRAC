@@ -1,3 +1,13 @@
+[v9r2p2]
+* TransformationDebug: use FTS3Cient
+* corrected comparison of input/output file types
+* removed unused wf parameter
+* Few fixes for MC ReDecay requests 1. Ban list of sites (BOINC for example) 2. Limit number of events in MC simulation
+* fix for GDB invocation
+* CI: some fixes for test job input files
+* CI: corrected totally wrong step
+* CI: host and port, not username and pwd...
+
 [v9r2p1]
 use DIRAC v6r20p7
 
