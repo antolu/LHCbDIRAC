@@ -38,7 +38,7 @@ class SiteDirector(DIRACSiteDirector):
   def _getTQDictForMatching(self):
     """ We skip the check of platforms: https://its.cern.ch/jira/browse/LHCBDIRAC-711
 
-	:returns dict: tqDict of task queue descriptions
+        :returns dict: tqDict of task queue descriptions
     """
     tqDict = DIRACSiteDirector._getTQDictForMatching(self)
     tqDict.pop('Platform', None)
