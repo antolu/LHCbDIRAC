@@ -1,5 +1,5 @@
 '''
-Reads .log-files and outputs summary of counters as a .json-file
+Reads .log-files and outputs summary of counters as a .json-file and a .html-file
 '''
 import os
 import json
