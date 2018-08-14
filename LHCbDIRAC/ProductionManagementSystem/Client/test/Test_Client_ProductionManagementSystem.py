@@ -36,18 +36,13 @@ class ProductionSuccess( ClientTestCase ):
   def test__constructOutputFilesList( self ):
     prod = Production()
     res = prod._constructOutputFilesList( ['T1', 'T2'] )
-    resExpected = [{'outputDataType': 't1', 'outputDataName': '@{STEP_ID}.t1'},
-                   {'outputDataType': 't2', 'outputDataName': '@{STEP_ID}.t2'}]
+    resExpected = [{'outputDataType': 't1'},
+                   {'outputDataType': 't2'}]
     self.assertEqual( res, resExpected )
 
     res = prod._constructOutputFilesList( ['T1', 'HIST'] )
-    resExpected = [{'outputDataType': 't1', 'outputDataName': '@{STEP_ID}.t1'},
-                   {'outputDataType': 'hist', 'outputDataName': '@{applicationName}_@{STEP_ID}.Hist.root'}]
-    self.assertEqual( res, resExpected )
-
-    res = prod._constructOutputFilesList( ['T1', 'HIST'] )
-    resExpected = [{'outputDataType': 't1', 'outputDataName': '@{STEP_ID}.t1'},
-                   {'outputDataType': 'hist', 'outputDataName': '@{applicationName}_@{STEP_ID}.Hist.root'}]
+    resExpected = [{'outputDataType': 't1'},
+                   {'outputDataType': 'hist'}]
     self.assertEqual( res, resExpected )
 
 
