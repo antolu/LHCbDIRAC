@@ -229,13 +229,12 @@ def readErrorDict(stringFile, dictName):
 
 
 def getLines(stringFile):
+  """
+  Reads lines in string file
 
+  :param str stringFile: the name of the file to be opened and read
 
-"""
-Reads lines in string file
-
-:param str stringFile: the name of the file to be opened and read
-"""
+  """
 
   gLogger.notice('>>> Processed STRINGFILE -> ', stringFile)
   with open(stringFile, 'r') as f:
@@ -279,7 +278,7 @@ Picks the string file from the current directory
 
 :param str project: the project name
 :param str version: the version of the project
-:param str stringFile: the 
+:param str stringFile: the
 """
 
 # sourceDir = commands.getoutput('echo $PWD') + '/errstrings'
