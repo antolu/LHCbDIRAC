@@ -7,6 +7,16 @@ from DIRAC import gLogger, S_ERROR, S_OK
 
 
 def readLogFile(logFile, project, version, jobID, prodID, wmsID, name='errors.json'):
+  """
+  The script that runs everything
+  :param str logFile: the name of the logfile
+  :param str project: the project string of the file
+  :param str version: the versio of the project
+  :param str jobID: the JobID
+  :param str prodID: the production ID
+  :param str wmsID: the wmsID
+  :param str name: the name of the output json file, standardised to 'errors.json'
+  """
 
   fileOK = False
   logString = ''
@@ -130,7 +140,16 @@ def readLogFile(logFile, project, version, jobID, prodID, wmsID, name='errors.js
 
 
 def createJSONtable(dictTotal, name, jobID, prodID, wmsID):
+  """
+  Creates a JSON file out of the collection of errors listed in dictTotal
 
+  :param dict dictTotal: the dictionary of errors
+  :param str name: the name of the JSON file
+  :param str jobID: the JobID of the log
+  :param str prodID: the ProductionID of the log
+  :param str wmsID: the wmsID of the log
+
+  """
   result = {}
   temp = {}
   ids = {}
@@ -151,7 +170,13 @@ def createJSONtable(dictTotal, name, jobID, prodID, wmsID):
 
 
 def createHTMLtable(dictG4ErrorsCount, name):
+  """
+  Creates an HTML file out of the collection of errors listed in dictG4ErrorsCount
 
+  :param dict dictG4ErrorsCount: the dictionary of errors
+  :param str name: the name of the HTML file
+
+  """
   f = open(name, 'w')
   f.write("<HTML>\n")
 
@@ -184,20 +209,34 @@ def createHTMLtable(dictG4ErrorsCount, name):
 #######################################################
 
 
-def readErrorDict(stringFile, dict_name):
-  'Reads errors in a stringfile and puts them in dict_name'
+def readErrorDict(stringFile, dictName):
+  """
+  Reads errors in a stringfile and puts them in dictName
+
+  :param str stringFile: the name of the stringfile
+  :param dict dictName: the name of the dict that will insert the data in stringFile
+
+  """
+
   fileLines = getLines(stringFile)
   for line in fileLines:
     errorString = line.split(',')[0]
     description = line.split(',')[1]
-    dict_name[errorString] = description
+    dictName[errorString] = description
   return
 
 ################################################
 
 
 def getLines(stringFile):
-  'Reads lines from string file'
+
+
+"""
+Reads lines in string file
+
+:param str stringFile: the name of the file to be opened and read
+"""
+
   gLogger.notice('>>> Processed STRINGFILE -> ', stringFile)
   with open(stringFile, 'r') as f:
     lines = f.readlines()
@@ -207,6 +246,15 @@ def getLines(stringFile):
 
 
 def getLogString(logFile, logString, fileOK):
+
+
+"""
+Checks if the log file can be opened, and saves the text in logFile into logString
+
+:param str logFile: the name of the logFile
+:param str logStr: the name of the variable that will save the contents of logFile
+:param fileOK bool: checks if logFile is ok
+"""
   gLogger.notice('Attempting to open %s' % logFile)
   if not os.path.exists(logFile):
     gLogger.error('%s could not be found' % logFile)
@@ -224,7 +272,17 @@ def getLogString(logFile, logString, fileOK):
 
 
 def pickStringFile(project, version, stringFile):
-  # sourceDir = commands.getoutput('echo $PWD') + '/errstrings'
+
+
+"""
+Picks the string file from the current directory
+
+:param str project: the project name
+:param str version: the version of the project
+:param str stringFile: the 
+"""
+
+# sourceDir = commands.getoutput('echo $PWD') + '/errstrings'
   sourceDir = os.getcwd()
   fileString = project + '_' + version + '_errors.txt'
   stringFile = os.path.join(sourceDir, os.path.basename(fileString))
