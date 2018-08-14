@@ -99,13 +99,13 @@ class TestLogErr(LogErrTestCase):
 
     create_json_table(self.jsonDataMultiple, self.name, '3', '4', '5')
     with open(self.name, 'r') as f:
-      file = f.read()
+      fileOutput = f.read()
 
     # Convert to dict()
-    file = ast.literal_eval(file)
+    fileOutput = ast.literal_eval(fileOutput)
     expected = ast.literal_eval(expected)
 
-    self.assertEqual(file, expected)
+    self.assertEqual(fileOutput, expected)
 
   def test_createJsonSingle(self):
 
@@ -123,12 +123,12 @@ class TestLogErr(LogErrTestCase):
 
     create_json_table(self.jsonDataSingle, self.name, '3', '4', '5')
     with open(self.name, 'r') as f:
-      file = f.read()
+      fileOutput = f.read()
 
-    file = ast.literal_eval(file)
+    fileOutput = ast.literal_eval(fileOutput)
     expected = ast.literal_eval(expected)
 
-    self.assertEqual(file, expected)
+    self.assertEqual(fileOutput, expected)
 
   def test_createJsonEmpty(self):
 
@@ -145,13 +145,13 @@ class TestLogErr(LogErrTestCase):
 
     create_json_table(self.jsonDataEmpty, self.name, '3', '4', '5')
     with open(self.name, 'r') as f:
-      file = f.read()
+      fileOutput = f.read()
 
     # Convert to dict()
-    file = ast.literal_eval(file)
+    fileOutput = ast.literal_eval(fileOutput)
     expected = ast.literal_eval(expected)
 
-    self.assertEqual(file, expected)
+    self.assertEqual(fileOutput, expected)
 
 
 if __name__ == '__main__':
