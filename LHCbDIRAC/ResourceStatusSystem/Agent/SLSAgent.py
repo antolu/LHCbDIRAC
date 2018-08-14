@@ -14,8 +14,6 @@ import time
 import xml.dom
 import xml.sax
 
-from datetime import datetime, timedelta
-
 from DIRAC import gLogger, S_OK, rootPath
 from DIRAC.Core.Utilities.File import mkDir
 from DIRAC.Core.Base.AgentModule import AgentModule
@@ -106,9 +104,7 @@ class SpaceTokenOccupancyTest(TestBase):
 
   def generate_xml_and_dashboard(self):
 
-    oneHour = datetime.utcnow() - timedelta(hours=1)
-
-    res = self.rmClient.selectSpaceTokenOccupancyCache(meta={'newer': ('LastCheckTime', oneHour)})
+    res = self.rmClient.selectSpaceTokenOccupancyCache()
     if not res['OK']:
       gLogger.error(res['Message'])
       return
@@ -194,6 +190,3 @@ class SLSAgent(AgentModule):
       gLogger.warn('SpaceTokenOccupancyTest crashed with %s' % e)
 
     return S_OK()
-
-#...............................................................................
-# EOF
