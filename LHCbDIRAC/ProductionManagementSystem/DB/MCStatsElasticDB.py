@@ -77,8 +77,7 @@ class MCStatsElasticDB(DB):
     }
 
     gLogger.notice('Getting results for JobID: ', jobID)
-    result = self.query('mcstatsdb*', query)
-
+    result = self.query(self.indexName + '*', query)
 
     if not result['OK']:
       return S_ERROR(result)
