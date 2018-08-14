@@ -13,10 +13,12 @@ __RCSID__ = "$Id$"
 import time
 import xml.dom
 import xml.sax
+import urlparse
 
-from DIRAC import gLogger, S_OK, rootPath
+from DIRAC import gConfig, gLogger, S_OK, rootPath
 from DIRAC.Core.Utilities.File import mkDir
 from DIRAC.Core.Base.AgentModule import AgentModule
+from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 from DIRAC.ResourceStatusSystem.Utilities import CSHelpers
 
@@ -165,14 +167,70 @@ class SpaceTokenOccupancyTest(TestBase):
     xml_append(doc, "numericvalue", value_=str(total), elt_=elt, name="Total space")
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S"))
 
-    xmlfile = open(self.xmlPath + site + "_" + token + ".xml", "w")
-    try:
+    with open(self.xmlPath + site + "_" + token + ".xml", "w") as xmlfile:
       xmlfile.write(doc.toxml())
-    finally:
-      xmlfile.close()
 
     gLogger.info("SpaceTokenOccupancyTest: %s/%s done." % (site, token))
     return S_OK()
+
+
+class DIRACTest(TestBase):
+  def __init__(self, am):
+    super(DIRACTest, self).__init__(am)
+    self.xmlPath = rootPath + "/" + self.getAgentValue("webRoot") + self.getTestValue("dir")
+    from DIRAC.Interfaces.API.Dirac import Dirac
+    self.dirac = Dirac()
+
+    mkDir(self.xmlPath)
+
+    self.run_t1_xml_sensors()
+
+  def run_t1_xml_sensors(self):
+    # For each T0/T1 VO-BOXes, run xml_t1_sensors...
+    request_management_urls = gConfig.getValue("/Systems/RequestManagement/Production/URLs/ReqProxyURLs", [])
+    configuration_urls = gConfig.getServersList()
+    framework_urls = gConfig.getValue("/DIRAC/Framework/SystemAdministrator", [])
+
+    gLogger.info("DIRACTest: discovered %d request management url(s), %d configuration url(s) and %d framework url(s)"
+                 % (len(request_management_urls), len(configuration_urls), len(framework_urls)))
+    for url in request_management_urls + configuration_urls + framework_urls:
+      try:
+        self.xml_t1_sensor(url)
+      except BaseException:
+        gLogger.warn('DIRACTest.t1_xml_sensors crashed on %s' % url)
+
+  def xml_t1_sensor(self, url):
+    parsed = urlparse.urlparse(url)
+    system, _service = parsed[2].strip("/").split("/")
+    site = parsed[1].split(":")[0]
+
+    pinger = RPCClient(url)
+    res = pinger.ping()
+
+    doc = gen_xml_stub()
+    xml_append(doc, "id", site + "_" + system)
+    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S"))
+    xml_append(doc, "contact", "lhcb-geoc@cern.ch")
+
+    if res['OK']:
+      res = res['Value']
+
+      xml_append(doc, "status", "available")
+
+      elt = xml_append(doc, "data")
+      xml_append(doc, "numericvalue", res.get('service uptime', 0), elt_=elt,
+                 name="Service Uptime", desc="Seconds since last restart of service")
+      xml_append(doc, "numericvalue", res.get('host uptime', 0), elt_=elt,
+                 name="Host Uptime", desc="Seconds since last restart of machine")
+
+      gLogger.info("%s/%s successfully pinged" % (site, system))
+
+    else:
+      xml_append(doc, "status", "unavailable")
+      gLogger.info("%s/%s does not respond to ping" % (site, system))
+
+    with open(self.xmlPath + site + "_" + system + ".xml", "w") as xmlfile:
+      xmlfile.write(doc.toxml())
 
 
 class SLSAgent(AgentModule):
