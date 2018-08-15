@@ -95,7 +95,7 @@ class MCStatsElasticDB(DB):
   def remove(self, indexName, jobID):
     """
     Removes data given a specific JobID
-    
+
     :param str indexName: the name of the index in ELasticSearch
     :param str JobID: The JobID Of the data in elasticsearch
     """
