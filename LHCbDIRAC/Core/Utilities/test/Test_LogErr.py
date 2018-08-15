@@ -5,7 +5,7 @@ import json
 import ast
 import os
 
-from LHCbDIRAC.Core.Utilities.LogErr import create_json_table
+from LHCbDIRAC.Core.Utilities.LogErr import createJSONtable
 from DIRAC import gLogger
 
 
@@ -64,7 +64,7 @@ class LogErrTestCase(unittest.TestCase):
     self.jsonDataEmpty = []
 
     # Define name of output file
-    self.name = 'test_create_JSON_table.json'
+    self.name = 'test_createJSONtable.json'
 
   def tearDown(self):
 
@@ -97,7 +97,7 @@ class TestLogErr(LogErrTestCase):
             }
         }, indent=2)
 
-    create_json_table(self.jsonDataMultiple, self.name, '3', '4', '5')
+    createJSONtable(self.jsonDataMultiple, self.name, '3', '4', '5')
     with open(self.name, 'r') as f:
       fileOutput = f.read()
 
@@ -121,7 +121,7 @@ class TestLogErr(LogErrTestCase):
             }
         }, indent=2)
 
-    create_json_table(self.jsonDataSingle, self.name, '3', '4', '5')
+    createJSONtable(self.jsonDataSingle, self.name, '3', '4', '5')
     with open(self.name, 'r') as f:
       fileOutput = f.read()
 
@@ -143,7 +143,7 @@ class TestLogErr(LogErrTestCase):
             }
         }, indent=2)
 
-    create_json_table(self.jsonDataEmpty, self.name, '3', '4', '5')
+    createJSONtable(self.jsonDataEmpty, self.name, '3', '4', '5')
     with open(self.name, 'r') as f:
       fileOutput = f.read()
 
