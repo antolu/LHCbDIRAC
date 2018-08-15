@@ -55,7 +55,7 @@ class UploadMC(ModuleBase):
                                                          self.applicationName,
                                                          self.applicationVersion,
                                                          self.step_number))
-      MCStatsClient().set('LogErr', 'json' jsonData)
+      MCStatsClient().set('LogErr', 'json', jsonData)
 
     except Exception as e:  # pylint:disable=broad-except
       self.log.exception("Failure in UploadMC execute module", lException=e)
