@@ -88,15 +88,15 @@ class MCStatsElasticDB(DB):
     for source in sources:
       data = source['_source']
       resultDict.update(data)
-    resultDict = json.dumps(resultDict)
-    return S_OK(resultDict)
+    return S_OK(json.dumps(resultDict))
 
 #############################################################################
 
   def remove(self, indexName, jobID):
     """
     Removes data given a specific JobID
-
+    
+    :param str indexName: the name of the index in ELasticSearch
     :param str JobID: The JobID Of the data in elasticsearch
     """
     query = {
