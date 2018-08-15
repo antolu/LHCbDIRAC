@@ -79,7 +79,7 @@ import os
 import re
 from distutils.version import LooseVersion  # pylint: disable=import-error,no-name-in-module
 
-from DIRAC import S_OK, S_ERROR, gConfig
+from DIRAC import S_OK, S_ERROR
 from DIRAC.Interfaces.API.Job import Job
 from DIRAC.Core.Utilities.File import makeGuid, mkDir
 from DIRAC.Core.Utilities.List import uniqueElements
@@ -435,7 +435,7 @@ class LHCbJob(Job):
     if not isinstance(numberOfEvents, int):
       try:
         numberOfEvents = int(numberOfEvents)
-      except ValueError as _x:
+      except ValueError:
         return self._reportError('Number of events should be an integer or convertible to an integer',
                                  __name__, **kwargs)
     if not inputData:
@@ -449,7 +449,7 @@ class LHCbJob(Job):
     poolCatName = 'xmlcatalog_file:pool_xml_catalog.xml'
     benderScript = ['#!/usr/bin/env python']
     benderScript.append('from Gaudi.Configuration import FileCatalog')
-    benderScript.append('FileCatalog   ( Catalogs = [ "%s" ] )' % poolCatName)
+    benderScript.append('FileCatalog   (Catalogs = ["%s"] )' % poolCatName)
     benderScript.append('import %s as USERMODULE' % modulePath)
     benderScript.append('USERMODULE.configure()')
     benderScript.append('gaudi = USERMODULE.appMgr()')
@@ -460,10 +460,9 @@ class LHCbJob(Job):
     tmpdir = '/tmp/' + guid
     self.log.verbose('Created temporary directory for submission %s' % (tmpdir))
     mkDir(tmpdir)
-    fopen = open('%s/BenderScript.py' % tmpdir, 'w')
-    self.log.verbose('Bender script is: %s/BenderScript.py' % tmpdir)
-    fopen.write('\n'.join(benderScript))
-    fopen.close()
+    with open('%s/BenderScript.py' % tmpdir, 'w') as fopen:
+      self.log.verbose('Bender script is: %s/BenderScript.py' % tmpdir)
+      fopen.write('\n'.join(benderScript))
     # should try all components of the PYTHONPATH before giving up...
     userModule = '%s.py' % (modulePath.split('.')[-1])
     self.log.verbose('Looking for user module with name: %s' % userModule)
@@ -632,7 +631,7 @@ class LHCbJob(Job):
     if isinstance(depth, str):
       try:
         self._addParameter(self.workflow, 'AncestorDepth', 'JDL', int(depth), description)
-      except Exception as _x:
+      except BaseException:
         return self._reportError('Expected integer for Ancestor Depth', __name__, **kwargs)
     elif isinstance(depth, int):
       self._addParameter(self.workflow, 'AncestorDepth', 'JDL', depth, description)
@@ -662,7 +661,7 @@ class LHCbJob(Job):
     if not isinstance(inputDataType, str):
       try:
         inputDataType = str(inputDataType)
-      except TypeError as _x:
+      except TypeError:
         return self._reportError('Expected string for input data type', __name__, **{'inputDataType': inputDataType})
 
     self.inputDataType = inputDataType
@@ -696,7 +695,7 @@ class LHCbJob(Job):
         db = str(db)
         tag = str(tag)
         conditions.append('.'.join([db, tag]))
-      except Exception as _x:
+      except BaseException:
         return self._reportError('Expected string for conditions', __name__, **kwargs)
 
     condStr = ';'.join(conditions)
@@ -916,7 +915,7 @@ class LHCbJob(Job):
         return res
 
       runNumbers = []
-      for fileMeta in res['Value']['Successful'].values():
+      for fileMeta in res['Value']['Successful'].itervalues():
         try:
           if fileMeta['RunNumber'] not in runNumbers and fileMeta['RunNumber'] is not None:
             runNumbers.append(fileMeta['RunNumber'])
@@ -945,7 +944,7 @@ class LHCbJob(Job):
       else:
         self.log.verbose('Found file types %s for LFNs: %s' % (typeVersions.values(), typeVersions.keys()))
         typeVersionsList = []
-        for tv in typeVersions.values():
+        for tv in typeVersions.itervalues():
           if tv not in typeVersionsList:
             typeVersionsList.append(tv)
 
