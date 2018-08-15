@@ -51,14 +51,15 @@ class MCStatsElasticDBTestCase(unittest.TestCase):
     self.data2 = json.dumps(self.data2)
 
     self.typeName = 'test'
-    self.indexName = 'mcstatsdb'
+    self.indexName1 = 'mcstatsdb1'
+    self.indexName2 = 'mcstatsdb2'
 
   def setUp(self):
     gLogger.setLevel('DEBUG')
     self.db = MCStatsElasticDB()
 
   def tearDown(self):
-    self.db.deleteIndex(self.indexName)
+    self.db.deleteIndex(self.indexName1)
     self.db = None
 
 
@@ -69,12 +70,12 @@ class TestMCStatsElasticDB(MCStatsElasticDBTestCase):
     # Set
 
     # Set data1
-    result = self.db.set(self.typeName, self.data1)
+    result = self.db.set(self.indexName1, self.typeName, self.data1)
     time.sleep(1)
     self.assertTrue(result['OK'])
 
     # Set data2
-    result = self.db.set(self.typeName, self.data2)
+    result = self.db.set(self.indexName1, self.typeName, self.data2)
     time.sleep(1)
     self.assertTrue(result['OK'])
 
@@ -83,41 +84,46 @@ class TestMCStatsElasticDB(MCStatsElasticDBTestCase):
 
     # Get
 
-    # Get data1
-    result = self.db.get(self.id1)
+    # Get data1 from index1
+    result = self.db.get(self.indexName1, self.id1)
     self.assertTrue(result['OK'])
     self.assertEqual(result['Value'], self.data1)
 
-    # Get data2
-    result = self.db.get(self.id2)
+    # Get data2 from index1
+    result = self.db.get(self.indexName1, self.id2)
     self.assertTrue(result['OK'])
     self.assertEqual(result['Value'], self.data2)
 
+    # Get data1 from index2 (false)
+    result = self.db.get(self.indexName2, self.id1)
+    self.assertTrue(result['OK'])
+    self.assertEqual(result['Value'], '{}')
+
     # Get empty
-    result = self.db.get(self.falseID)
+    result = self.db.get(self.indexName1, self.falseID)
     self.assertTrue(result['OK'])
     self.assertEqual(result['Value'], '{}')
 
     # Remove
 
-    # Remove data1
-    self.db.remove(self.id1)
+    # Remove data1 from index1
+    self.db.remove(self.indexName1, self.id1)
     time.sleep(1)
-    result = self.db.get(self.id1)
+    result = self.db.get(self.indexName1, self.id1)
     self.assertTrue(result['OK'])
     self.assertEqual(result['Value'], '{}')
 
-    # Remove data2
-    self.db.remove(self.id2)
+    # Remove data2 from index1
+    self.db.remove(self.indexName1, self.id2)
     time.sleep(1)
-    result = self.db.get(self.id2)
+    result = self.db.get(self.indexName1, self.id2)
     self.assertTrue(result['OK'])
     self.assertEqual(result['Value'], '{}')
 
     # Remove empty
-    self.db.remove(self.falseID)
+    self.db.remove(self.indexName1, self.falseID)
     time.sleep(1)
-    result = self.db.get(self.falseID)
+    result = self.db.get(self.indexName1, self.falseID)
     self.assertTrue(result['OK'])
     self.assertEqual(result['Value'], '{}')
 

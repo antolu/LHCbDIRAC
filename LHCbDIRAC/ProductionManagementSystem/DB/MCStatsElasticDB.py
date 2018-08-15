@@ -11,7 +11,6 @@ ES = Elasticsearch()
 class MCStatsElasticDB(DB):
   def __init__(self, indexName='mcstatsdb'):
     DB.__init__(self, 'MCStatsDB', 'ProductionManagement/MCStatsDB')
-    self.indexName = indexName
     # self.typeName = 'LogErr'    # We assume the type of the data is from LogErr
     # self.mapping = {
     #     "Log_output": {
@@ -41,26 +40,28 @@ class MCStatsElasticDB(DB):
 
 #############################################################################
 
-  def set(self, typeName, data):
+  def set(self, indexName, typeName, data):
     """
     Inserts data into specified index using data given in argument
 
+    :param str indexName: the name of the index in ELasticSearch
     :param str typeName: The type in the index in ElasticSearch
     :param dict data: The data to be inserted in ElasticSearch in JSON format
     """
-    result = self.index(self.indexName, typeName, data)
-    if self.exists(self.indexName) and result['OK']:
-      gLogger.notice('Inserting data in index:', self.indexName)
+    result = self.index(indexName, typeName, data)
+    if self.exists(indexName) and result['OK']:
+      gLogger.notice('Inserting data in index:', indexName)
     else:
       gLogger.error("ERROR: Couldn't insert data")
     return result
 
 #############################################################################
 
-  def get(self, jobID):
+  def get(self, indexName, jobID):
     """
     Retrieves data given a specific JobID
 
+    :param str indexName: the name of the index in ELasticSearch
     :param str JobID: The JobID Of the data in elasticsearch
     """
 
@@ -76,8 +77,8 @@ class MCStatsElasticDB(DB):
         }
     }
 
-    gLogger.notice('Getting results for JobID: ', jobID)
-    result = self.query(self.indexName + '*', query)
+    gLogger.notice('Getting results for JobID: ', jobID, 'in index ', indexName)
+    result = self.query(indexName + '*', query)
 
     if not result['OK']:
       return S_ERROR(result)
@@ -92,7 +93,7 @@ class MCStatsElasticDB(DB):
 
 #############################################################################
 
-  def remove(self, jobID):
+  def remove(self, indexName, jobID):
     """
     Removes data given a specific JobID
 
@@ -110,9 +111,9 @@ class MCStatsElasticDB(DB):
         }
     }
 
-    gLogger.notice('Attempting to delete data with JobID: ', jobID)
+    gLogger.notice('Attempting to delete data with JobID: ', jobID, 'in index ',indexName)
     try:
-      ES.delete_by_query(index=self.indexName, body=query)
+      ES.delete_by_query(index=indexName, body=query)
     except Exception as inst:
       gLogger.error("ERROR: Couldn't delete data")
       return S_ERROR(inst)
