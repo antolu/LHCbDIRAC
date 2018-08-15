@@ -28,18 +28,18 @@ class MCStatsElasticDBHandler(RequestHandler):
   def export_set(self, indexName, typeName, data):
 
     gLogger.notice('Called set() with typeName = %s' % typeName)
-    return mcStatsDB.set(typeName, data)
+    return mcStatsDB.set(indexName, typeName, data)
 
   types_get = [basestring, int]
 
   def export_get(self, indexName, jobID):
 
     gLogger.notice('Called get() with jobID = %s' % jobID)
-    return mcStatsDB.get(jobID)
+    return mcStatsDB.get(indexName, jobID)
 
   types_remove = [basestring, int]
 
   def export_remove(self, indexName, jobID):
 
     gLogger.notice('Called remove() with jobID = %s' % jobID)
-    return mcStatsDB.remove(jobID)
+    return mcStatsDB.remove(indexName, jobID)

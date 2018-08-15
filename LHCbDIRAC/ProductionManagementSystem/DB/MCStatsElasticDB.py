@@ -77,7 +77,7 @@ class MCStatsElasticDB(DB):
         }
     }
 
-    gLogger.notice('Getting results for JobID: ', jobID, 'in index ', indexName)
+    gLogger.notice('Getting results for JobID %s in index %s' % (jobID, indexName))
     result = self.query(indexName + '*', query)
 
     if not result['OK']:
@@ -111,7 +111,7 @@ class MCStatsElasticDB(DB):
         }
     }
 
-    gLogger.notice('Attempting to delete data with JobID: ', jobID, 'in index ',indexName)
+    gLogger.notice('Attempting to delete data with JobID: %s in index %s' % (jobID, indexName))
     try:
       ES.delete_by_query(index=indexName, body=query)
     except Exception as inst:
