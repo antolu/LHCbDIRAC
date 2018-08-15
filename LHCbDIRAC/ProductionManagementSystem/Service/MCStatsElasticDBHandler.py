@@ -23,23 +23,23 @@ class MCStatsElasticDBHandler(RequestHandler):
   def __init__(self, *args, **kargs):
     RequestHandler.__init__(self, *args, **kargs)
 
-  types_set = [basestring, basestring]
+  types_set = [basestring, basestring, basestring]
 
-  def export_set(self, typeName, data):
+  def export_set(self, indexName, typeName, data):
 
     gLogger.notice('Called set() with typeName = %s' % typeName)
     return mcStatsDB.set(typeName, data)
 
-  types_get = [int]
+  types_get = [basestring, int]
 
-  def export_get(self, jobID):
+  def export_get(self, indexName, jobID):
 
     gLogger.notice('Called get() with jobID = %s' % jobID)
     return mcStatsDB.get(jobID)
 
-  types_remove = [int]
+  types_remove = [basestring, int]
 
-  def export_remove(self, jobID):
+  def export_remove(self, indexName, jobID):
 
     gLogger.notice('Called remove() with jobID = %s' % jobID)
     return mcStatsDB.remove(jobID)
