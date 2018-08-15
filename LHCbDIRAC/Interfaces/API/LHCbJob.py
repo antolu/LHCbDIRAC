@@ -104,7 +104,6 @@ class LHCbJob(Job):
     self.stepCount = 0
     self.inputDataType = 'DATA'  # Default, other options are MDF, ETC
     self.importLocation = 'LHCbDIRAC.Workflow.Modules'
-    self.rootSection = 'SoftwareDistribution/LHCbRoot'
     self.opsHelper = Operations()
 
   #############################################################################
@@ -307,8 +306,15 @@ class LHCbJob(Job):
        :param parametersList: list of parameters. The default is given.
        :type parametersList: list
     """
-    kwargs = {'appName': appName, 'appVersion': appVersion, 'script': script, 'arguments': arguments,
-              'inputData': inputData, 'inputDataType': inputDataType, 'poolXMLCatalog': poolXMLCatalog, 'logFile': logFile}
+    kwargs = {
+        'appName': appName,
+        'appVersion': appVersion,
+        'script': script,
+        'arguments': arguments,
+        'inputData': inputData,
+        'inputDataType': inputDataType,
+        'poolXMLCatalog': poolXMLCatalog,
+        'logFile': logFile}
     if not isinstance(appName, str) or not isinstance(appVersion, str):
       return self._reportError('Expected strings for application name and version', __name__, **kwargs)
 
@@ -542,8 +548,7 @@ class LHCbJob(Job):
 
   #############################################################################
 
-  def __configureRootModule(self, rootVersion, rootScript, rootType, arguments, logFile, systemConfig='ANY',
-                            modulesNameList=None, parametersList=None):
+  def __configureRootModule(self, rootVersion, rootScript, rootType, arguments, logFile, systemConfig):
     """ Internal function.
 
         Supports the root macro, python and executable wrapper functions.
@@ -571,18 +576,16 @@ class LHCbJob(Job):
     self.stepCount += 1
     stepName = '%sStep%s' % (rootName, self.stepCount)
 
-    if not modulesNameList:
-      modulesNameList = ['CreateDataFile',
-                         'RootApplication',
-                         'FileUsage',
-                         'UserJobFinalization']
-    if not parametersList:
-      parametersList = [('rootVersion', 'string', '', 'Root version'),
-                        ('rootScript', 'string', '', 'Root script'),
-                        ('rootType', 'string', '', 'Root type'),
-                        ('arguments', 'list', [], 'Optional arguments for payload'),
-                        ('applicationLog', 'string', '', 'Log file name'),
-                        ('SystemConfig', 'string', '', 'CMT Config')]
+    modulesNameList = ['CreateDataFile',
+                       'RootApplication',
+                       'FileUsage',
+                       'UserJobFinalization']
+    parametersList = [('rootVersion', 'string', '', 'Root version'),
+                      ('rootScript', 'string', '', 'Root script'),
+                      ('rootType', 'string', '', 'Root type'),
+                      ('arguments', 'list', [], 'Optional arguments for payload'),
+                      ('applicationLog', 'string', '', 'Log file name'),
+                      ('SystemConfig', 'string', '', 'CMT Config')]
     step = getStepDefinition(stepName,
                              modulesNameList=modulesNameList,
                              importLine="LHCbDIRAC.Workflow.Modules",
@@ -602,15 +605,6 @@ class LHCbJob(Job):
     stepInstance.setValue("SystemConfig", systemConfig)
     if arguments:
       stepInstance.setValue("arguments", arguments)
-
-    # now we have to tell DIRAC to install the necessary software
-    appRoot = '%s/%s' % (self.rootSection, rootVersion)
-    currentApp = self.opsHelper.getValue(appRoot, '')
-    if not currentApp:  # FIXME: this is an old location, the whole /Operations/SoftwareDistribution section should be removed
-      currentApp = gConfig.getValue('Operations/' + appRoot)
-    if not currentApp:
-      return self._reportError('Could not get value from DIRAC Configuration Service for option %s' % appRoot,
-                               __name__, **kwargs)
 
     return S_OK(stepInstance)
 
