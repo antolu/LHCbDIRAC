@@ -13,7 +13,7 @@ import LHCbDIRAC.Core.Utilities.LogErr as LogErr
 from DIRAC import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities import DErrno
 
-from LHCbDIRAC.Core.Utilities.RunApplication import RunApplication, LbRunError, LHCbApplicationError, LHCbDIRACError
+from LHCbDIRAC.Core.Utilities.RunApplication import LbRunError, LHCbApplicationError, LHCbDIRACError
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
 __RCSID__ = "$Id$"
@@ -38,7 +38,6 @@ class ErrorLogging(ModuleBase):
     # Workflow commons parameters
     self.systemConfig = ''
     # Internal parameters
-    self.executable = '$APPCONFIGROOT/scripts/LogErr.py'
     self.errorLogFile = ''
     self.errorLogNameHTML = ''
     self.errorLogNamejson = ''
