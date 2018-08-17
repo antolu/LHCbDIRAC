@@ -177,32 +177,32 @@ def createHTMLtable(dictG4ErrorsCount, name):
   :param str name: the name of the HTML file
 
   """
-  f = open(name, 'w')
-  f.write("<HTML>\n")
+  with open(name, 'w') as f:
+    f.write("<HTML>\n")
 
-  f.write("<table border=1 bordercolor=#000000 width=100% bgcolor=#BCCDFE>")
-  f.write("<tr>")
-  f.write("<td>ERROR TYPE</td>")
-  f.write("<td>COUNTER</td>")
-  f.write("<td>DUMP OF ERROR MESSAGES</td>")
-  f.write("</tr>")
+    f.write("<table border=1 bordercolor=#000000 width=100% bgcolor=#BCCDFE>")
+    f.write("<tr>")
+    f.write("<td>ERROR TYPE</td>")
+    f.write("<td>COUNTER</td>")
+    f.write("<td>DUMP OF ERROR MESSAGES</td>")
+    f.write("</tr>")
 
-  orderedKeys = sorted(dictG4ErrorsCount.keys())
-  for errString in orderedKeys:
-    if dictG4ErrorsCount[errString] != {}:
-      f.write("<tr>")
-      f.write("<td>" + errString + "</td>")
-      f.write("<td>" + str(len(dictG4ErrorsCount[errString].keys())) + "</td>")
-      f.write("<td>")
-      f.write("<lu>")
-      for y in dictG4ErrorsCount[errString].keys():
-        f.write("<li>")
-        f.write(" " + dictG4ErrorsCount[errString][y] + " ")
-      f.write("</lu>")
-      f.write("</td>")
-      f.write("</tr>")
+    orderedKeys = sorted(dictG4ErrorsCount.keys())
+    for errString in orderedKeys:
+      if dictG4ErrorsCount[errString] != {}:
+        f.write("<tr>")
+        f.write("<td>" + errString + "</td>")
+        f.write("<td>" + str(len(dictG4ErrorsCount[errString].keys())) + "</td>")
+        f.write("<td>")
+        f.write("<lu>")
+        for y in dictG4ErrorsCount[errString].keys():
+          f.write("<li>")
+          f.write(" " + dictG4ErrorsCount[errString][y] + " ")
+        f.write("</lu>")
+        f.write("</td>")
+        f.write("</tr>")
 
-  f.write("</table>")
+    f.write("</table>")
 
   return
 
@@ -278,7 +278,7 @@ def pickStringFile(project, version, stringFile):
   :param str stringFile: the
   """
 
-# sourceDir = commands.getoutput('echo $PWD') + '/errstrings'
+  # sourceDir = commands.getoutput('echo $PWD') + '/errstrings'
   sourceDir = os.getcwd()
   fileString = project + '_' + version + '_errors.txt'
   stringFile = os.path.join(sourceDir, os.path.basename(fileString))
