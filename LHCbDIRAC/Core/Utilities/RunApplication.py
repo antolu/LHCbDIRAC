@@ -192,12 +192,12 @@ class RunApplication(object):
 
     # multicore?
     if self.multicore:
-      cpus = multiprocessing.cpu_count()
-      if cpus > 1:
-        if _multicoreWN():
-          command += ' --ncpus -1 '
-        else:
-          self.log.info("Would have run with option '--ncpus -1', but it is not allowed here")
+      if _multicoreWN():
+        nProcessors = gConfig.getValue('/LocalSite/JOBFEATURES/allocated_cpu', 1)
+        self.log.info("CPUS from /LocalSite/JOBFEATURES/allocated_cpu: %d" % nProcessors)
+        command += ' --ncpus %d ' % nProcessors
+      else:
+        self.log.info("Would have run with option '--ncpus', but it is not allowed here")
 
     if self.commandOptions:
       command += ' '
