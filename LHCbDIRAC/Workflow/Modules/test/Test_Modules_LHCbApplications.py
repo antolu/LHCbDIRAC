@@ -181,9 +181,8 @@ class RootApplicationSuccess( ModulesApplicationsTestCase ):
 
 class ErrorLoggingSuccess( ModulesApplicationsTestCase ):
 
-  @patch( "LHCbDIRAC.Workflow.Modules.ErrorLogging.RunApplication", side_effect = MagicMock() )
   @patch( "LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect = MagicMock() )
-  def test_execute( self, _patch, _patched ):
+  def test_excecute(self, _patch):
 
     er = ErrorLogging( bkClient = bkc_mock, dm = dm_mock )
 
