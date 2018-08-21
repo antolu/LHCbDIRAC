@@ -1,3 +1,13 @@
+[v9r2p3]
+use DIRAC v6r20p11
+
+* dirac-architecture script will send a mail when no suitable DIRAC platform is found
+* taking number of processors allocated to the job from MJF
+* removed useless check of SoftwareDistribution section
+* TS: allow to set empty list as SE parameters
+* restored tests
+* fix wrong query
+
 [v9r2p2]
 * TransformationDebug: use FTS3Cient
 * corrected comparison of input/output file types
