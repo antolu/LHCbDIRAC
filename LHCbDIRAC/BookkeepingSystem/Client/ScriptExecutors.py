@@ -1221,6 +1221,7 @@ def executeGetStats(dmScript):
                 ) if fullDuration else 'Run duration not available'
         gLogger.notice('%s: %s' % ('Throughput'.ljust(tab), rate))
         collBunches = 0.
+        result = {}
         # FIXME: if/when the online run DB is accessible to get the number of bunches this should be re-activated
         if False:
           result = _getCollidingBunches(fillDuration)
