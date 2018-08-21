@@ -1220,17 +1220,19 @@ def executeGetStats(dmScript):
         rate = ('%.1f MB/second' % (size / 1000000. / fullDuration / 3600.)
                 ) if fullDuration else 'Run duration not available'
         gLogger.notice('%s: %s' % ('Throughput'.ljust(tab), rate))
-        result = _getCollidingBunches(fillDuration)
         collBunches = 0.
-        for fill in fillDuration:
-          if fill not in result:
-            gLogger.notice("Error: no number of colliding bunches for fill %d" % fill)
-          else:
-            collBunches += result[fill] * fillDuration[fill]
+        # FIXME: if/when the online run DB is accessible to get the number of bunches this should be re-activated
+        if False:
+          result = _getCollidingBunches(fillDuration)
+          for fill in fillDuration:
+            if fill not in result:
+              gLogger.notice("Error: no number of colliding bunches for fill %d" % fill)
+            else:
+              collBunches += result[fill] * fillDuration[fill]
         if fullDuration:
-          collBunches /= fullDuration
-          gLogger.notice('%s: %.1f on average' % ('Colliding bunches'.ljust(tab), collBunches))
           if collBunches:
+            collBunches /= fullDuration
+            gLogger.notice('%s: %.1f on average' % ('Colliding bunches'.ljust(tab), collBunches))
             gLogger.notice('%s: %.2f events/s/bunch' % ('Trigger per bunch'.ljust(tab), triggerRate / collBunches))
         if listFills:
           gLogger.notice('List of fills: ', ','.join("%d (%d runs, %.1f hours)" %
