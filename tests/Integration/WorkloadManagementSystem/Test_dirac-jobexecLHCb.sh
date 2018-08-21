@@ -54,7 +54,9 @@ fi
 echo -e "\n==> jobDescriptionLHCb-FAIL.xml"
 $DIRACSCRIPTS/dirac-jobexec jobDescriptionLHCb-FAIL.xml $DIRAC/DIRAC/tests/Integration/WorkloadManagementSystem/pilot.cfg $DEBUG
 ret_code=$?
-if [ $ret_code -eq 111 ]
+# for lb-run specific errors (e.g. 111 like here) we reschedule even for user jobs (LHCbScript)
+# (exit code 1502 becomes 222 --- 1502 & 255 (0xDE))
+if [ $ret_code -eq 222 ]
 then
   echo -e "\nSuccess\n\n"
 else
@@ -68,7 +70,8 @@ fi
 echo -e "\n==> jobDescriptionLHCb-multiSteps-FAIL.xml"
 $DIRACSCRIPTS/dirac-jobexec jobDescriptionLHCb-multiSteps-FAIL.xml $DIRAC/DIRAC/tests/Integration/WorkloadManagementSystem/pilot.cfg $DEBUG
 ret_code=$?
-if [ $ret_code -eq 111 ]
+# for lb-run specific errors (e.g. 111 like here) we reschedule even for user jobs (LHCbScript)
+if [ $ret_code -eq 222 ]
 then
   echo -e "\nSuccess\n\n"
 else

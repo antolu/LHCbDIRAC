@@ -5,7 +5,6 @@ __RCSID__ = "$Id$"
 
 import sys
 import os
-import multiprocessing
 import shlex
 
 from DIRAC import gConfig, gLogger
