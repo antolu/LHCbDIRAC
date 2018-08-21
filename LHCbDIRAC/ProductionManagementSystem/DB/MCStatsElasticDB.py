@@ -113,9 +113,3 @@ class MCStatsElasticDB(DB):
 
     gLogger.notice('Attempting to delete data with JobID: %s in index %s' % (jobID, indexName))
     return self.deleteByQuery(indexName, query)
-    # try:
-    #   ES.delete_by_query(index=indexName, body=query)
-    # except Exception as inst:
-    #   gLogger.error("ERROR: Couldn't delete data")
-    #   return S_ERROR(inst)
-    # return S_OK('Successfully deleted data with JobID: %s' % jobID)
