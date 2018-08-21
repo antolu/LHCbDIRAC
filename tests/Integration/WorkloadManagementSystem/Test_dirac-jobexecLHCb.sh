@@ -31,7 +31,8 @@ then
 else
   echo -e "\nSomething wrong!"
   echo -e "ret_code = $ret_code \n\n"
-  exit 1
+  more jobDescriptionLHCb-OK.xml
+  exit $ret_code
 fi
 
 # OK2
@@ -44,7 +45,8 @@ then
 else
   echo -e "\nSomething wrong!"
   echo -e "ret_code = $ret_code \n\n"
-  exit 1
+  more jobDescriptionLHCb-multiSteps-OK.xml
+  exit $ret_code
 fi
 
 
@@ -58,7 +60,8 @@ then
 else
   echo -e "\nSomething wrong!"
   echo -e "ret_code = $ret_code \n\n"
-  exit 1
+  more jobDescriptionLHCb-FAIL.xml
+  exit $ret_code
 fi
 
 # # FAIL2
@@ -70,7 +73,9 @@ then
   echo -e "\nSuccess\n\n"
 else
   echo -e "\nSomething wrong!\n\n"
-  exit 1
+  echo -e "ret_code = $ret_code \n\n"
+  more jobDescriptionLHCb-multiSteps-FAIL.xml
+  exit $ret_code
 fi
 
 
@@ -84,7 +89,8 @@ then
 else
   echo -e "\nSomething wrong!"
   echo -e "ret_code = $ret_code \n\n"
-  exit 1
+  more jobDescriptionLHCb-FAIL1502.xml
+  exit $ret_code
 fi
 
 # # Removals
