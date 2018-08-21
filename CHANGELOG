@@ -1,3 +1,8 @@
+[v9r2p4]
+use DIRAC v6r20p11
+
+* RSS: FreeDiskSpace fixed to use only srm endpoints
+
 [v9r2p3]
 use DIRAC v6r20p11
 
