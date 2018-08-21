@@ -111,7 +111,7 @@ Time to tag and push::
 Remember: you can use "git status" at any point in time to make sure what's the current status.
 
 
-When a new git tag is pushed to the repository, a gitlab-ci job takes care of (soon testing),
+When a new git tag is pushed to the repository, a gitlab-ci job takes care of testing,
 creating the tarball, uploading it to the web service, and to build the docker image.
 
 
@@ -124,7 +124,7 @@ if the release has been correctly created.
 
 The tests may vary, but are announced on the Trello board, and on the Slack channel 'lhcb-certification' of the 'lhcbdirac' team.
 
-If you are running tests from lxplus, ,make sure that you are in the certification setup (e.g. check the content of your .dirac.cfg file)
+If you are running tests from lxplus, make sure that you are in the certification setup (e.g. check the content of your .dirac.cfg file)
 
 
 3. Deploying the release
