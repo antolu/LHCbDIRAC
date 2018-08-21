@@ -820,7 +820,7 @@ class TransformationDebug(object):
             fts3Jobs.extend(fts3Op.ftsJobs)
 
           for job in fts3Jobs:
-            gLogger.notice('\tFTS jobs associated:', '%s@%s (%s completed at %d %%)' %
+            gLogger.notice('\tFTS jobs associated:', '%s@%s (%s completed at %s %%)' %
                            (job.ftsGUID, job.ftsServer, job.status, job.completeness))
           if not fts3Jobs:
             gLogger.notice('\tNo FTS jobs found for that request')

@@ -43,8 +43,6 @@ class Production(object):
     self.transformation = Transformation()
     self.opsHelper = Operations()
 
-    self.histogramName = self.opsHelper.getValue('Productions/HistogramName',
-                                                 '@{applicationName}_@{STEP_ID}.Hist.root')
     self.bkSteps = {}
     self.prodGroup = ''
     self.plugin = ''
@@ -241,21 +239,17 @@ class Production(object):
       # pName, pType, pValue, pDesc
       parametersList = [['inputData', 'string', '', 'StepInputData'],
                         ['inputDataType', 'string', '', 'InputDataType'],
-                        ['outputFilePrefix', 'string', '', 'OutputFilePrefix'],
                         ['applicationName', 'string', '', 'ApplicationName'],
                         ['applicationVersion', 'string', '', 'ApplicationVersion'],
                         ['runTimeProjectName', 'string', '', 'runTimeProjectName'],
                         ['runTimeProjectVersion', 'string', '', 'runTimeProjectVersion'],
                         ['applicationType', 'string', '', 'ApplicationType'],
-                        ['applicationLog', 'string', '', 'ApplicationLogFile'],
-                        ['XMLSummary', 'string', '', 'XMLSummaryFile'],
                         ['optionsFile', 'string', '', 'OptionsFile'],
                         ['extraOptionsLine', 'string', '', 'extraOptionsLines'],
                         ['listoutput', 'list', [], 'StepOutputList'],
                         ['extraPackages', 'string', '', 'ExtraPackages'],
                         ['BKStepID', 'string', '', 'BKKStepID'],
                         ['StepProcPass', 'string', '', 'StepProcessingPass'],
-                        ['HistogramName', 'string', '', 'NameOfHistogram'],
                         ['optionsFormat', 'string', '', 'ProdConf configuration'],
                         ['CondDBTag', 'string', '', 'ConditionDatabaseTag'],
                         ['DDDBTag', 'string', '', 'DetDescTag'],
@@ -277,14 +271,9 @@ class Production(object):
                    ['applicationVersion', appVersion],
                    ['optionsFile', optionsFile],
                    ['extraOptionsLine', optionsLine],
-                   ['outputFilePrefix', '@{STEP_ID}'],
-                   ['applicationLog', '@{applicationName}_@{STEP_ID}.log'],
-                   ['XMLSummary', 'summary@{applicationName}_@{STEP_ID}.xml'],
                    ['extraPackages', extraPackages],
-                   #  ['outputData', '@{STEP_ID}.' + fileTypesOut[0] if len( fileTypesOut ) == 1 else 'multiple'],
                    ['BKStepID', str(stepID)],
                    ['StepProcPass', stepPass],
-                   ['HistogramName', self.histogramName],
                    ['optionsFormat', optionsFormat],
                    ['CondDBTag', conddbOpt],
                    ['DDDBTag', dddbOpt],
@@ -337,28 +326,15 @@ class Production(object):
 
   #############################################################################
 
-  def _constructOutputFilesList(self, filesTypesList, histoName=None):
+  def _constructOutputFilesList(self, filesTypesList):
     """ Build list of dictionary of output files, including HIST case
     """
-
-    if not histoName:
-      histoName = self.histogramName
 
     outputList = []
 
     for fileType in filesTypesList:
       fileDict = {}
-      if 'hist' in fileType.lower() and self.LHCbJob.type.lower() != 'merge':
-        # Watch out: this assumes that:
-        # - 'hist' is always in the file type name
-        # - merging jobs won't produce histograms
-        # - the only merging jobs that produce output types with hist are histomerging productions
-        fileDict['outputDataName'] = histoName
-      else:
-        fileDict['outputDataName'] = '@{STEP_ID}.' + fileType.lower()
-
       fileDict['outputDataType'] = fileType.lower()
-
       outputList.append(fileDict)
 
     return outputList

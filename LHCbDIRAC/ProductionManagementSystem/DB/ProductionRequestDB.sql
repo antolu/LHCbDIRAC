@@ -75,7 +75,7 @@ CREATE TABLE ProductionProgress (
   ProductionID int(11) NOT NULL,
   RequestID int(11) DEFAULT NULL,
   Used tinyint(1) DEFAULT '1',
-  BkEvents int(11) DEFAULT NULL,
+  BkEvents bigint unsigned DEFAULT NULL,
   PRIMARY KEY (ProductionID),
   KEY RequestID (RequestID),
   KEY Used (Used),
