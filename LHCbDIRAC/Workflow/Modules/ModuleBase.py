@@ -353,7 +353,7 @@ class ModuleBase(object):
     self.stepProcPass = self.step_commons.get('StepProcPass', self.stepProcPass)
 
     if prodID and jobID and stepInstanceNumber:
-      self.outputFilePrefix = "%s_%s_%d" % (prodID, jobID, stepInstanceNumber)
+      self.outputFilePrefix = "%s_%s_%s" % (prodID, jobID, stepInstanceNumber)
       self.applicationLog = self.applicationName + '_' + self.outputFilePrefix + '.log'
       self.XMLSummary = 'summary' + self.applicationName + '_' + self.outputFilePrefix + '.xml'
       self.histoName = self.applicationName + '_' + self.outputFilePrefix + '.Hist.root'
