@@ -1229,11 +1229,10 @@ def executeGetStats(dmScript):
               gLogger.notice("Error: no number of colliding bunches for fill %d" % fill)
             else:
               collBunches += result[fill] * fillDuration[fill]
-        if fullDuration:
-          if collBunches:
-            collBunches /= fullDuration
-            gLogger.notice('%s: %.1f on average' % ('Colliding bunches'.ljust(tab), collBunches))
-            gLogger.notice('%s: %.2f events/s/bunch' % ('Trigger per bunch'.ljust(tab), triggerRate / collBunches))
+        if fullDuration and collBunches:
+          collBunches /= fullDuration
+          gLogger.notice('%s: %.1f on average' % ('Colliding bunches'.ljust(tab), collBunches))
+          gLogger.notice('%s: %.2f events/s/bunch' % ('Trigger per bunch'.ljust(tab), triggerRate / collBunches))
         if listFills:
           gLogger.notice('List of fills: ', ','.join("%d (%d runs, %.1f hours)" %
                                                      (fill, len(fills[fill]), fillDuration[fill])
