@@ -586,11 +586,9 @@ class ConsistencyChecks(DiracConsistencyChecks):
     if filesWithDescendants:
       nb = sum(len(desc) for desc in filesWithDescendants.itervalues())
       prStr += "found %d descendants for %d files" % (nb, len(filesWithDescendants))
-      if filesWithMultipleDescendants:
-        prStr += " of which %d are multiple" % len(filesWithMultipleDescendants)
     if filesWithoutDescendants:
       if not prStr:
-        prStr = "fipythonound"
+        prStr = "found"
       else:
         prStr += " and"
       prStr += " no descendants for %d files" % len(filesWithoutDescendants)
