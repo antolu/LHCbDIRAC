@@ -5,7 +5,7 @@
 # and a $DIRAC variable pointing to an installed DIRAC
 # It also assumes that pilot.cfg contains all the necessary for running
 
-echo "\n======> Test_dirac-jobexec <======\n"
+echo "\n======> Test_dirac-jobexecLHCb.sh <======\n"
 
 if [ ! -z "$DEBUG" ]
 then
@@ -22,6 +22,7 @@ python $DIRAC/LHCbDIRAC/tests/Integration/WorkloadManagementSystem/createJobXMLD
 # Running the real tests
 
 # OK
+echo "\n==> jobDescriptionLHCb-OK.xml"
 $DIRACSCRIPTS/dirac-jobexec jobDescriptionLHCb-OK.xml $DIRAC/DIRAC/tests/Integration/WorkloadManagementSystem/pilot.cfg $DEBUG
 if [ $? -eq 0 ]
 then
@@ -32,6 +33,7 @@ else
 fi
 
 # OK2
+echo "\n==> jobDescriptionLHCb-multiSteps-OK.xml"
 $DIRACSCRIPTS/dirac-jobexec jobDescriptionLHCb-multiSteps-OK.xml $DIRAC/DIRAC/tests/Integration/WorkloadManagementSystem/pilot.cfg $DEBUG
 if [ $? -eq 0 ]
 then
@@ -43,6 +45,7 @@ fi
 
 
 # # FAIL
+echo "\n==> jobDescriptionLHCb-FAIL.xml"
 $DIRACSCRIPTS/dirac-jobexec jobDescriptionLHCb-FAIL.xml $DIRAC/DIRAC/tests/Integration/WorkloadManagementSystem/pilot.cfg $DEBUG
 if [ $? -eq 111 ]
 then
@@ -53,6 +56,7 @@ else
 fi
 
 # # FAIL2
+echo "\n==> jobDescriptionLHCb-multiSteps-FAIL.xml"
 $DIRACSCRIPTS/dirac-jobexec jobDescriptionLHCb-multiSteps-FAIL.xml $DIRAC/DIRAC/tests/Integration/WorkloadManagementSystem/pilot.cfg $DEBUG
 if [ $? -eq 111 ]
 then
@@ -64,6 +68,7 @@ fi
 
 
 # FAIL with exit code > 255
+echo "\n==> jobDescriptionLHCb-FAIL1502.xml"
 $DIRACSCRIPTS/dirac-jobexec jobDescriptionLHCb-FAIL1502.xml $DIRAC/DIRAC/tests/Integration/WorkloadManagementSystem/pilot.cfg $DEBUG
 if [ $? -eq 222 ] # This is 1502 & 255 (0xDE)
 then
