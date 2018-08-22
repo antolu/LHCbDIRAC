@@ -23,25 +23,18 @@ class ErrorLogging(ModuleBase):
 
   #############################################################################
 
-  def __init__(self, bkClient=None, dm=None):
+  def __init__(self):
     """ c'tor
     """
 
     self.log = gLogger.getSubLogger("ErrorLogging")
-    super(ErrorLogging, self).__init__(self.log, bkClientIn=bkClient, dm=dm)
+    super(ErrorLogging, self).__init__(self.log)
 
     self.version = __RCSID__
-    # Step parameters
-    self.applicationName = ''
-    self.applicationVersion = ''
-    self.applicationLog = ''
-    # Workflow commons parameters
-    self.systemConfig = ''
     # Internal parameters
     self.errorLogFile = ''
     self.errorLogNameHTML = ''
     self.errorLogNamejson = ''
-    self.stdError = ''
     # Error log parameters
     self.defaultNameHTML = 'errors.html'
     self.defaultNamejson = 'errors.json'
@@ -99,12 +92,11 @@ class ErrorLogging(ModuleBase):
 
       # Set some parameter names
       scriptName = 'Error_Log_%s_%s_Run_%s.sh' % (self.applicationName,
-                                                  self.applicationVersion,
-                                                  self.step_number)
+						  self.applicationVersion,
+						  self.step_number)
 
-      # keep this small part
       for x in [self.defaultNameHTML, self.defaultNamejson, scriptName, self.errorLogFile]:
-        if os.path.exists(x):
+	if os.path.exists(x):
 	  os.remove(x)
 
       # Now really running

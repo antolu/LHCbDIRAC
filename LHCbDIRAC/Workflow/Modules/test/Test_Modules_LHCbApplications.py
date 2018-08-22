@@ -1,7 +1,7 @@
 """ Unit tests for Workflow Modules utilities
 """
 
-#pylint: disable=protected-access, missing-docstring, invalid-name, line-too-long
+# pylint: disable=protected-access, missing-docstring, invalid-name, line-too-long
 
 import unittest
 import copy
@@ -24,21 +24,21 @@ from LHCbDIRAC.Workflow.Modules.LHCbScript import LHCbScript
 from LHCbDIRAC.Workflow.Modules.ErrorLogging import ErrorLogging
 
 
-class ModulesApplicationsTestCase( unittest.TestCase ):
+class ModulesApplicationsTestCase(unittest.TestCase):
   """ Base class for the Modules Applications test cases
   """
 
-  def setUp( self ):
+  def setUp(self):
 
-    gLogger.setLevel( 'DEBUG' )
+    gLogger.setLevel('DEBUG')
     self.maxDiff = None
 
-  def tearDown( self ):
+  def tearDown(self):
 
     for fileProd in ['prodConf_someApp_123_00000456_123_00000456_321.py', 'appLog', 'gaudi_extra_options.py',
                      'applicationError.txt', 'someApp', 'applicationLog.txt']:
       try:
-        os.remove( fileProd )
+	os.remove(fileProd)
       except OSError:
         continue
 
@@ -46,53 +46,55 @@ class ModulesApplicationsTestCase( unittest.TestCase ):
 # GaudiApplication.py
 #############################################################################
 
-class GaudiApplicationSuccess( ModulesApplicationsTestCase ):
 
-  @patch( "LHCbDIRAC.Workflow.Modules.GaudiApplication.RunApplication", side_effect = MagicMock() )
-  @patch( "LHCbDIRAC.Workflow.Modules.GaudiApplication.ModuleBase._manageAppOutput", side_effect = MagicMock() )
-  @patch( "LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect = MagicMock() )
-  def test_execute( self, _patch, _patched, _ppatched ):
+class GaudiApplicationSuccess(ModulesApplicationsTestCase):
 
-    ga = GaudiApplication( bkClient = bkc_mock, dm = dm_mock )
+  @patch("LHCbDIRAC.Workflow.Modules.GaudiApplication.RunApplication", side_effect=MagicMock())
+  @patch("LHCbDIRAC.Workflow.Modules.GaudiApplication.ModuleBase._manageAppOutput", side_effect=MagicMock())
+  @patch("LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect=MagicMock())
+  def test_execute(self, _patch, _patched, _ppatched):
+
+    ga = GaudiApplication(bkClient=bkc_mock, dm=dm_mock)
     ga.siteName = 'LCG.PIPPO.org'
 
-    #no errors, no input data
-    for wf_cs in copy.deepcopy( wf_commons ):
+    # no errors, no input data
+    for wf_cs in copy.deepcopy(wf_commons):
       for s_cs in step_commons:
-        self.assertTrue( ga.execute( prod_id, prod_job_id, wms_job_id,
-                                     workflowStatus, stepStatus,
-                                     wf_cs, s_cs,
-                                     step_number, step_id )['OK'] )
+	self.assertTrue(ga.execute(prod_id, prod_job_id, wms_job_id,
+				   workflowStatus, stepStatus,
+				   wf_cs, s_cs,
+				   step_number, step_id)['OK'])
 
 
 #############################################################################
 # GaudiApplicationScript.py
 #############################################################################
 
-class GaudiApplicationScriptSuccess( ModulesApplicationsTestCase ):
+class GaudiApplicationScriptSuccess(ModulesApplicationsTestCase):
 
-  @patch( "LHCbDIRAC.Workflow.Modules.GaudiApplicationScript.RunApplication", side_effect = MagicMock() )
-  @patch( "LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect = MagicMock() )
-  def test_execute( self, _patch, _patched ):
+  @patch("LHCbDIRAC.Workflow.Modules.GaudiApplicationScript.RunApplication", side_effect=MagicMock())
+  @patch("LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect=MagicMock())
+  def test_execute(self, _patch, _patched):
 
-    gas = GaudiApplicationScript( bkClient = bkc_mock, dm = dm_mock )
+    gas = GaudiApplicationScript(bkClient=bkc_mock, dm=dm_mock)
 
-    #no errors, no input data
-    for wf_cs in copy.deepcopy( wf_commons ):
+    # no errors, no input data
+    for wf_cs in copy.deepcopy(wf_commons):
       for s_cs in step_commons:
         s_cs['script'] = 'cat'
-        self.assertTrue( gas.execute( prod_id, prod_job_id, wms_job_id,
-                                      workflowStatus, stepStatus,
-                                      wf_cs, s_cs,
-                                      step_number, step_id )['OK'] )
+	self.assertTrue(gas.execute(prod_id, prod_job_id, wms_job_id,
+				    workflowStatus, stepStatus,
+				    wf_cs, s_cs,
+				    step_number, step_id)['OK'])
 
 #############################################################################
 # LHCbScript.py
 #############################################################################
 
-class LHCbScriptSuccess( ModulesApplicationsTestCase ):
 
-  def test_execute( self ):
+class LHCbScriptSuccess(ModulesApplicationsTestCase):
+
+  def test_execute(self):
 
     lhcbScript = LHCbScript()
 
@@ -112,18 +114,18 @@ class LHCbScriptSuccess( ModulesApplicationsTestCase ):
     lhcbScript.applicationLog = 'applicationLog.txt'
 
     # no errors, no input data
-    for wf_cs in copy.deepcopy( wf_commons ):
+    for wf_cs in copy.deepcopy(wf_commons):
       for s_cs in step_commons:
         lhcbScript.workflow_commons = wf_cs
         lhcbScript.step_commons = s_cs
         lhcbScript._setCommand()
         res = lhcbScript._executeCommand()
-        self.assertIsNone( res )
+	self.assertIsNone(res)
 
 
-class LHCbScriptFailure( ModulesApplicationsTestCase ):
+class LHCbScriptFailure(ModulesApplicationsTestCase):
 
-  def test_execute( self ):
+  def test_execute(self):
 
     lhcbScript = LHCbScript()
 
@@ -141,67 +143,67 @@ class LHCbScriptFailure( ModulesApplicationsTestCase ):
     lhcbScript.step_id = step_id
 
     # no errors, no input data
-    for wf_cs in copy.deepcopy( wf_commons ):
+    for wf_cs in copy.deepcopy(wf_commons):
       for s_cs in step_commons:
         lhcbScript.workflow_commons = wf_cs
         lhcbScript.step_commons = s_cs
         res = lhcbScript.execute()
-        self.assertFalse( res['OK'] )
+	self.assertFalse(res['OK'])
 
 #############################################################################
 # RootApplication.py
 #############################################################################
 
-class RootApplicationSuccess( ModulesApplicationsTestCase ):
 
-  @patch( "LHCbDIRAC.Workflow.Modules.RootApplication.RunApplication", side_effect = MagicMock() )
-  @patch( "LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect = MagicMock() )
-  def test_execute( self, _patch, _patched ):
+class RootApplicationSuccess(ModulesApplicationsTestCase):
+
+  @patch("LHCbDIRAC.Workflow.Modules.RootApplication.RunApplication", side_effect=MagicMock())
+  @patch("LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect=MagicMock())
+  def test_execute(self, _patch, _patched):
 
     with open('someApp', 'w') as fd:
       fd.write('pippo')
 
-    ra = RootApplication( bkClient = bkc_mock, dm = dm_mock )
+    ra = RootApplication(bkClient=bkc_mock, dm=dm_mock)
     ra.applicationName = 'aRoot.py'
     ra.applicationVersion = 'v1r1'
     ra.rootType = 'py'
 
-    #no errors, no input data
-    for wf_cs in copy.deepcopy( wf_commons ):
+    # no errors, no input data
+    for wf_cs in copy.deepcopy(wf_commons):
       for s_cs in step_commons:
-        self.assertTrue( ra.execute( prod_id, prod_job_id, wms_job_id,
-                                     workflowStatus, stepStatus,
-                                     wf_cs, s_cs,
-                                     step_number, step_id )['OK'] )
+	self.assertTrue(ra.execute(prod_id, prod_job_id, wms_job_id,
+				   workflowStatus, stepStatus,
+				   wf_cs, s_cs,
+				   step_number, step_id)['OK'])
 
 
 #############################################################################
 # ErrorLogging.py
 #############################################################################
 
-class ErrorLoggingSuccess( ModulesApplicationsTestCase ):
+class ErrorLoggingSuccess(ModulesApplicationsTestCase):
 
-  @patch( "LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect = MagicMock() )
+  @patch("LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect=MagicMock())
   def test_excecute(self, _patch):
 
-    er = ErrorLogging( bkClient = bkc_mock, dm = dm_mock )
+    er = ErrorLogging()
 
-    #no errors, no input data
-    for wf_cs in copy.deepcopy( wf_commons ):
+    # no errors, no input data
+    for wf_cs in copy.deepcopy(wf_commons):
       for s_cs in step_commons:
-        self.assertTrue( er.execute( prod_id, prod_job_id, wms_job_id,
-                                     workflowStatus, stepStatus,
-                                     wf_cs, s_cs,
-                                     step_number, step_id )['OK'] )
-
+	self.assertTrue(er.execute(prod_id, prod_job_id, wms_job_id,
+				   workflowStatus, stepStatus,
+				   wf_cs, s_cs,
+				   step_number, step_id)['OK'])
 
 
 if __name__ == '__main__':
-  suite = unittest.defaultTestLoader.loadTestsFromTestCase( ModulesApplicationsTestCase )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudiApplicationSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudiApplicationScriptSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( LHCbScriptSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( LHCbScriptFailure ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RootApplicationSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ErrorLoggingSuccess ) )
-  testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
+  suite = unittest.defaultTestLoader.loadTestsFromTestCase(ModulesApplicationsTestCase)
+  suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(GaudiApplicationSuccess))
+  suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(GaudiApplicationScriptSuccess))
+  suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(LHCbScriptSuccess))
+  suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(LHCbScriptFailure))
+  suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(RootApplicationSuccess))
+  suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(ErrorLoggingSuccess))
+  testResult = unittest.TextTestRunner(verbosity=2).run(suite)
