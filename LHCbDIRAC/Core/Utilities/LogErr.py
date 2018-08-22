@@ -23,16 +23,15 @@ def readLogFile(logFile, project, version, appConfigVersion, jobID, prodID, wmsI
 
   fileOK = False
   logString = ''
-  stringFile = ''
-  stringFile = pickStringFile(project, version, appConfigVersion, stringFile)
+  fullPathFileName = pickStringFile(project, version, appConfigVersion)
   dictTotal = []
   dictG4Errors = dict()
   dictG4ErrorsCount = dict()
 
-  if stringFile is None or not os.path.exists(stringFile) or os.stat(stringFile)[6] == 0:
-    gLogger.warn('WARNING: STRINGFILE %s is empty' % stringFile)
+  if fullPathFileName is None or not os.path.exists(fullPathFileName) or os.stat(fullPathFileName)[6] == 0:
+    gLogger.warn('WARNING: STRINGFILE %s is empty' % fullPathFileName)
 
-  readErrorDict(stringFile, dictG4Errors)
+  readErrorDict(fullPathFileName, dictG4Errors)
 
   fileOK = getLogString(logFile, logString, fileOK)
   if not fileOK:
@@ -212,16 +211,16 @@ def createHTMLtable(dictG4ErrorsCount, name):
 #######################################################
 
 
-def readErrorDict(stringFile, dictName):
+def readErrorDict(fullPathFileName, dictName):
   """
   Reads errors in a stringfile and puts them in dictName
 
-  :param str stringFile: the name of the stringfile
-  :param dict dictName: the name of the dict that will insert the data in stringFile
+  :param str fullPathFileName: the name of the stringfile
+  :param dict dictName: the name of the dict that will insert the data in fullPathFileName
 
   """
 
-  fileLines = getLines(stringFile)
+  fileLines = getLines(fullPathFileName)
   for line in fileLines:
     errorString = line.split(',')[0]
     description = line.split(',')[1]
@@ -231,16 +230,16 @@ def readErrorDict(stringFile, dictName):
 ################################################
 
 
-def getLines(stringFile):
+def getLines(fullPathFileName):
   """
   Reads lines in string file
 
-  :param str stringFile: the name of the file to be opened and read
+  :param str fullPathFileName: the name of the file to be opened and read
 
   """
 
-  gLogger.notice('>>> Processed STRINGFILE -> ', stringFile)
-  with open(stringFile, 'r') as f:
+  gLogger.notice('>>> Processed STRINGFILE -> ', fullPathFileName)
+  with open(fullPathFileName, 'r') as f:
     lines = f.readlines()
   return lines
 
@@ -272,31 +271,32 @@ def getLogString(logFile, logString, fileOK):
 ################################################
 
 
-def pickStringFile(project, version, appConfigVersion, stringFile):
+def pickStringFile(project, version, appConfigVersion):
   """
   Picks the string file from the current directory
 
   :param str project: the project name
   :param str version: the version of the project
-  :param str stringFile: the
+  :param str version: APPCONFIG version
   """
 
   # sourceDir = commands.getoutput('echo $PWD') + '/errstrings'
   sourceDir = os.path.join('/cvmfs/lhcb.cern.ch/lib/lhcb/DBASE/AppConfig/', appConfigVersion, 'errstrings')
-  fileString = project + '_' + version + '_errs.txt'
-  stringFile = os.path.join(sourceDir, os.path.basename(fileString))
-  if not os.path.exists(stringFile):
-    gLogger.notice('string file %s does not exist, attempting to take the most recent file ...' % stringFile)
+  fileName = project + '_' + version + '_errs.txt'
+  fullPathFileName = os.path.join(sourceDir, os.path.basename(fileName))
+  if not os.path.exists(fullPathFileName):
+    gLogger.notice('string file %s does not exist, attempting to take the most recent file ...' % fullPathFileName)
     fileList = [fn for fn in os.listdir(sourceDir) if project in fn]
     if fileList:
       versionsList = [x.replace(project + '_', '').replace('_errs.txt', '') for x in fileList]
       mostRecentVersion = sorted(versionsList, key=LooseVersion)[-1]
-      return project + '_' + mostRecentVersion + '_errs.txt'
+      fileName = project + '_' + mostRecentVersion + '_errs.txt'
+      fullPathFileName = os.path.join(sourceDir, os.path.basename(fileName))
     else:
       gLogger.warn('WARNING: no string files for this project')
       return None
 
-  return stringFile
+  return fullPathFileName
 
 ################################################
 
@@ -332,3 +332,4 @@ def pickStringFile(project, version, appConfigVersion, stringFile):
 
 # The file is run as follows:
 # readLogFile('Example.log', 'project', 'version', 'jobID', 'prodID', 'wmsID')
+
