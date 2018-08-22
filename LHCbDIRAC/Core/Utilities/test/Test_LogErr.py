@@ -5,8 +5,7 @@ import json
 import ast
 import os
 
-from LHCbDIRAC.Core.Utilities.LogErr import createJSONtable
-from DIRAC import gLogger
+from LHCbDIRAC.Core.LHCbApplications.LogErr import createJSONtable
 
 
 class LogErrTestCase(unittest.TestCase):

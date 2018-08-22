@@ -8,11 +8,11 @@
 
 import os
 import shutil
-import LHCbDIRAC.Core.Utilities.LogErr as LogErr
 
 from DIRAC import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities import DErrno
 
+import LHCbDIRAC.Core.LHCbApplications.LogErr as LogErr
 from LHCbDIRAC.Core.Utilities.RunApplication import LbRunError, LHCbApplicationError, LHCbDIRACError
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 

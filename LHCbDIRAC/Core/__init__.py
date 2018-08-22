@@ -1,9 +1,9 @@
 ############################################################
 
 """
-   LHCbDIRAC.Core package
+   LHCbDIRAC.Core.Utilities package
 
-   This contains the LHCb specific Core.
+   This contains the LHCb specific utilities.
 """
 
 __RCSID__ = "$Id$"
