@@ -3,6 +3,9 @@ Reads .log-files and outputs summary of counters as a .json-file and a .html-fil
 '''
 import os
 import json
+
+from distutils.version import LooseVersion
+
 from DIRAC import gLogger, S_ERROR
 
 
@@ -26,7 +29,7 @@ def readLogFile(logFile, project, version, appConfigVersion, jobID, prodID, wmsI
   dictG4Errors = dict()
   dictG4ErrorsCount = dict()
 
-  if stringFile is None or os.stat(stringFile)[6] == 0:
+  if stringFile is None or not os.path.exists(stringFile) or os.stat(stringFile)[6] == 0:
     gLogger.warn('WARNING: STRINGFILE %s is empty' % stringFile)
 
   readErrorDict(stringFile, dictG4Errors)
@@ -279,15 +282,16 @@ def pickStringFile(project, version, appConfigVersion, stringFile):
   """
 
   # sourceDir = commands.getoutput('echo $PWD') + '/errstrings'
-  sourceDir = os.path.join('/cvmfs/lhcb.cern.ch/lib/lhcb/DBASE/AppConfig/', appConfigVersion)
-  fileString = project + '_' + version + '_errors.txt'
+  sourceDir = os.path.join('/cvmfs/lhcb.cern.ch/lib/lhcb/DBASE/AppConfig/', appConfigVersion, 'errstrings')
+  fileString = project + '_' + version + '_errs.txt'
   stringFile = os.path.join(sourceDir, os.path.basename(fileString))
   if not os.path.exists(stringFile):
     gLogger.notice('string file %s does not exist, attempting to take the most recent file ...' % stringFile)
-    fileList = [os.path.join(sourceDir, f) for f in os.listdir(sourceDir) if f.find(project) != -1]
+    fileList = [fn for fn in os.listdir(sourceDir) if project in fn]
     if fileList:
-      fileList = sorted(fileList)
-      stringFile = fileList[len(fileList) - 1]
+      versionsList = [x.replace(project + '_', '').replace('_errs.txt', '') for x in fileList]
+      mostRecentVersion = sorted(versionsList, key=LooseVersion)[-1]
+      return project + '_' + mostRecentVersion + '_errs.txt'
     else:
       gLogger.warn('WARNING: no string files for this project')
       return None
