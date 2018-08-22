@@ -6,7 +6,7 @@ import json
 from DIRAC import gLogger, S_ERROR
 
 
-def readLogFile(logFile, project, version, jobID, prodID, wmsID, name='errors.json'):
+def readLogFile(logFile, project, version, appConfigVersion, jobID, prodID, wmsID, name='errors.json'):
   """
   The script that runs everything
   :param str logFile: the name of the logfile
@@ -21,7 +21,7 @@ def readLogFile(logFile, project, version, jobID, prodID, wmsID, name='errors.js
   fileOK = False
   logString = ''
   stringFile = ''
-  stringFile = pickStringFile(project, version, stringFile)
+  stringFile = pickStringFile(project, version, appConfigVersion, stringFile)
   dictTotal = []
   dictG4Errors = dict()
   dictG4ErrorsCount = dict()
@@ -269,7 +269,7 @@ def getLogString(logFile, logString, fileOK):
 ################################################
 
 
-def pickStringFile(project, version, stringFile):
+def pickStringFile(project, version, appConfigVersion, stringFile):
   """
   Picks the string file from the current directory
 
@@ -279,7 +279,7 @@ def pickStringFile(project, version, stringFile):
   """
 
   # sourceDir = commands.getoutput('echo $PWD') + '/errstrings'
-  sourceDir = os.environ['APPCONFIGROOT']
+  sourceDir = os.path.join('/cvmfs/lhcb.cern.ch/lib/lhcb/DBASE/AppConfig/', appConfigVersion)
   fileString = project + '_' + version + '_errors.txt'
   stringFile = os.path.join(sourceDir, os.path.basename(fileString))
   if not os.path.exists(stringFile):
