@@ -8,8 +8,9 @@
 
 # pylint: disable=invalid-name,wrong-import-position
 
-import unittest
 import time
+import cPickle
+import unittest
 
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
@@ -55,10 +56,10 @@ class TestProductionRequestTestCaseChain(TestProductionRequestTestCase):
                                                   'RequestPDG': '',
                                                   'SimCondition': 'Beam3500GeV-VeloClosed-MagUp',
                                                   'SimCondID': '429215',
-                                                  'SimCondDetail': 'BlahBlahBlah',
+                                                  'SimCondDetail': cPickle.dumps('BlahBlahBlah'),
                                                   'ProPath': 'Blup',
                                                   'ProID': '',
-                                                  'ProDetail': 'BlaaaaaahBlahBlah',
+                                                  'ProDetail': cPickle.dumps('BlaaaaaahBlahBlah'),
                                                   'EventType': '900000',
                                                   'NumberOfEvents': '-1',
                                                   'Description': 'Description',
@@ -85,10 +86,10 @@ class TestProductionRequestTestCaseChain(TestProductionRequestTestCase):
                                                   'RequestPDG': '',
                                                   'SimCondition': 'Beam3500GeV-VeloClosed-MagUp',
                                                   'SimCondID': '429215',
-                                                  'SimCondDetail': 'BlahBlahBlah',
+                                                  'SimCondDetail': cPickle.dumps('BlahBlahBlah'),
                                                   'ProPath': 'Blup',
                                                   'ProID': '',
-                                                  'ProDetail': 'BlaaaaaahBlahBlah',
+                                                  'ProDetail': cPickle.dumps('BlaaaaaahBlahBlah'),
                                                   'EventType': '900000',
                                                   'NumberOfEvents': '-1',
                                                   'Description': 'Description',
