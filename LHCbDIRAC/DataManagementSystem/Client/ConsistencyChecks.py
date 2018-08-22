@@ -550,7 +550,7 @@ class ConsistencyChecks(DiracConsistencyChecks):
     chunkSize = 20
     lfns = set(lfns)
     progressBar = ProgressBar(len(lfns),
-                              title="Now getting daughters for %d %s mothers in production %d (depth %d)"
+                              title="Now getting all daughters for %d %s mothers in production %d (depth %d)"
                               % (len(lfns), status, self.prod, self.descendantsDepth),
                               chunk=chunkSize, interactive=self.interactive)
     daughtersBKInfo = {}
