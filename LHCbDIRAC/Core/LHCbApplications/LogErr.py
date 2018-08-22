@@ -3,7 +3,7 @@ Reads .log-files and outputs summary of counters as a .json-file and a .html-fil
 '''
 import os
 import json
-from DIRAC import gLogger, S_ERROR, S_OK
+from DIRAC import gLogger, S_ERROR
 
 
 def readLogFile(logFile, project, version, jobID, prodID, wmsID, name='errors.json'):
@@ -285,8 +285,8 @@ def pickStringFile(project, version, stringFile):
   if not os.path.exists(stringFile):
     gLogger.notice('string file %s does not exist, attempting to take the most recent file ...' % stringFile)
     fileList = [os.path.join(sourceDir, f) for f in os.listdir(sourceDir) if f.find(project) != -1]
-    if len(fileList) != 0:
-      fileList.sort()
+    if fileList:
+      fileList = sorted(fileList)
       stringFile = fileList[len(fileList) - 1]
     else:
       gLogger.warn('WARNING: no string files for this project')
