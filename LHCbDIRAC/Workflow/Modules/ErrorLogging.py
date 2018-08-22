@@ -105,10 +105,10 @@ class ErrorLogging(ModuleBase):
       # keep this small part
       for x in [self.defaultNameHTML, self.defaultNamejson, scriptName, self.errorLogFile]:
         if os.path.exists(x):
-          os.remove(x)
+	  os.remove(x)
 
       # Now really running
-      appConfigVersion = [x.split('.')[1] for x in self.step_commons['ExtraPackages'].split(';') if 'AppConfig' in x][0]
+      appConfigVersion = [x.split('.')[1] for x in self.step_commons['extraPackages'].split(';') if 'AppConfig' in x][0]
       result = LogErr.readLogFile(
 	  logFile=self.applicationLog,
 	  project=self.applicationName,
