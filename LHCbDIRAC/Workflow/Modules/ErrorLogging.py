@@ -108,18 +108,18 @@ class ErrorLogging(ModuleBase):
           os.remove(x)
 
       # Now really running
-      try:
+      appConfigVersion = [x.split('.')[1] for x in self.step_commons['ExtraPackages'].split(';') if 'AppConfig' in x][0]
+      result = LogErr.readLogFile(
+	  logFile=self.applicationLog,
+	  project=self.applicationName,
+	  version=self.applicationVersion,
+	  appConfigVersion=appConfigVersion,
+	  jobID=prod_job_id,
+	  prodID=production_id,
+	  wmsID=wms_job_id,
+	  name=self.errorLogNamejson)
 
-        LogErr.readLogFile(
-            self.applicationLog,
-            self.applicationName,
-            self.applicationVersion,
-            prod_job_id,
-            production_id,
-            wms_job_id,
-            self.errorLogNamejson)
-
-      except RuntimeError as e:
+      if not result['OK']:
         self.log.info("Error logging for %s %s step %s completed with errors:" % (self.applicationName,
                                                                                   self.applicationVersion,
                                                                                   self.step_number))
