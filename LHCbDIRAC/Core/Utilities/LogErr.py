@@ -279,7 +279,7 @@ def pickStringFile(project, version, stringFile):
   """
 
   # sourceDir = commands.getoutput('echo $PWD') + '/errstrings'
-  sourceDir = os.getcwd()
+  sourceDir = os.environ['APPCONFIGROOT']
   fileString = project + '_' + version + '_errors.txt'
   stringFile = os.path.join(sourceDir, os.path.basename(fileString))
   if not os.path.exists(stringFile):

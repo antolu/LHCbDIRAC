@@ -5,7 +5,7 @@ import json
 import ast
 import os
 
-from LHCbDIRAC.Core.LHCbApplications.LogErr import createJSONtable
+from LHCbDIRAC.Core.Utilities.LogErr import createJSONtable
 
 
 class LogErrTestCase(unittest.TestCase):
