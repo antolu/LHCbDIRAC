@@ -98,12 +98,6 @@ class AnalyseXMLSummary(ModuleBase):
     finally:
       super(AnalyseXMLSummary, self).finalize(self.version)
 
-
-################################################################################
-# AUXILIAR FUNCTIONS
-################################################################################
-
-
   def _basicSuccess(self):
     """ Treats basic success, meaning the outputs and the status of the XML summary are ok.
         Now, we have to check the input files if they are in "part" or "fail"
@@ -212,9 +206,3 @@ class AnalyseXMLSummary(ModuleBase):
       res = self.nc.sendMail(mailAddress, subject, msg, 'joel.closier@cern.ch', localAttempt=False)
       if not res['OK']:
         self.log.warn("The mail could not be sent")
-
-################################################################################
-# END AUXILIAR FUNCTIONS
-################################################################################
-
-# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
