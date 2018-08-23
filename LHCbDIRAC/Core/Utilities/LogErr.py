@@ -4,7 +4,7 @@ Reads .log-files and outputs summary of counters as a .json-file and a .html-fil
 import os
 import json
 
-from distutils.version import LooseVersion
+from distutils.version import LooseVersion  # pylint:disable=import-error,no-name-in-module
 
 from DIRAC import gLogger, S_OK, S_ERROR
 

@@ -1,6 +1,8 @@
 """ Module to upload specified job output files according to the parameters defined in the production workflow.
 """
 
+__RCSID__ = "$Id$"
+
 import os
 import random
 import glob
@@ -19,8 +21,6 @@ from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
 from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import getFileDescendants
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
-
-__RCSID__ = "$Id$"
 
 
 class UploadOutputData(ModuleBase):
@@ -91,7 +91,8 @@ class UploadOutputData(ModuleBase):
               SEs=None, fileDescendants=None):
     """ Main execution function.
 
-        1. Determine the final list of possible output files for the workflow and all the parameters needed to upload them.
+        1. Determine the final list of possible output files for the workflow
+           and all the parameters needed to upload them.
         2. Verifying that the input files have no descendants (and exiting with error, otherwise)
         3. Sending the BK records for the steps of the job
         4. Transfer output files in their destination, register in the FC (with failover)

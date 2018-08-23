@@ -95,18 +95,18 @@ class ErrorLogging(ModuleBase):
           name=self.errorLogNamejson)
 
       if not result['OK']:
-        self.log.info("Error logging for %s %s step %s completed with errors:" % (self.applicationName,
-                                                                                  self.applicationVersion,
-                                                                                  self.step_number))
-        self.log.info('Exiting without affecting workflow status')
+        self.log.error("Error logging for %s %s step %s completed with errors:" % (self.applicationName,
+                                                                                   self.applicationVersion,
+                                                                                   self.step_number))
+        self.log.warn('Exiting without affecting workflow status')
         return S_OK()
 
       if not os.path.exists(self.errorLogNameHTML):
-        self.log.warn('%s not found locally, exiting without affecting workflow status' % self.defaultNameHTML)
+        self.log.error('%s not found locally, exiting without affecting workflow status' % self.defaultNameHTML)
         return S_OK()
 
       if not os.path.exists(self.errorLogNamejson):
-        self.log.warn('%s not found locally, exiting without affecting workflow status' % self.defaultNamejson)
+        self.log.error('%s not found locally, exiting without affecting workflow status' % self.defaultNamejson)
         return S_OK()
 
       self.log.info("Error logging for %s %s step %s completed successfully:" % (self.applicationName,

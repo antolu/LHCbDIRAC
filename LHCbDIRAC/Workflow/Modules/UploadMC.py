@@ -55,9 +55,18 @@ class UploadMC(ModuleBase):
                                                          self.applicationName,
                                                          self.applicationVersion,
                                                          self.step_number))
-      MCStatsClient().set('LogErr', 'json', jsonData)
 
-    except Exception as e:  # pylint:disable=broad-except
+      if not self._enableModule():
+        # At this point can exit and see exactly what the module would have uploaded
+        self.log.info("Would have attempted to upload the following files %s" % json.dumps(jsonData))
+        return S_OK()
+
+      res = MCStatsClient().set('LogErr', 'json', jsonData)
+      if not res['OK']:
+        self.log.error('%s not found locally, exiting without affecting workflow status' % jsonData)
+        return S_OK()
+
+    except Exception as e:
       self.log.exception("Failure in UploadMC execute module", lException=e)
       return S_ERROR(str(e))
 
