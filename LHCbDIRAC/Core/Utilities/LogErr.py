@@ -51,51 +51,51 @@ def readLogFile(logFile, project, version, appConfigVersion, jobID, prodID, wmsI
       test = logString.find(errorString, start)
       alreadyFound = False
       for error in reversedKeys:
-	if error == errorString:
-	  break
-	checke = logString[test:test + 100].find(error)
-	if checke != -1:
-	  alreadyFound = True
-	  test = test + len(error)
-	  break
+        if error == errorString:
+          break
+        checke = logString[test:test + 100].find(error)
+        if checke != -1:
+          alreadyFound = True
+          test = test + len(error)
+          break
       if alreadyFound:
-	continue
+        continue
 
       if test != -1:
-	eventnr = ''
-	runnr = ''
+        eventnr = ''
+        runnr = ''
 
-	eventnr_point = logString.rfind('INFO Evt', test - 5000, test)
-	if eventnr_point != -1:
-	  eventnr = 'Evt ' + logString[eventnr_point:test].split('INFO Evt')[1].strip().split(',')[0]
-	  runnr = logString[eventnr_point:].split('INFO Evt')[1].strip().split(',')[1]
+        eventnr_point = logString.rfind('INFO Evt', test - 5000, test)
+        if eventnr_point != -1:
+          eventnr = 'Evt ' + logString[eventnr_point:test].split('INFO Evt')[1].strip().split(',')[0]
+          runnr = logString[eventnr_point:].split('INFO Evt')[1].strip().split(',')[1]
 
-	if errorString.find('G4') != -1:
-	  check = logString[test:test + 250].find('***')
-	  if check != -1:
-	    errorBase = logString[test:test + 250].split('***')[0]
-	    dictCountDumpErrorString[i] = eventnr + "  " + runnr + "  -->" + errorBase
+        if errorString.find('G4') != -1:
+          check = logString[test:test + 250].find('***')
+          if check != -1:
+            errorBase = logString[test:test + 250].split('***')[0]
+            dictCountDumpErrorString[i] = eventnr + "  " + runnr + "  -->" + errorBase
 
-	    array.append(dict())
-	    array[-1]['eventnr'] = eventnr
-	    array[-1]['runnr'] = runnr
+            array.append(dict())
+            array[-1]['eventnr'] = eventnr
+            array[-1]['runnr'] = runnr
 
-	    lengthDump = len(errorBase)
-	    test = test + lengthDump
-	else:
-	  errorBase = logString[test:test + 250].split('\n')[0]
-	  dictCountDumpErrorString[i] = eventnr + "  " + runnr + "  -->" + errorBase
+            lengthDump = len(errorBase)
+            test = test + lengthDump
+        else:
+          errorBase = logString[test:test + 250].split('\n')[0]
+          dictCountDumpErrorString[i] = eventnr + "  " + runnr + "  -->" + errorBase
 
-	  array.append(dict())
-	  array[-1]['eventnr'] = eventnr
-	  array[-1]['runnr'] = runnr
+          array.append(dict())
+          array[-1]['eventnr'] = eventnr
+          array[-1]['runnr'] = runnr
 
-	  lengthDump = len(errorBase)
-	  test = test + lengthDump
+          lengthDump = len(errorBase)
+          test = test + lengthDump
 
-	if array[-1] is not None:
-	  dictTemp[errorString] = dict()
-	  dictTemp[errorString] = array
+        if array[-1] is not None:
+          dictTemp[errorString] = dict()
+          dictTemp[errorString] = array
 
     if dictTemp != {}:
       dictTotal.append(dictTemp)
@@ -164,7 +164,7 @@ def createJSONtable(dictTotal, name, jobID, prodID, wmsID):
   with open(name, 'w') as output:
     for error in dictTotal:
       for key, value in error.items():
-	temp[key] = len(value)
+        temp[key] = len(value)
     temp['ID'] = ids
     result['Errors'] = temp
     output.write(json.dumps(result, indent=2))
@@ -193,17 +193,17 @@ def createHTMLtable(dictG4ErrorsCount, name):
     orderedKeys = sorted(dictG4ErrorsCount.keys())
     for errString in orderedKeys:
       if dictG4ErrorsCount[errString] != {}:
-	f.write("<tr>")
-	f.write("<td>" + errString + "</td>")
-	f.write("<td>" + str(len(dictG4ErrorsCount[errString].keys())) + "</td>")
-	f.write("<td>")
-	f.write("<lu>")
-	for y in dictG4ErrorsCount[errString].keys():
-	  f.write("<li>")
-	  f.write(" " + dictG4ErrorsCount[errString][y] + " ")
-	f.write("</lu>")
-	f.write("</td>")
-	f.write("</tr>")
+        f.write("<tr>")
+        f.write("<td>" + errString + "</td>")
+        f.write("<td>" + str(len(dictG4ErrorsCount[errString].keys())) + "</td>")
+        f.write("<td>")
+        f.write("<lu>")
+        for y in dictG4ErrorsCount[errString].keys():
+          f.write("<li>")
+          f.write(" " + dictG4ErrorsCount[errString][y] + " ")
+        f.write("</lu>")
+        f.write("</td>")
+        f.write("</tr>")
 
     f.write("</table>")
 
