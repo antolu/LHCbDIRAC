@@ -365,9 +365,11 @@ class ModuleBase(object):
           # - 'hist' is always in the file type name
           # - merging jobs won't produce histograms
           # - the only merging jobs that produce output types with hist are histomerging productions
-          fileTypeDict['outputDataName'] = self.histoName
+          if 'outputDataName' not in fileTypeDict:
+            fileTypeDict['outputDataName'] = self.histoName
         else:
-          fileTypeDict['outputDataName'] = self.outputFilePrefix + '.' + fileTypeDict['outputDataType']
+          if 'outputDataName' not in fileTypeDict:
+            fileTypeDict['outputDataName'] = self.outputFilePrefix + '.' + fileTypeDict['outputDataType']
 
     self.inputDataType = self.step_commons.get('inputDataType', self.inputDataType)
 
