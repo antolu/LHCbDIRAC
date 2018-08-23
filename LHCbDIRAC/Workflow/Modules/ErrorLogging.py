@@ -74,6 +74,7 @@ class ErrorLogging(ModuleBase):
         return S_OK()
 
       # Now really running
+      # self.step_commons['extraPackages'] is something like 'AppConfig.v3r360;TurboStreamProd.v4r2p9;ProdConf'
       appConfigVersion = [x.split('.')[1] for x in self.step_commons['extraPackages'].split(';') if 'AppConfig' in x][0]
       result = LogErr.readLogFile(
           logFile=self.applicationLog,

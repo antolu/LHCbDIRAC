@@ -276,7 +276,7 @@ def pickStringFile(project, version, appConfigVersion):
     if 'lhcb' not in os.listdir(sharedArea):
       sharedArea = os.path.join(sharedArea, 'lib')
       if 'lhcb' not in os.listdir(sharedArea):
-        gLogger.error("Cuurent sharedArea (%s) content: " % sharedArea, os.listdir(sharedArea))
+        gLogger.error("Current sharedArea (%s) content: " % sharedArea, os.listdir(sharedArea))
         raise RuntimeError("Can't find a sharedArea")
 
   else:
