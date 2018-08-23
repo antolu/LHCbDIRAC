@@ -6,8 +6,9 @@
     error suite any failures will not be propagated to the workflow.
 """
 
+__RCSID__ = "$Id$"
+
 import os
-import shutil
 
 from DIRAC import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities import DErrno
@@ -15,8 +16,6 @@ from DIRAC.Core.Utilities import DErrno
 import LHCbDIRAC.Core.Utilities.LogErr as LogErr
 from LHCbDIRAC.Core.Utilities.RunApplication import LbRunError, LHCbApplicationError, LHCbDIRACError
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
-
-__RCSID__ = "$Id$"
 
 
 class ErrorLogging(ModuleBase):
@@ -32,12 +31,8 @@ class ErrorLogging(ModuleBase):
 
     self.version = __RCSID__
     # Internal parameters
-    self.errorLogFile = ''
     self.errorLogNameHTML = ''
     self.errorLogNamejson = ''
-    # Error log parameters
-    self.defaultNameHTML = 'errors.html'
-    self.defaultNamejson = 'errors.json'
 
   #############################################################################
 
@@ -47,9 +42,6 @@ class ErrorLogging(ModuleBase):
     super(ErrorLogging, self)._resolveInputVariables()
     super(ErrorLogging, self)._resolveInputStep()
 
-    self.errorLogFile = 'Error_Log_%s_%s_%s.log' % (self.applicationName,
-                                                    self.applicationVersion,
-                                                    self.step_number)
     self.errorLogNameHTML = '%d_Errors_%s_%s_%s.html' % (self.jobID,
                                                          self.applicationName,
                                                          self.applicationVersion,
@@ -90,15 +82,6 @@ class ErrorLogging(ModuleBase):
         self.log.info('Application log file from previous module not found locally: %s' % self.applicationLog)
         return S_OK()
 
-      # Set some parameter names
-      scriptName = 'Error_Log_%s_%s_Run_%s.sh' % (self.applicationName,
-                                                  self.applicationVersion,
-                                                  self.step_number)
-
-      for x in [self.defaultNameHTML, self.defaultNamejson, scriptName, self.errorLogFile]:
-        if os.path.exists(x):
-          os.remove(x)
-
       # Now really running
       appConfigVersion = [x.split('.')[1] for x in self.step_commons['extraPackages'].split(';') if 'AppConfig' in x][0]
       result = LogErr.readLogFile(
@@ -118,36 +101,23 @@ class ErrorLogging(ModuleBase):
         self.log.info('Exiting without affecting workflow status')
         return S_OK()
 
-      if not os.path.exists(self.defaultNameHTML):
-        self.log.info('%s not found locally, exiting without affecting workflow status' % self.defaultNameHTML)
+      if not os.path.exists(self.errorLogNameHTML):
+        self.log.warn('%s not found locally, exiting without affecting workflow status' % self.defaultNameHTML)
         return S_OK()
 
-      if not os.path.exists(self.defaultNamejson):
-        self.log.info('%s not found locally, exiting without affecting workflow status' % self.defaultNamejson)
+      if not os.path.exists(self.errorLogNamejson):
+        self.log.warn('%s not found locally, exiting without affecting workflow status' % self.defaultNamejson)
         return S_OK()
 
       self.log.info("Error logging for %s %s step %s completed successfully:" % (self.applicationName,
                                                                                  self.applicationVersion,
                                                                                  self.step_number))
-      shutil.copy(self.defaultNameHTML, self.errorLogNameHTML)
-      shutil.copy(self.defaultNamejson, self.errorLogNamejson)
 
       return S_OK()
 
-    except LbRunError as lbre:  # This is the case for lb-run/environment errors
-      self.setApplicationStatus(repr(lbre))
-      return S_ERROR(DErrno.EWMSRESC, str(lbre))
-    except LHCbApplicationError as lbae:  # This is the case for real application errors
-      self.setApplicationStatus(repr(lbae))
-      return S_ERROR(str(lbae))
-    except LHCbDIRACError as lbde:  # This is the case for LHCbDIRAC errors (e.g. subProcess call failed)
-      self.setApplicationStatus(repr(lbde))
-      return S_ERROR(str(lbde))
-    except Exception as e:  # pylint:disable=broad-except
+    except Exception as e:
       self.log.exception("Failure in ErrorLogging execute module", lException=e)
       return S_ERROR("Error in ErrorLogging module")
 
     finally:
       super(ErrorLogging, self).finalize(self.version)
-
-# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
