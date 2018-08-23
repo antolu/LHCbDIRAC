@@ -6,7 +6,7 @@ import json
 
 from distutils.version import LooseVersion
 
-from DIRAC import gLogger, S_ERROR
+from DIRAC import gLogger, S_OK, S_ERROR
 
 
 def readLogFile(logFile, project, version, appConfigVersion, jobID, prodID, wmsID, name='errors.json'):
@@ -29,14 +29,14 @@ def readLogFile(logFile, project, version, appConfigVersion, jobID, prodID, wmsI
   dictG4ErrorsCount = dict()
 
   if fullPathFileName is None or not os.path.exists(fullPathFileName) or os.stat(fullPathFileName)[6] == 0:
-    gLogger.warn('WARNING: STRINGFILE %s is empty' % fullPathFileName)
+    gLogger.warn('STRINGFILE %s is empty' % fullPathFileName)
 
   readErrorDict(fullPathFileName, dictG4Errors)
 
-  fileOK = getLogString(logFile, logString, fileOK)
-  if not fileOK:
-    gLogger.warn('WARNING: Problems in reading %s' % logFile)
-    return S_ERROR()
+  res = getLogString(logFile, logString, fileOK)
+  if not res['OK']:
+    gLogger.warn('Problems in reading %s' % logFile)
+    return res
 
   reversedKeys = sorted(dictG4Errors.keys(), reverse=True)
 
@@ -46,8 +46,7 @@ def readLogFile(logFile, project, version, appConfigVersion, jobID, prodID, wmsI
     ctest = logString.count(errorString)
     test = logString.find(errorString)
     array = []
-    for i in range(0, ctest):
-
+    for i in xrange(ctest):
       start = test
       test = logString.find(errorString, start)
       alreadyFound = False
@@ -101,8 +100,11 @@ def readLogFile(logFile, project, version, appConfigVersion, jobID, prodID, wmsI
     if dictTemp != {}:
       dictTotal.append(dictTemp)
     dictG4ErrorsCount[errorString] = dictCountDumpErrorString
+
   createJSONtable(dictTotal, name, jobID, prodID, wmsID)
   createHTMLtable(dictG4ErrorsCount, "errors.html")
+
+  return S_OK()
 
 ################################################
 
@@ -166,7 +168,6 @@ def createJSONtable(dictTotal, name, jobID, prodID, wmsID):
     temp['ID'] = ids
     result['Errors'] = temp
     output.write(json.dumps(result, indent=2))
-  return
 
 #####################################################
 
@@ -206,10 +207,6 @@ def createHTMLtable(dictG4ErrorsCount, name):
 
     f.write("</table>")
 
-  return
-
-#######################################################
-
 
 def readErrorDict(fullPathFileName, dictName):
   """
@@ -225,9 +222,6 @@ def readErrorDict(fullPathFileName, dictName):
     errorString = line.split(',')[0]
     description = line.split(',')[1]
     dictName[errorString] = description
-  return
-
-################################################
 
 
 def getLines(fullPathFileName):
@@ -243,8 +237,6 @@ def getLines(fullPathFileName):
     lines = f.readlines()
   return lines
 
-################################################
-
 
 def getLogString(logFile, logString, fileOK):
   """
@@ -252,7 +244,6 @@ def getLogString(logFile, logString, fileOK):
 
   :param str logFile: the name of the logFile
   :param str logStr: the name of the variable that will save the contents of logFile
-  :param fileOK bool: checks if logFile is ok
   """
 
   gLogger.notice('Attempting to open %s' % logFile)
@@ -264,11 +255,8 @@ def getLogString(logFile, logString, fileOK):
     return S_ERROR()
   with open(logFile, 'r') as f:
     logString = f.read()
-  fileOK = True
   gLogger.notice("Successfully read %s" % logFile)
-  return fileOK
-
-################################################
+  return S_OK()
 
 
 def pickStringFile(project, version, appConfigVersion):
@@ -298,7 +286,6 @@ def pickStringFile(project, version, appConfigVersion):
 
   return fullPathFileName
 
-################################################
 
 # This is a relic from the previous version of the file, I'll keep it for the while
 
