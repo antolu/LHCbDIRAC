@@ -6,45 +6,31 @@
     error suite any failures will not be propagated to the workflow.
 """
 
+__RCSID__ = "$Id$"
+
 import os
-import shutil
-import LHCbDIRAC.Core.Utilities.LogErr as LogErr
 
 from DIRAC import S_OK, S_ERROR, gLogger
-from DIRAC.Core.Utilities import DErrno
 
-from LHCbDIRAC.Core.Utilities.RunApplication import LbRunError, LHCbApplicationError, LHCbDIRACError
+import LHCbDIRAC.Core.Utilities.LogErr as LogErr
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
-
-__RCSID__ = "$Id$"
 
 
 class ErrorLogging(ModuleBase):
 
   #############################################################################
 
-  def __init__(self, bkClient=None, dm=None):
+  def __init__(self):
     """ c'tor
     """
 
     self.log = gLogger.getSubLogger("ErrorLogging")
-    super(ErrorLogging, self).__init__(self.log, bkClientIn=bkClient, dm=dm)
+    super(ErrorLogging, self).__init__(self.log)
 
     self.version = __RCSID__
-    # Step parameters
-    self.applicationName = ''
-    self.applicationVersion = ''
-    self.applicationLog = ''
-    # Workflow commons parameters
-    self.systemConfig = ''
     # Internal parameters
-    self.errorLogFile = ''
     self.errorLogNameHTML = ''
     self.errorLogNamejson = ''
-    self.stdError = ''
-    # Error log parameters
-    self.defaultNameHTML = 'errors.html'
-    self.defaultNamejson = 'errors.json'
 
   #############################################################################
 
@@ -54,17 +40,7 @@ class ErrorLogging(ModuleBase):
     super(ErrorLogging, self)._resolveInputVariables()
     super(ErrorLogging, self)._resolveInputStep()
 
-    self.errorLogFile = 'Error_Log_%s_%s_%s.log' % (self.applicationName,
-                                                    self.applicationVersion,
-                                                    self.step_number)
-    self.errorLogNameHTML = '%d_Errors_%s_%s_%s.html' % (self.jobID,
-                                                         self.applicationName,
-                                                         self.applicationVersion,
-                                                         self.step_number)
-    self.errorLogNamejson = '%d_Errors_%s_%s_%s.json' % (self.jobID,
-                                                         self.applicationName,
-                                                         self.applicationVersion,
-                                                         self.step_number)
+    self.errorLogNamejson = '%d_Errors_%s.json' % (self.jobID, self.applicationName)
 
   #############################################################################
 
@@ -97,65 +73,39 @@ class ErrorLogging(ModuleBase):
         self.log.info('Application log file from previous module not found locally: %s' % self.applicationLog)
         return S_OK()
 
-      # Set some parameter names
-      scriptName = 'Error_Log_%s_%s_Run_%s.sh' % (self.applicationName,
-                                                  self.applicationVersion,
-                                                  self.step_number)
-
-      # keep this small part
-      for x in [self.defaultNameHTML, self.defaultNamejson, scriptName, self.errorLogFile]:
-        if os.path.exists(x):
-          os.remove(x)
-
       # Now really running
-      try:
+      # self.step_commons['extraPackages'] is something like 'AppConfig.v3r360;TurboStreamProd.v4r2p9;ProdConf'
+      appConfigVersion = [x.split('.')[1] for x in self.step_commons['extraPackages'].split(';') if 'AppConfig' in x][0]
+      result = LogErr.readLogFile(
+          logFile=self.applicationLog,
+          project=self.applicationName,
+          version=self.applicationVersion,
+          appConfigVersion=appConfigVersion,
+          jobID=prod_job_id,
+          prodID=production_id,
+          wmsID=wms_job_id,
+          name=self.errorLogNamejson)
 
-        LogErr.readLogFile(
-            self.applicationLog,
-            self.applicationName,
-            self.applicationVersion,
-            prod_job_id,
-            production_id,
-            wms_job_id,
-            self.errorLogNamejson)
-
-      except RuntimeError as e:
-        self.log.info("Error logging for %s %s step %s completed with errors:" % (self.applicationName,
-                                                                                  self.applicationVersion,
-                                                                                  self.step_number))
-        self.log.info('Exiting without affecting workflow status')
+      if not result['OK']:
+        self.log.error("Error logging for %s %s step %s completed with errors:" % (self.applicationName,
+                                                                                   self.applicationVersion,
+                                                                                   self.step_number))
+        self.log.warn('Exiting without affecting workflow status')
         return S_OK()
 
-      if not os.path.exists(self.defaultNameHTML):
-        self.log.info('%s not found locally, exiting without affecting workflow status' % self.defaultNameHTML)
-        return S_OK()
-
-      if not os.path.exists(self.defaultNamejson):
-        self.log.info('%s not found locally, exiting without affecting workflow status' % self.defaultNamejson)
+      if not os.path.exists(self.errorLogNamejson):
+        self.log.error('%s not found locally, exiting without affecting workflow status' % self.errorLogNamejson)
         return S_OK()
 
       self.log.info("Error logging for %s %s step %s completed successfully:" % (self.applicationName,
                                                                                  self.applicationVersion,
                                                                                  self.step_number))
-      shutil.copy(self.defaultNameHTML, self.errorLogNameHTML)
-      shutil.copy(self.defaultNamejson, self.errorLogNamejson)
 
       return S_OK()
 
-    except LbRunError as lbre:  # This is the case for lb-run/environment errors
-      self.setApplicationStatus(repr(lbre))
-      return S_ERROR(DErrno.EWMSRESC, str(lbre))
-    except LHCbApplicationError as lbae:  # This is the case for real application errors
-      self.setApplicationStatus(repr(lbae))
-      return S_ERROR(str(lbae))
-    except LHCbDIRACError as lbde:  # This is the case for LHCbDIRAC errors (e.g. subProcess call failed)
-      self.setApplicationStatus(repr(lbde))
-      return S_ERROR(str(lbde))
-    except Exception as e:  # pylint:disable=broad-except
+    except Exception as e:
       self.log.exception("Failure in ErrorLogging execute module", lException=e)
       return S_ERROR("Error in ErrorLogging module")
 
     finally:
       super(ErrorLogging, self).finalize(self.version)
-
-# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

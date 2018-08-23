@@ -355,7 +355,7 @@ class Production(object):
     """ Add the finalization step (some defaults are inserted)
     """
     if modulesList is None:
-      modulesList = ['UploadOutputData', 'UploadLogFile', 'FailoverRequest']
+      modulesList = ['UploadOutputData', 'UploadLogFile', 'UploadMC', 'FailoverRequest']
 
     if 'Job_Finalization' not in self.LHCbJob.workflow.step_definitions.keys():
 

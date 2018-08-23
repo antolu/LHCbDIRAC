@@ -3,10 +3,13 @@ Reads .log-files and outputs summary of counters as a .json-file and a .html-fil
 '''
 import os
 import json
-from DIRAC import gLogger, S_ERROR, S_OK
+
+from distutils.version import LooseVersion  # pylint:disable=import-error,no-name-in-module
+
+from DIRAC import gLogger, S_OK, S_ERROR
 
 
-def readLogFile(logFile, project, version, jobID, prodID, wmsID, name='errors.json'):
+def readLogFile(logFile, project, version, appConfigVersion, jobID, prodID, wmsID, name='errors.json'):
   """
   The script that runs everything
   :param str logFile: the name of the logfile
@@ -20,21 +23,20 @@ def readLogFile(logFile, project, version, jobID, prodID, wmsID, name='errors.js
 
   fileOK = False
   logString = ''
-  stringFile = ''
-  stringFile = pickStringFile(project, version, stringFile)
+  fullPathFileName = pickStringFile(project, version, appConfigVersion)
   dictTotal = []
   dictG4Errors = dict()
   dictG4ErrorsCount = dict()
 
-  if stringFile is None or os.stat(stringFile)[6] == 0:
-    gLogger.warn('WARNING: STRINGFILE %s is empty' % stringFile)
+  if fullPathFileName is None or not os.path.exists(fullPathFileName) or os.stat(fullPathFileName)[6] == 0:
+    gLogger.warn('STRINGFILE %s is empty' % fullPathFileName)
 
-  readErrorDict(stringFile, dictG4Errors)
+  readErrorDict(fullPathFileName, dictG4Errors)
 
-  fileOK = getLogString(logFile, logString, fileOK)
-  if not fileOK:
-    gLogger.warn('WARNING: Problems in reading %s' % logFile)
-    return S_ERROR()
+  res = getLogString(logFile, logString, fileOK)
+  if not res['OK']:
+    gLogger.warn('Problems in reading %s' % logFile)
+    return res
 
   reversedKeys = sorted(dictG4Errors.keys(), reverse=True)
 
@@ -44,8 +46,7 @@ def readLogFile(logFile, project, version, jobID, prodID, wmsID, name='errors.js
     ctest = logString.count(errorString)
     test = logString.find(errorString)
     array = []
-    for i in range(0, ctest):
-
+    for i in xrange(ctest):
       start = test
       test = logString.find(errorString, start)
       alreadyFound = False
@@ -99,8 +100,11 @@ def readLogFile(logFile, project, version, jobID, prodID, wmsID, name='errors.js
     if dictTemp != {}:
       dictTotal.append(dictTemp)
     dictG4ErrorsCount[errorString] = dictCountDumpErrorString
+
   createJSONtable(dictTotal, name, jobID, prodID, wmsID)
   createHTMLtable(dictG4ErrorsCount, "errors.html")
+
+  return S_OK()
 
 ################################################
 
@@ -163,8 +167,8 @@ def createJSONtable(dictTotal, name, jobID, prodID, wmsID):
         temp[key] = len(value)
     temp['ID'] = ids
     result['Errors'] = temp
-    output.write(json.dumps(result, indent=2))
-  return
+    json.dump(result, output, indent=2)
+
 
 #####################################################
 
@@ -204,44 +208,35 @@ def createHTMLtable(dictG4ErrorsCount, name):
 
     f.write("</table>")
 
-  return
 
-#######################################################
-
-
-def readErrorDict(stringFile, dictName):
+def readErrorDict(fullPathFileName, dictName):
   """
   Reads errors in a stringfile and puts them in dictName
 
-  :param str stringFile: the name of the stringfile
-  :param dict dictName: the name of the dict that will insert the data in stringFile
+  :param str fullPathFileName: the name of the stringfile
+  :param dict dictName: the name of the dict that will insert the data in fullPathFileName
 
   """
 
-  fileLines = getLines(stringFile)
+  fileLines = getLines(fullPathFileName)
   for line in fileLines:
     errorString = line.split(',')[0]
     description = line.split(',')[1]
     dictName[errorString] = description
-  return
-
-################################################
 
 
-def getLines(stringFile):
+def getLines(fullPathFileName):
   """
   Reads lines in string file
 
-  :param str stringFile: the name of the file to be opened and read
+  :param str fullPathFileName: the name of the file to be opened and read
 
   """
 
-  gLogger.notice('>>> Processed STRINGFILE -> ', stringFile)
-  with open(stringFile, 'r') as f:
+  gLogger.notice('>>> Processed STRINGFILE -> ', fullPathFileName)
+  with open(fullPathFileName, 'r') as f:
     lines = f.readlines()
   return lines
-
-################################################
 
 
 def getLogString(logFile, logString, fileOK):
@@ -250,7 +245,6 @@ def getLogString(logFile, logString, fileOK):
 
   :param str logFile: the name of the logFile
   :param str logStr: the name of the variable that will save the contents of logFile
-  :param fileOK bool: checks if logFile is ok
   """
 
   gLogger.notice('Attempting to open %s' % logFile)
@@ -262,39 +256,49 @@ def getLogString(logFile, logString, fileOK):
     return S_ERROR()
   with open(logFile, 'r') as f:
     logString = f.read()
-  fileOK = True
   gLogger.notice("Successfully read %s" % logFile)
-  return fileOK
-
-################################################
+  return S_OK()
 
 
-def pickStringFile(project, version, stringFile):
+def pickStringFile(project, version, appConfigVersion):
   """
   Picks the string file from the current directory
 
   :param str project: the project name
   :param str version: the version of the project
-  :param str stringFile: the
+  :param str version: APPCONFIG version
   """
 
-  # sourceDir = commands.getoutput('echo $PWD') + '/errstrings'
-  sourceDir = os.getcwd()
-  fileString = project + '_' + version + '_errors.txt'
-  stringFile = os.path.join(sourceDir, os.path.basename(fileString))
-  if not os.path.exists(stringFile):
-    gLogger.notice('string file %s does not exist, attempting to take the most recent file ...' % stringFile)
-    fileList = [os.path.join(sourceDir, f) for f in os.listdir(sourceDir) if f.find(project) != -1]
-    if len(fileList) != 0:
-      fileList.sort()
-      stringFile = fileList[len(fileList) - 1]
+  if os.environ.get('VO_LHCB_SW_DIR'):
+    sharedArea = os.environ['VO_LHCB_SW_DIR']
+
+    # sometimes this is wrong... so trying to correct it!
+    if 'lhcb' not in os.listdir(sharedArea):
+      sharedArea = os.path.join(sharedArea, 'lib')
+      if 'lhcb' not in os.listdir(sharedArea):
+        gLogger.error("Current sharedArea (%s) content: " % sharedArea, os.listdir(sharedArea))
+        raise RuntimeError("Can't find a sharedArea")
+
+  else:
+    sharedArea = '/cvmfs/lhcb.cern.ch/lib'
+
+  sourceDir = os.path.join(sharedArea, 'lhcb', 'DBASE', 'AppConfig', appConfigVersion, 'errstrings')
+  fileName = project + '_' + version + '_errs.txt'
+  fullPathFileName = os.path.join(sourceDir, os.path.basename(fileName))
+  if not os.path.exists(fullPathFileName):
+    gLogger.notice('string file %s does not exist, attempting to take the most recent file ...' % fullPathFileName)
+    fileList = [fn for fn in os.listdir(sourceDir) if project in fn]
+    if fileList:
+      versionsList = [x.replace(project + '_', '').replace('_errs.txt', '') for x in fileList]
+      mostRecentVersion = sorted(versionsList, key=LooseVersion)[-1]
+      fileName = project + '_' + mostRecentVersion + '_errs.txt'
+      fullPathFileName = os.path.join(sourceDir, os.path.basename(fileName))
     else:
       gLogger.warn('WARNING: no string files for this project')
       return None
 
-  return stringFile
+  return fullPathFileName
 
-################################################
 
 # This is a relic from the previous version of the file, I'll keep it for the while
 

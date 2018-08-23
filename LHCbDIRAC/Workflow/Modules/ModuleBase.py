@@ -353,10 +353,23 @@ class ModuleBase(object):
     self.stepProcPass = self.step_commons.get('StepProcPass', self.stepProcPass)
 
     if prodID and jobID and stepInstanceNumber:
-      self.outputFilePrefix = "%s_%s_%d" % (prodID, jobID, stepInstanceNumber)
+      self.outputFilePrefix = "%s_%s_%s" % (prodID, jobID, stepInstanceNumber)
       self.applicationLog = self.applicationName + '_' + self.outputFilePrefix + '.log'
       self.XMLSummary = 'summary' + self.applicationName + '_' + self.outputFilePrefix + '.xml'
       self.histoName = self.applicationName + '_' + self.outputFilePrefix + '.Hist.root'
+
+      for fileTypeDict in self.step_commons['listoutput']:  # this is a dict like {'outputDataType': 'sim'}
+        # for non histo-merging prods
+        if 'hist' in fileTypeDict['outputDataType'].lower() and self.jobType.lower() != 'merge':
+          # Watch out: this assumes that:
+          # - 'hist' is always in the file type name
+          # - merging jobs won't produce histograms
+          # - the only merging jobs that produce output types with hist are histomerging productions
+          if 'outputDataName' not in fileTypeDict:
+            fileTypeDict['outputDataName'] = self.histoName
+        else:
+          if 'outputDataName' not in fileTypeDict:
+            fileTypeDict['outputDataName'] = self.outputFilePrefix + '.' + fileTypeDict['outputDataType']
 
     self.inputDataType = self.step_commons.get('inputDataType', self.inputDataType)
 
@@ -418,8 +431,8 @@ class ModuleBase(object):
         (like for the productions for the merging of histograms)
         For the others, we use what is in the step definition
 
-........We always remove the 'HIST'(s), when present, from the list of output file types
-........as these are treated differently.
+        We always remove the 'HIST'(s), when present, from the list of output file types
+        as these are treated differently.
 
         There is  anyway also here the special case of histogram merging productions.
     """
