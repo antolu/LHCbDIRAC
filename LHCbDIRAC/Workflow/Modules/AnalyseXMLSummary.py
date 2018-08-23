@@ -42,9 +42,9 @@ class AnalyseXMLSummary(ModuleBase):
     self.XMLSummary_o = XMLSummary(self.XMLSummary, log=self.log)
 
   def execute(self, production_id=None, prod_job_id=None, wms_job_id=None,
-	      workflowStatus=None, stepStatus=None,
-	      wf_commons=None, step_commons=None,
-	      step_number=None, step_id=None):
+              workflowStatus=None, stepStatus=None,
+              wf_commons=None, step_commons=None,
+              step_number=None, step_id=None):
     """ Main execution method.
 
         Here we analyse what is written in the XML summary, and take decisions accordingly
@@ -52,10 +52,10 @@ class AnalyseXMLSummary(ModuleBase):
 
     try:
       super(AnalyseXMLSummary, self).execute(self.version,
-					     production_id, prod_job_id, wms_job_id,
-					     workflowStatus, stepStatus,
-					     wf_commons, step_commons,
-					     step_number, step_id)
+                                             production_id, prod_job_id, wms_job_id,
+                                             workflowStatus, stepStatus,
+                                             wf_commons, step_commons,
+                                             step_number, step_id)
 
       self._resolveInputVariables()
 
@@ -66,10 +66,10 @@ class AnalyseXMLSummary(ModuleBase):
 
       failTheJob = False
       if self.XMLSummary_o.success == 'True' \
-	      and self.XMLSummary_o.step == 'finalize' \
-	      and self.XMLSummary_o._outputsOK() \
-	      and not self.XMLSummary_o.inputFileStats['mult'] \
-	      and not self.XMLSummary_o.inputFileStats['other']:
+              and self.XMLSummary_o.step == 'finalize' \
+              and self.XMLSummary_o._outputsOK() \
+              and not self.XMLSummary_o.inputFileStats['mult'] \
+              and not self.XMLSummary_o.inputFileStats['other']:
         # basic success, now check for failures in the input files
         failTheJob = self._basicSuccess()
       else:
@@ -77,10 +77,10 @@ class AnalyseXMLSummary(ModuleBase):
         failTheJob = True
 
       if failTheJob:
-	self._finalizeWithErrors("XMLSummary reports error")
+        self._finalizeWithErrors("XMLSummary reports error")
 
-	self.setApplicationStatus("XMLSummary reports error")
-	return S_ERROR("XMLSummary reports error")
+        self.setApplicationStatus("XMLSummary reports error")
+        return S_ERROR("XMLSummary reports error")
 
       # if the XMLSummary looks ok but the step already failed, preserve the previous error
       if not self.stepStatus['OK']:
@@ -105,16 +105,16 @@ class AnalyseXMLSummary(ModuleBase):
     failTheJob = False
     if self.XMLSummary_o.inputFileStats['part']:
       if self.numberOfEvents != -1:
-	self.log.info("Input on part is ok, since we are not processing all")
+        self.log.info("Input on part is ok, since we are not processing all")
         # this is not an error
       else:
         # report to FileReport
-	filesInPart = [x[0].strip('LFN:') for x in self.XMLSummary_o.inputStatus if x[1] == 'part']
-	self.log.error("Files %s are in status 'part'" % ';'.join(filesInPart))
+        filesInPart = [x[0].strip('LFN:') for x in self.XMLSummary_o.inputStatus if x[1] == 'part']
+        self.log.error("Files %s are in status 'part'" % ';'.join(filesInPart))
         for fileInPart in filesInPart:
           if fileInPart in self.inputDataList:
-	    self.log.error("Reporting %s as 'Problematic'" % fileInPart)
-	    self.fileReport.setFileStatus(int(self.production_id), fileInPart, 'Problematic')
+            self.log.error("Reporting %s as 'Problematic'" % fileInPart)
+            self.fileReport.setFileStatus(int(self.production_id), fileInPart, 'Problematic')
             failTheJob = True
 
     if self.XMLSummary_o.inputFileStats['fail']:
@@ -123,8 +123,8 @@ class AnalyseXMLSummary(ModuleBase):
       self.log.error("Files %s are in status 'fail'" % ';'.join(filesInFail))
       for fileInFail in filesInFail:
         if fileInFail in self.inputDataList:
-	  self.log.error("Reporting %s as 'Problematic'" % fileInFail)
-	  self.fileReport.setFileStatus(int(self.production_id), fileInFail, 'Problematic')
+          self.log.error("Reporting %s as 'Problematic'" % fileInFail)
+          self.fileReport.setFileStatus(int(self.production_id), fileInFail, 'Problematic')
           failTheJob = True
 
     return failTheJob
@@ -138,7 +138,7 @@ class AnalyseXMLSummary(ModuleBase):
     if 'outputList' in self.workflow_commons:
       for outputItem in self.step_commons['listoutput']:
         if outputItem not in self.workflow_commons['outputList']:
-	  self.workflow_commons['outputList'].append(outputItem)
+          self.workflow_commons['outputList'].append(outputItem)
     else:
       self.workflow_commons['outputList'] = self.step_commons['listoutput']
 
@@ -155,7 +155,7 @@ class AnalyseXMLSummary(ModuleBase):
     debugLFNs = result['Value']['DebugLFNs']
 
     subject = '[' + self.siteName + '][' + self.applicationName + '] ' + self.applicationVersion + \
-	      ": " + subj + ' ' + self.production_id + '_' + self.prod_job_id + ' JobID=' + str(self.jobID)
+              ": " + subj + ' ' + self.production_id + '_' + self.prod_job_id + ' JobID=' + str(self.jobID)
     msg = 'The Application ' + self.applicationName + ' ' + self.applicationVersion + ' had a problem \n'
     msg = msg + 'at site ' + self.siteName + '\n'
     msg = msg + 'JobID is ' + str(self.jobID) + '\n'
@@ -164,7 +164,7 @@ class AnalyseXMLSummary(ModuleBase):
     toUpload = {}
     for lfn in debugLFNs:
       if os.path.exists(os.path.basename(lfn)):
-	toUpload[os.path.basename(lfn)] = lfn
+        toUpload[os.path.basename(lfn)] = lfn
 
     if toUpload:
       msg += '\n\nIntermediate job data files:\n'
@@ -174,35 +174,35 @@ class AnalyseXMLSummary(ModuleBase):
 
       guidInput = ''
       if not guidResult['OK']:
-	self.log.error('Could not find GUID for %s with message' % (fname), guidResult['Message'])
+        self.log.error('Could not find GUID for %s with message' % (fname), guidResult['Message'])
       elif guidResult['generated']:
-	self.log.info('PoolXMLFile generated GUID(s) for the following files ', ', '.join(guidResult['generated']))
+        self.log.info('PoolXMLFile generated GUID(s) for the following files ', ', '.join(guidResult['generated']))
         guidInput = guidResult['Value'][fname]
       else:
         guidInput = guidResult['Value'][fname]
 
       if self._WMSJob():
-	self.log.info('Attempting: dm.putAndRegister("%s","%s","%s","%s") on master catalog' % (fname, lfn, guidInput,
-												self.debugSE))
-	result = DataManager(masterCatalogOnly=True).putAndRegister(lfn, fname, self.debugSE, guidInput)
-	self.log.info(result)
+        self.log.info('Attempting: dm.putAndRegister("%s","%s","%s","%s") on master catalog' % (fname, lfn, guidInput,
+                                                                                                self.debugSE))
+        result = DataManager(masterCatalogOnly=True).putAndRegister(lfn, fname, self.debugSE, guidInput)
+        self.log.info(result)
         if not result['OK']:
-	  self.log.error('Could not save INPUT data file with result', str(result['Message']))
-	  msg += 'Could not save intermediate data file %s with result\n%s\n' % (fname, result['Message'])
+          self.log.error('Could not save INPUT data file with result', str(result['Message']))
+          msg += 'Could not save intermediate data file %s with result\n%s\n' % (fname, result['Message'])
         else:
-	  msg = msg + lfn + '\n' + str(result) + '\n'
+          msg = msg + lfn + '\n' + str(result) + '\n'
       else:
-	self.log.info("JOBID is null, would have attempted to upload: LFN:%s, file %s, GUID %s to %s" % (lfn, fname,
-													 guidInput,
-													 self.debugSE))
+        self.log.info("JOBID is null, would have attempted to upload: LFN:%s, file %s, GUID %s to %s" % (lfn, fname,
+                                                                                                         guidInput,
+                                                                                                         self.debugSE))
 
     if not self._WMSJob():
       self.log.info("JOBID is null, *NOT* sending mail, for information the mail was:\n====>Start\n%s\n<====End"
-		    % (msg))
+                    % (msg))
     else:
       mailAddress = self.opsH.getValue('EMail/JobFailures', 'lhcb-datacrash@cern.ch')
       self.log.info('Sending crash mail for job to %s' % (mailAddress))
 
       res = self.nc.sendMail(mailAddress, subject, msg, 'joel.closier@cern.ch', localAttempt=False)
       if not res['OK']:
-	self.log.warn("The mail could not be sent")
+        self.log.warn("The mail could not be sent")

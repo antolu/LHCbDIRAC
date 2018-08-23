@@ -11,10 +11,8 @@ __RCSID__ = "$Id$"
 import os
 
 from DIRAC import S_OK, S_ERROR, gLogger
-from DIRAC.Core.Utilities import DErrno
 
 import LHCbDIRAC.Core.Utilities.LogErr as LogErr
-from LHCbDIRAC.Core.Utilities.RunApplication import LbRunError, LHCbApplicationError, LHCbDIRACError
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
 
@@ -75,31 +73,31 @@ class ErrorLogging(ModuleBase):
                                                                      self.applicationVersion,
                                                                      self.applicationLog))
       if not os.path.exists(self.applicationLog):
-	self.log.info('Application log file from previous module not found locally: %s' % self.applicationLog)
-	return S_OK()
+        self.log.info('Application log file from previous module not found locally: %s' % self.applicationLog)
+        return S_OK()
 
       # Now really running
       appConfigVersion = [x.split('.')[1] for x in self.step_commons['extraPackages'].split(';') if 'AppConfig' in x][0]
       result = LogErr.readLogFile(
-	  logFile=self.applicationLog,
-	  project=self.applicationName,
-	  version=self.applicationVersion,
-	  appConfigVersion=appConfigVersion,
-	  jobID=prod_job_id,
-	  prodID=production_id,
-	  wmsID=wms_job_id,
-	  name=self.errorLogNamejson)
+          logFile=self.applicationLog,
+          project=self.applicationName,
+          version=self.applicationVersion,
+          appConfigVersion=appConfigVersion,
+          jobID=prod_job_id,
+          prodID=production_id,
+          wmsID=wms_job_id,
+          name=self.errorLogNamejson)
 
       if not result['OK']:
-	self.log.error("Error logging for %s %s step %s completed with errors:" % (self.applicationName,
-										   self.applicationVersion,
-										   self.step_number))
-	self.log.warn('Exiting without affecting workflow status')
-	return S_OK()
+        self.log.error("Error logging for %s %s step %s completed with errors:" % (self.applicationName,
+                                                                                   self.applicationVersion,
+                                                                                   self.step_number))
+        self.log.warn('Exiting without affecting workflow status')
+        return S_OK()
 
       if not os.path.exists(self.errorLogNamejson):
-	self.log.error('%s not found locally, exiting without affecting workflow status' % self.errorLogNamejson)
-	return S_OK()
+        self.log.error('%s not found locally, exiting without affecting workflow status' % self.errorLogNamejson)
+        return S_OK()
 
       self.log.info("Error logging for %s %s step %s completed successfully:" % (self.applicationName,
                                                                                  self.applicationVersion,

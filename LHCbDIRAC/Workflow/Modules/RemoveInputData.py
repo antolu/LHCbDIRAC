@@ -37,17 +37,17 @@ class RemoveInputData(ModuleBase):
   #############################################################################
 
   def execute(self, production_id=None, prod_job_id=None, wms_job_id=None,
-	      workflowStatus=None, stepStatus=None,
-	      wf_commons=None, step_commons=None,
-	      step_number=None, step_id=None):
+              workflowStatus=None, stepStatus=None,
+              wf_commons=None, step_commons=None,
+              step_number=None, step_id=None):
     """ Main execution function.
     """
 
     try:
 
       super(RemoveInputData, self).execute(self.version, production_id, prod_job_id, wms_job_id,
-					   workflowStatus, stepStatus,
-					   wf_commons, step_commons, step_number, step_id)
+                                           workflowStatus, stepStatus,
+                                           wf_commons, step_commons, step_number, step_id)
 
       if not self._checkWFAndStepStatus():
         return S_OK()
@@ -63,21 +63,21 @@ class RemoveInputData(ModuleBase):
       result = self.dataManager.removeFile(self.inputDataList)
       self.log.verbose(result)
       if not result['OK']:
-	self.log.error('Could not remove files with message:\n"%s"\n\
-	Will set removal requests just in case.' % (result['Message']))
+        self.log.error('Could not remove files with message:\n"%s"\n\
+        Will set removal requests just in case.' % (result['Message']))
         failover = self.inputDataList
       try:
         if result['Value']['Failed']:
           failureDict = result['Value']['Failed']
           if failureDict:
-	    self.log.info('Not all files were successfully removed, see "LFN : reason" below\n%s' % (failureDict))
+            self.log.info('Not all files were successfully removed, see "LFN : reason" below\n%s' % (failureDict))
           failover = failureDict.keys()
       except KeyError:
-	self.log.error('Setting files for removal request to be the input data: %s' % self.inputDataList)
+        self.log.error('Setting files for removal request to be the input data: %s' % self.inputDataList)
         failover = self.inputDataList
 
       for lfn in failover:
-	self.__setFileRemovalRequest(lfn)
+        self.__setFileRemovalRequest(lfn)
 
       return S_OK('Input Data Removed')
 
@@ -101,5 +101,3 @@ class RemoveInputData(ModuleBase):
     rmFile.LFN = lfn
     removeFile.addFile(rmFile)
     self.request.addOperation(removeFile)
-
-# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

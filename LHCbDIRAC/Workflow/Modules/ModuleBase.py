@@ -418,8 +418,8 @@ class ModuleBase(object):
         (like for the productions for the merging of histograms)
         For the others, we use what is in the step definition
 
-	We always remove the 'HIST'(s), when present, from the list of output file types
-	as these are treated differently.
+        We always remove the 'HIST'(s), when present, from the list of output file types
+        as these are treated differently.
 
         There is  anyway also here the special case of histogram merging productions.
     """

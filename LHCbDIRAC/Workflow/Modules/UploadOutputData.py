@@ -91,8 +91,8 @@ class UploadOutputData(ModuleBase):
               SEs=None, fileDescendants=None):
     """ Main execution function.
 
-	1. Determine the final list of possible output files for the workflow
-	   and all the parameters needed to upload them.
+        1. Determine the final list of possible output files for the workflow
+           and all the parameters needed to upload them.
         2. Verifying that the input files have no descendants (and exiting with error, otherwise)
         3. Sending the BK records for the steps of the job
         4. Transfer output files in their destination, register in the FC (with failover)

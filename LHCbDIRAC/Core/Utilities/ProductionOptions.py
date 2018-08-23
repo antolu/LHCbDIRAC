@@ -12,11 +12,9 @@ from DIRAC import S_OK, gLogger
 
 gLogger = gLogger.getSubLogger('ProductionOptions')
 
-#############################################################################
-
 
 def getModuleOptions(applicationName, numberOfEvents, inputDataOptions, extraOptions='',
-		     runNumber=0, firstEventNumber=1, jobType=''):
+                     runNumber=0, firstEventNumber=1, jobType=''):
   """ Return the standard options for a Gaudi application project to be used at run time
       by the workflow modules.  The input data options field is a python list (output of
       getInputDataOptions() below). The runNumber and firstEventNumber only apply in the Gauss case
@@ -33,7 +31,7 @@ def getModuleOptions(applicationName, numberOfEvents, inputDataOptions, extraOpt
   if extraOptions:
     for opt in extraOptions.split(';'):
       if opt:
-	optionsLines.append(opt)
+        optionsLines.append(opt)
 
   if inputDataOptions:
     optionsLines += inputDataOptions
@@ -49,8 +47,6 @@ def getModuleOptions(applicationName, numberOfEvents, inputDataOptions, extraOpt
   finalLines = '\n'.join(optionsLines) + '\n'
   return S_OK(finalLines)
 
-#############################################################################
-
 
 def getDataOptions(applicationName, inputDataList, inputDataType, poolXMLCatalogName):
   """Given a list of input data and a specified input data type this function will
@@ -60,7 +56,7 @@ def getDataOptions(applicationName, inputDataList, inputDataType, poolXMLCatalog
   options = []
   if inputDataList:
     gLogger.info('Formatting options for %s: %s LFN(s) of type %s' %
-		 (applicationName, len(inputDataList), inputDataType))
+                 (applicationName, len(inputDataList), inputDataType))
 
     inputDataOpt = getEventSelectorInput(inputDataList, inputDataType)['Value']
     evtSelOpt = """EventSelector().Input=[%s];\n""" % (inputDataOpt)
@@ -69,8 +65,6 @@ def getDataOptions(applicationName, inputDataList, inputDataType, poolXMLCatalog
   poolOpt = """\nFileCatalog().Catalogs= ["xmlcatalog_file:%s"]\n""" % (poolXMLCatalogName)
   options.append(poolOpt)
   return S_OK(options)
-
-#############################################################################
 
 
 def getEventSelectorInput(inputDataList, inputDataType):
@@ -88,9 +82,9 @@ def getEventSelectorInput(inputDataList, inputDataType):
       inputDataFiles.append(""" %s """ % cmd)
     elif inputDataType == 'RDST':
       if re.search('rdst$', lfn):
-	inputDataFiles.append(""" "DATAFILE='LFN:%s' TYP='POOL_ROOTTREE' OPT='READ'", """ % (lfn))
+        inputDataFiles.append(""" "DATAFILE='LFN:%s' TYP='POOL_ROOTTREE' OPT='READ'", """ % (lfn))
       else:
-	gLogger.info('Ignoring file %s for step with input data type %s' % (lfn, inputDataType))
+        gLogger.info('Ignoring file %s for step with input data type %s' % (lfn, inputDataType))
     else:
       inputDataFiles.append(""" "DATAFILE='LFN:%s' TYP='POOL_ROOTTREE' OPT='READ'", """ % (lfn))
 

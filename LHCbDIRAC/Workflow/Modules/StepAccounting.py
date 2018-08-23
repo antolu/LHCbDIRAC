@@ -49,19 +49,19 @@ class StepAccounting(ModuleBase):
   ########################################################################
 
   def execute(self, production_id=None, prod_job_id=None, wms_job_id=None,
-	      workflowStatus=None, stepStatus=None,
-	      wf_commons=None, step_commons=None,
-	      step_number=None, step_id=None,
-	      js=None, xf_o=None, dsc=None):
+              workflowStatus=None, stepStatus=None,
+              wf_commons=None, step_commons=None,
+              step_number=None, step_id=None,
+              js=None, xf_o=None, dsc=None):
 
     try:
       super(StepAccounting, self).execute(self.version, production_id, prod_job_id, wms_job_id,
-					  workflowStatus, stepStatus,
-					  wf_commons, step_commons, step_number, step_id)
+                                          workflowStatus, stepStatus,
+                                          wf_commons, step_commons, step_number, step_id)
 
       # Check if the step is worth accounting
       if 'applicationName' not in self.step_commons:
-	self.log.info('Not an application step: it will not be accounted')
+        self.log.info('Not an application step: it will not be accounted')
         return S_OK()
 
       ########################################################################
@@ -81,7 +81,7 @@ class StepAccounting(ModuleBase):
         try:
           xf_o = self.step_commons['XMLSummary_o']
         except KeyError:
-	  self.log.error('XML Summary object could not be found (not produced?), skipping the report')
+          self.log.error('XML Summary object could not be found (not produced?), skipping the report')
           return S_OK()
 
       self._resolveInputVariables(dsc)
@@ -101,20 +101,20 @@ class StepAccounting(ModuleBase):
                   'CPUTime': cpuTime,
                   'NormCPUTime': normCPU,
                   'ExecTime': execTime,
-		  'InputData': sum(xf_o.inputFileStats.values()),
-		  'OutputData': sum(xf_o.outputFileStats.values()),
+                  'InputData': sum(xf_o.inputFileStats.values()),
+                  'OutputData': sum(xf_o.outputFileStats.values()),
                   'InputEvents': xf_o.inputEventsTotal,
-		  'OutputEvents': xf_o.outputEventsTotal}
+                  'OutputEvents': xf_o.outputEventsTotal}
 
       jobStep.setValuesFromDict(dataDict)
 
       res = jobStep.checkValues()
       if not res['OK']:
-	self.log.error('Values for StepAccounting are wrong', res['Message'], dataDict)
-	return S_ERROR('Values for StepAccounting are wrong')
+        self.log.error('Values for StepAccounting are wrong', res['Message'], dataDict)
+        return S_ERROR('Values for StepAccounting are wrong')
 
       if not self._enableModule():
-	self.log.info('Not enabled, would have accounted for %s' % dataDict)
+        self.log.info('Not enabled, would have accounted for %s' % dataDict)
         return S_OK()
 
       self.dsc.addRegister(jobStep)

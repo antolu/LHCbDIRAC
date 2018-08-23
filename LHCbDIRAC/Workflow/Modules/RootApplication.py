@@ -57,8 +57,8 @@ class RootApplication(ModuleBase):
       self.arguments = self.step_commons['arguments']
       tmp = []
       for argument in self.arguments:
-	if argument or not isinstance(argument, list):
-	  tmp.append(argument)
+        if argument or not isinstance(argument, list):
+          tmp.append(argument)
       self.arguments = tmp
     else:
       self.log.warn('No arguments specified')
@@ -67,69 +67,64 @@ class RootApplication(ModuleBase):
 
   #############################################################################
   def execute(self, production_id=None, prod_job_id=None, wms_job_id=None,
-	      workflowStatus=None, stepStatus=None,
-	      wf_commons=None, step_commons=None,
-	      step_id=None, step_number=None):
+              workflowStatus=None, stepStatus=None,
+              wf_commons=None, step_commons=None,
+              step_id=None, step_number=None):
     """The main execution method of the RootApplication module: runs a ROOT app using RunApplication module
     """
 
     try:
 
       super(RootApplication, self).execute(self.version, production_id, prod_job_id, wms_job_id, workflowStatus,
-					   stepStatus, wf_commons, step_commons, step_number, step_id)
+                                           stepStatus, wf_commons, step_commons, step_number, step_id)
 
       self._resolveInputVariables()
 
       if not self.applicationVersion:
-	raise RuntimeError('No Root Version defined')
+        raise RuntimeError('No Root Version defined')
       if not self.systemConfig:
-	raise RuntimeError('No system configuration selected')
+        raise RuntimeError('No system configuration selected')
       if not self.applicationName:
-	raise RuntimeError('No script defined')
+        raise RuntimeError('No script defined')
       if not self.applicationLog:
         self.applicationLog = '%s.log' % self.applicationName
       if self.rootType.lower() not in ('c', 'py', 'bin', 'exe'):
-	raise RuntimeError('Wrong root type defined')
+        raise RuntimeError('Wrong root type defined')
 
       self.setApplicationStatus('Initializing RootApplication module')
 
       self.log.info("Executing application Root %s with CMT config %s " % (self.applicationVersion, self.systemConfig))
 
       if not os.path.exists(self.applicationName):
-	self.log.error('rootScript not Found at %s' % os.path.abspath('.'))
-	return S_ERROR('rootScript not Found')
+        self.log.error('rootScript not Found at %s' % os.path.abspath('.'))
+        return S_ERROR('rootScript not Found')
 
       if self.rootType.lower() == 'c':
         rootCmd = ['root']
-	rootCmd.append('-b')
-	rootCmd.append('-f')
+        rootCmd.append('-b')
+        rootCmd.append('-f')
         if self.arguments:
           escapedArgs = []
           for arg in self.arguments:
-	    if isinstance(arg, str):
-	      escapedArgs.append('\'"%s"\'' % (arg))
+            if isinstance(arg, str):
+              escapedArgs.append('\'"%s"\'' % (arg))
             else:
-	      escapedArgs.append('%s' % (arg))
+              escapedArgs.append('%s' % (arg))
 
-	  macroArgs = r'%s\(%s\)' % (self.applicationName, ','.join(escapedArgs))
-	  rootCmd.append(macroArgs)
+          macroArgs = r'%s\(%s\)' % (self.applicationName, ','.join(escapedArgs))
+          rootCmd.append(macroArgs)
         else:
-	  rootCmd.append(self.applicationName)
+          rootCmd.append(self.applicationName)
 
       elif self.rootType.lower() == 'py':
 
         rootCmd = ['python']
-	rootCmd.append(self.applicationName)
-        if self.arguments:
-          rootCmd += self.arguments
-
-      elif self.rootType.lower() in ('bin', 'exe'):
-	rootCmd = [os.path.abspath(self.applicationName)]
+        rootCmd = [os.path.abspath(self.applicationName)]
         if self.arguments:
           rootCmd += self.arguments
 
       if os.path.exists(self.applicationLog):
-	os.remove(self.applicationLog)
+        os.remove(self.applicationLog)
 
       # How to run the application
       ra = RunApplication()
@@ -163,5 +158,3 @@ class RootApplication(ModuleBase):
 
     finally:
       super(RootApplication, self).finalize(self.version)
-
-# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

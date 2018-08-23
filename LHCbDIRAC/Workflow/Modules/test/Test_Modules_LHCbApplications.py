@@ -38,7 +38,7 @@ class ModulesApplicationsTestCase(unittest.TestCase):
     for fileProd in ['prodConf_someApp_123_00000456_123_00000456_321.py', 'appLog', 'gaudi_extra_options.py',
                      'applicationError.txt', 'someApp', 'applicationLog.txt']:
       try:
-	os.remove(fileProd)
+        os.remove(fileProd)
       except OSError:
         continue
 
@@ -60,10 +60,10 @@ class GaudiApplicationSuccess(ModulesApplicationsTestCase):
     # no errors, no input data
     for wf_cs in copy.deepcopy(wf_commons):
       for s_cs in step_commons:
-	self.assertTrue(ga.execute(prod_id, prod_job_id, wms_job_id,
-				   workflowStatus, stepStatus,
-				   wf_cs, s_cs,
-				   step_number, step_id)['OK'])
+        self.assertTrue(ga.execute(prod_id, prod_job_id, wms_job_id,
+                                   workflowStatus, stepStatus,
+                                   wf_cs, s_cs,
+                                   step_number, step_id)['OK'])
 
 
 #############################################################################
@@ -82,10 +82,10 @@ class GaudiApplicationScriptSuccess(ModulesApplicationsTestCase):
     for wf_cs in copy.deepcopy(wf_commons):
       for s_cs in step_commons:
         s_cs['script'] = 'cat'
-	self.assertTrue(gas.execute(prod_id, prod_job_id, wms_job_id,
-				    workflowStatus, stepStatus,
-				    wf_cs, s_cs,
-				    step_number, step_id)['OK'])
+        self.assertTrue(gas.execute(prod_id, prod_job_id, wms_job_id,
+                                    workflowStatus, stepStatus,
+                                    wf_cs, s_cs,
+                                    step_number, step_id)['OK'])
 
 #############################################################################
 # LHCbScript.py
@@ -120,7 +120,7 @@ class LHCbScriptSuccess(ModulesApplicationsTestCase):
         lhcbScript.step_commons = s_cs
         lhcbScript._setCommand()
         res = lhcbScript._executeCommand()
-	self.assertIsNone(res)
+        self.assertIsNone(res)
 
 
 class LHCbScriptFailure(ModulesApplicationsTestCase):
@@ -148,7 +148,7 @@ class LHCbScriptFailure(ModulesApplicationsTestCase):
         lhcbScript.workflow_commons = wf_cs
         lhcbScript.step_commons = s_cs
         res = lhcbScript.execute()
-	self.assertFalse(res['OK'])
+        self.assertFalse(res['OK'])
 
 #############################################################################
 # RootApplication.py
@@ -172,10 +172,10 @@ class RootApplicationSuccess(ModulesApplicationsTestCase):
     # no errors, no input data
     for wf_cs in copy.deepcopy(wf_commons):
       for s_cs in step_commons:
-	self.assertTrue(ra.execute(prod_id, prod_job_id, wms_job_id,
-				   workflowStatus, stepStatus,
-				   wf_cs, s_cs,
-				   step_number, step_id)['OK'])
+        self.assertTrue(ra.execute(prod_id, prod_job_id, wms_job_id,
+                                   workflowStatus, stepStatus,
+                                   wf_cs, s_cs,
+                                   step_number, step_id)['OK'])
 
 
 #############################################################################
@@ -192,10 +192,10 @@ class ErrorLoggingSuccess(ModulesApplicationsTestCase):
     # no errors, no input data
     for wf_cs in copy.deepcopy(wf_commons):
       for s_cs in step_commons:
-	self.assertTrue(er.execute(prod_id, prod_job_id, wms_job_id,
-				   workflowStatus, stepStatus,
-				   wf_cs, s_cs,
-				   step_number, step_id)['OK'])
+        self.assertTrue(er.execute(prod_id, prod_job_id, wms_job_id,
+                                   workflowStatus, stepStatus,
+                                   wf_cs, s_cs,
+                                   step_number, step_id)['OK'])
 
 
 if __name__ == '__main__':
