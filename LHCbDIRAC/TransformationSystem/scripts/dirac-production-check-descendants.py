@@ -236,25 +236,44 @@ if __name__ == '__main__':
 
     fixItUsed = False
     if cc.prcdWithoutDesc:
-      lfns = sorted(cc.prcdWithoutDesc)
-      gLogger.notice("Processed LFNs without descendants (%d) -> ERROR!" % len(lfns))
-      gLogger.notice('First %d files:' % nMax if not verbose and len(lfns) > nMax else 'All files:',
-                     '\n'.join([''] + lfns[0:nMax]))
+      lfns = set(cc.prcdWithoutDesc)
+      res = cc.bkClient.getFileMetadata(list(lfns))
+      badLfns = set()
+      if res['OK']:
+        # Check the DQ flag of these files
+        badLfns = set(lfn for lfn, meta in res['Value']['Successful'].iteritems() if meta['DataqualityFlag'] == 'BAD')
+      if badLfns:
+        gLogger.notice("Processed LFNs without descendants (%d)" % len(lfns))
+        gLogger.notice(
+            "WARNING: %d of these files have a BAD data quality flag and thus may have been removed" %
+            len(badLfns))
       if fixIt:
         fixIt = False
         gLogger.notice("Resetting them 'Unused'")
-        res = cc.transClient.setFileStatusForTransformation(prod, 'Unused', lfns, force=True)
+        res = cc.transClient.setFileStatusForTransformation(prod, 'Unused', list(lfns), force=True)
         if not res['OK']:
           gLogger.notice("Error resetting files to Unused", res['Message'])
       else:
         fixItUsed = True
         if not fp:
           fp = open(fileName, 'w')
-        fp.write('\nProcNoDesc '.join([''] + lfns))
-        if cc.fileType:
-          gLogger.notice("You may want to check those files again for all file types, using:")
-          gLogger.notice("     grep ProcNoDesc %s | dirac-production-check-descendants %s" % (fileName, cc.prod))
-        gLogger.notice("If you are sure, use --FixIt for resetting files Unused in TS")
+        if badLfns:
+          lfns -= badLfns
+          fp.write('\nProcButBAD '.join([''] + sorted(badLfns)))
+          gLogger.notice("BAD files processed without descendants can be checked using:")
+          gLogger.notice("     grep ProcButBAD %s" % fileName)
+        if lfns:
+          lfns = sorted(lfns)
+          gLogger.notice("Processed LFNs without descendants (%d) -> ERROR!" % len(lfns))
+          gLogger.notice('First %d files:' % nMax if not verbose and len(lfns) > nMax else 'All files:',
+                         '\n'.join([''] + lfns[0:nMax]))
+          fp.write('\nProcNoDesc '.join([''] + lfns))
+          if cc.fileType:
+            gLogger.notice("You may want to check those files again for all file types, using:")
+            gLogger.notice("     grep ProcNoDesc %s | dirac-production-check-descendants %s" % (fileName, cc.prod))
+          gLogger.notice("If you are sure, use --FixIt for resetting files Unused in TS")
+        else:
+          gLogger.notice("No files processed without descendants that are not BAD")
     else:
       gLogger.notice("No processed LFNs without descendants found -> OK!")
 
