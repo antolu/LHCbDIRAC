@@ -268,8 +268,8 @@ def pickStringFile(project, version, appConfigVersion):
   :param str version: APPCONFIG version
   """
 
-  if 'VO_LHCB_SW_DIR' in os.environ:
-    sharedArea = os.path.join(os.environ['VO_LHCB_SW_DIR'], 'lib')
+  if os.environ.get('VO_LHCB_SW_DIR'):
+    sharedArea = os.environ['VO_LHCB_SW_DIR']
   else:
     sharedArea = '/cvmfs/lhcb.cern.ch/lib'
 
