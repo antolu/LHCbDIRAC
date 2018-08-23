@@ -46,23 +46,26 @@ class UploadMC(ModuleBase):
 
       self._resolveInputVariables()
 
-      # looking for json files that are
-      # 'self.jobID_Errors_appName.json'
+      # looking for json files that are 'self.jobID_Errors_appName.json'
       for app in ['Gauss', 'Boole']:
         fn = '%s_Errors_%s.json' % (self.jobID, app)
         if os.path.exists(fn):
-          jsonData = json.loads(fn)
+          with open(fn) as fd:
+            try:
+              jsonData = json.load(fd)
+              self.log.verbose(json.dumps(jsonData))
+              if self._enableModule():
+                res = MCStatsClient().set('LogErr', 'json', jsonData)
+                if not res['OK']:
+                  self.log.error('%s not set, exiting without affecting workflow status' % jsonData, res['Message'])
+              else:
+                # At this point we can see exactly what the module would have uploaded
+                self.log.info("Would have attempted to upload the following file %s" % fn)
+            except BaseException as ve:
+              print fd.read()
+              raise ve
         else:
           self.log.info("JSON file %s not found" % fn)
-
-        if not self._enableModule():
-          # At this point can exit and see exactly what the module would have uploaded
-          self.log.info("Would have attempted to upload the following files %s" % json.dumps(jsonData))
-          continue
-
-        res = MCStatsClient().set('LogErr', 'json', jsonData)
-        if not res['OK']:
-          self.log.error('%s not set, exiting without affecting workflow status' % jsonData, res['Message'])
 
       return S_OK()
 
