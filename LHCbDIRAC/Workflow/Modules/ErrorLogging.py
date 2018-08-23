@@ -42,10 +42,6 @@ class ErrorLogging(ModuleBase):
     super(ErrorLogging, self)._resolveInputVariables()
     super(ErrorLogging, self)._resolveInputStep()
 
-    self.errorLogNameHTML = '%d_Errors_%s_%s_%s.html' % (self.jobID,
-                                                         self.applicationName,
-                                                         self.applicationVersion,
-                                                         self.step_number)
     self.errorLogNamejson = '%d_Errors_%s_%s_%s.json' % (self.jobID,
                                                          self.applicationName,
                                                          self.applicationVersion,
@@ -101,12 +97,8 @@ class ErrorLogging(ModuleBase):
         self.log.warn('Exiting without affecting workflow status')
         return S_OK()
 
-      if not os.path.exists(self.errorLogNameHTML):
-        self.log.error('%s not found locally, exiting without affecting workflow status' % self.defaultNameHTML)
-        return S_OK()
-
       if not os.path.exists(self.errorLogNamejson):
-        self.log.error('%s not found locally, exiting without affecting workflow status' % self.defaultNamejson)
+        self.log.error('%s not found locally, exiting without affecting workflow status' % self.errorLogNamejson)
         return S_OK()
 
       self.log.info("Error logging for %s %s step %s completed successfully:" % (self.applicationName,
