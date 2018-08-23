@@ -167,7 +167,8 @@ def createJSONtable(dictTotal, name, jobID, prodID, wmsID):
         temp[key] = len(value)
     temp['ID'] = ids
     result['Errors'] = temp
-    output.write(json.dumps(result, indent=2))
+    json.dump(result, output, indent=2)
+
 
 #####################################################
 

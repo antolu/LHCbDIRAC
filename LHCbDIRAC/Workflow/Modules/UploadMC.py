@@ -3,6 +3,7 @@
 
 __RCSID__ = "$Id$"
 
+import os
 import json
 
 from DIRAC import S_OK, S_ERROR, gLogger
@@ -45,30 +46,29 @@ class UploadMC(ModuleBase):
 
       self._resolveInputVariables()
 
-      if self.applicationName.lower() not in ('gauss', 'boole'):
-        self.log.info('Not Gauss nor Boole, exiting')
-        return S_OK()
-
       # looking for json files that are
-      # 'self.jobID_Errors_self.applicationName_self.applicationVersion_self.step_number.json'
-      jsonData = json.loads('%s_Errors_%s_%s_%s.json' % (self.jobID,
-                                                         self.applicationName,
-                                                         self.applicationVersion,
-                                                         self.step_number))
+      # 'self.jobID_Errors_appName.json'
+      for app in ['Gauss', 'Boole']:
+        fn = '%s_Errors_%s.json' % (self.jobID, app)
+        if os.path.exists(fn):
+          jsonData = json.loads(fn)
+        else:
+          self.log.info("JSON file %s not found" % fn)
 
-      if not self._enableModule():
-        # At this point can exit and see exactly what the module would have uploaded
-        self.log.info("Would have attempted to upload the following files %s" % json.dumps(jsonData))
-        return S_OK()
+        if not self._enableModule():
+          # At this point can exit and see exactly what the module would have uploaded
+          self.log.info("Would have attempted to upload the following files %s" % json.dumps(jsonData))
+          continue
 
-      res = MCStatsClient().set('LogErr', 'json', jsonData)
-      if not res['OK']:
-        self.log.error('%s not found locally, exiting without affecting workflow status' % jsonData)
-        return S_OK()
+        res = MCStatsClient().set('LogErr', 'json', jsonData)
+        if not res['OK']:
+          self.log.error('%s not set, exiting without affecting workflow status' % jsonData, res['Message'])
+
+      return S_OK()
 
     except Exception as e:
       self.log.exception("Failure in UploadMC execute module", lException=e)
-      return S_ERROR(str(e))
+      return S_ERROR(repr(e))
 
     finally:
       super(UploadMC, self).finalize(self.version)

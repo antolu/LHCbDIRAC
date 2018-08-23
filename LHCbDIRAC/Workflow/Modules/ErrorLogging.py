@@ -40,10 +40,7 @@ class ErrorLogging(ModuleBase):
     super(ErrorLogging, self)._resolveInputVariables()
     super(ErrorLogging, self)._resolveInputStep()
 
-    self.errorLogNamejson = '%d_Errors_%s_%s_%s.json' % (self.jobID,
-                                                         self.applicationName,
-                                                         self.applicationVersion,
-                                                         self.step_number)
+    self.errorLogNamejson = '%d_Errors_%s.json' % (self.jobID, self.applicationName)
 
   #############################################################################
 
