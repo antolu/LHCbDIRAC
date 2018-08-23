@@ -273,7 +273,7 @@ def pickStringFile(project, version, appConfigVersion):
   else:
     sharedArea = '/cvmfs/lhcb.cern.ch/lib'
 
-  sourceDir = os.path.join(sharedArea, '/lhcb/DBASE/AppConfig/', appConfigVersion, 'errstrings')
+  sourceDir = os.path.join(sharedArea, 'lhcb', 'DBASE', 'AppConfig', appConfigVersion, 'errstrings')
   fileName = project + '_' + version + '_errs.txt'
   fullPathFileName = os.path.join(sourceDir, os.path.basename(fileName))
   if not os.path.exists(fullPathFileName):
