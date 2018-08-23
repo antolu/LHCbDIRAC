@@ -268,8 +268,12 @@ def pickStringFile(project, version, appConfigVersion):
   :param str version: APPCONFIG version
   """
 
-  # sourceDir = commands.getoutput('echo $PWD') + '/errstrings'
-  sourceDir = os.path.join('/cvmfs/lhcb.cern.ch/lib/lhcb/DBASE/AppConfig/', appConfigVersion, 'errstrings')
+  if 'VO_LHCB_SW_DIR' in os.environ:
+    sharedArea = os.path.join(os.environ['VO_LHCB_SW_DIR'], 'lib')
+  else:
+    sharedArea = '/cvmfs/lhcb.cern.ch/lib'
+
+  sourceDir = os.path.join(sharedArea, '/lhcb/DBASE/AppConfig/', appConfigVersion, 'errstrings')
   fileName = project + '_' + version + '_errs.txt'
   fullPathFileName = os.path.join(sourceDir, os.path.basename(fileName))
   if not os.path.exists(fullPathFileName):
