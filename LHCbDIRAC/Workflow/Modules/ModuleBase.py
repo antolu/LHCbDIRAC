@@ -360,7 +360,7 @@ class ModuleBase(object):
 
       for fileTypeDict in self.step_commons['listoutput']:  # this is a dict like {'outputDataType': 'sim'}
         # for non histo-merging prods
-        if 'hist' in fileTypeDict['outputDataType'].lower() and self.LHCbJob.type.lower() != 'merge':
+        if 'hist' in fileTypeDict['outputDataType'].lower() and self.jobType.lower() != 'merge':
           # Watch out: this assumes that:
           # - 'hist' is always in the file type name
           # - merging jobs won't produce histograms
