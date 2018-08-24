@@ -90,4 +90,5 @@ def createJSONfile(jsonData, jsonFileName):
     f.write(jsonData)
   return S_OK()
 
-readXMLfile('summaryGauss_00001337_00000029_1.xml', 1, 2, 3, 'xmlToJson.json')
+# The file is run as following:
+# readXMLfile(xmlFileName.xml, jobID, prodID, wmsID, jsonFileName.json)
