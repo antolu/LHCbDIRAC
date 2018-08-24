@@ -18,6 +18,7 @@ def readXMLfile(xmlFile, jobID, prodID, wmsID, jsonFileName='errors_xmlSummary.j
   """
   root = extractRoot(xmlFile)['Value']
   jsonData = extractData(root, jobID, prodID, wmsID)['Value']
+  gLogger.notice('Attempting to read %s and put save it as %s' % (xmlFile, jsonFileName))
   createJSONfile(jsonData, jsonFileName)
   return S_OK()
 
