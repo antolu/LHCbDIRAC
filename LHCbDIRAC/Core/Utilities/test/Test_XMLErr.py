@@ -26,12 +26,6 @@ class LogErrXMLTestCase(unittest.TestCase):
 class TestLogErrXML(LogErrXMLTestCase):
 
   #########################################
-  # Test extractRoot()
-
-  def test_extractRoot(self):
-    pass
-
-  #########################################
   #### Test extractData()
 
   def test_extractDataWithNoCounter(self):
@@ -61,12 +55,6 @@ class TestLogErrXML(LogErrXMLTestCase):
 
     self.assertTrue(result['OK'])
     self.assertEqual(ast.literal_eval(result['Value']), expected)
-
-  #########################################
-  #### Test createJSONfile()
-
-  def test_createJSONfile(self):
-    pass
 
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase(LogErrXMLTestCase)
