@@ -10,6 +10,7 @@ import xml.etree.ElementTree as ET
 from DIRAC import gLogger
 import LHCbDIRAC.Core.Utilities.LogErrXML as LogErrXML
 
+
 class LogErrXMLTestCase(unittest.TestCase):
 
   def __init__(self, *args, **kwargs):
@@ -23,14 +24,15 @@ class LogErrXMLTestCase(unittest.TestCase):
   def tearDown(self):
     pass
 
+
 class TestLogErrXML(LogErrXMLTestCase):
 
   #########################################
-  #### Test extractData()
+  # Test extractData()
 
   def test_extractDataWithNoCounter(self):
     rootNoCounter = ET.fromstring("<counters></counters>")
-    expected = dict({"Counters": {"ID": {"JobID" : 1, "ProductionID": 2, "wmsID": 3}}})
+    expected = dict({"Counters": {"ID": {"JobID": 1, "ProductionID": 2, "wmsID": 3}}})
     result = LogErrXML.extractData(rootNoCounter, self.jobID, self.prodID, self.wmsID)
 
     self.assertTrue(result['OK'])
@@ -50,11 +52,12 @@ class TestLogErrXML(LogErrXMLTestCase):
 
   def test_extractDataNormal(self):
     root = ET.fromstring('<counters><counter name = "test1">1</counter><counter name = "test2">-1</counter></counters>')
-    expected = dict({"Counters": { "test1": 1, "test2": -1, "ID": {"JobID" : 1, "ProductionID": 2, "wmsID": 3}}})
+    expected = dict({"Counters": {"test1": 1, "test2": -1, "ID": {"JobID": 1, "ProductionID": 2, "wmsID": 3}}})
     result = LogErrXML.extractData(root, self.jobID, self.prodID, self.wmsID)
 
     self.assertTrue(result['OK'])
     self.assertEqual(ast.literal_eval(result['Value']), expected)
+
 
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase(LogErrXMLTestCase)
