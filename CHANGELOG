@@ -1,3 +1,19 @@
+[v9r3-pre2]
+use DIRAC v6r20p11
+
+* Worfklow: several fixes for uploading Error stats for MC jobs
+
+[v9r3-pre1]
+use DIRAC v6r20p11
+
+* Worfklow: calculating output names at runtime to enable parametric jobs
+* Added ElasticDB for MC statistics
+
+[v9r2p4]
+use DIRAC v6r20p11
+
+* RSS: FreeDiskSpace fixed to use only srm endpoints
+
 [v9r2p3]
 use DIRAC v6r20p11
 

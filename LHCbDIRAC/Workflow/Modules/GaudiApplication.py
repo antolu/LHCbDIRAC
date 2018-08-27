@@ -4,6 +4,8 @@
     This is the module used for each and every job of productions. It can also be used by users.
 """
 
+__RCSID__ = "$Id$"
+
 import re
 import os
 import subprocess
@@ -15,8 +17,6 @@ from DIRAC.Core.Utilities import DErrno
 from LHCbDIRAC.Core.Utilities.ProductionOptions import getDataOptions, getModuleOptions
 from LHCbDIRAC.Core.Utilities.RunApplication import RunApplication, LbRunError, LHCbApplicationError, LHCbDIRACError
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
-
-__RCSID__ = "$Id$"
 
 
 class GaudiApplication(ModuleBase):
@@ -45,16 +45,12 @@ class GaudiApplication(ModuleBase):
     self.multicoreJob = 'True'
     self.multicoreStep = 'N'
 
-  #############################################################################
-
   def _resolveInputVariables(self):
     """ Resolve all input variables for the module here.
     """
 
     super(GaudiApplication, self)._resolveInputVariables()
     super(GaudiApplication, self)._resolveInputStep()
-
-  #############################################################################
 
   def execute(self, production_id=None, prod_job_id=None, wms_job_id=None,
               workflowStatus=None, stepStatus=None,
@@ -139,9 +135,8 @@ class GaudiApplication(ModuleBase):
                                        self.jobType)['Value']  # always OK
         self.log.info('Extra options generated for %s %s step:' % (self.applicationName, self.applicationVersion))
         print projectOpts  # Always useful to see in the logs (don't use gLogger as we often want to cut n' paste)
-        options = open(generatedOpts, 'w')
-        options.write(projectOpts)
-        options.close()
+        with open(generatedOpts, 'w') as options:
+          options.write(projectOpts)
         commandOptions.append(generatedOpts)
 
       else:
@@ -212,5 +207,3 @@ class GaudiApplication(ModuleBase):
       return S_ERROR(str(exc))
     finally:
       super(GaudiApplication, self).finalize(__RCSID__)
-
-# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

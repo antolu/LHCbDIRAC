@@ -550,7 +550,7 @@ class ConsistencyChecks(DiracConsistencyChecks):
     chunkSize = 20
     lfns = set(lfns)
     progressBar = ProgressBar(len(lfns),
-                              title="Now getting daughters for %d %s mothers in production %d (depth %d)"
+                              title="Now getting all daughters for %d %s mothers in production %d (depth %d)"
                               % (len(lfns), status, self.prod, self.descendantsDepth),
                               chunk=chunkSize, interactive=self.interactive)
     daughtersBKInfo = {}
@@ -586,11 +586,9 @@ class ConsistencyChecks(DiracConsistencyChecks):
     if filesWithDescendants:
       nb = sum(len(desc) for desc in filesWithDescendants.itervalues())
       prStr += "found %d descendants for %d files" % (nb, len(filesWithDescendants))
-      if filesWithMultipleDescendants:
-        prStr += " of which %d are multiple" % len(filesWithMultipleDescendants)
     if filesWithoutDescendants:
       if not prStr:
-        prStr = "fipythonound"
+        prStr = "found"
       else:
         prStr += " and"
       prStr += " no descendants for %d files" % len(filesWithoutDescendants)
