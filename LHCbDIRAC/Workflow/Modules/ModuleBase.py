@@ -352,7 +352,8 @@ class ModuleBase(object):
 
     self.stepProcPass = self.step_commons.get('StepProcPass', self.stepProcPass)
 
-    if prodID and jobID and stepInstanceNumber:
+    # this is only for production jobs and for application steps
+    if prodID and jobID and stepInstanceNumber and 'listoutput' in self.step_commons:
       self.outputFilePrefix = "%s_%s_%s" % (prodID, jobID, stepInstanceNumber)
       self.applicationLog = self.applicationName + '_' + self.outputFilePrefix + '.log'
       self.XMLSummary = 'summary' + self.applicationName + '_' + self.outputFilePrefix + '.xml'

@@ -45,16 +45,17 @@ def constructProductionLFNs(paramDict, bkClient=None, quick=True):
     gLogger.verbose('wfConfigName = %s, wfConfigVersion = %s, wfMask = %s' % (wfConfigName,
                                                                               wfConfigVersion, wfMask))
     for info in outputList:
-      # Nasty check on whether the created code parameters were not updated e.g. when changing defaults in a workflow
-      fileName = info['outputDataName'].split('_')
-      index = 0
-      if not re.search(r'^\d', fileName[index]):
-        index += 1
-      if not fileName[index] == str(productionID).zfill(8):
-        fileName[index] = str(productionID).zfill(8)
-      if not fileName[index + 1] == str(jobID).zfill(8):
-        fileName[index + 1] = str(jobID).zfill(8)
-      fileTupleList.append(('_'.join(fileName), info['outputDataType']))
+      try:
+        fileName = info['outputDataName']
+      except KeyError:
+        # this happens when the parameters are set at runtime (e.g. parametric jobs)
+        # should only apply for preSubmission LFNs
+        prodID = str(productionID).zfill(8)
+        jobID = str(jobID).zfill(8)
+        stepInstanceNumber = '1'  # can't be more precise at this stage
+        fileName = "%s_%s_%s" % (prodID, jobID, stepInstanceNumber)
+      fileTupleList.append((fileName, info['outputDataType']))
+
     # Strip output data according to file mask
     fileTupleListMasked = _applyMask(wfMask, fileTupleList)
     lfnRoot = _getLFNRoot('', wfConfigName, wfConfigVersion, bkClient, quick=quick)
