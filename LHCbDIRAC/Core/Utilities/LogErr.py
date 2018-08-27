@@ -139,7 +139,8 @@ def readLogFile(logFile, project, version, appConfigVersion, jobID, prodID, wmsI
 #     output.write(json.dumps(result, indent = 2))
 #   return
 
-#####################################################\
+# \
+
 
 def createJSONtable(dictTotal, name, jobID, prodID, wmsID):
   """
@@ -207,6 +208,7 @@ def createHTMLtable(dictG4ErrorsCount, name):
 
 #######################################################
 
+
 def readErrorDict(fullPathFileName, dictName):
   """
   Reads errors in a stringfile and puts them in dictName
@@ -222,6 +224,7 @@ def readErrorDict(fullPathFileName, dictName):
 
 ################################################
 
+
 def getLines(fullPathFileName):
   """
   Reads lines in string file
@@ -236,6 +239,7 @@ def getLines(fullPathFileName):
   return lines
 
 ################################################
+
 
 def getLogString(logFile, logString):
   """
