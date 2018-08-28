@@ -672,7 +672,8 @@ class ConsistencyChecks(DiracConsistencyChecks):
             else:
               progressBar.comment("Error getting descendants for %d files, retry" % len(lfnChunk), res['Message'])
         uniqueDescendants = set(lfn for desc in notPresentDescendants.itervalues() for lfn in desc)
-        progressBar.endLoop(message='found %d descendants' % len(uniqueDescendants))
+        progressBar.endLoop(message='found %d descendants of %d daughters' %
+                            (len(uniqueDescendants), len(notPresentDescendants)))
         # Check if descendants have a replica in the FC
         setDaughtersWithDesc = set()
         if uniqueDescendants:
