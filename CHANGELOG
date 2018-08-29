@@ -1,3 +1,14 @@
+[v9r2p5]
+use DIRAC v6r20p12
+
+* MC redecay production should use the fixed number of events
+* check files processed without descendants is due to BAD DQ flag
+* cPickling
+* refix
+* fix
+* avoid calling online runDB until the SSO problem is solved
+* remove misleading printout
+
 [v9r2p4]
 use DIRAC v6r20p11
 
