@@ -238,7 +238,7 @@ class ConsistencyChecks(DiracConsistencyChecks):
 
   ################################################################################
 
-  def getReplicasPresence(self, lfns, ignoreFailover=False):
+  def getReplicasPresence(self, lfns, ignoreFailover=False, typeStr='files'):
     """ get the replicas using the standard DataManager.getReplicas()
     """
     present = set()
@@ -248,7 +248,7 @@ class ConsistencyChecks(DiracConsistencyChecks):
     chunkSize = 100
     if not ignoreFailover:
       progressBar = ProgressBar(len(lfns),
-                                title="Checking replicas for %d files" % len(lfns),
+                                title="Checking replicas for %d %s" % (len(lfns), typeStr),
                                 chunk=chunkSize, interactive=self.interactive)
     else:
       progressBar = None
@@ -278,7 +278,7 @@ class ConsistencyChecks(DiracConsistencyChecks):
 
   ################################################################################
 
-  def getReplicasPresenceFromDirectoryScan(self, lfns):
+  def getReplicasPresenceFromDirectoryScan(self, lfns, typeStr='files'):
     """ Get replicas scanning the directories. Might be faster.
     """
 
@@ -294,7 +294,7 @@ class ConsistencyChecks(DiracConsistencyChecks):
       dirs.setdefault(dirN, []).append(lfn)
 
     if compare:
-      title = "Checking File Catalog for %d files from %d directories " % (len(lfns), len(dirs))
+      title = "Checking File Catalog for %d %s from %d directories " % (len(lfns), typeStr, len(dirs))
     else:
       title = "Getting files from %d directories " % len(dirs)
     progressBar = ProgressBar(len(dirs), title=title)
@@ -585,7 +585,7 @@ class ConsistencyChecks(DiracConsistencyChecks):
     prStr = ""
     if filesWithDescendants:
       nb = sum(len(desc) for desc in filesWithDescendants.itervalues())
-      prStr += "found %d descendants for %d files" % (nb, len(filesWithDescendants))
+      prStr += "found %d descendants (%d unique) for %d files" % (nb, len(daughtersBKInfo), len(filesWithDescendants))
     if filesWithoutDescendants:
       if not prStr:
         prStr = "found"
@@ -637,11 +637,10 @@ class ConsistencyChecks(DiracConsistencyChecks):
     if filesWithDescendants:
       # First check in LFC the presence of daughters
       if not self.noFC:
-        self.__logVerbose('Checking presence of %d files' % len(allDaughters))
-        present, notPresent = self.getReplicasPresenceFromDirectoryScan(allDaughters) \
+        present, notPresent = self.getReplicasPresenceFromDirectoryScan(allDaughters, typeStr='daughters') \
             if len(allDaughters) > 10 * chunkSize and \
             len(inBK) < len(allDaughters) / 2 else \
-            self.getReplicasPresence(allDaughters)
+            self.getReplicasPresence(allDaughters, typeStr='daughters')
         setPresent = set(present)
         setNotPresent = set(notPresent)
       else:
@@ -657,7 +656,7 @@ class ConsistencyChecks(DiracConsistencyChecks):
       if setNotPresent:
         chunkSize = 20 if self.transType == 'DataStripping' and len(self.fileType) > 1 else 50
         progressBar = ProgressBar(len(setNotPresent),
-                                  title="Now checking descendants from %d daughters without replicas" %
+                                  title="Now getting descendants from %d daughters without replicas" %
                                   len(setNotPresent),
                                   chunk=chunkSize, interactive=self.interactive)
         # Get existing descendants of notPresent daughters
@@ -673,7 +672,7 @@ class ConsistencyChecks(DiracConsistencyChecks):
             else:
               progressBar.comment("Error getting descendants for %d files, retry" % len(lfnChunk), res['Message'])
         uniqueDescendants = set(lfn for desc in notPresentDescendants.itervalues() for lfn in desc)
-        progressBar.endLoop(message='found %d descendants of %d files' %
+        progressBar.endLoop(message='found %d descendants of %d daughters' %
                             (len(uniqueDescendants), len(notPresentDescendants)))
         # Check if descendants have a replica in the FC
         setDaughtersWithDesc = set()
@@ -710,13 +709,10 @@ class ConsistencyChecks(DiracConsistencyChecks):
             self.__logVerbose(' but with descendants:\n', '\n'.join(sorted(notPresentWithDesc)))
           else:
             self.__logVerbose(' none of them has descendants')
-          # print 'Multiple descendants', filesWithMultipleDescendants.get( lfn )
-          # Only interested in daughters without replica, so if all have one, skip
-
           # Some daughters may have a replica though, take them into account
           daughtersWithReplica = setDaughters & setPresent
           # and add those without a replica but that have  a descendant with replica
-          realDaughters = daughtersWithReplica | (daughtersNotPresent & setDaughtersWithDesc)
+          realDaughters = daughtersWithReplica | notPresentWithDesc
           if realDaughters:
             self.__logVerbose('Real Daughters:\n', '\n'.join(sorted(realDaughters)))
           else:
