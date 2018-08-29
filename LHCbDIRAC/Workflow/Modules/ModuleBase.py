@@ -985,7 +985,7 @@ class ModuleBase(object):
       optionsDict['DQTag'] = self.dqTag
 
     if self.applicationName.lower() == 'gauss':
-      if self.CPUe and self.maxNumberOfEvents:
+      if self.CPUe and self.maxNumberOfEvents and self.numberOfEvents <= 0:
         # Here we set maxCPUTime to 24 hours, which seems reasonable
         eventsToProduce = getEventsToProduce(self.CPUe,
                                              maxNumberOfEvents=self.maxNumberOfEvents,
