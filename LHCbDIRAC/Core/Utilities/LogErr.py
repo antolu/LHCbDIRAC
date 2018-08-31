@@ -20,8 +20,6 @@ def readLogFile(logFile, project, version, appConfigVersion, jobID, prodID, wmsI
   :param str wmsID: the wmsID
   :param str name: the name of the output json file, standardised to 'errors.json'
   """
-
-  fileOK = False
   logString = ''
   fullPathFileName = pickStringFile(project, version, appConfigVersion)
   dictTotal = []
@@ -33,10 +31,11 @@ def readLogFile(logFile, project, version, appConfigVersion, jobID, prodID, wmsI
 
   readErrorDict(fullPathFileName, dictG4Errors)
 
-  res = getLogString(logFile, logString, fileOK)
+  res = getLogString(logFile, logString)
   if not res['OK']:
     gLogger.warn('Problems in reading %s' % logFile)
     return res
+  logString = res['Value']
 
   reversedKeys = sorted(dictG4Errors.keys(), reverse=True)
 
@@ -140,7 +139,7 @@ def readLogFile(logFile, project, version, appConfigVersion, jobID, prodID, wmsI
 #     output.write(json.dumps(result, indent = 2))
 #   return
 
-#####################################################
+# \
 
 
 def createJSONtable(dictTotal, name, jobID, prodID, wmsID):
@@ -168,7 +167,6 @@ def createJSONtable(dictTotal, name, jobID, prodID, wmsID):
     temp['ID'] = ids
     result['Errors'] = temp
     json.dump(result, output, indent=2)
-
 
 #####################################################
 
@@ -208,6 +206,8 @@ def createHTMLtable(dictG4ErrorsCount, name):
 
     f.write("</table>")
 
+#######################################################
+
 
 def readErrorDict(fullPathFileName, dictName):
   """
@@ -215,14 +215,14 @@ def readErrorDict(fullPathFileName, dictName):
 
   :param str fullPathFileName: the name of the stringfile
   :param dict dictName: the name of the dict that will insert the data in fullPathFileName
-
   """
-
   fileLines = getLines(fullPathFileName)
   for line in fileLines:
     errorString = line.split(',')[0]
     description = line.split(',')[1]
     dictName[errorString] = description
+
+################################################
 
 
 def getLines(fullPathFileName):
@@ -238,8 +238,10 @@ def getLines(fullPathFileName):
     lines = f.readlines()
   return lines
 
+################################################
 
-def getLogString(logFile, logString, fileOK):
+
+def getLogString(logFile, logString):
   """
   Checks if the log file can be opened, and saves the text in logFile into logString
 
@@ -257,7 +259,9 @@ def getLogString(logFile, logString, fileOK):
   with open(logFile, 'r') as f:
     logString = f.read()
   gLogger.notice("Successfully read %s" % logFile)
-  return S_OK()
+  return S_OK(logString)
+
+################################################
 
 
 def pickStringFile(project, version, appConfigVersion):
@@ -293,12 +297,10 @@ def pickStringFile(project, version, appConfigVersion):
       mostRecentVersion = sorted(versionsList, key=LooseVersion)[-1]
       fileName = project + '_' + mostRecentVersion + '_errs.txt'
       fullPathFileName = os.path.join(sourceDir, os.path.basename(fileName))
-    else:
       gLogger.warn('WARNING: no string files for this project')
       return None
 
   return fullPathFileName
-
 
 # This is a relic from the previous version of the file, I'll keep it for the while
 
