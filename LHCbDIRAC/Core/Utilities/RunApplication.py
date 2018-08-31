@@ -243,7 +243,7 @@ class RunApplication(object):
           log.write(message + '\n')
           log.flush()
       else:
-        log.error("Application Log file not defined")
+        self.log.error("Application Log file not defined")
       if fd == 1:
         if self.stdError:
           with open(self.stdError, 'a') as error:
