@@ -1,3 +1,22 @@
+[v9r3-pre3]
+use DIRAC v6r20p12
+
+* MC redecay production should use the fixed number of events
+* a bit more info
+* improve printout when checking descendants
+* Autopep8 fix
+* fix test
+* fix name change
+* only calculating the output files for production application steps
+* Autopep8 fix
+* Autopep8 fix
+* Add comment to explain how to run the script
+* Remove unnecessary lines
+* Add test to XMLerr
+* Add file taht reads xml summary, and outputs a JSON file
+* fix for preSubmissionLFNs and parametric jobs case
+* Fix bug
+
 [v9r3-pre2]
 use DIRAC v6r20p11
 
