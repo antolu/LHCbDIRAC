@@ -5145,11 +5145,11 @@ and files.qualityid= dataquality.qualityid'
 
     records = []
     for record in retVal['Value']:
-      if record[0] != None:
+      if record[0] is not None:
         records.append(['DDDB', record[0]])
-      if record[1] != None:
+      if record[1] is not None:
         records.append(['CONDDB', record[1]])
-      if record[2] != None:
+      if record[2] is not None:
         records.append(['DQTAG', record[2]])
 
     return S_OK({'ParameterNames': ['TagName', 'TagValue'], 'Records': records})

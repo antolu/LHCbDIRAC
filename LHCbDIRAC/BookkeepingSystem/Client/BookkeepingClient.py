@@ -408,8 +408,7 @@ class BookkeepingClient(object):
     server = self.__getServer()
     return server.setFileDataQuality(lfns, flag)
 
-
-#############################################################################
+  #############################################################################
   def setRunAndProcessingPassDataQuality(self, runNB, procpass, flag):
     """
     It sets the data quality to a run which belong to a given processing pass.

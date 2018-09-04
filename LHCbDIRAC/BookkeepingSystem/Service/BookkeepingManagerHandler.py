@@ -2033,7 +2033,7 @@ class BookkeepingManagerHandler(RequestHandler):
   def export_getDirectoryMetadata_new(lfn):
     """more info in the BookkeepingClient.py"""
     gLogger.info("Getting the metadata for: %s" % str(lfn))
-    return dataMGMT_.getDirectoryMetadata_new(lfn)
+    return dataMGMT_.getDirectoryMetadata(lfn)
 
     #############################################################################
   types_getDirectoryMetadata = [list]
@@ -2041,7 +2041,7 @@ class BookkeepingManagerHandler(RequestHandler):
   @staticmethod
   def export_getDirectoryMetadata(lfn):
     """more info in the BookkeepingClient.py"""
-    return dataMGMT_.getDirectoryMetadata_new(lfn)
+    return dataMGMT_.getDirectoryMetadata(lfn)
 
   #############################################################################
   types_getFilesForGUID = [basestring]
