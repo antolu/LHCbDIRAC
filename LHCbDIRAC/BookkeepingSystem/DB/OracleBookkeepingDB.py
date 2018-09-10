@@ -4549,8 +4549,9 @@ and files.qualityid= dataquality.qualityid'
                                            production,
                                            filetype,
                                            runnb,
-                                           selection='distinct s.stepid,s.stepname,s.applicationname,s.applicationversion,\
-                                            s.optionfiles,s.dddb, s.conddb,s.extrapackages,s.visible, cont.step')
+                                           selection='distinct s.stepid,s.stepname,s.applicationname,\
+                                           s.applicationversion,s.optionfiles,s.dddb,\
+                                           s.conddb,s.extrapackages,s.visible, cont.step')
       retVal = self.dbR_.query(command)
       if not retVal['OK']:
         result = retVal

@@ -1660,9 +1660,9 @@ class LHCbBookkeepingManager(BaseESManager):
       params = result['ParameterNames']
       for lfn in result['Records']:
         nbfiles += 1
-        if lfn[params.index('EventStat')] != None:
+        if lfn[params.index('EventStat')] is not None:
           nbe += int(lfn[params.index('EventStat')])
-        if lfn[params.index('FileSize')] != None:
+        if lfn[params.index('FileSize')] is not None:
           fsize += int(lfn[params.index('FileSize')])
       return S_OK({'Number of Events': nbe, 'Files Size': fsize, 'Number of files': nbfiles})
     else:
