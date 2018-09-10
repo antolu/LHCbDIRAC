@@ -230,7 +230,7 @@ class LHCbBookkeepingManager(BaseESManager):
   def __getLevel(self, path, visited, level, start, end, processingpath, startlevel):
     """level"""
     for i in path:
-      if level == startlevel and start == False:
+      if level == startlevel and not start:
         for j in visited:
           path.remove(j)
         level += 1
@@ -241,7 +241,7 @@ class LHCbBookkeepingManager(BaseESManager):
       else:
         level += 1
         try:
-          result = type(long(i)) == types.LongType
+          result = isinstance(long(i), long)
           if start and result:
             end = True
         except ValueError, ex:
@@ -258,7 +258,7 @@ class LHCbBookkeepingManager(BaseESManager):
   def __getRunLevel(self, path, visited, level, start, end, processingpath, startlevel):
     """run level"""
     for i in path:
-      if level == startlevel and start == False:
+      if level == startlevel and not start:
         for j in visited:
           path.remove(j)
         level += 1
@@ -270,7 +270,7 @@ class LHCbBookkeepingManager(BaseESManager):
       else:
         level += 1
         try:
-          result = type(long(i)) == types.LongType
+          result = isinstance(long(i), long)
           if start and result:
             end = True
         except ValueError, ex:
@@ -288,7 +288,7 @@ class LHCbBookkeepingManager(BaseESManager):
   def __getEvtLevel(self, path, visited, level, start, end, processingpath, startlevel):
     """evt level"""
     for i in path:
-      if level == startlevel and start == False:
+      if level == startlevel and not start:
         for j in visited:
           path.remove(j)
         level += 1
@@ -299,7 +299,7 @@ class LHCbBookkeepingManager(BaseESManager):
       else:
         level += 1
         try:
-          result = (type(long(i)) == types.LongType)
+          result = isinstance(long(i), long)
         except ValueError, ex:
           gLogger.warn(str(self.__class__) + "__getEvtLevel" + str(ex))
           result = i in self.__filetypes
@@ -1251,10 +1251,10 @@ class LHCbBookkeepingManager(BaseESManager):
       entity.update({'FileName': entity['name']})
       expandable = False
       entity.update({'expandable': expandable})
-      if selection != None:
+      if selection is not None:
         entity.update({'selection': selection})
 
-      if method != None:
+      if method is not None:
         entity.update({'method': method})
 
     else:
@@ -1270,16 +1270,16 @@ class LHCbBookkeepingManager(BaseESManager):
 
       entity.update({'name': name, 'fullpath': fullPath, 'expandable': expandable})
 
-      if leveldescription != None:
+      if leveldescription is not None:
         entity.update({'level': leveldescription})
 
       if leveldescription == 'FileTypes':
         entity.update({'showFiles': 0})
 
-      if selection != None:
+      if selection is not None:
         entity.update({'selection': selection})
 
-      if method != None:
+      if method is not None:
         entity.update({'method': method})
 
       elif level == 5:
@@ -1304,17 +1304,17 @@ class LHCbBookkeepingManager(BaseESManager):
       fullPath += INTERNAL_PATH_SEPARATOR + \
           name
 
-      if description != None:
+      if description is not None:
         entity.update({'name': description, 'fullpath': fullPath, 'expandable': expandable})
       else:
         entity.update({'name': name, 'fullpath': fullPath, 'expandable': expandable})
-      if leveldescription != None:
+      if leveldescription is not None:
         entity.update({'level': leveldescription})
 
-      if selection != None:
+      if selection is not None:
         entity.update({'selection': selection})
 
-      if method != None:
+      if method is not None:
         entity.update({'method': method})
 
       if level == 5:
@@ -1372,7 +1372,7 @@ class LHCbBookkeepingManager(BaseESManager):
     """get a node for a given path"""
     path = self.getAbsolutePath(path)['Value']
     entity = self._getEntity(path)
-    if entity.__class__ == types.NoneType:
+    if isinstance(entity.__class__, None):
       gLogger.error(path + " doesn't exist!")
       # raise ValueError, "Invalid path %s" % path
     return S_OK(entity)
@@ -1591,7 +1591,9 @@ class LHCbBookkeepingManager(BaseESManager):
             'ParameterNames': parametersNames,
             'Records': records,
             'Extras': {'Selection': selection,
-                       'GlobalStatistics': {'Number of Events': nbOfEvents, 'Files Size': filesSize, 'Luminosity': lumi}}}
+                       'GlobalStatistics': {'Number of Events': nbOfEvents,
+                                            'Files Size': filesSize,
+                                            'Luminosity': lumi}}}
 
   #############################################################################
   def getAncestors(self, files, depth):
@@ -1621,7 +1623,7 @@ class LHCbBookkeepingManager(BaseESManager):
       result = self._getLimitedFilesRuns({'fullpath': path}, {}, startItem, maxitems)
       dataset = self._getDataSetTree4({'fullpath': path})
 
-    if result.has_key('TotalRecords') and result['TotalRecords'] > 0:
+    if 'TotalRecords' in result and result['TotalRecords'] > 0:
       values = result['Records']
       params = result['ParameterNames']
       files = {}
@@ -1651,7 +1653,7 @@ class LHCbBookkeepingManager(BaseESManager):
     elif self.parameter_ == self.__bookkeepingParameters[3]:
       result = self._getLimitedFilesRuns({'fullpath': path}, {'need': 0}, startItem, maxitems)
 
-    if result.has_key('TotalRecords') and result['TotalRecords'] > 0:
+    if 'TotalRecords' in result and result['TotalRecords'] > 0:
       nbe = 0
       fsize = 0
       nbfiles = 0
@@ -1681,7 +1683,7 @@ class LHCbBookkeepingManager(BaseESManager):
     evtTypes = self.__createEventtypelist(files)
 
     pythonOpts = None
-    if savedType != None:
+    if savedType is not None:
       pythonOpts = savedType == 'py'
     else:
       fd = open(optionsFile, 'w')
@@ -1717,7 +1719,7 @@ class LHCbBookkeepingManager(BaseESManager):
 
       string = self.__addEndcatalog(string, pythonOpts)
 
-    if catalog != None:
+    if catalog is not None:
       string += "FileCatalog().Catalogs += [ 'xmlcatalog_file:" + catalog + "' ]\n"
 
     if fd:
@@ -1873,7 +1875,7 @@ class LHCbBookkeepingManager(BaseESManager):
       # This variable contains the file type version, if it is empty I check in the bkk
 
       for lfns in savePfn:
-        if type(savePfn[lfns]) == types.ListType:
+        if isinstance(savePfn[lfns], list):
           for lfn in savePfn[lfns]:
             if lfn['pfntype'].upper() == 'ROOT_ALL':
               rootFormat = False
@@ -1907,7 +1909,7 @@ class LHCbBookkeepingManager(BaseESManager):
       if lfn['EventStat'] != None:
         stat = int(lfn['EventStat'])
 
-      if not evtTypes.has_key(filetype):
+      if filetype not in evtTypes:
         evtTypes[filetype] = [0, 0, 0.]
       evtTypes[filetype][0] += 1
       evtTypes[filetype][1] += stat
@@ -1970,8 +1972,7 @@ class LHCbBookkeepingManager(BaseESManager):
   #############################################################################
   def getFilesWithMetadata(self, dataset):
     """it sets the file types
-    :param dict dataset: it is a bookkeeping dictionary, which contains the conditions used to retreive the lfns 
+    :param dict dataset: it is a bookkeeping dictionary, which contains the conditions used to retreive the lfns
     :return: S_OK lfns with metadata
     """
     return self.db_.getFilesWithMetadata(dataset)
-

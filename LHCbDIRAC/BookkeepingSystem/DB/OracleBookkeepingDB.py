@@ -4557,7 +4557,8 @@ and files.qualityid= dataquality.qualityid'
       else:
         nb = 0
         parametersNames = ['id', 'name']
-        for stepid, stepName, appName, appVersion, optionFiles, dddb, conddb, extrapackages, visible, _ in retVal['Value']:
+        steps = retVal['Value']
+        for stepid, stepName, appName, appVersion, optionFiles, dddb, conddb, extrapackages, visible, _ in steps:
           records = [['StepId', stepid],
                      ['StepName', stepName],
                      ['ApplicationName', appName],
