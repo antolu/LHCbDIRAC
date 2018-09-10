@@ -971,11 +971,8 @@ def executeGetStats(dmScript):
   transClient = TransformationClient()
 
   for prod in prodList:
-    queryDict = {}
-    if bkQuery:
-      queryDict = bkQuery.getQueryDict()
-      if queryDict.get('Visible', 'All').lower() in ('no', 'all'):
-        bkQuery.setOption('ReplicaFlag', 'ALL')
+    # Get bk query dict if any, no change to default values
+    queryDict = bkQuery.getQueryDict() if bkQuery else {}
     if prod:
       res = transClient.getTransformation(prod, extraParams=False)
       if not res['OK']:
