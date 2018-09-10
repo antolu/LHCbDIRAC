@@ -90,7 +90,12 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_sendXMLBookkeepingReport(xml):
-    """more info in the BookkeepingClient.py"""
+    """
+    This method is used to upload an xml report which is produced after when the job successfully finished.
+    The input parameter 'xml' is a string which contains various information (metadata)
+    about the finished job in the Grid in an XML format.
+    :param str xml: bookkeeping report
+    """
     result = S_ERROR()
     try:
       retVal = reader_.readXMLfromString(xml)
@@ -111,7 +116,12 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getAvailableSteps(in_dict):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns all the available steps which corresponds to a given conditions.
+    The in_dict contains the following conditions: StartDate, StepId, InputFileTypes, OutputFileTypes,
+        ApplicationName, ApplicationVersion, OptionFiles, DDDB, CONDDB, ExtraPackages, Visible,
+    ProcessingPass, Usable, RuntimeProjects, DQTag, OptionsFormat, StartItem, MaxItem
+    """
     return dataMGMT_.getAvailableSteps(in_dict)
 
   #############################################################################
@@ -119,7 +129,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getRuntimeProjects(in_dict):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns a runtime project for a given step. The input parameter is a in_dictionary which has only one key StepId
+    """
     return dataMGMT_.getRuntimeProjects(in_dict)
 
   #############################################################################
@@ -127,7 +139,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getStepInputFiles(stepId):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns the input files for a given step.
+    """
     result = S_ERROR()
     retVal = dataMGMT_.getStepInputFiles(stepId)
     if retVal['OK']:
@@ -145,7 +159,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_setStepInputFiles(stepid, files):
-    """more info in the BookkeepingClient.py"""
+    """
+     It is used to set input file types to a Step.
+    """
     return dataMGMT_.setStepInputFiles(stepid, files)
 
   #############################################################################
@@ -153,7 +169,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_setStepOutputFiles(stepid, files):
-    """more info in the BookkeepingClient.py"""
+    """
+    It is used to set output file types to a Step.
+    """
     return dataMGMT_.setStepOutputFiles(stepid, files)
 
   #############################################################################
@@ -161,7 +179,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getStepOutputFiles(stepId):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns the output file types for a given Step.
+    """
     result = S_ERROR()
     retVal = dataMGMT_.getStepOutputFiles(stepId)
     if retVal['OK']:
@@ -187,7 +207,12 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_insertFileTypes(ftype, desc, fileType):
-    """more info in the BookkeepingClient.py"""
+    """
+    It is used to register a file type. It has the following input parameters:
+    :param str ftype: file type; for example: COOL.DST
+    :param str desc: a short description which describes the file content
+    :paran str fileType: the file format such as ROOT, POOL_ROOT, etc.
+    """
     return dataMGMT_.insertFileTypes(ftype, desc, fileType)
 
   #############################################################################
@@ -195,7 +220,19 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_insertStep(in_dict):
-    """more info in the BookkeepingClient.py"""
+    """
+    It used to insert a step to the Bookkeeping Metadata Catalogue.
+    The imput parameter is a dictionary which contains the steps attributes.
+    For example: Dictionary format:
+    {'Step': {'ApplicationName': 'DaVinci',
+    'Usable': 'Yes',
+    'StepId': '',
+    'ApplicationVersion': 'v29r1', 'ext-comp-1273':
+    'CHARM.MDST (Charm micro dst)', 'ExtraPackages': '', 'StepName': 'davinci prb2',
+    'ProcessingPass': 'WG-Coool', 'ext-comp-1264': 'CHARM.DST (Charm stream)', 'Visible': 'Y', 'DDDB': '',
+    'OptionFiles': '', 'CONDDB': ''}, 'OutputFileTypes': [{'Visible': 'Y', 'FileType': 'CHARM.MDST'}],
+    'InputFileTypes': [{'Visible': 'Y', 'FileType': 'CHARM.DST'}],'RuntimeProjects':[{StepId:13878}]}
+    """
     return dataMGMT_.insertStep(in_dict)
 
   #############################################################################
@@ -203,7 +240,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_deleteStep(stepid):
-    """more info in the BookkeepingClient.py"""
+    """
+    It used to delete a given step.
+    """
     return dataMGMT_.deleteStep(stepid)
 
   #############################################################################
@@ -211,7 +250,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_updateStep(in_dict):
-    """more info in the BookkeepingClient.py"""
+    """
+    It is used to modify the step attributes.
+    """
     return dataMGMT_.updateStep(in_dict)
 
   ##############################################################################
@@ -219,7 +260,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getAvailableConfigNames():
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns all the available configuration names which are used.
+    """
     retVal = dataMGMT_.getAvailableConfigNames()
     if retVal['OK']:
       records = []
@@ -235,7 +278,11 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getConfigVersions(in_dict):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns all the available configuration version for a given condition.
+    Input parameter is a dictionary which has the following key: 'ConfigName'
+    For example: in_dict = {'ConfigName':'MC'}
+    """
     result = S_ERROR()
     configName = in_dict.get('ConfigName', default)
     retVal = dataMGMT_.getConfigVersions(configName)
@@ -254,7 +301,11 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getConditions(in_dict):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns all the available conditions for a given conditions.
+    Input parameter is a dictionary which has the following keys: 'ConfigName', 'ConfigVersion', 'EventType'
+    For example: in_dict = {'ConfigName':'MC','ConfigVersion':'MC10'}
+    """
     result = S_ERROR()
     ok = True
     configName = in_dict.get('ConfigName', default)
@@ -320,8 +371,18 @@ class BookkeepingManagerHandler(RequestHandler):
   types_getProcessingPass = [dict, basestring]
 
   @staticmethod
-  def export_getProcessingPass(in_dict, path):
-    """more info in the BookkeepingClient.py"""
+  def export_getProcessingPass(in_dict, path=None):
+    """
+    It returns the processing pass for a given conditions.
+    Input parameter is a dictionary and a path (string) which has the following keys:
+    'ConfigName', 'ConfigVersion', 'ConditionDescription','Production', 'RunNumber', 'EventType'
+    This method is used to recursively browse the processing pass.
+    To start the browsing you have to define the path as a root: path = '/'
+    Note: it returns a list with two dictionary. First dictionary contains the processing passes
+    while the second dictionary contains the event types.
+    """
+    if path is None:
+      path = '/'
     configName = in_dict.get('ConfigName', default)
     configVersion = in_dict.get('ConfigVersion', default)
     conddescription = in_dict.get('ConditionDescription', default)
@@ -348,7 +409,11 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getProductions(in_dict):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns the productions for a given conditions.
+    Input parameter is a dictionary which has the following keys:
+    'ConfigName', 'ConfigVersion', 'ConditionDescription', 'EventType','ProcessingPass'
+    """
     result = S_ERROR()
     configName = in_dict.get('ConfigName', default)
     configVersion = in_dict.get('ConfigVersion', default)
@@ -378,7 +443,11 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getFileTypes(in_dict):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns the file types for a given conditions.
+    Input parameter is a dictionary which has the following keys:
+    'ConfigName', 'ConfigVersion', 'ConditionDescription', 'EventType','ProcessingPass','Production','RunNumber'
+    """
     result = S_ERROR()
     configName = in_dict.get('ConfigName', default)
     configVersion = in_dict.get('ConfigVersion', default)
@@ -580,7 +649,12 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @checkEnoughBKArguments
   def export_getFilesSummary(self, in_dict):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns sumary for a given data set.
+    Input parameter is a dictionary which has the following keys:
+    'ConfigName', 'ConfigVersion', 'ConditionDescription', 'EventType',
+    'ProcessingPass','Production','RunNumber', 'FileType', DataQuality
+    """
     gLogger.debug('Input:' + str(in_dict))
     result = S_ERROR()
 
@@ -639,8 +713,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getLimitedFiles(in_dict):
-    """more info in the BookkeepingClient.py"""
-
+    """
+    It returns a chunk of files. This method is equivalent to the getFiles.
+    """
     result = S_ERROR()
     configName = in_dict.get('ConfigName', default)
     configVersion = in_dict.get('ConfigVersion', default)
@@ -698,7 +773,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getAvailableDataQuality():
-    """more info in the BookkeepingClient.py"""
+    """
+    it returns all the available data quality flags.
+    """
     return dataMGMT_.getAvailableDataQuality()
 
   #############################################################################
@@ -706,7 +783,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getAvailableProductions():
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns all the available productions which have associated file with replica flag yes.
+    """
     return dataMGMT_.getAvailableProductions()
 
   #############################################################################
@@ -714,7 +793,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getAvailableRuns():
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns all the available runs which have associated files with reploica flag yes.
+    """
     return dataMGMT_.getAvailableRuns()
 
   #############################################################################
@@ -722,7 +803,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getAvailableEventTypes():
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns all the available event types.
+    """
     return dataMGMT_.getAvailableEventTypes()
 
   #############################################################################
@@ -730,7 +813,7 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getMoreProductionInformations(prodid):
-    """more info in the BookkeepingClient.py"""
+    """It returns inforation about a production"""
     return dataMGMT_.getMoreProductionInformations(prodid)
 
   #############################################################################
@@ -738,7 +821,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getJobInfo(lfn):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns the job metadata information for a given lfn produced by this job.
+    """
     return dataMGMT_.getJobInfo(lfn)
 
   #############################################################################
@@ -754,7 +839,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getJobInformation(in_dict):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns the job metadata information for a given lfn produced by this job.
+    """
     return dataMGMT_.getJobInformation(in_dict)
 
   #############################################################################
@@ -762,7 +849,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getRunNumber(lfn):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns the run number for a given lfn!
+    """
     return dataMGMT_.getRunNumber(lfn)
 
   #############################################################################
@@ -770,16 +859,20 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getRunNbAndTck(lfn):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns the run number and tck for a given LFN.
+    """
     return dataMGMT_.getRunNbAndTck(lfn)
 
   #############################################################################
-  types_getProductionFiles = [int, basestring]
+  types_getProductionFiles = [long, basestring]
 
   @staticmethod
   def export_getProductionFiles(prod, fileType, replica=default):
-    """more info in the BookkeepingClient.py"""
-    return dataMGMT_.getProductionFiles(int(prod), fileType, replica)
+    """
+    It returns files and their metadata for a given production, file type and replica.
+    """
+    return dataMGMT_.getProductionFiles(prod, fileType, replica)
 
   #############################################################################
   types_getAvailableRunNumbers = []
@@ -793,7 +886,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getRunFiles(runid):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns all the files and their metadata for a given run number!
+    """
     return dataMGMT_.getRunFiles(runid)
 
   #############################################################################
@@ -801,7 +896,11 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_updateFileMetaData(filename, fileAttr):
-    """more info in the BookkeepingClient.py"""
+    """
+    This method used to modify files metadata.
+    Input parametes is a stirng (filename) and a dictionary (fileAttr)
+    with the file attributes. {'GUID':34826386286382,'EventStat':222222}
+    """
     return dataMGMT_.updateFileMetaData(filename, fileAttr)
 
   #############################################################################
@@ -809,7 +908,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_renameFile(oldLFN, newLFN):
-    """more info in the BookkeepingClient.py"""
+    """
+    It allows to change the name of a file which is in the Bookkeeping Metadata Catalogue.
+    """
     return dataMGMT_.renameFile(oldLFN, newLFN)
 
   #############################################################################
@@ -825,7 +926,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getProductionProcessingPass(prodid):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns the processing pass for a given production.
+    """
     return dataMGMT_.getProductionProcessingPass(prodid)
 
   #############################################################################
@@ -833,7 +936,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_insertTag(values):
-    """more info in the BookkeepingClient.py"""
+    """
+    It used to register tags (CONDB, DDDB, etc) to the database. The input parameter is dictionary: {'TagName':'Value'}
+    """
     successfull = {}
     faild = {}
 
@@ -871,7 +976,11 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_setRunAndProcessingPassDataQuality(runNB, procpass, flag):
-    """more info in the BookkeepingClient.py"""
+    """
+    It sets the data quality to a run which belong to a given processing pass.
+    This method insert a new row to the runquality table.
+    This value used to set the data quality flag to a given run files which processed by a given processing pass.
+    """
     return dataMGMT_.setRunAndProcessingPassDataQuality(runNB, procpass, flag)
 
   #############################################################################
@@ -886,7 +995,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_setRunDataQuality(runNb, flag):
-    """more info in the BookkeepingClient.py"""
+    """
+    It sets the data quality for a given run! The input parameter is the run number and a data quality flag.
+    """
     return dataMGMT_.setRunDataQuality(runNb, flag)
 
   #############################################################################
@@ -902,7 +1013,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_setProductionDataQuality(prod, flag):
-    """more info in the BookkeepingClient.py"""
+    """
+    It sets the data quality for a given production!
+    """
     return dataMGMT_.setProductionDataQuality(prod, flag)
 
   #############################################################################
@@ -922,7 +1035,7 @@ class BookkeepingManagerHandler(RequestHandler):
   types_getFileAncestors = [list, int, bool]
 
   @staticmethod
-  def export_getFileAncestors(lfns, depth, replica):
+  def export_getFileAncestors(lfns, depth=None, replica=None):
     """more info in the BookkeepingClient.py"""
     return dataMGMT_.getFileAncestors(lfns, depth, replica)
 
@@ -1035,7 +1148,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_insertSimConditions(in_dict):
-    """more info in the BookkeepingClient.py"""
+    """
+    It inserts a simulation condition to the Bookkeeping Metadata catalogue.
+    """
     return dataMGMT_.insertSimConditions(in_dict)
 
   #############################################################################
@@ -1043,7 +1158,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getSimConditions():
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns all the simulation conditions which are in the Bookkeeping Metadata catalogue.
+    """
     return dataMGMT_.getSimConditions()
 
   #############################################################################
@@ -1096,11 +1213,13 @@ class BookkeepingManagerHandler(RequestHandler):
     return res
 
   #############################################################################
-  types_getProductionFilesForWeb = [int, dict, dict, long, long]
+  types_getProductionFilesForWeb = [long, dict, dict, long, long]
 
   @staticmethod
   def export_getProductionFilesWeb(prod, ftype, sortDict, startItem, maxitems):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns files and their metadata information for a given production.
+    """
     return dataMGMT_.getProductionFilesForWeb(prod, ftype, sortDict, startItem, maxitems)
 
   #############################################################################
@@ -1120,11 +1239,13 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.addReplica(fileName)
 
   #############################################################################
-  types_getRunInformations = [int]
+  types_getRunInformations = [long]
 
   @staticmethod
   def export_getRunInformations(runnb):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns run information and statistics.
+    """
     return dataMGMT_.getRunInformations(runnb)
 
   #############################################################################
@@ -1140,7 +1261,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getFileCreationLog(lfn):
-    """more info in the BookkeepingClient.py"""
+    """
+    For a given file returns the log files of the job which created it.
+    """
     return dataMGMT_.getFileCreationLog(lfn)
 
   #############################################################################
@@ -1156,7 +1279,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_insertEventType(evid, desc, primary):
-    """more info in the BookkeepingClient.py"""
+    """
+    It inserts an event type to the Bookkeeping Metadata catalogue.
+    """
     result = S_ERROR()
 
     retVal = dataMGMT_.checkEventType(evid)
@@ -1182,7 +1307,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_updateEventType(evid, desc, primary):
-    """more info in the BookkeepingClient.py"""
+    """
+    It can used to modify an existing event type.
+    """
     result = S_ERROR()
 
     retVal = dataMGMT_.checkEventType(evid)
@@ -1217,7 +1344,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getProductionSummary(in_dict):
-    """more info in the BookkeepingClient.py"""
+    """
+    It can used to count the number of events for a given dataset.
+    """
 
     cName = in_dict.get('ConfigName', default)
     cVersion = in_dict.get('ConfigVersion', default)
@@ -1242,7 +1371,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getProductionInformations(prodid):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns a statistic (data processing phases, number of events, etc.) for a given production.
+    """
 
     nbjobs = None
     nbOfFiles = None
@@ -1316,7 +1447,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getProductionInformationsFromView(prodid):
-    """more info in the BookkeepingClient.py"""
+    """
+    It is exactly same as getProductionInformations, but it much faster. The result is in the materialized view.
+    """
 
     result = S_ERROR()
     value = dataMGMT_.getProductionInformationsFromView(prodid)
@@ -1337,7 +1470,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getFileHistory(lfn):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns all the information about a file.
+    """
     retVal = dataMGMT_.getFileHistory(lfn)
     result = {}
     records = []
@@ -1378,7 +1513,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getProductionNbOfJobs(prodid):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns the number of jobs for a given production.
+    """
     return dataMGMT_.getProductionNbOfJobs(prodid)
 
   #############################################################################
@@ -1394,7 +1531,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getProductionNbOfEvents(prodid):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns the number of events for a given production.
+    """
     return dataMGMT_.getProductionNbOfEvents(prodid)
 
   #############################################################################
@@ -1410,7 +1549,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getProductionSizeOfFiles(prodid):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns the size of files for a given production.
+    """
     return dataMGMT_.getProductionSizeOfFiles(prodid)
 
   #############################################################################
@@ -1426,7 +1567,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getProductionNbOfFiles(prodid):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns the number of files produced by a given production.
+    """
     return dataMGMT_.getProductionNbOfFiles(prodid)
 
   #############################################################################
@@ -1442,7 +1585,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getNbOfJobsBySites(prodid):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns the number of jobs executed at different sites for a given production.
+    """
     return dataMGMT_.getNbOfJobsBySites(prodid)
 
   #############################################################################
@@ -1450,7 +1595,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getAvailableTags():
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns the available database tags.
+    """
     return dataMGMT_.getAvailableTags()
 
   #############################################################################
@@ -1462,11 +1609,13 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.getProductionProcessedEvents(prodid)
 
   #############################################################################
-  types_getProductionProcessedEvents = [int]
+  types_getProductionProcessedEvents = [long]
 
   @staticmethod
   def export_getProductionProcessedEvents(prodid):
-    """more info in the BookkeepingClient.py"""
+    """
+    it returns the number of events processed for a given production.
+    """
     gLogger.info('getProductionProcessedEvents->Production: %d ' % prodid)
     return dataMGMT_.getProductionProcessedEvents(prodid)
 
@@ -1475,7 +1624,14 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getRunsForAGivenPeriod(in_dict):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns the available runs between a period.
+    Input parameters:
+    AllowOutsideRuns: If it is true, it only returns the runs which finished before EndDate.
+    StartDate: the run start period
+    EndDate: the run end period
+    CheckRunStatus: if it is true, it check the run is processed or not processed.
+    """
     return dataMGMT_.getRunsForAGivenPeriod(in_dict)
 
   #############################################################################
@@ -1490,7 +1646,12 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getProductionsFromView(in_dict):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns the productions from the bookkeeping view for a given processing pass and run number.
+    Input parameters:
+    RunNumber
+    ProcessingPass
+    """
     return dataMGMT_.getProductionsFromView(in_dict)
 
   #############################################################################
@@ -1536,7 +1697,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getRunAndProcessingPassDataQuality(runnb, processing):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns the data quality flag for a given run and processing pass.
+    """
     return dataMGMT_.getRunAndProcessingPassDataQuality(runnb, processing)
 
   #############################################################################
@@ -1544,7 +1707,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getAvailableConfigurations():
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns the available configurations.
+    """
     return dataMGMT_.getAvailableConfigurations()
 
   #############################################################################
@@ -1552,7 +1717,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getRunProcessingPass(runnumber):
-    """more info in the BookkeepingClient.py"""
+    """
+    it returns the run number for a given run.
+    """
     return dataMGMT_.getRunProcessingPass(runnumber)
 
   #############################################################################
@@ -1560,7 +1727,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getProductionFilesStatus(productionid=None, lfns=None):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns the file status in the bkk for a given production or a list of lfns.
+    """
     if not lfns:
       lfns = []
     return dataMGMT_.getProductionFilesStatus(productionid, lfns)
@@ -1641,7 +1810,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getVisibleFilesWithMetadata(in_dict):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns a list of files with metadata for a given condition.
+    """
 
     conddescription = in_dict.get('SimulationConditions', in_dict.get('DataTakingConditions', default))
     procPass = in_dict.get('ProcessingPass', default)
@@ -1751,7 +1922,15 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_addProduction(infos):
-    """more info in the BookkeepingClient.py"""
+    """
+    It is used to register a production to the bkk.
+    Input parameters:
+    SimulationConditions
+    DataTakingConditions
+    Steps: the step which is used to process data for a given production.
+    Production:
+    InputProductionTotalProcessingPass: it is a path of the input data processing pass
+    """
 
     gLogger.debug(infos)
     result = S_OK()
@@ -1792,7 +1971,11 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getEventTypes(in_dict):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns the available event types for a given configuration name and configuration version.
+    Input parameters:
+    ConfigName, ConfigVersion, Production
+    """
 
     configName = in_dict.get('ConfigName', default)
     configVersion = in_dict.get('ConfigVersion', default)
@@ -1804,8 +1987,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getProcessingPassSteps(in_dict):
-    """more info in the BookkeepingClient.py"""
-
+    """
+    It returns the steps for a given stepname processing pass ands production.
+    """
     stepname = in_dict.get('StepName', default)
     cond = in_dict.get('ConditionDescription', default)
     procpass = in_dict.get('ProcessingPass', default)
@@ -1817,7 +2001,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getProductionProcessingPassSteps(in_dict):
-    """more info in the BookkeepingClient.py"""
+    """
+    it returns the steps for a given production.
+    """
 
     if 'Production' in in_dict:
       return dataMGMT_.getProductionProcessingPassSteps(in_dict['Production'])
@@ -1837,7 +2023,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getProductionOutputFileTypes(in_dict):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns the output file types which produced by a given production.
+    """
 
     production = in_dict.get('Production', default)
     stepid = in_dict.get('StepId', default)
@@ -1860,7 +2048,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getRunWithProcessingPassAndDataQuality(procpass, flag=default):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns the run number for a given processing pass and a flag from the run quality table.
+    """
     return dataMGMT_.getRunWithProcessingPassAndDataQuality(procpass, flag)
 
   #############################################################################
@@ -1868,7 +2058,11 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getRuns(in_dict):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns the runs for a given configuration name and version.
+    Input parameters:
+
+    """
     result = S_ERROR()
     cName = in_dict.get('ConfigName', default)
     cVersion = in_dict.get('ConfigVersion', default)
@@ -1890,7 +2084,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getRunAndProcessingPass(in_dict):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns all the processing pass and run number for a given run.
+    """
     run = in_dict.get('RunNumber', default)
     result = S_ERROR()
     if run != default:
@@ -1904,7 +2100,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getProcessingPassId(fullpath):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns the ProcessingPassId for a given path. this method should not used!
+    """
     return dataMGMT_.getProcessingPassId(fullpath)
 
   #############################################################################
@@ -1919,7 +2117,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getNbOfRawFiles(in_dict):
-    """more info in the BookkeepingClient.py"""
+    """
+    It counts the raw files for a given run and (or) event type.
+    """
 
     runnb = in_dict.get('RunNumber', default)
     evt = in_dict.get('EventType', in_dict.get('EventTypeId', default))
@@ -1960,7 +2160,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getTCKs(in_dict):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns the tcks for a given data set.
+    """
     configName = in_dict.get('ConfigName', default)
     configVersion = in_dict.get('ConfigVersion', default)
     conddescription = in_dict.get('ConditionDescription', default)
@@ -2007,7 +2209,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getStepsMetadata(in_dict):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns the step(s) which is produced  a given dataset.
+    """
     gLogger.debug('getStepsMetadata' + str(in_dict))
     configName = in_dict.get('ConfigName', default)
     configVersion = in_dict.get('ConfigVersion', default)
@@ -2048,7 +2252,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getFilesForGUID(guid):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns a file for a given GUID.
+    """
     return dataMGMT_.getFilesForGUID(guid)
 
   #############################################################################
@@ -2056,7 +2262,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getRunsGroupedByDataTaking():
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns all the run numbers grouped by the data taking description.
+    """
     return dataMGMT_.getRunsGroupedByDataTaking()
 
   #############################################################################
@@ -2088,7 +2296,11 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getListOfRuns(in_dict):
-    """return the runnumbers for a given dataset"""
+    """
+    It returns a list of runs for a given conditions.
+    Input parameter is a dictionary which has the following keys: 'ConfigName', 'ConfigVersion',
+    'ConditionDescription', 'EventType','ProcessingPass'
+    """
     result = S_ERROR()
     configName = in_dict.get('ConfigName', default)
     configVersion = in_dict.get('ConfigVersion', default)
@@ -2109,7 +2321,8 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_getSimulationConditions(in_dict):
-    """It returns a list of simulation conditions"""
+    """It returns a list of simulation conditions for a given conditions
+    """
     return dataMGMT_.getSimulationConditions(in_dict)
 
   #############################################################################
@@ -2117,7 +2330,8 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_updateSimulationConditions(in_dict):
-    """it updates a given simulation condition"""
+    """It updates a given simulation condition
+    """
     return dataMGMT_.updateSimulationConditions(in_dict)
 
   #############################################################################
@@ -2147,7 +2361,7 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_setRunOnlineFinished(runnumber):
-    """You can set the runs finished"""
+    "It is used to set the run finished..."
     return dataMGMT_.setRunStatusFinished(runnumber, 'Y')
 
   types_setRunOnlineNotFinished = [long]
@@ -2168,6 +2382,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_bulkupdateFileMetaData(lfnswithmeta):
+    """
+    It updates the file metadata
+    """
     return dataMGMT_.bulkupdateFileMetaData(lfnswithmeta)
 
   types_fixRunLuminosity = [list]
@@ -2177,11 +2394,13 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.fixRunLuminosity(runnumbers)
 
   #############################################################################
-  types_getProductionProducedEvents = [int]
+  types_getProductionProducedEvents = [long]
 
   @staticmethod
   def export_getProductionProducedEvents(prodid):
-    """more info in the BookkeepingClient.py"""
+    """
+    it returns the number of events producced for a given production.
+    """
     gLogger.info("Retrieving the number of processed event for production", prodid)
     return dataMGMT_.getProductionProducedEvents(prodid)
 
@@ -2190,7 +2409,14 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_bulkinsertEventType(eventtypes):
-    """more info in the BookkeepingClient.py"""
+    """
+    It inserts a list of event types to the db.
+
+    :param list eventtypes it is a list of event types. For example: the list elements are the following:
+    {'EVTTYPEID': '12265021', 'DESCRIPTION': 'Bu_D0pipipi,Kpi-withf2=DecProdCut_pCut1600MeV',
+    'PRIMARY': '[B+ -> (D~0 -> K+ pi-) pi+ pi- pi+]cc'}
+    :return S_ERROR S_OK({'Failed':[],'Successful':[]})
+    """
     return dataMGMT_.bulkinsertEventType(eventtypes)
 
   #############################################################################
@@ -2198,26 +2424,39 @@ class BookkeepingManagerHandler(RequestHandler):
 
   @staticmethod
   def export_bulkupdateEventType(eventtypes):
-    """more info in the BookkeepingClient.py"""
+    """
+    It updates a list of event types which are exist in the db
+
+    :param list eventtypes it is a list of event types. For example: the list elements are the following:
+    {'EVTTYPEID': '12265021', 'DESCRIPTION':
+    'Bu_D0pipipi,Kpi-withf2=DecProdCut_pCut1600MeV', 'PRIMARY': '[B+ -> (D~0 -> K+ pi-) pi+ pi- pi+]cc'}
+    :return S_ERROR S_OK({'Failed':[],'Successful':[]})
+    """
     return dataMGMT_.bulkupdateEventType(eventtypes)
 
   #############################################################################
-  types_getRunConfigurationsAndDataTakingCondition = [int]
+  types_getRunConfigurationsAndDataTakingCondition = [long]
 
   @staticmethod
   def export_getRunConfigurationsAndDataTakingCondition(runnumber):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns minimal information for a given run.
+    :param: int runnumber
+    :return: S_OK()/S_ERROR ConfigName, ConfigVersion and DataTakingDescription
+    """
     return dataMGMT_.getRunConfigurationsAndDataTakingCondition(runnumber)
 
   types_deleteCertificationData = []
 
   def export_deleteCertificationData(self):
-    """more info in the BookkeepingClient.py"""
+    """It destroy the data used by the integration test"""
     return dataMGMT_.deleteCertificationData()
 
   #############################################################################
   types_getAvailableTagsFromSteps = []
 
   def export_getAvailableTagsFromSteps(self):
-    """more info in the BookkeepingClient.py"""
+    """
+    It returns the all used datatbase tags: DDDB, CondDB, DQTag
+    """
     return dataMGMT_.getAvailableTagsFromSteps()
