@@ -297,6 +297,7 @@ def pickStringFile(project, version, appConfigVersion):
       mostRecentVersion = sorted(versionsList, key=LooseVersion)[-1]
       fileName = project + '_' + mostRecentVersion + '_errs.txt'
       fullPathFileName = os.path.join(sourceDir, os.path.basename(fileName))
+    else:
       gLogger.warn('WARNING: no string files for this project')
       return None
 
