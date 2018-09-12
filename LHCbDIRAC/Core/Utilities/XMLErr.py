@@ -16,8 +16,14 @@ def readXMLfile(xmlFile, jobID, prodID, wmsID, jsonFileName='errors_xmlSummary.j
   :param str prodID: the production ID of the data
   :param str wmsID: the wms ID of the data
   """
-  root = extractRoot(xmlFile)['Value']
-  jsonData = extractData(root, jobID, prodID, wmsID)['Value']
+  res = extractRoot(xmlFile)
+  if not res['OK']:
+    return res
+  root = res['Value']
+  res = extractData(root, jobID, prodID, wmsID)
+  if not res['OK']:
+    return res
+  jsonData = res['Value']
   gLogger.notice('Attempting to read %s and put save it as %s' % (xmlFile, jsonFileName))
   createJSONfile(jsonData, jsonFileName)
   return S_OK()
@@ -69,7 +75,7 @@ def extractData(root, jobID, prodID, wmsID):
     tempDict[counter.attrib['name']] = counterValue
 
   # Checks if dict is empty (empty dicts evaluate to False)
-  if not bool(tempDict):
+  if not tempDict:
     gLogger.warn('WARNING: XML file is empty')
 
   result['Counters'] = tempDict
@@ -89,7 +95,6 @@ def createJSONfile(jsonData, jsonFileName):
   with open(jsonFileName, 'w') as f:
     gLogger.notice('Writing the XML file to JSON file %s' % jsonFileName)
     f.write(jsonData)
-  return S_OK()
 
 # The file is run as following:
 # readXMLfile(xmlFileName.xml, jobID, prodID, wmsID, jsonFileName.json)
