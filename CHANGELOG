@@ -1,3 +1,20 @@
+[v9r3-pre4]
+use DIRAC v6r20p13
+
+* checking return value
+* Fix for LogErr.py
+* fix the code style
+* simplify the Bookkeeping client
+* use default values for get-stats without trying to guess
+* Allow archive SEs as source
+* Protect against run having no destination
+* add protections against runs already defined, allow SDST files
+* add bookkeeping downtime instructions
+* subrequest does not have production details
+* fix pylint
+* remove outdated method and make pyLint happy
+* if application log is not provided use gLogger
+
 [v9r3-pre3]
 use DIRAC v6r20p12
 
