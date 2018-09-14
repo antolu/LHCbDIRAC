@@ -305,6 +305,20 @@ class BookkeepingClient(Client):
       runnumbers = runs
     return self._getRPC().getRunStatus(runnumbers)
 
+  def getProcessingPass(self, in_dict, path=None):
+    """
+      It returns the processing pass for a given conditions.
+      Input parameter is a dictionary and a path (string) which has the following keys:
+      'ConfigName', 'ConfigVersion', 'ConditionDescription','Production', 'RunNumber', 'EventType'
+      This method is used to recursively browse the processing pass.
+      To start the browsing you have to define the path as a root: path = '/'
+      Note: it returns a list with two dictionary. First dictionary contains the processing passes
+      while the second dictionary contains the event types.
+      """
+    if path is None:
+      path = '/'
+    return self._getRPC().getProcessingPass(in_dict, path)
+
 
 class BKClientWithRetry():
   """
