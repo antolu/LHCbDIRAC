@@ -20,7 +20,6 @@ except ImportError:
   from tests.Utilities.IntegrationTest import IntegrationTest, FailingUserJobTestCase
 
 
-
 parseCommandLine()
 
 
@@ -307,7 +306,8 @@ def createJob(local=True):
   optPConf = "prodConf_Gauss_00012345_00067890_1.py"
   options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
 
-  gaudirunJob.setApplication('Gauss', 'v45r5', options, extraPackages='AppConfig.v3r171;DecFiles.v27r14p1;ProdConf.v1r9',
+  gaudirunJob.setApplication('Gauss', 'v45r5', options,
+                             extraPackages='AppConfig.v3r171;DecFiles.v27r14p1;ProdConf.v1r9',
                              systemConfig='x86_64-slc5-gcc43-opt',
                              modulesNameList=['CreateDataFile',
                                               'GaudiApplication',
@@ -318,7 +318,8 @@ def createJob(local=True):
                                               'UserJobFinalization'],
                              parametersList=[('applicationName', 'string', '', 'Application Name'),
                                              ('applicationVersion', 'string', '', 'Application Version'),
-                                             ('applicationLog', 'string', '', 'Name of the output file of the application'),
+                                             ('applicationLog', 'string', '',
+                                              'Name of the output file of the application'),
                                              ('optionsFile', 'string', '', 'Options File'),
                                              ('extraOptionsLine', 'string', '', 'This is appended to standard options'),
                                              ('inputDataType', 'string', '', 'Input Data Type'),
