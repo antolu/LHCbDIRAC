@@ -319,6 +319,14 @@ class BookkeepingClient(Client):
       path = '/'
     return self._getRPC().getProcessingPass(in_dict, path)
 
+  def getProductionFilesStatus(self, productionid=None, lfns=None):
+    """
+    It returns the file status in the bkk for a given production or a list of lfns.
+    """
+    if lfns is None:
+      lfns = []
+    return self._getRPC().getProductionFilesStatus(productionid, lfns)
+
 
 class BKClientWithRetry():
   """

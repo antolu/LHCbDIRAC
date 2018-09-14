@@ -3313,7 +3313,7 @@ and files.qualityid= dataquality.qualityid'
         condition += " and %s " % (cond)
     else:
       if (isinstance(startRunID, basestring) and startRunID.upper() is not default) or\
-              (isinstance(startRunID, (int, long)) and startRunID is None):
+              (isinstance(startRunID, (int, long)) and startRunID is not None):
         condition += ' and j.runnumber>=' + str(startRunID)
       if (isinstance(endRunID, basestring) and endRunID.upper() is not default) or\
               (isinstance(endRunID, (int, long)) and endRunID is not None):
