@@ -1,3 +1,13 @@
+[v9r2p6]
+use DIRAC v6r20p13
+
+* use default values for get-stats without trying to guess
+* Allow archive SEs as source
+* Protect against run having no destination
+* add protections against runs already defined, allow SDST files
+* add bookkeeping downtime instructions
+* subrequest does not have production details
+
 [v9r2p5]
 use DIRAC v6r20p12
 
