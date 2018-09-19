@@ -46,7 +46,7 @@ class MCStatsElasticDBTestCase(unittest.TestCase):
         }
     }
 
-    # This is needed to convert '' to ""
+    # This is needed to convert a dict to a string
     self.data1 = json.dumps(self.data1)
     self.data2 = json.dumps(self.data2)
 

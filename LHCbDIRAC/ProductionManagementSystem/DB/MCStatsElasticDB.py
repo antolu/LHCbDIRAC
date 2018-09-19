@@ -47,6 +47,8 @@ class MCStatsElasticDB(DB):
     :param str indexName: the name of the index in ELasticSearch
     :param str typeName: The type in the index in ElasticSearch
     :param dict data: The data to be inserted in ElasticSearch in JSON format
+
+    :returns: S_OK/S_ERROR as result of indexing
     """
     result = self.index(indexName, typeName, data)
     if self.exists(indexName) and result['OK']:
@@ -63,6 +65,8 @@ class MCStatsElasticDB(DB):
 
     :param str indexName: the name of the index in ELasticSearch
     :param str JobID: The JobID Of the data in elasticsearch
+
+    :returns: S_OK/S_ERROR
     """
 
     query = {
