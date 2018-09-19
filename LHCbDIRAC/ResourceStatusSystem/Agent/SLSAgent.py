@@ -41,6 +41,7 @@ from DIRAC import gConfig, gLogger, S_OK, rootPath
 from DIRAC.Core.Utilities.File import mkDir
 from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
 from DIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 from DIRAC.ResourceStatusSystem.Utilities import CSHelpers
 
@@ -118,11 +119,7 @@ class SpaceTokenOccupancyTest(TestBase):
 
     site = ''
 
-    ses = CSHelpers.getStorageElements()
-    if not ses['OK']:
-      gLogger.error(ses['Message'])
-
-    for se in ses['Value']:
+    for se in DMSHelpers().getStorageElements():
       # Ugly, ugly, ugly..
       if ('-' not in se) or ('_' in se):
         continue
