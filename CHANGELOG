@@ -1,3 +1,10 @@
+[v9r2p7]
+use DIRAC v6r20p14
+
+* using DMSHelpers for getting the storage elements list
+* deleted empty folders
+* restored test of voboxes
+
 [v9r2p6]
 use DIRAC v6r20p13
 
