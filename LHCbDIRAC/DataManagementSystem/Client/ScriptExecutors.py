@@ -67,9 +67,8 @@ def parseArguments(dmScript, allSEs=False, printOutput=True):
   Analyse the options passed using the DMScript options,
   returns a list of LFNs and a list of SEs
   """
-  dmsHelper = DMSHelpers()
   if allSEs:
-    seList = dmsHelper.getStorageElements()
+    seList = DMSHelpers().getStorageElements()
   else:
     seList = __getSEsFromOptions(dmScript)
 

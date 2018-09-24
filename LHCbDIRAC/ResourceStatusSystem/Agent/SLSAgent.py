@@ -1,12 +1,34 @@
-''' LHCbDIRAC.ResourceStatusSystem.Agent.SLSAgent
+""" LHCbDIRAC.ResourceStatusSystem.Agent.SLSAgent
 
     This agent creates XML files with SE space left, that will be picked up by a cron job that will add to meter.cern.ch
-      so maybe SLSAgent is not anymore the right name
 
-'''
+    What's collected here will enter in https://meter.cern.ch/public/_plugin/kibana/#/dashboard/temp/meter::lhcb
+    by using this cronjob:
 
-# TODO: decide what to do about this agent (maybe really remove it).
-# Alternatively: use elasticseach module to spit in meter.
+# Puppet Name: Send SLS Info
+10 * * * * /opt/dirac/webRoot/www/send_sls_info.csh
+
+[dirac@lbvobox108 pro]$ more /opt/dirac/webRoot/www/send_sls_info.csh
+#!/bin/csh
+echo "CURL"
+foreach i (`ls /opt/dirac/webRoot/www/sls/dirac_services/*`)
+  echo $i
+  /usr/bin/curl -F file=@${i} xsls.cern.ch
+end
+foreach i (`ls /opt/dirac/webRoot/www/sls/log_se/*`)
+  echo $i
+  /usr/bin/curl -F file=@$i xsls.cern.ch
+end
+foreach i (`ls /opt/dirac/webRoot/www/sls/storage_space/*`)
+  echo $i
+  /usr/bin/curl -F file=@$i xsls.cern.ch
+end
+exit
+
+"""
+
+# TODO: SLSAgent is not anymore the right name
+# TODO: use elasticseach module to spit in meter.
 
 __RCSID__ = "$Id$"
 
@@ -19,12 +41,11 @@ from DIRAC import gConfig, gLogger, S_OK, rootPath
 from DIRAC.Core.Utilities.File import mkDir
 from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
 from DIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 from DIRAC.ResourceStatusSystem.Utilities import CSHelpers
 
 AGENT_NAME = 'ResourceStatus/SLSAgent'
-
-# Taken from utilities
 
 
 def xml_append(doc, tag, value_=None, elt_=None, **kw):
@@ -53,30 +74,6 @@ def gen_xml_stub():
   doc.documentElement.setAttribute("xsi:schemaLocation",
                                    "http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd")
   return doc
-
-# Helper functions to send a warning mail to a site (for space-token test)
-
-# def contact_mail_of_site( site ):
-#  opHelper = Operations()
-#  return opHelper.getValue( "Shares/Disk/" + site + "/Mail" )
-
-# def send_mail_to_site( site, token, pledged, total ):
-#  from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
-#  nc = NotificationClient()
-#  subject = "%s provide insufficient space for space-token %s" % ( site, token )
-#  body = """
-# Hi ! Our RSS monitoring systems informs us that %s has
-# pledged %f TB to the space-token %s, but in reality, only %f TB of
-# space is available. Thanks to solve the problem if possible.
-#
-#""" % ( site, pledged, token, total )
-#  address = contact_mail_of_site( site )
-#  if address:
-#    res = nc.sendMail( address, subject, body )
-#    if res['OK'] == False:
-#      gLogger.warn( "Unable to send mail to %s: %s" % ( address, res['Message'] ) )
-#    else:
-#      gLogger.info( "Sent mail to %s OK!" % address )
 
 
 class TestBase(object):
@@ -122,11 +119,7 @@ class SpaceTokenOccupancyTest(TestBase):
 
     site = ''
 
-    ses = CSHelpers.getStorageElements()
-    if not ses['OK']:
-      gLogger.error(ses['Message'])
-
-    for se in ses['Value']:
+    for se in DMSHelpers().getStorageElements():
       # Ugly, ugly, ugly..
       if ('-' not in se) or ('_' in se):
         continue
@@ -151,7 +144,7 @@ class SpaceTokenOccupancyTest(TestBase):
 
     # ['Endpoint', 'LastCheckTime', 'Guaranteed', 'Free', 'Token', 'Total']
     total = itemDict['Total']
-    #guaranteed   = itemDict[ 'Guaranteed' ]
+    # guaranteed   = itemDict[ 'Guaranteed' ]
     free = itemDict['Free']
     availability = "available" if free > 4 else ("degraded" if total != 0 else "unavailable")
 
@@ -241,10 +234,7 @@ class SLSAgent(AgentModule):
 
   def execute(self):
 
-    # Future me, forgive me for this. TO BE Fixed.
-    try:
-      SpaceTokenOccupancyTest(self)
-    except BaseException as e:
-      gLogger.warn('SpaceTokenOccupancyTest crashed with %s' % e)
+    SpaceTokenOccupancyTest(self)
+    DIRACTest(self)
 
     return S_OK()
