@@ -79,7 +79,7 @@ import os
 import re
 from distutils.version import LooseVersion  # pylint: disable=import-error,no-name-in-module
 
-from DIRAC import S_OK, S_ERROR, gConfig
+from DIRAC import S_OK, S_ERROR
 from DIRAC.Interfaces.API.Job import Job
 from DIRAC.Core.Utilities.File import makeGuid, mkDir
 from DIRAC.Core.Utilities.List import uniqueElements
@@ -104,7 +104,6 @@ class LHCbJob(Job):
     self.stepCount = 0
     self.inputDataType = 'DATA'  # Default, other options are MDF, ETC
     self.importLocation = 'LHCbDIRAC.Workflow.Modules'
-    self.rootSection = 'SoftwareDistribution/LHCbRoot'
     self.opsHelper = Operations()
 
   #############################################################################
@@ -307,8 +306,15 @@ class LHCbJob(Job):
        :param parametersList: list of parameters. The default is given.
        :type parametersList: list
     """
-    kwargs = {'appName': appName, 'appVersion': appVersion, 'script': script, 'arguments': arguments,
-              'inputData': inputData, 'inputDataType': inputDataType, 'poolXMLCatalog': poolXMLCatalog, 'logFile': logFile}
+    kwargs = {
+        'appName': appName,
+        'appVersion': appVersion,
+        'script': script,
+        'arguments': arguments,
+        'inputData': inputData,
+        'inputDataType': inputDataType,
+        'poolXMLCatalog': poolXMLCatalog,
+        'logFile': logFile}
     if not isinstance(appName, str) or not isinstance(appVersion, str):
       return self._reportError('Expected strings for application name and version', __name__, **kwargs)
 
@@ -429,7 +435,7 @@ class LHCbJob(Job):
     if not isinstance(numberOfEvents, int):
       try:
         numberOfEvents = int(numberOfEvents)
-      except ValueError as _x:
+      except ValueError:
         return self._reportError('Number of events should be an integer or convertible to an integer',
                                  __name__, **kwargs)
     if not inputData:
@@ -443,7 +449,7 @@ class LHCbJob(Job):
     poolCatName = 'xmlcatalog_file:pool_xml_catalog.xml'
     benderScript = ['#!/usr/bin/env python']
     benderScript.append('from Gaudi.Configuration import FileCatalog')
-    benderScript.append('FileCatalog   ( Catalogs = [ "%s" ] )' % poolCatName)
+    benderScript.append('FileCatalog   (Catalogs = ["%s"] )' % poolCatName)
     benderScript.append('import %s as USERMODULE' % modulePath)
     benderScript.append('USERMODULE.configure()')
     benderScript.append('gaudi = USERMODULE.appMgr()')
@@ -454,10 +460,9 @@ class LHCbJob(Job):
     tmpdir = '/tmp/' + guid
     self.log.verbose('Created temporary directory for submission %s' % (tmpdir))
     mkDir(tmpdir)
-    fopen = open('%s/BenderScript.py' % tmpdir, 'w')
-    self.log.verbose('Bender script is: %s/BenderScript.py' % tmpdir)
-    fopen.write('\n'.join(benderScript))
-    fopen.close()
+    with open('%s/BenderScript.py' % tmpdir, 'w') as fopen:
+      self.log.verbose('Bender script is: %s/BenderScript.py' % tmpdir)
+      fopen.write('\n'.join(benderScript))
     # should try all components of the PYTHONPATH before giving up...
     userModule = '%s.py' % (modulePath.split('.')[-1])
     self.log.verbose('Looking for user module with name: %s' % userModule)
@@ -542,8 +547,7 @@ class LHCbJob(Job):
 
   #############################################################################
 
-  def __configureRootModule(self, rootVersion, rootScript, rootType, arguments, logFile, systemConfig='ANY',
-                            modulesNameList=None, parametersList=None):
+  def __configureRootModule(self, rootVersion, rootScript, rootType, arguments, logFile, systemConfig):
     """ Internal function.
 
         Supports the root macro, python and executable wrapper functions.
@@ -571,18 +575,16 @@ class LHCbJob(Job):
     self.stepCount += 1
     stepName = '%sStep%s' % (rootName, self.stepCount)
 
-    if not modulesNameList:
-      modulesNameList = ['CreateDataFile',
-                         'RootApplication',
-                         'FileUsage',
-                         'UserJobFinalization']
-    if not parametersList:
-      parametersList = [('rootVersion', 'string', '', 'Root version'),
-                        ('rootScript', 'string', '', 'Root script'),
-                        ('rootType', 'string', '', 'Root type'),
-                        ('arguments', 'list', [], 'Optional arguments for payload'),
-                        ('applicationLog', 'string', '', 'Log file name'),
-                        ('SystemConfig', 'string', '', 'CMT Config')]
+    modulesNameList = ['CreateDataFile',
+                       'RootApplication',
+                       'FileUsage',
+                       'UserJobFinalization']
+    parametersList = [('rootVersion', 'string', '', 'Root version'),
+                      ('rootScript', 'string', '', 'Root script'),
+                      ('rootType', 'string', '', 'Root type'),
+                      ('arguments', 'list', [], 'Optional arguments for payload'),
+                      ('applicationLog', 'string', '', 'Log file name'),
+                      ('SystemConfig', 'string', '', 'CMT Config')]
     step = getStepDefinition(stepName,
                              modulesNameList=modulesNameList,
                              importLine="LHCbDIRAC.Workflow.Modules",
@@ -602,15 +604,6 @@ class LHCbJob(Job):
     stepInstance.setValue("SystemConfig", systemConfig)
     if arguments:
       stepInstance.setValue("arguments", arguments)
-
-    # now we have to tell DIRAC to install the necessary software
-    appRoot = '%s/%s' % (self.rootSection, rootVersion)
-    currentApp = self.opsHelper.getValue(appRoot, '')
-    if not currentApp:  # FIXME: this is an old location, the whole /Operations/SoftwareDistribution section should be removed
-      currentApp = gConfig.getValue('Operations/' + appRoot)
-    if not currentApp:
-      return self._reportError('Could not get value from DIRAC Configuration Service for option %s' % appRoot,
-                               __name__, **kwargs)
 
     return S_OK(stepInstance)
 
@@ -638,7 +631,7 @@ class LHCbJob(Job):
     if isinstance(depth, str):
       try:
         self._addParameter(self.workflow, 'AncestorDepth', 'JDL', int(depth), description)
-      except Exception as _x:
+      except BaseException:
         return self._reportError('Expected integer for Ancestor Depth', __name__, **kwargs)
     elif isinstance(depth, int):
       self._addParameter(self.workflow, 'AncestorDepth', 'JDL', depth, description)
@@ -668,7 +661,7 @@ class LHCbJob(Job):
     if not isinstance(inputDataType, str):
       try:
         inputDataType = str(inputDataType)
-      except TypeError as _x:
+      except TypeError:
         return self._reportError('Expected string for input data type', __name__, **{'inputDataType': inputDataType})
 
     self.inputDataType = inputDataType
@@ -702,7 +695,7 @@ class LHCbJob(Job):
         db = str(db)
         tag = str(tag)
         conditions.append('.'.join([db, tag]))
-      except Exception as _x:
+      except BaseException:
         return self._reportError('Expected string for conditions', __name__, **kwargs)
 
     condStr = ';'.join(conditions)
@@ -922,7 +915,7 @@ class LHCbJob(Job):
         return res
 
       runNumbers = []
-      for fileMeta in res['Value']['Successful'].values():
+      for fileMeta in res['Value']['Successful'].itervalues():
         try:
           if fileMeta['RunNumber'] not in runNumbers and fileMeta['RunNumber'] is not None:
             runNumbers.append(fileMeta['RunNumber'])
@@ -951,7 +944,7 @@ class LHCbJob(Job):
       else:
         self.log.verbose('Found file types %s for LFNs: %s' % (typeVersions.values(), typeVersions.keys()))
         typeVersionsList = []
-        for tv in typeVersions.values():
+        for tv in typeVersions.itervalues():
           if tv not in typeVersionsList:
             typeVersionsList.append(tv)
 

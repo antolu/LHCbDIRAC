@@ -247,3 +247,26 @@ If we know the processing id, we can use the following query to found out the pr
       FROM processing
       WHERE LEVEL > 0 and id=1915
       CONNECT BY PRIOR id=parentid order by Pathlen desc) v where rownum<=1;
+      
+  
+================================
+Bookkeeping down time
+================================
+The following services/agent needs to be stopped before the deep down time (SystemAdministrator can be used in order to manage the services)::
+	
+	RMS:
+		RequestExecutingAgent  
+			check it really stops (may take long time)
+	TS:
+		BookkeepingWatchAgent  
+		TransformationAgent - Reco, DM, MergePlus (this to be checked). This was not stopped the latest deep downtime
+		TransformationCleaningAgent 
+		MCSimulationTestingAgent 
+	PMS:
+		ProductionStatusAgent
+		RequestTrackingAgent
+	DMS:
+		PopularityAgent
+	StorageHistoryAgents(s)
+
+Just before the intervention stop all Bookkeeping services.

@@ -1596,8 +1596,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
     storageElementGroups = {}
 
     for replicaSE, lfns in getFileGroups(self.transReplicas).iteritems():
-      replicaSEs = set(se for se in replicaSE.split(',') if not self.util.dmsHelper.isSEFailover(se)
-                       and not self.util.dmsHelper.isSEArchive(se))
+      replicaSEs = set(se for se in replicaSE.split(',') if not self.util.dmsHelper.isSEFailover(se))
       if not replicaSEs:
         continue
       okSEs = replicaSEs & destSEs
@@ -1664,8 +1663,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
     storageElementGroups = {}
 
     for replicaSE, lfns in getFileGroups(self.transReplicas).iteritems():
-      replicaSE = set(se for se in replicaSE.split(',')
-                      if not self.util.dmsHelper.isSEFailover(se) and not self.util.dmsHelper.isSEArchive(se))
+      replicaSE = set(se for se in replicaSE.split(',') if not self.util.dmsHelper.isSEFailover(se))
       if not replicaSE:
         self.util.logInfo("Found %d files that don't have a suitable source replica. Set Problematic" % len(lfns))
         res = self.transClient.setFileStatusForTransformation(self.transID, 'Problematic', lfns)

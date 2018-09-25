@@ -793,6 +793,7 @@ class ProductionRequest( object ):
       prod.addFinalizationStep( ['UploadOutputData',
                                  'RemoveInputData',
                                  'UploadLogFile',
+                                 'UploadMC',
                                  'FailoverRequest'] )
     else:
       prod.addFinalizationStep()
