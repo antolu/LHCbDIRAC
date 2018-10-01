@@ -12,6 +12,7 @@ from DIRAC.ConfigurationSystem.Client.PathFinder import getDatabaseSection
 from DIRAC.Core.Utilities.List import breakListIntoChunks
 # from DIRAC.Core.Utilities.OracleDB                                   import OracleDB
 from LHCbDIRAC.BookkeepingSystem.DB.OracleDB import OracleDB
+from test.test_iterlen import NoneLengthHint
 
 __RCSID__ = "$Id$"
 
@@ -3116,7 +3117,12 @@ and files.qualityid= dataquality.qualityid" % lfn
 
   #############################################################################
   def getProductionInformationsFromView(self, prodid):
-    """production statistics from the view"""
+    """
+    production statistics from the view
+
+    :param long prodid: production  number
+    :return: production statistics
+    """
     command = 'select * from productioninformations where production=' + str(prodid)
     res = self.dbR_.query(command)
     return res
@@ -3126,32 +3132,56 @@ and files.qualityid= dataquality.qualityid" % lfn
   #          MONITORING
   #############################################################################
   def getProductionNbOfJobs(self, prodid):
-    """returns the number of jobs"""
+    """
+    Number of jobs for given production
+
+    :param long prodid: production number
+    :return: the number of jobs"""
     return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getJobsNb', [prodid])
 
   #############################################################################
   def getProductionNbOfEvents(self, prodid):
-    """returns the number of events"""
+    """
+    Number of event for a given production
+
+    :param long prodid: production number
+    :return: the number of events"""
     return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getNumberOfEvents', [prodid])
 
   #############################################################################
   def getProductionSizeOfFiles(self, prodid):
-    """returns the size of files"""
+    """
+    Size of the files for a given production
+
+    :param long prodid: production number
+    :return: the size of files"""
     return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getSizeOfFiles', [prodid])
 
   #############################################################################
   def getProductionNbOfFiles(self, prodid):
-    """returns the number of files"""
+    """
+    For retrieving number of files for a given production
+
+    :param long prodid: production number
+    :return: the number of files"""
     return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getNbOfFiles', [prodid])
 
   #############################################################################
   def getProductionInformation(self, prodid):
-    """returns the statistics of a production"""
+    """
+    For retrieving production statistics
+
+    :param long prodid: production number
+    :return: the statistics of a production"""
     return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getProductionInformation', [prodid])
 
   #############################################################################
   def getSteps(self, prodid):
-    """returns the step used by a production"""
+    """
+    For retrieving the production step
+
+    :param long prodid: production numeber
+    :return: the step used by a production"""
     result = None
     retVal = self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getSteps', [prodid])
     if not retVal['OK']:
@@ -3192,7 +3222,12 @@ and files.qualityid= dataquality.qualityid" % lfn
 
   #############################################################################
   def __resolveFromPreviousStep(self, production):
-    """It returns the database tags from the ancestor"""
+    """
+    It returns the database tags from the ancestor
+
+    :param long production: production number
+    :return: database tags
+    """
     command = "select distinct production from jobs j, files f where j.jobid=f.jobid and \
     j.production!=%d and f.fileid in (select i.fileid from inputfiles i \
     where i.JOBID in (select jobid from jobs j where j.production=%d))" % (production, production)
@@ -3218,18 +3253,27 @@ and files.qualityid= dataquality.qualityid" % lfn
 
   #############################################################################
   def getNbOfJobsBySites(self, prodid):
-    """returns the number of sucessfully
-    finished jobs at different Grid sites for a given production"""
+    """
+    the number of successfully finished jobs at different Grid sites for a given production
+
+    :param long prodid: production number
+    :return: number of jobs"""
     return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getJobsbySites', [prodid])
 
   #############################################################################
   def getConfigsAndEvtType(self, prodid):
-    """returns the configurations and event type of a production"""
+    """
+    For retrieving the configuration name, version and event type
+
+    :param long prodid: production number
+    :return: the configurations and event type of a production"""
     return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getConfigsAndEvtType', [prodid])
 
   #############################################################################
   def getAvailableTags(self):
-    """returns the tags"""
+    """
+    For retrieving the database tags.
+    :return: the tags"""
     result = S_ERROR()
     command = 'select name, tag from tags order by inserttimestamp desc'
     retVal = self.dbR_.query(command)
@@ -3249,12 +3293,20 @@ and files.qualityid= dataquality.qualityid" % lfn
 
   #############################################################################
   def getProductionProcessedEvents(self, prodid):
-    """returns the processed event by a production"""
+    """
+    For retreiving all events in specific production.
+
+    :param long prodid: production number
+    :return: the processed event by a production"""
     return self.dbR_.executeStoredFunctions('BOOKKEEPINGORACLEDB.getProcessedEvents', types.LongType, [prodid])
 
   #############################################################################
   def getRunsForAGivenPeriod(self, in_dict):
-    """returns the runs for a given conditions"""
+    """
+    For retrieving list of runs.
+
+    :param dict in_dict: bkQuery bookkeeping query
+    :return: the runs for a given conditions"""
     condition = ''
     startDate = in_dict.get('StartDate', default)
     endDate = in_dict.get('EndDate', default)
@@ -3315,7 +3367,11 @@ and files.qualityid= dataquality.qualityid" % lfn
 
   #############################################################################
   def getProductionsFromView(self, in_dict):
-    """returns the productions using the bookkeeping view"""
+    """
+    For retrieving productions
+
+    :param dict in_dict: bkQuery bookkeeping query
+    :return: the productions using the bookkeeping view"""
     run = in_dict.get('RunNumber', in_dict.get('Runnumber', default))
     proc = in_dict.get('ProcessingPass', in_dict.get('ProcPass', default))
     result = S_ERROR()
@@ -3341,19 +3397,33 @@ and files.qualityid= dataquality.qualityid" % lfn
 
   #############################################################################
   def getRunFilesDataQuality(self, runs):
-    """retuns the files with data quality"""
+    """
+    For retrieving list of files
+
+    :param list runs: list of run numbers
+    :retun: the files with data quality"""
     retVal = self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getRunQuality', [], True, runs)
     return retVal
 
   #############################################################################
   def getRunAndProcessingPassDataQuality(self, runnb, processing):
-    """returns the data qaulity for a given run and processing pass"""
+    """
+    For retrieving the data quality flag for run and processing pass
+
+    :param long runnb: run number
+    :param str processing: processing pass
+    :return: data quality"""
     return self.dbW_.executeStoredFunctions('BOOKKEEPINGORACLEDB.getQFlagByRunAndProcId',
                                             types.StringType, [runnb, processing])
 
   #############################################################################
   def getRunWithProcessingPassAndDataQuality(self, procpass, flag=default):
-    """returns the runs for a given flag and processing pass"""
+    """
+    For retrieving a list of runs for a given processing pass and data quality flag
+
+    :param str procpass: processing pass
+    :param str flag: file data quality flag
+    :return: runs"""
     retVal = self.__getProcessingPassId(procpass.split('/')[1:][0], procpass)
     if retVal['OK']:
       processingid = retVal['Value']
@@ -3374,7 +3444,11 @@ and files.qualityid= dataquality.qualityid" % lfn
 
   #############################################################################
   def setFilesInvisible(self, lfns):
-    """sets a given list of lfn invisible"""
+    """
+    sets a given list of lfn invisible
+
+    :param list lfns: list of LFNs
+    """
 
     for i in lfns:
       retVal = self.dbW_.executeStoredProcedure('BOOKKEEPINGORACLEDB.setFileInvisible', [i], False)
@@ -3384,7 +3458,11 @@ and files.qualityid= dataquality.qualityid" % lfn
 
   #############################################################################
   def setFilesVisible(self, lfns):
-    """sets a given list of lfn visible"""
+    """
+    sets a given list of lfn visible
+
+    :param list lfns: list of LFNs
+    """
     for i in lfns:
       res = self.dbW_.executeStoredProcedure('BOOKKEEPINGORACLEDB.setFileVisible', [i], False)
       if not res['OK']:
@@ -3397,9 +3475,39 @@ and files.qualityid= dataquality.qualityid" % lfn
                production=default, flag=default,
                startDate=None, endDate=None,
                nbofEvents=False, startRunID=None,
-               endRunID=None, runnumbers=list(),
-               replicaFlag=default, visible=default, filesize=False, tcks=list()):
-    """returns a list of lfns"""
+               endRunID=None, runnumbers=None,
+               replicaFlag=default, visible=default, filesize=False, tcks=None):
+    """
+    returns a list of lfns
+
+    :param str simdesc: simulation condition description
+    :param str datataking: data taking condition description
+    :pram str procPass: processing pass
+    :param str ftype: file type
+    :param long evt: event type
+    :param str configName: configuration name
+    :param str configVersion: configuration version
+    :param long production: production number
+    :param str flag: data quality flag
+    :param datetime startDate: job/run start time stamp
+    :param datetime endDate: job/run end time stamp
+    :param bool nbofEvents: count number of events
+    :param long startRunID: start run number
+    :param long endRunID: end run number
+    :param list runnumbers: list of run numbers
+    :param str replicaFlag: file replica flag
+    :param str visible: file visibility flag
+    :param bool filesize: only sum the files size
+    :param list tcks: list of run TCKs
+    :return list of files
+    """
+
+    if runnumbers is None:
+      runnumbers = []
+
+    if tcks is None:
+      tcks = []
+
     condition = ''
     tables = ' files f,jobs j '
 
@@ -3485,7 +3593,15 @@ and files.qualityid= dataquality.qualityid" % lfn
   #############################################################################
   @staticmethod
   def __buildConfiguration(configName, configVersion, condition, tables):
-    """ it make the condition string for a given configName and configVersion"""
+    """
+    it make the condition string for a given configName and configVersion
+
+    :param str configName: configuration name
+    :param str configVersion: configuration version
+    :param str condition: condition string
+    :param str tables: tables used by join
+    :return: condition and tables
+    """
 
     if configName not in [default, None, ''] and configVersion not in [default, None, '']:
       if 'CONFIGURATIONS' not in tables.upper():
@@ -3527,7 +3643,14 @@ and files.qualityid= dataquality.qualityid" % lfn
   #############################################################################
   @staticmethod
   def __buildTCKS(tcks, condition, tables):
-    """ it adds the tck to the jobs table"""
+    """
+    it adds the tck to the jobs table
+
+    :param list tcks: list of run TCKs
+    :param str condition: condition string
+    :param str tables: tables used by join
+    :return: condition and tables
+    """
 
     if tcks not in [None, default]:
       if isinstance(tcks, list):
@@ -3636,7 +3759,15 @@ and files.qualityid= dataquality.qualityid" % lfn
   #############################################################################
   @staticmethod
   def __buildRunnumbers(runnumbers, startRunID, endRunID, condition, tables):
-    """it adds the run numbers or start end run to the jobs table"""
+    """it adds the run numbers or start end run to the jobs table
+
+    :param list runnumbers: list of runs
+    :param long startRunID: start run number
+    :param long endRunID: end run number
+    :param str condition: condition string
+    :param str tables: tables used by join
+    :return: condition and tables
+    """
     cond = None
     if isinstance(runnumbers, (int, long)):
       condition = ' and j.runnumber=%s' % (str(runnumbers))
@@ -3709,7 +3840,15 @@ and files.qualityid= dataquality.qualityid" % lfn
   #############################################################################
   @staticmethod
   def __buildStartenddate(startDate, endDate, condition, tables):
-    """it adds the start and end date to the files table"""
+    """
+    it adds the start and end date to the files table
+
+    :param datetime startDate:  file insert start date
+    :param datetime endDate: file insert end date
+    :param str condition: condition string
+    :param str tables: tables used by join
+    :return: condition and tables
+    """
     if startDate not in [None, default, []]:
       condition += " and f.inserttimestamp >= TO_TIMESTAMP ('%s','YYYY-MM-DD HH24:MI:SS')" % (str(startDate))
 
@@ -3722,7 +3861,14 @@ and files.qualityid= dataquality.qualityid" % lfn
 
   #############################################################################
   def __buildDataquality(self, flag, condition, tables):
-    """it adds the data quality to the files table"""
+    """
+    it adds the data quality to the files table
+
+    :param str flag: data quality flag
+    :param str condition: condition string
+    :param str tables: tables used by join
+    :return: condition and tables
+    """
     if flag not in [default, None]:
       if isinstance(flag, (list, tuple)):
         conds = ' ('
@@ -3755,7 +3901,14 @@ and files.qualityid= dataquality.qualityid" % lfn
   #############################################################################
   @staticmethod
   def __buildReplicaflag(replicaFlag, condition, tables):
-    """it adds the replica flag tp the files atble"""
+    """
+    it adds the replica flag to the files table
+
+    :param str replicaFlag: file replica flag
+    :param str condition: condition string
+    :param str tables: tables used by join
+    :return: condition and tables
+    """
     if replicaFlag in ['Yes', 'No']:
       condition += " and f.gotreplica='%s' " % replicaFlag
 
@@ -3764,7 +3917,14 @@ and files.qualityid= dataquality.qualityid" % lfn
   #############################################################################
   @staticmethod
   def __buildVisibilityflag(visible, condition, tables):
-    """it adds the visibility flag to the files table"""
+    """
+    it adds the visibility flag to the files table
+
+    :param str visible: visibility flag
+    :param str condition: condition string
+    :param str tables: tables used by the join
+    :return: condition and tables
+    """
     if not visible.upper().startswith('A'):
       if visible.upper().startswith('Y'):
         condition += " and f.visibilityflag='Y'"
@@ -3809,8 +3969,35 @@ and files.qualityid= dataquality.qualityid" % lfn
                                   production=default, flag=default,
                                   startDate=None, endDate=None,
                                   nbofEvents=False, startRunID=None,
-                                  endRunID=None, runnumbers=list(), replicaFlag='Yes', tcks=list()):
-    """returns the visible files"""
+                                  endRunID=None, runnumbers=None, replicaFlag='Yes', tcks=None):
+    """
+    For  retrieving only visible files.
+
+    :param str simdesc: simulation desctription
+    :param str datataking: data taking description
+    :param str procPass: processing pass
+    :param str ftype: file type
+    :param str evt: event type
+    :param str configName: configuration name
+    :param str configVersion: configuration version
+    :param long production: production number
+    :param str flag: data quality
+    :param datetime startDate: job start time stamp
+    :param datetime endDate: job end time stamp
+    :param bool nbofEvemts: count number of events
+    :param long startRunID: start run number
+    :param long endRunID: end run number
+    :param str replicaFlag: file replica flag
+    :param list tcks: run TCKs
+    :return: the visible files
+    """
+
+    if tcks is None:
+      tcks = []
+
+    if runnumbers is None:
+      runnumbers = []
+
     condition = ''
 
     tables = ' jobs j, files f'
@@ -3964,8 +4151,31 @@ and files.qualityid= dataquality.qualityid" % lfn
   def getFilesSummary(self, configName, configVersion, conditionDescription=default, processingPass=default,
                       eventType=default, production=default, fileType=default, dataQuality=default,
                       startRun=default, endRun=default, visible=default, startDate=None, endDate=None,
-                      runNumbers=list(), replicaFlag=default, tcks=default):
-    """retuns the number of event, files, etc for a given dataset"""
+                      runNumbers=None, replicaFlag=default, tcks=default):
+    """
+    File summary for a given data set
+
+    :param str configName: configuration name
+    :param str configVersion: configuration version
+    :param str conddescription: simulation or data taking condition
+    :param str processingPass: processing pass
+    :param long eventType: event type
+    :param long production: production number
+    :param str filetype: file type
+    :param str dataQuality: data quality
+    :param long startRun: satart run number
+    :param long endRun: end run number
+    :param str visible: visibility flag
+    :param datetime startDate: job start time stamp
+    :param datetime endDate: job end time stamp
+    :param list runNumbers: list of run numbers
+    :param str replicaFlag: file replica flag
+    :param list tcks: list of run TCKs
+    :retun: the number of event, files, etc for a given data set
+    """
+
+    if runNumbers is None:
+      runNumbers = []
     condition = ''
     tables = 'files f, jobs j '
     useView = fileType not in (default, 'RAW')
@@ -4045,7 +4255,22 @@ and files.qualityid= dataquality.qualityid" % lfn
                       evt=default, production=default,
                       filetype=default, quality=default,
                       runnb=default, startitem=0, maxitems=10):
-    """returns a list of limited number of files"""
+    """
+    For retrieving a subset of files
+
+    :param str configName: configuration name
+    :param str configVersion: configuration version
+    :param str conddescription: simulation or data taking condition
+    :param str processing: processing pass
+    :param long evt: event type
+    :param long production: production number
+    :param str filetype: file type
+    :param str quality: data quality
+    :param long runnb: run number
+    :param long startitem: staring row number
+    :pram long maxitems: maximum returned rows
+    :return: a list of limited number of files
+    """
     condition = ''
     if configName != default:
       condition += " and c.configname='%s' " % (configName)
@@ -4145,7 +4370,12 @@ and files.qualityid= dataquality.qualityid" % lfn
 
   #############################################################################
   def getDataTakingCondId(self, condition):
-    """returns the data taking conditions identifier"""
+    """
+    For retrieving the data quality id
+
+    :param dict condition: data taking attributes
+    :return: the data taking conditions identifier
+    """
     command = 'select DaqPeriodId from data_taking_conditions where '
     for param in condition:
       if isinstance(condition[param], basestring) and len(condition[param].strip()) == 0:
@@ -4179,7 +4409,12 @@ and files.qualityid= dataquality.qualityid" % lfn
 
   #############################################################################
   def getDataTakingCondDesc(self, condition):
-    """return the data taking description which adequate a given conditions."""
+    """
+    For retrieving the data taking conditions which fullfill for given condition
+
+    :param dict condition: data taking attributes
+    :return: the data taking description which adequate a given conditions.
+    """
     command = 'select description from data_taking_conditions where '
     for param in condition:
       if isinstance(condition[param], basestring) and len(condition[param].strip()) == 0:
@@ -4213,7 +4448,14 @@ and files.qualityid= dataquality.qualityid" % lfn
 
   #############################################################################
   def getStepIdandNameForRUN(self, programName, programVersion, conddb, dddb):
-    """returns the step used to process data"""
+    """
+    For retrieving the steps which is used by given application, conddb, dddb
+
+    :param str programName: application name
+    :param str programVersion: application version
+    :param str conddb: CONDB database tag
+    :param str dddb: DDDB database tag
+    :return: the step used to process data"""
     dataset = {'Step': {'StepName': 'Real Data',
                         'ApplicationName': programName,
                         'ApplicationVersion': programVersion,
@@ -4255,7 +4497,11 @@ and files.qualityid= dataquality.qualityid" % lfn
 
   #############################################################################
   def __getPassIds(self, name):
-    """returns the processing pass ids for a given processing pass name"""
+    """
+    For retrieving processing pass ids.
+
+    :param str name: processing pass name for example: Sim10
+    :return: the processing pass ids for a given processing pass name"""
     command = "select id from processing where name='%s'" % (name)
     retVal = self.dbR_.query(command)
     if retVal['OK']:
@@ -4268,7 +4514,12 @@ and files.qualityid= dataquality.qualityid" % lfn
 
   #############################################################################
   def __getprocessingid(self, processingpassid):
-    """returns the processing pass name for a given processing pass identifier"""
+    """
+    For retrieving processing pass for a given id
+
+    :param long processongpassid: processing pass id
+    :return: processing pass
+    """
     command = 'SELECT name "Name", CONNECT_BY_ISCYCLE "Cycle", \
    LEVEL, SYS_CONNECT_BY_PATH(name, \'/\') "Path", id "ID" \
    FROM processing \
@@ -4280,7 +4531,12 @@ and files.qualityid= dataquality.qualityid" % lfn
   #############################################################################
   @staticmethod
   def __checkprocessingpass(opath, values):
-    """checks the processing pass"""
+    """
+    checks the processing pass: compare the processing passes
+
+    :param list opath: processing pass names
+    :param list values: processing pass names
+    """
     if len(opath) != len(values):
       return False
     else:
@@ -4292,8 +4548,16 @@ and files.qualityid= dataquality.qualityid" % lfn
       return True
 
   #############################################################################
-  def __insertprocessing(self, values, parentid=None, ids=list()):
-    """inserts a processing pass"""
+  def __insertprocessing(self, values, parentid=None, ids=None):
+    """
+    inserts a processing pass
+
+    :param list values: processing pass names: Reco09, Stripping19
+    :patam long parentid: the parent processing pass
+    :param list ids: keeps all processing pass ids
+    """
+    if ids is None:
+      ids = []
     for i in values:
       command = ''
       if parentid is not None:
@@ -4338,7 +4602,11 @@ and files.qualityid= dataquality.qualityid" % lfn
 
   #############################################################################
   def addProcessing(self, path):
-    """adds a new processing pass"""
+    """
+    adds a new processing pass
+
+    :param str path: processing pass for example: /Real Data/Reco19/Striping29
+    """
     lastindex = len(path) - 1
     retVal = self.__getPassIds(path[lastindex])
     stepids = []
@@ -4363,18 +4631,37 @@ and files.qualityid= dataquality.qualityid" % lfn
 
   #############################################################################
   def insertStepsContainer(self, prod, stepid, step):
-    """inserts a step to the stepcontainer"""
+    """inserts a step to the stepcontainer
+
+    :param long prod: production number
+    :param long stepid: step id
+    :param long step: the step counter (a production can have more than one step)
+    """
     return self.dbW_.executeStoredProcedure('BOOKKEEPINGORACLEDB.insertStepsContainer', [prod, stepid, step], False)
 
   #############################################################################
   def insertproductionscontainer(self, prod, processingid, simid, daqperiodid, configName, configVersion):
-    """inserts a production to the productions container"""
+    """
+    inserts a production to the productions container
+
+    :param long prod: production number
+    :param long processingid: processing pass id
+    :param long simid: simulation condition id
+    :param long daqperiodid: data taking condition id
+    :param str configName: configuration name
+    :param str configVersion: configuration version
+    """
     return self.dbW_.executeStoredProcedure('BOOKKEEPINGORACLEDB.insertproductionscontainer',
                                             [prod, processingid, simid, daqperiodid, configName, configVersion], False)
 
   #############################################################################
   def addProductionSteps(self, steps, prod):
-    """adds a step to a production"""
+    """
+    adds a step to a production. The steps which used by the production.
+
+    :param list steps: list of steps
+    :param long prod: production number
+    """
     level = 1
     for i in steps:
       retVal = self.insertStepsContainer(prod, i['StepId'], level)
@@ -4385,7 +4672,11 @@ and files.qualityid= dataquality.qualityid" % lfn
 
   #############################################################################
   def checkProcessingPassAndSimCond(self, production):
-    """checks the processing pass and simulation condition"""
+    """
+    checks the processing pass and simulation condition
+
+    :param long production: production number
+    """
     command = ' select count(*) from productionscontainer where production=' + str(production)
     res = self.dbR_.query(command)
     return res
@@ -4393,7 +4684,18 @@ and files.qualityid= dataquality.qualityid" % lfn
   #############################################################################
   def addProduction(self, production, simcond=None, daq=None, steps=default,
                     inputproc='', configName=None, configVersion=None, eventType=None):
-    """adds a production"""
+    """
+    adds a production to the productions container table
+
+    :param long production: production number
+    :param str simcond: simulation condition description
+    :param str daq: data taking description
+    :param list steps: list of steps
+    :param str inputproc: input processing pass
+    :param str configName: configuration name
+    :param str configVersion: configuration version
+    :param long eventType: eventTyoe
+    """
     path = []
     if inputproc != '':
       if inputproc[0] != '/':
@@ -4452,6 +4754,7 @@ and files.qualityid= dataquality.qualityid" % lfn
   def insertProductionOutputFiletypes(self, production, steps, eventType):
     """
     This method is used to register the output filetypes for a given production
+
     :param int production: it is the production number
     :param list steps it contains all the steps and output file types
     :param number/list eventtype given event type which will be produced by the jobs
@@ -4491,7 +4794,14 @@ and files.qualityid= dataquality.qualityid" % lfn
 
   #############################################################################
   def getEventTypes(self, configName=default, configVersion=default, prod=default):
-    """returns the events types for a given dataset"""
+    """
+    For retrieving the event type for given conditions.
+
+    :param str configName: configuration name
+    :param str configVersion: configuration version
+    :param long prod: production number
+    :return: event types
+    """
     condition = ''
     result = S_ERROR()
     if configName != default:
@@ -4520,7 +4830,13 @@ and files.qualityid= dataquality.qualityid" % lfn
 
   #############################################################################
   def getProcessingPassSteps(self, procpass=default, cond=default, stepname=default):
-    """returns the steps with metadata"""
+    """
+    For retrieving the step metadata for given condition
+
+    :param str procpass: processing pass
+    :param str cond: data taking or simulation condition
+    :param str stepname: name of the step
+    :return: the steps with metadata"""
     processing = {}
     condition = ''
 
@@ -4577,7 +4893,12 @@ and files.qualityid= dataquality.qualityid" % lfn
 
   #############################################################################
   def getProductionProcessingPassSteps(self, prod):
-    """returns the production processing pass"""
+    """
+    For retrieving the processing pass of a fgiven production
+
+    :param long prod: production number
+    :return: the production processing pass
+    """
     processing = {}
     retVal = self.getProductionProcessingPass(prod)
     if retVal['OK']:
@@ -4628,19 +4949,38 @@ and files.qualityid= dataquality.qualityid" % lfn
 
   #############################################################################
   def getRuns(self, cName, cVersion):
-    """returns the runs"""
+    """
+    For retrieving list of runs
+
+    :param str cName: configuration name
+    :param str cVersion: configuration version
+    :return: runs
+    """
     return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getRuns', [cName, cVersion])
 
   #############################################################################
   def getRunAndProcessingPass(self, runnb):
-    """returns the processing pass of a run"""
+    """
+    For retrieving the processing pass of a given run
+
+    :param long runnb: run number
+    :return: the processing pass of a run"""
     command = "select distinct runnumber, processingpass from table (BOOKKEEPINGORACLEDB.getRunProcPass(%d))" % (runnb)
     return self.dbR_.query(command)
     # return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getRunProcPass', [runnb])
 
   #############################################################################
   def getNbOfRawFiles(self, runid, eventtype, replicaFlag='Yes', visible='Y', isFinished=default):
-    """retuns the number of raw files"""
+    """
+    For retrieving the number of raw files for a given condition
+
+    :param long runid: run number
+    :param long eventtype: event type
+    :param str replicaFlag: file replica flag
+    :param str visible: file visibility flag
+    :param str isFinished: the run status
+    :retun: the number of raw files
+    """
     condition = ''
     tables = 'jobs j, files f'
     if eventtype != default:
@@ -4662,7 +5002,12 @@ and files.qualityid= dataquality.qualityid" % lfn
 
   #############################################################################
   def getFileTypeVersion(self, lfns):
-    """returns the format of an lfn"""
+    """
+    For retrieving the file type version
+
+    :param list lfns: list of lfns
+    :return: the format of an lfn
+    """
     result = None
     retVal = self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.bulkgetTypeVesrsion', [], True, lfns)
     if retVal['OK']:
@@ -4676,20 +5021,34 @@ and files.qualityid= dataquality.qualityid" % lfn
 
   #############################################################################
   def insertRuntimeProject(self, projectid, runtimeprojectid):
-    """inserts a runtime project"""
+    """
+    inserts a runtime project
+
+    :param long projectid: run time project stepid
+    :param long runtimeprojectid: reference to other step
+    """
     result = self.dbW_.executeStoredProcedure('BOOKKEEPINGORACLEDB.insertRuntimeProject',
                                               [projectid, runtimeprojectid], False)
     return result
 
   #############################################################################
   def updateRuntimeProject(self, projectid, runtimeprojectid):
-    """changes the runtime project"""
+    """
+    changes the runtime project
+
+    :param long projectid: run time project stepid
+    :param long runtimeprojectid: new run time project stepid (new reference to a stepid)
+    """
     result = self.dbW_.executeStoredProcedure('BOOKKEEPINGORACLEDB.updateRuntimeProject',
                                               [projectid, runtimeprojectid], False)
     return result
 
   def removeRuntimeProject(self, stepid):
-    """removes the runtime project"""
+    """
+    removes the runtime project
+
+    :param long stepid: step id
+    """
     result = self.dbW_.executeStoredProcedure('BOOKKEEPINGORACLEDB.removeRuntimeProject', [stepid], False)
     return result
 
@@ -4698,7 +5057,19 @@ and files.qualityid= dataquality.qualityid" % lfn
               conddescription=default, processing=default,
               evt=default, production=default,
               filetype=default, quality=default, runnb=default):
-    """returns the TCKs for a given dataset"""
+    """
+    TCKs for a given data set.
+
+    :param str configName: configuration name
+    :param str configVersion: configuration version
+    :param str conddescription: data taking condition
+    :param str processing: processing pass
+    :param long evt: event type
+    :param long production: production number
+    :param str filetype: file type
+    :param str quality: data quality
+    :param long runnb: run number
+    :return: the TCKs for a given dataset"""
     condition = ''
     if configName != default:
       condition += " and c.configname='%s' " % (configName)
@@ -4789,6 +5160,16 @@ and files.qualityid= dataquality.qualityid" % lfn
                             filetype=default, runnb=default, selection=''):
     """
     it generates the sql command depending on the selection
+
+    :param str configName: configuration name
+    :param str configVersion: configuration version
+    :param str procpass: processing pass
+    :param long evt: event type
+    :param long production: production number
+    :param str filetype: file type
+    :param long runnb: run number
+    :param str selection: select state
+    :return: sql command
     """
     condition = ''
     tables = 'steps s, productionscontainer prod, stepscontainer cont, prodview bview'
@@ -4839,7 +5220,19 @@ and files.qualityid= dataquality.qualityid" % lfn
                        cond=default, procpass=default,
                        evt=default, production=default,
                        filetype=default, runnb=default):
-    """returns the steps with metadata"""
+    """
+    Step metadata, which describes how the data set is created.
+
+    :param str configName: configuration name
+    :param str configVersion: configuration version
+    :param str procpass: processing pass
+    :param long evt: event type
+    :param long production: production number
+    :param str filetype: file type
+    :param long runnb: run number
+    :return: the steps with metadata
+    """
+
     command = None
     processing = {}
     productions = None
@@ -4867,7 +5260,8 @@ and files.qualityid= dataquality.qualityid" % lfn
             result = retVal
           else:
             nb = 0
-            for stepName, appName, appVersion, optionFiles, dddb, conddb, extrapackages, stepid, visible in retVal['Value']:
+            steps = retVal['Value']
+            for stepName, appName, appVersion, optionFiles, dddb, conddb, extrapackages, stepid, visible in steps:
               records = [['StepId', stepid],
                          ['StepName', stepName],
                          ['ApplicationName', appName],
