@@ -6,13 +6,13 @@
 __RCSID__ = "$Id$"
 
 import os
+from mock import MagicMock
 from itertools import product
 
 import pytest
 
 # mocks
 from DIRAC.DataManagementSystem.Client.test.mock_DM import dm_mock
-from DIRAC.Resources.Catalog.test.mock_FC import fc_mock
 from LHCbDIRAC.BookkeepingSystem.Client.test.mock_BookkeepingClient import bkc_mock
 from LHCbDIRAC.Workflow.Modules.mock_Commons import version, prod_id, prod_job_id, wms_job_id, \
     workflowStatus, stepStatus, step_id, step_number,\
@@ -23,7 +23,8 @@ from LHCbDIRAC.Workflow.Modules.mock_Commons import version, prod_id, prod_job_i
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
 
-def test__enableModule():
+def test__enableModule(mocker):
+  mocker.patch("LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect=MagicMock())
   mb = ModuleBase(bkClientIn=bkc_mock, dm=dm_mock)
   mb.execute(version, prod_id, prod_job_id, wms_job_id,
              workflowStatus, stepStatus,
@@ -32,7 +33,8 @@ def test__enableModule():
   assert mb._enableModule() is True
 
 
-def test__checkLocalExistance():
+def test__checkLocalExistance(mocker):
+  mocker.patch("LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect=MagicMock())
   mb = ModuleBase(bkClientIn=bkc_mock, dm=dm_mock)
   with pytest.raises(OSError):
     mb._checkLocalExistance(['aaa', 'bbb'])
@@ -88,13 +90,15 @@ allCombinations = list(zip(fileMasks, stepMasks, results))
 
 
 @pytest.mark.parametrize("fileMask, stepMask, result", allCombinations)
-def test__applyMask(fileMask, stepMask, result):
+def test__applyMask(mocker, fileMask, stepMask, result):
+  mocker.patch("LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect=MagicMock())
   mb = ModuleBase(bkClientIn=bkc_mock, dm=dm_mock)
   res = mb._applyMask(candidateFiles, fileMask, stepMask)
   assert res == result
 
 
-def test__checkSanity():
+def test__checkSanity(mocker):
+  mocker.patch("LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect=MagicMock())
   mb = ModuleBase(bkClientIn=bkc_mock, dm=dm_mock)
   with pytest.raises(ValueError):
     mb._checkSanity(candidateFiles)
@@ -129,7 +133,8 @@ allCombinations = list(zip(fileMasks, stepMasks, results))
 
 
 @pytest.mark.parametrize("fileMask, stepMask, result", allCombinations)
-def test_getCandidateFiles(fileMask, stepMask, result):
+def test_getCandidateFiles(mocker, fileMask, stepMask, result):
+  mocker.patch("LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect=MagicMock())
   mb = ModuleBase(bkClientIn=bkc_mock, dm=dm_mock)
 
   with open('foo_1.txt', 'w'):
@@ -200,7 +205,8 @@ allCombinations = list(zip(inputDatas, workflow_commons, results))
 
 
 @pytest.mark.parametrize("inputData, wf_c, result", allCombinations)
-def test__determineStepInputData(inputData, wf_c, result):
+def test__determineStepInputData(mocker, inputData, wf_c, result):
+  mocker.patch("LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect=MagicMock())
   mb = ModuleBase(bkClientIn=bkc_mock, dm=dm_mock)
   mb.stepName = 'DaVinci_2'
 
@@ -212,7 +218,8 @@ def test__determineStepInputData(inputData, wf_c, result):
 
 
 @pytest.mark.parametrize("s_cs", list(step_commons))
-def test__determineOutputs(s_cs):
+def test__determineOutputs(mocker, s_cs):
+  mocker.patch("LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect=MagicMock())
   mb = ModuleBase(bkClientIn=bkc_mock, dm=dm_mock)
   mb.jobType = 'merge'
   mb.step_id = '00000123_00000456_1'
@@ -250,7 +257,8 @@ def test__determineOutputs(s_cs):
   assert histos is False
 
 
-def test__findOutputs():
+def test__findOutputs(mocker):
+  mocker.patch("LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect=MagicMock())
   mb = ModuleBase(bkClientIn=bkc_mock, dm=dm_mock)
 
   with pytest.raises(IOError):
@@ -285,7 +293,8 @@ def test__findOutputs():
   assert bk == bkExp
 
 
-def test_getFileMetadata():
+def test_getFileMetadata(mocker):
+  mocker.patch("LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect=MagicMock())
   mb = ModuleBase(bkClientIn=bkc_mock, dm=dm_mock)
 
   candidateFiles = {'foo_1.txt': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/foo_1.txt',
@@ -332,7 +341,8 @@ allCombinations = product(list(workflow_commons), step_commons)
 
 
 @pytest.mark.parametrize("wf_c, s_cs", allCombinations)
-def test_createProdConfFile(wf_c, s_cs):
+def test_createProdConfFile(mocker, wf_c, s_cs):
+  mocker.patch("LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect=MagicMock())
   mb = ModuleBase(bkClientIn=bkc_mock, dm=dm_mock)
   mb.workflow_commons = wf_c
   mb.step_commons = s_cs

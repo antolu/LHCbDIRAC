@@ -43,24 +43,21 @@ class FreeDiskSpaceCommand(FDSC):
     if not res['OK']:
       return res
 
-    siteRes = DMSHelpers().getSitesForSE(results['ElementName'])
+    siteRes = DMSHelpers().getLocalSiteForSE(results['ElementName'])
     if not siteRes['OK']:
       return siteRes
     if not siteRes['Value']:
       return S_OK()
 
     se = StorageElement(results['ElementName'])
-    pluginsRes = se.getPlugins()
-    if not pluginsRes['OK']:
-      return pluginsRes
-    tokenRes = se.getStorageParameters(pluginsRes['Value'][0])  # any should be OK for this purpose
+    tokenRes = se.getStorageParameters(protocol='srm')  # token only makes sense for SRM
     if not tokenRes['OK']:
       return tokenRes
 
     accountingDict = {
         'SpaceToken': tokenRes['Value']['SpaceToken'],
         'Endpoint': results['Endpoint'],
-        'Site': siteRes['Value'][0]
+        'Site': siteRes['Value']
     }
 
     results['Used'] = results['Total'] - results['Free']

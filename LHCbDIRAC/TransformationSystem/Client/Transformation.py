@@ -124,6 +124,9 @@ class Transformation(DIRACTransformation):
 
   # This is a trick to overwrite the __checkSEs method of the base class
   def _Transformation__checkSEs(self, seList):
+    # This test allows to set some parameters empty
+    if seList == []:
+      return S_OK()
     if resolveSEGroup(seList):
       return S_OK()
     gLogger.error("Some SEs are unknown in %s" % ','.join(seList))

@@ -266,9 +266,10 @@ class ProductionRequestDB(DB):
   def __checkIOTypes(self, requestDict):
     '''Check the input type of each step matches the output of a previous step.
     '''
-    if requestDict['ProDetail'] is not None:
+    pickledProdDetail = requestDict.get('ProDetail')
+    if pickledProdDetail is not None:
       try:
-        proDetail = cPickle.loads(requestDict['ProDetail'])
+        proDetail = cPickle.loads(pickledProdDetail)
       except cPickle.UnpicklingError:
         return S_ERROR('Content of ProDetail field cannot be unpickled')
       for i in xrange(20):

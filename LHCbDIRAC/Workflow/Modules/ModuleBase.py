@@ -78,7 +78,7 @@ class ModuleBase(object):
     self.executable = 'gaudirun.py'
     self.applicationName = 'Unknown'
     self.applicationVersion = 'Unknown'
-    self.applicationLog = None
+    self.applicationLog = ''
     self.applicationType = None
     self.systemConfig = None
     self.extraPackages = None
@@ -122,7 +122,7 @@ class ModuleBase(object):
     self.stepInputData = None
     self.XMLSummary = ''  # name of the file, not the object
     self.stepProcPass = None
-    self.outputFilePrefix = None
+    self.outputFilePrefix = ''
 
   #############################################################################
 
@@ -336,6 +336,10 @@ class ModuleBase(object):
     """ Resolve the input variables for an application step
     """
 
+    prodID = self.workflow_commons.get('PRODUCTION_ID', '')
+    jobID = self.workflow_commons.get('JOB_ID', '')
+    stepInstanceNumber = self.step_commons.get('STEP_NUMBER', '')
+
     self.stepName = self.step_commons['STEP_INSTANCE_NAME']
 
     self.executable = self.step_commons.get('executable', self.executable)
@@ -344,19 +348,31 @@ class ModuleBase(object):
 
     self.applicationVersion = self.step_commons.get('applicationVersion', self.applicationVersion)
 
-    self.applicationLog = self.step_commons.get('applicationLog', self.applicationLog)
-
-    self.XMLSummary = self.step_commons.get('XMLSummary', self.XMLSummary)
-
     self.BKstepID = self.step_commons.get('BKStepID', self.BKstepID)
 
     self.stepProcPass = self.step_commons.get('StepProcPass', self.stepProcPass)
 
-    self.outputFilePrefix = self.step_commons.get('outputFilePrefix', self.outputFilePrefix)
+    # this is only for production jobs and for application steps
+    if prodID and jobID and stepInstanceNumber and 'listoutput' in self.step_commons:
+      self.outputFilePrefix = "%s_%s_%s" % (prodID, jobID, stepInstanceNumber)
+      self.applicationLog = self.applicationName + '_' + self.outputFilePrefix + '.log'
+      self.XMLSummary = 'summary' + self.applicationName + '_' + self.outputFilePrefix + '.xml'
+      self.histoName = self.applicationName + '_' + self.outputFilePrefix + '.Hist.root'
+
+      for fileTypeDict in self.step_commons['listoutput']:  # this is a dict like {'outputDataType': 'sim'}
+        # for non histo-merging prods
+        if 'hist' in fileTypeDict['outputDataType'].lower() and self.jobType.lower() != 'merge':
+          # Watch out: this assumes that:
+          # - 'hist' is always in the file type name
+          # - merging jobs won't produce histograms
+          # - the only merging jobs that produce output types with hist are histomerging productions
+          if 'outputDataName' not in fileTypeDict:
+            fileTypeDict['outputDataName'] = self.histoName
+        else:
+          if 'outputDataName' not in fileTypeDict:
+            fileTypeDict['outputDataName'] = self.outputFilePrefix + '.' + fileTypeDict['outputDataType']
 
     self.inputDataType = self.step_commons.get('inputDataType', self.inputDataType)
-
-    self.histoName = self.step_commons.get('HistogramName', self.histoName)
 
     self.applicationType = self.step_commons.get('applicationType', self.applicationType)
 
@@ -416,7 +432,9 @@ class ModuleBase(object):
         (like for the productions for the merging of histograms)
         For the others, we use what is in the step definition
 
-        We always remove the 'HIST'(s), when present, from the list of output file types as these are treated differently.
+        We always remove the 'HIST'(s), when present, from the list of output file types
+        as these are treated differently.
+
         There is  anyway also here the special case of histogram merging productions.
     """
 
@@ -985,7 +1003,7 @@ class ModuleBase(object):
       optionsDict['DQTag'] = self.dqTag
 
     if self.applicationName.lower() == 'gauss':
-      if self.CPUe and self.maxNumberOfEvents:
+      if self.CPUe and self.maxNumberOfEvents and self.numberOfEvents <= 0:
         # Here we set maxCPUTime to 24 hours, which seems reasonable
         eventsToProduce = getEventsToProduce(self.CPUe,
                                              maxNumberOfEvents=self.maxNumberOfEvents,

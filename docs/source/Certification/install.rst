@@ -10,7 +10,7 @@ The certification manager duties are detailed in the next page.
 
 
 What for
-====================
+========
 
 The *release manager* of LHCbDIRAC has the role of:
 
@@ -43,7 +43,7 @@ But before:
 Pre
 ```
 
-If you use a version of git prior to 1.8, remove teh option *--pretty* in the command line
+If you use a version of git prior to 1.8, remove the option *--pretty* in the command line
 
 Verify what is the last tag of DIRAC::
 
@@ -111,21 +111,8 @@ Time to tag and push::
 Remember: you can use "git status" at any point in time to make sure what's the current status.
 
 
-
-Creating the release tarball, add uploading it to the LHCb web service
-```````````````````````````````````````````````````````````````````````
-Login on lxplus, run ::
-
-  lb-run LHCbDirac/prod bash -norc
-  git archive --remote ssh://git@gitlab.cern.ch:7999/lhcb-dirac/LHCbDIRAC.git devel LHCbDIRAC/releases.cfg  | tar -x -v -f - --transform 's|^LHCbDIRAC/||' LHCbDIRAC/releases.cfg
-  dirac-distribution -r v8r4-pre1 -l LHCb -C file:///`pwd`/releases.cfg (this may take some time)
-
-Don't forget to read the last line of the previous command to copy the generated files at the right place. The format is something like::
-
-  ( cd /tmp/joel/tmpxg8UuvDiracDist ; tar -cf - *.tar.gz *.md5 *.cfg ) | ssh $USER@lxplus.cern.ch 'cd /afs/cern.ch/lhcb/distribution/DIRAC3/tars &&  tar -xvf - && ls *.tar.gz > tars.list'
-
-And just copy/paste/execute it.
-
+When a new git tag is pushed to the repository, a gitlab-ci job takes care of testing,
+creating the tarball, uploading it to the web service, and to build the docker image.
 
 
 
@@ -137,6 +124,7 @@ if the release has been correctly created.
 
 The tests may vary, but are announced on the Trello board, and on the Slack channel 'lhcb-certification' of the 'lhcbdirac' team.
 
+If you are running tests from lxplus, make sure that you are in the certification setup (e.g. check the content of your .dirac.cfg file)
 
 
 3. Deploying the release
@@ -178,40 +166,17 @@ have to create a JIRA task and make the request via https://its.cern.ch/jira/pro
     * DIRAC is not released, then the message in the JIRA task: Summary:Dirac v6r14p37 and LHCbDirac v8r2p50; Description: Please release  Dirac and  LHCbDirac in  this order  based on build 1526;
     * DIRAC is released, then the message in the JIRA task: Summary:LHCbDirac v8r2p50;  Description: Please release  LHCbDirac based on build 1526;
 
-
-afs deve area
-`````````````
-Note: Please execute the following commands sequentially.
-
-The following commands used to prepare the RPMs::
-
-    ssh lhcb-archive
-    export build_id=1520
-    lb-release-rpm /data/artifacts/release/lhcb-release/$build_id
-    lb-release-rpm --copy /data/artifacts/release/lhcb-release/$build_id
-
-If the rmps are created, you can deploy the release (Do not execute parallel the following commands)::
-
-    ssh lxplus
-    cd /afs/cern.ch/lhcb/software/lhcb_rpm_dev
-    export MYSITEROOT=/afs/cern.ch/lhcb/software/lhcb_rpm_dev
-    export MyProject=Dirac
-    export MyVersion=vArBpC
-    ./lbpkr rpm -- -ivh --nodeps /afs/cern.ch/lhcb/distribution/rpm/lhcb/${MyProject^^}_${MyVersion}*
-    export MyProject=LHCbDirac
-    export MyVersion=vArB-preC
-    ./lbpkr rpm -- -ivh --nodeps /afs/cern.ch/lhcb/distribution/rpm/lhcb/${MyProject^^}_${MyVersion}*
-
-
 Server
-```````
+``````
 
 To install it on the VOBOXes (certification only) from lxplus::
 
   lhcb-proxy-init  -g diracAdmin
-  dirac-admin-sysadmin-cli --host volhcbXX.cern.ch
+  dirac-admin-sysadmin-cli --host lbtestvobox.cern.ch
   >update LHCbDIRAC-v8r4-pre1
   >restart *
+
+Today, the other cert machine in use is lbtestvobox2.cern.ch.
 
 The (better) alternative is using the web portal.
 
@@ -221,14 +186,3 @@ Pilot
 ``````
 
 Update the pilot version from the CS.
-=======
-Use the following script (from, e.g., lxplus after having run `lb-run --dev LHCbDIRAC bash`)::
-
-  dirac-pilot-version
-
-for checking and updating the pilot version. Note that you'll need a proxy that can write in the CS (i.e. lhcb-admin).
-This script will make sure that the pilot version is update BOTH in the CS and in the json file used by pilots started in the vacuum. The command to update is::
-
-  dirac-pilot-version -S v8r4-pre1
-
-Make sure that you are in the certification setup (e.g. check the content of your .dirac.cfg file)

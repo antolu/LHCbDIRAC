@@ -76,7 +76,7 @@ Then, from the LHCbDIRAC local fork you need to update some files::
 
   # if you start from scratch otherwise skip the first 2 commands
   mkdir $(date +20%y%m%d) && cd $(date +20%y%m%d)
-  git clone https://:@gitlab.cern.ch:8443/lhcb-dirac/LHCbDIRAC.git
+  git clone https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC.git
   cd LHCbDIRAC
   git remote rename origin upstream
   # update your "local" upstream/master branch
@@ -108,7 +108,7 @@ Time to tag and push::
   # push "newMaster" to upstream/master
   git push --tags upstream newMaster:master
   # delete your local newMaster
-  # before change your branch use git checkout "existing branch name"
+  git checkout upstream/master
   git branch -d newMaster
 
 
@@ -142,6 +142,7 @@ Conflicts or not, you'll need to push back to upstream::
   # push "newDevel" to upstream/devel
   git push upstream newDevel:devel
   # delete your local newDevel
+  git checkout upstream/devel
   git branch -d newDevel
   # keep your repo up-to-date
   git fetch upstream
@@ -151,7 +152,7 @@ Creating the release tarball, add uploading it to the LHCb web service
 ``````````````````````````````````````````````````````````````````````
 Automatic procedure
 ^^^^^^^^^^^^^^^^^^^
-When a new git tag is pushed to the repository, a gitlab-ci job takes care of (soon testing), creating the tarball, uploading it to the web service, and to build the docker image. You can check it in the pipeline page of the repository (https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/pipelines).
+When a new git tag is pushed to the repository, a gitlab-ci job takes care of testing, creating the tarball, uploading it to the web service, and to build the docker image. You can check it in the pipeline page of the repository (https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/pipelines).
 
 It may happen that the pipeline fails. There are various reasons for that, but normally, it is just a timeout on the runner side, so just restart the job from the pipeline web interface. If it repeatedly fails building the tarball, try the manual procedure described bellow to understand.
 
@@ -192,7 +193,7 @@ Within GitLab-CI, at https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/pipelines we ru
 These pipelines will: run pylint (errors only), run all the unit tests found in the system, assess the coverage.
 If the GitLab-CI pipelines are successful, we can check the system tests.
 
-2.2. Jenkins "system" tests
+2.2. Jenkins "integration" tests
 ```````````````````````````
 
 At this `link <https://jenkins-dirac.web.cern.ch/view/LHCbDIRAC/>`_ you'll find some Jenkins Jobs ready to be started.

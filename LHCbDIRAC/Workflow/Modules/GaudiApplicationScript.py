@@ -9,6 +9,8 @@
     This is usually the main module run by user jobs.
 """
 
+__RCSID__ = "$Id$"
+
 import re
 import os
 
@@ -18,18 +20,17 @@ from DIRAC.Core.Utilities import DErrno
 from LHCbDIRAC.Core.Utilities.RunApplication import RunApplication, LbRunError, LHCbApplicationError, LHCbDIRACError
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
-__RCSID__ = "$Id$"
 
-class GaudiApplicationScript( ModuleBase ):
+class GaudiApplicationScript(ModuleBase):
 
   #############################################################################
 
-  def __init__( self, bkClient = None, dm = None ):
+  def __init__(self, bkClient=None, dm=None):
     self.version = __RCSID__
-    self.log = gLogger.getSubLogger( "GaudiApplicationScript" )
-    super( GaudiApplicationScript, self ).__init__( self.log, bkClientIn = bkClient, dm = dm )
+    self.log = gLogger.getSubLogger("GaudiApplicationScript")
+    super(GaudiApplicationScript, self).__init__(self.log, bkClientIn=bkClient, dm=dm)
 
-    #Set defaults for all workflow parameters here
+    # Set defaults for all workflow parameters here
     self.script = None
     self.arguments = ''
     self.systemConfig = ''
@@ -40,66 +41,66 @@ class GaudiApplicationScript( ModuleBase ):
 
   #############################################################################
 
-  def _resolveInputVariables( self ):
+  def _resolveInputVariables(self):
     """ By convention the workflow parameters are resolved here.
     """
 
-    super( GaudiApplicationScript, self )._resolveInputVariables()
-    super( GaudiApplicationScript, self )._resolveInputStep()
+    super(GaudiApplicationScript, self)._resolveInputVariables()
+    super(GaudiApplicationScript, self)._resolveInputStep()
 
-    if self.step_commons.has_key( 'script' ):
+    if 'script' in self.step_commons:
       self.script = self.step_commons['script']
     else:
-      self.log.warn( 'No script defined' )
+      self.log.warn('No script defined')
 
-    if self.step_commons.has_key( 'arguments' ):
+    if 'arguments' in self.step_commons:
       self.arguments = self.step_commons['arguments']
 
-    if self.step_commons.has_key( 'poolXMLCatName' ):
+    if 'poolXMLCatName' in self.step_commons:
       self.poolXMLCatName = self.step_commons['poolXMLCatName']
 
   #############################################################################
 
-  def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
-               workflowStatus = None, stepStatus = None,
-               wf_commons = None, step_commons = None,
-               step_number = None, step_id = None ):
-    """The main execution method of the module. It runs a gaudi script app using RunApplication module.
+  def execute(self, production_id=None, prod_job_id=None, wms_job_id=None,
+              workflowStatus=None, stepStatus=None,
+              wf_commons=None, step_commons=None,
+              step_number=None, step_id=None):
+    """ The main execution method of the module. It runs a gaudi script app using RunApplication module.
         This is usually the main module run by user jobs.
     """
 
     try:
 
-      super( GaudiApplicationScript, self ).execute( self.version,
-                                                     production_id, prod_job_id, wms_job_id,
-                                                     workflowStatus, stepStatus,
-                                                     wf_commons, step_commons,
-                                                     step_number, step_id )
+      super(GaudiApplicationScript, self).execute(self.version,
+                                                  production_id, prod_job_id, wms_job_id,
+                                                  workflowStatus, stepStatus,
+                                                  wf_commons, step_commons,
+                                                  step_number, step_id)
 
       self._resolveInputVariables()
 
       if not self.applicationName or not self.applicationVersion:
-        raise  RuntimeError( 'No Gaudi Application defined' )
+        raise RuntimeError('No Gaudi Application defined')
       if not self.systemConfig:
-        raise  RuntimeError( 'No CMT configuration selected' )
+        raise RuntimeError('No CMT configuration selected')
       if not self.script:
-        raise  RuntimeError( 'No script defined' )
+        raise RuntimeError('No script defined')
       if not self.applicationLog:
-        self.applicationLog = '%s.log' % ( os.path.basename( self.script ) )
+        self.applicationLog = '%s.log' % (os.path.basename(self.script))
 
-      self.log.info( "Executing application %s %s for CMT configuration %s" % ( self.applicationName,
-                                                                                self.applicationVersion,
-                                                                                self.systemConfig ) )
+      self.log.info("Executing application %s %s for CMT configuration %s" % (self.applicationName,
+                                                                              self.applicationVersion,
+                                                                              self.systemConfig))
 
       gaudiCmd = []
-      if re.search( '.py$', self.script ):
-        gaudiCmd.append( 'python' )
-        gaudiCmd.append( os.path.basename( self.script ) )
-        gaudiCmd.append( self.arguments )
+      if re.search('.py$', self.script):
+        gaudiCmd.append('python')
+        gaudiCmd.append(os.path.basename(self.script))
+        gaudiCmd.append(self.arguments)
       else:
-        gaudiCmd.append( os.path.basename( self.script ) )
-        gaudiCmd.append( self.arguments )
-      command = ' '.join( gaudiCmd )
+        gaudiCmd.append(os.path.basename(self.script))
+        gaudiCmd.append(self.arguments)
+      command = ' '.join(gaudiCmd)
 
       # How to run the application
       ra = RunApplication()
@@ -112,26 +113,24 @@ class GaudiApplicationScript( ModuleBase ):
       ra.applicationLog = self.applicationLog
 
       # Now really running
-      self.setApplicationStatus( self.applicationName )
-      ra.run() # This would trigger an exception in case of failure, or application status != 0
+      self.setApplicationStatus(self.applicationName)
+      ra.run()  # This would trigger an exception in case of failure, or application status != 0
 
-      self.setApplicationStatus( '%s Successful' % os.path.basename( self.script ) )
-      return S_OK( '%s Successful' % os.path.basename( self.script ) )
+      self.setApplicationStatus('%s Successful' % os.path.basename(self.script))
+      return S_OK('%s Successful' % os.path.basename(self.script))
 
-    except LbRunError as lbre: # This is the case for lb-run/environment errors
-      self.setApplicationStatus( repr(lbre) )
-      return S_ERROR( DErrno.EWMSRESC, str(lbre) )
-    except LHCbApplicationError as lbae: # This is the case for real application errors
-      self.setApplicationStatus( repr(lbae) )
-      return S_ERROR( str(lbae) )
-    except LHCbDIRACError as lbde: # This is the case for LHCbDIRAC errors (e.g. subProcess call failed)
-      self.setApplicationStatus( repr(lbde) )
-      return S_ERROR( str(lbde) )
-    except Exception as e: #pylint:disable=broad-except
-      self.log.exception( "Failure in GaudiApplicationScript execute module", lException = e )
-      self.setApplicationStatus( "Error in GaudiApplicationScript module" )
-      return S_ERROR( str(e) )
+    except LbRunError as lbre:  # This is the case for lb-run/environment errors
+      self.setApplicationStatus(repr(lbre))
+      return S_ERROR(DErrno.EWMSRESC, str(lbre))
+    except LHCbApplicationError as lbae:  # This is the case for real application errors
+      self.setApplicationStatus(repr(lbae))
+      return S_ERROR(str(lbae))
+    except LHCbDIRACError as lbde:  # This is the case for LHCbDIRAC errors (e.g. subProcess call failed)
+      self.setApplicationStatus(repr(lbde))
+      return S_ERROR(str(lbde))
+    except Exception as e:  # pylint:disable=broad-except
+      self.log.exception("Failure in GaudiApplicationScript execute module", lException=e)
+      self.setApplicationStatus("Error in GaudiApplicationScript module")
+      return S_ERROR(str(e))
     finally:
-      super( GaudiApplicationScript, self ).finalize( self.version )
-
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+      super(GaudiApplicationScript, self).finalize(self.version)
