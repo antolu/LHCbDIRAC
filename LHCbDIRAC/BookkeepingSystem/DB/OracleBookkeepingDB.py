@@ -12,7 +12,6 @@ from DIRAC.ConfigurationSystem.Client.PathFinder import getDatabaseSection
 from DIRAC.Core.Utilities.List import breakListIntoChunks
 # from DIRAC.Core.Utilities.OracleDB                                   import OracleDB
 from LHCbDIRAC.BookkeepingSystem.DB.OracleDB import OracleDB
-from test.test_iterlen import NoneLengthHint
 
 __RCSID__ = "$Id$"
 
