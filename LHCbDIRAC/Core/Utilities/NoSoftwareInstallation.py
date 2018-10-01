@@ -13,21 +13,21 @@ from LHCbDIRAC.Core.Utilities import ProductionEnvironment
 __RCSID__ = "$Id$"
 
 
-class NoSoftwareInstallation( object ):
+class NoSoftwareInstallation(object):
   """ This class is a temporary solution until a proper fix is set at the level
       of DIRAC. Its main objective is to replace the class CombinedSoftwareInstallation.
       At the moment, it is set on the CS. However, if we clear that entry on the CS
       the JobAgent will crash as it is expecting something. That something is this class.
   """
 
-  def __init__( self, argumentsDict ):
+  def __init__(self, argumentsDict):
     """ Constructor
     """
 
-    self.log = gLogger.getSubLogger( self.__class__.__name__ )
-    self.job = argumentsDict.get( 'Job', {} )
+    self.log = gLogger.getSubLogger(self.__class__.__name__)
+    self.job = argumentsDict.get('Job', {})
 
-  def execute( self ):
+  def execute(self):
     """ Main method of the class executed by DIRAC JobAgent. It checks the parameters
         in case there is a mis-configuration and returns S_OK / S_ERROR.
     """
@@ -39,32 +39,29 @@ class NoSoftwareInstallation( object ):
       jobPlatform = 'ANY'
 
     # localPlatform ...........................................................
-    localPlatform = gConfig.getValue( '/LocalSite/Architecture', '' )
+    localPlatform = gConfig.getValue('/LocalSite/Architecture', '')
     if not localPlatform:
-      raise RuntimeError( "/LocalSite/Architecture is missing and must be specified" )
+      raise RuntimeError("/LocalSite/Architecture is missing and must be specified")
 
     if jobPlatform.lower() == 'any':
-      self.log.info( "Platform requested by the job is set to 'ANY', using the local platform" )
+      self.log.info("Platform requested by the job is set to 'ANY', using the local platform")
     else:
-      self.log.info( "Platform requested by the job is set to '%s'" % jobPlatform )
-      if not ProductionEnvironment.getPlatformsCompatibilities( jobPlatform, localPlatform ):
-        self.log.error( "The platform request is different from the local one... something is very wrong!" )
-        return S_ERROR( "The platform request is different from the local one... something is very wrong!" )
+      self.log.info("Platform requested by the job is set to '%s'" % jobPlatform)
+      if not ProductionEnvironment.getPlatformsCompatibilities(jobPlatform, localPlatform):
+        self.log.error("The platform request is different from the local one... something is very wrong!")
+        return S_ERROR("The platform request is different from the local one... something is very wrong!")
 
-    compatibleConfigs = self._getSupportedConfigs( localPlatform )
-    self.log.info( "This node supports the following configs: %s" % ', '.join( compatibleConfigs ) )
+    compatibleConfigs = self._getSupportedConfigs(localPlatform)
+    self.log.info("This node supports the following configs: %s" % ', '.join(compatibleConfigs))
 
     return S_OK()
 
-
-  def _getSupportedConfigs( self, platform ):
+  def _getSupportedConfigs(self, platform):
     """ returns getLHCbConfigsForPlatform
     """
-    self.log.info( "Node supported platform is: %s" % platform )
-    compatibleConfigs = ProductionEnvironment.getLHCbConfigsForPlatform( platform )
-    if not compatibleConfigs['OK']:
-      raise RuntimeError( compatibleConfigs['Message'] )
+    self.log.info("Node supported platform is: %s" % platform)
+    compatibleConfigs = ProductionEnvironment.getLHCbConfigsForPlatform(platform)
     if not compatibleConfigs['Value']:
-      raise RuntimeError( "No configs can be run here. Something is wrong in our configuration" )
+      raise RuntimeError("No configs can be run here. Something is wrong in our configuration")
 
     return compatibleConfigs['Value']

@@ -4,10 +4,9 @@
     use by workflow modules or client tools.
 """
 
-from DIRAC import S_OK, S_ERROR
-from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
-
 __RCSID__ = "$Id$"
+
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 
 platformsConfigsDict = None
 
@@ -40,7 +39,7 @@ def getLHCbConfigsForPlatform(originalPlatforms):
   platformsDict = _getPlatformsDefinitions()
   configsList = set(config for plat in platforms for config in platformsDict.get(plat, []))
 
-  return S_OK(list(configsList))
+  return list(configsList)
 
 
 def _comparePlatforms(platform1, platform2):
@@ -81,10 +80,7 @@ def getPlatformFromLHCbConfig(config):
 def getPlatform():
   """ Determine which is the platform on the current machine
   """
-  try:
-    from LbPlatformUtils import dirac_platform, can_run, requires
-  except ImportError:
-    return S_ERROR("Could not import LbPlatformUtils")
+  from LbPlatformUtils import dirac_platform, can_run, requires
 
   platformsDict = _getPlatformsDefinitions()
   architecture = dirac_platform()
@@ -100,9 +96,4 @@ def getPlatform():
           break
       except Exception:
         pass
-  if not preferedPlatform:
-    return S_ERROR("No compatible platform found")
   return preferedPlatform
-
-
-# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
