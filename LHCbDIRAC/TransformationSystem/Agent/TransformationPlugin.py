@@ -4,6 +4,8 @@
 # pylint: disable=too-many-lines
 # pylint: disable=missing-docstring
 
+__RCSID__ = "$Id$"
+
 import time
 import random
 import sys
@@ -21,9 +23,7 @@ from DIRAC.Resources.Storage.StorageElement import StorageElement
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
-from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities import PluginUtilities, getActiveSEs, stripDirectory
-
-__RCSID__ = "$Id$"
+from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities import PluginUtilities, getActiveSEs
 
 
 class TransformationPlugin(DIRACTransformationPlugin):
