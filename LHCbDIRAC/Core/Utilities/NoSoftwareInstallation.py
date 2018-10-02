@@ -6,11 +6,10 @@
     DIRAC assumes an execute() method will exist during usage.
 """
 
+__RCSID__ = "$Id$"
 
 from DIRAC import gConfig, gLogger, S_ERROR, S_OK
 from LHCbDIRAC.Core.Utilities import ProductionEnvironment
-
-__RCSID__ = "$Id$"
 
 
 class NoSoftwareInstallation(object):
@@ -51,17 +50,11 @@ class NoSoftwareInstallation(object):
         self.log.error("The platform request is different from the local one... something is very wrong!")
         return S_ERROR("The platform request is different from the local one... something is very wrong!")
 
-    compatibleConfigs = self._getSupportedConfigs(localPlatform)
+    self.log.info("Node supported platform is: %s" % localPlatform)
+    compatibleConfigs = ProductionEnvironment.getLHCbConfigsForPlatform(localPlatform)
+    if not compatibleConfigs:
+      raise RuntimeError("No configs can be run here. Something is wrong in our configuration")
+
     self.log.info("This node supports the following configs: %s" % ', '.join(compatibleConfigs))
 
     return S_OK()
-
-  def _getSupportedConfigs(self, platform):
-    """ returns getLHCbConfigsForPlatform
-    """
-    self.log.info("Node supported platform is: %s" % platform)
-    compatibleConfigs = ProductionEnvironment.getLHCbConfigsForPlatform(platform)
-    if not compatibleConfigs['Value']:
-      raise RuntimeError("No configs can be run here. Something is wrong in our configuration")
-
-    return compatibleConfigs['Value']

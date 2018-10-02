@@ -80,7 +80,7 @@ def getPlatformFromLHCbConfig(config):
 def getPlatform():
   """ Determine which is the platform on the current machine
   """
-  from LbPlatformUtils import dirac_platform, can_run, requires
+  from LbPlatformUtils import dirac_platform, can_run, requires  # pylint:disable=import-error
 
   platformsDict = _getPlatformsDefinitions()
   architecture = dirac_platform()
