@@ -14,9 +14,9 @@ import os
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.Time import toString
 from DIRAC.Core.Utilities.PromptUser import promptUser
+from DIRAC.WorkloadManagementSystem.Client.JobMonitoringClient import JobMonitoringClient
 
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
-from LHCbDIRAC.WorkloadManagementSystem.Client.JobMonitoringClient import JobMonitoringClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
 COMPONENT_NAME = 'DiracProduction'
