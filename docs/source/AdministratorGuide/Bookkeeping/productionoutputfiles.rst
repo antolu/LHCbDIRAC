@@ -18,11 +18,11 @@ Before we created a table for keeping track about the migration.
 	alter table prods add processed char(1) default 'N' null;
 	- In order to keep which productions are inserted to the productionoutputfiles table.
 	alter table prods add stepid char(1) default 'N' null;
-	- The all jobs which belong to this prod does not have jobid.
+	- The all jobs which belong to this prod does not have stepid.
 	alter table prods add problematic char(1) default 'N' null;
 	- Duplicated steps in the stepscontainer table.  
 
-The migration started with the runs (production<0) and of course with the prods.processed='N':
+The migration started with the runs (production<0) and with the prods.processed='N':
 
 	declare
 	begin
@@ -124,3 +124,171 @@ Now we can add these productions to the productionoutputfiles table:
 	
 select count(*) from prods where stepid='Y' and processed='N' and production<0; the result is 260. 
 Checking one of the production -22595: this run does not has associated files.
+
+The following script is used to fix the 260 problematic runs:
+DECLARE
+nbfiles number;
+BEGIN
+for prod in (select production from prods where stepid='Y' and processed='N' and production<0) 
+LOOP
+   select count(*) into nbfiles from jobs j, files f where j.jobid=f.jobid and j.production=prod.production and j.production<0;
+   if nbfiles = 0 then
+     DBMS_OUTPUT.put_line ('DELETE:'|| prod.production);
+     delete runstatus where runnumber=-1 * prod.production;
+     delete jobs where production<0 and production=prod.production;
+     delete productionscontainer where production=prod.production;
+     delete stepscontainer where production=prod.production;
+     update prods set processed='Y' where production=prod.production;
+     commit;
+   END IF;
+END LOOP;
+END;
+/
+
+After checking the result:
+SQL> select production from prods where stepid='Y' and processed='N' and production<0;
+
+PRODUCTION
+----------
+        -9
+
+SQL>
+
+After this fix we check how many runs are not in the productionoutputfiles table:
+SQL> select count(*) from prods p where p.processed='N' and p.production<0;
+
+  COUNT(*)
+----------
+       155
+
+SQL>
+
+After checking the runs, we noticed the stepid is okay, but the runs do not have any files. For fixing:
+DECLARE
+nbfiles number;
+BEGIN
+for prod in (select production from prods where processed='N' and production<0) 
+LOOP
+   select count(*) into nbfiles from jobs j, files f where j.jobid=f.jobid and j.production=prod.production and j.production<0;
+   if nbfiles = 0 then
+     DBMS_OUTPUT.put_line ('DELETE:'|| prod.production);
+     delete runstatus where runnumber=-1 * prod.production;
+     delete jobs where production<0 and production=prod.production;
+     delete productionscontainer where production=prod.production;
+     delete stepscontainer where production=prod.production;
+     update prods set processed='Y' where production=prod.production;
+     commit;
+   END IF;
+END LOOP;
+END;
+/
+
+We can check how many runs are remained:
+SQL> select * from prods p where p.processed='N' and p.production<0;
+
+PRODUCTION P S P
+---------- - - -
+    -42854 N N N
+        -9 N Y N
+
+SQL>
+
+-9 can be deleted:
+
+SQL> select count(*) from jobs j, files f where j.jobid=f.jobid and j.production=-9 and f.gotreplica='Yes';
+
+  COUNT(*)
+----------
+         0
+
+SQL>
+
+The runs are almost fixed:
+SQL> select * from prods p where p.processed='N' and p.production<0;
+
+PRODUCTION P S P
+---------- - - -
+    -42854 N N N
+
+SQL>
+
+Fixing the productions which are not in the stepscontainer:
+declare
+stepid number;
+stnum number;
+begin
+for prod in (select p.production from prods p where p.processed='N' and p.production>0 and p.production not in (select distinct ss.production from stepscontainer ss)) 
+LOOP
+  stnum:=0;
+  FOR jprod in (select j.programName, j.programVersion, f.filetypeid, ft.name, f.visibilityflag, f.eventtypeid from jobs j, files f, filetypes ft where ft.filetypeid=f.filetypeid and j.jobid=f.jobid and j.production=prod.production and j.stepid is null and f.filetypeid not in (9,17) and f.eventtypeid is not null group by j.programName, j.programVersion, f.filetypeid, ft.name, f.visibilityflag, f.eventtypeid 
+   Order by( CASE j.PROGRAMNAME WHEN 'Gauss' THEN '1' WHEN 'Boole' THEN '2' WHEN 'Moore' THEN '3' WHEN 'Brunel' THEN '4' WHEN 'Davinci' THEN '5' WHEN 'LHCb' THEN '6' ELSE '7' END))
+  LOOP
+    stnum:=stnum+1;
+     DBMS_OUTPUT.put_line ('Production:'||prod.production||'  applicationname:'|| jprod.programname||'  APPLICATIONVERSION:'||jprod.programversion||stnum);
+    select count(*) into stepid from steps s, table(s.outputfiletypes) o where s.applicationname=jprod.programname and s.APPLICATIONVERSION=jprod.programversion and o.name=jprod.name and o.visible=jprod.visibilityflag and ROWNUM<2;
+    if stepid>0 then
+      select s.STEPID into stepid from steps s, table(s.outputfiletypes) o where s.applicationname=jprod.programname and s.APPLICATIONVERSION=jprod.programversion and o.name=jprod.name and o.visible=jprod.visibilityflag and ROWNUM<2;
+      --DBMS_OUTPUT.put_line ('Stepid:'|| stepid);
+      BOOKKEEPINGORACLEDB.insertProdnOutputFtypes(prod.production, stepid, jprod.filetypeid, jprod.visibilityflag,jprod.eventtypeid);
+      update prods set processed='Y', stepid='Y' where production=prod.production;
+      update jobs j set j.stepid=stepid where j.production=prod.production and j.programname=jprod.programname and j.programversion=jprod.programversion;
+      BOOKKEEPINGORACLEDB.insertStepsContainer(prod.production,stepid,stnum);
+    else
+      select count(*) into stepid from steps s, table(s.outputfiletypes) o where s.applicationname=jprod.programname and s.APPLICATIONVERSION=jprod.programversion and o.name=jprod.name and ROWNUM<2;
+      if stepid > 0 then
+        select s.stepid into stepid from steps s, table(s.outputfiletypes) o where s.applicationname=jprod.programname and s.APPLICATIONVERSION=jprod.programversion and o.name=jprod.name and ROWNUM<2;
+        BOOKKEEPINGORACLEDB.insertProdnOutputFtypes(prod.production, stepid, jprod.filetypeid, jprod.visibilityflag,jprod.eventtypeid);
+        update prods set processed='Y', stepid='Y' where production=prod.production;
+        update jobs j set j.stepid=stepid where j.production=prod.production and j.programname=jprod.programname and j.programversion=jprod.programversion;
+        BOOKKEEPINGORACLEDB.insertStepsContainer(prod.production,stepid,stnum);
+      else
+        --DBMS_OUTPUT.put_line ('insert');
+        SELECT applications_index_seq.nextval into stepid from dual;
+        insert into steps(stepid,applicationName,applicationversion, processingpass)values(stepid,jprod.programname,jprod.programversion,'FixedStep');
+        BOOKKEEPINGORACLEDB.insertProdnOutputFtypes(prod.production, stepid, jprod.filetypeid, jprod.visibilityflag,jprod.eventtypeid);
+        update prods set processed='Y', stepid='Y' where production=prod.production;
+        update jobs j set j.stepid=stepid where j.production=prod.production and j.programname=jprod.programname and j.programversion=jprod.programversion;
+        BOOKKEEPINGORACLEDB.insertStepsContainer(prod.production,stepid,stnum);
+      END IF;
+    END IF;
+    commit;
+  END LOOP;
+END LOOP;
+END;
+/
+
+NOTE: The files which do not have event type it is not added to the productionoutputfiles...
+SQL> select * from prods p where p.processed='N' and p.production>0 and p.production not in (select distinct ss.production from stepscontainer ss);
+
+PRODUCTION P S P
+---------- - - -
+     52192 N N N
+
+Added to the productionoutputfile:     
+exec BOOKKEEPINGORACLEDB.insertProdnOutputFtypes(52192, 128808, 88, 'Y',11114044);
+exec BOOKKEEPINGORACLEDB.insertProdnOutputFtypes(52192, 129669, 121, 'Y',11114044);
+
+Fix the remained productions:
+declare
+nb number;
+begin
+FOR stcont in (select distinct ss.production from stepscontainer ss where ss.production in (select p.production from prods p where p.processed='N' and p.production>0 and p.production=3364)) LOOP
+  DBMS_OUTPUT.put_line (stcont.production);
+  FOR st in (select s.stepid, step from steps s, stepscontainer st where st.stepid=s.stepid and st.production=stcont.production order by step) LOOP
+    select count(*) into nb from jobs j, files f, filetypes ft where ft.filetypeid=f.filetypeid and f.jobid=j.jobid and j.production=stcont.production and j.stepid=st.stepid and f.filetypeid not in (9,17) and eventtypeid is not null;
+    if nb=0 then
+      update jobs set stepid=st.stepid where production=stcont.production;
+      commit;
+    END IF;
+    FOR f in (select distinct j.stepid,ft.name, f.eventtypeid, ft.filetypeid, f.visibilityflag from jobs j, files f, filetypes ft 
+                  where ft.filetypeid=f.filetypeid and f.jobid=j.jobid and 
+                  j.production=stcont.production and j.stepid=st.stepid and f.filetypeid not in (9,17) and eventtypeid is not null) LOOP
+        DBMS_OUTPUT.put_line (stcont.production||'->'||st.stepid||'->'||f.filetypeid||'->'||f.visibilityflag||'->'||f.eventtypeid);
+        BOOKKEEPINGORACLEDB.insertProdnOutputFtypes(stcont.production, st.stepid, f.filetypeid, f.visibilityflag,f.eventtypeid);
+        update prods set processed='Y' where production=stcont.production;
+    END LOOP;
+  END LOOP;
+  commit;
+END LOOP;
+END;
+/
