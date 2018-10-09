@@ -19,8 +19,6 @@ from DIRAC.WorkloadManagementSystem.Client.JobMonitoringClient import JobMonitor
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
-COMPONENT_NAME = 'DiracProduction'
-
 
 class DiracProduction(DiracLHCb):
   """ class for managing productions
@@ -67,11 +65,8 @@ class DiracProduction(DiracLHCb):
     """Returns the metadata associated with a given production ID. Protects against
        LFN: being prepended and different types of production ID.
     """
-    if isinstance(productionID, int):
-      productionID = int(productionID)
-    if not isinstance(productionID, long):
-      if not isinstance(productionID, str):
-        return self._errorReport('Expected string, long or int for production ID')
+    if not isinstance(productionID, (int, long, str)):
+      return self._errorReport('Expected string, long or int for production ID')
 
     result = self.transformationClient.getTransformation(int(productionID))
     if not result['OK']:
@@ -102,13 +97,10 @@ class DiracProduction(DiracLHCb):
        the operation performed, any messages associated with the operation and the
        DN of the production manager performing it.
     """
-    if isinstance(productionID, int):
-      productionID = long(productionID)
-    if not isinstance(productionID, long):
-      if not isinstance(productionID, str):
-        return self._errorReport('Expected string, long or int for production ID')
+    if not isinstance(productionID, (int, long, str)):
+      return self._errorReport('Expected string, long or int for production ID')
 
-    result = self.transformationClient.getTransformationLogging(long(productionID))
+    result = self.transformationClient.getTransformationLogging(int(productionID))
     if not result['OK']:
       self.log.warn('Could not get transformation logging information for productionID %s' % (productionID))
       return result
@@ -138,12 +130,8 @@ class DiracProduction(DiracLHCb):
        specified, the result is restricted to this value. If printOutput is specified,
        the result is printed to the screen.
     """
-    if isinstance(productionID, int):
-      productionID = long(productionID)
-    if productionID:
-      if not isinstance(productionID, long):
-        if not isinstance(productionID, str):
-          return self._errorReport('Expected string or long for production ID')
+    if not isinstance(productionID, (int, long, str)):
+      return self._errorReport('Expected string, long or int for production ID')
 
     result = self.transformationClient.getTransformationSummary()
     if not result['OK']:
@@ -156,8 +144,8 @@ class DiracProduction(DiracLHCb):
         newResult['Value'][long(productionID)] = result['Value'][long(productionID)]
         result = newResult
       else:
-        prods = result['Value'].keys()
-        self.log.info('Specified productionID was not found, the list of active productions is:\n%s' % (prods))
+        self.log.info('Specified productionID was not found, \
+          the list of active productions is:\n%s' % ', '.join(str(pID) for pID in result['Value']))
         return S_ERROR('Production ID %s was not found' % (productionID))
 
     if printOutput:
@@ -172,18 +160,15 @@ class DiracProduction(DiracLHCb):
        for the given productionID and provides an up-to-date snapshot of the application status
        combinations and associated WMS JobIDs.
     """
-    if isinstance(productionID, int):
-      productionID = long(productionID)
-    if not isinstance(productionID, long):
-      if not isinstance(productionID, str):
-        return self._errorReport('Expected string, long or int for production ID')
+    if not isinstance(productionID, (int, long, str)):
+      return self._errorReport('Expected string, long or int for production ID')
 
     statusDict = self.getProdJobMetadata(productionID, status, minorStatus)
     if not statusDict['OK']:
       self.log.warn('Could not get production metadata information')
       return statusDict
 
-    jobIDs = statusDict['Value'].keys()
+    jobIDs = list(statusDict['Value'])
     if not jobIDs:
       return S_ERROR('No JobIDs with matching conditions found')
 
@@ -262,7 +247,6 @@ class DiracProduction(DiracLHCb):
           message += stat.ljust(statAdj) + minor.ljust(mStatAdj) + appStat.ljust(mStatAdj) + \
               str(jobInfo['Total']).ljust(totalAdj) + str(jobInfo['JobList'][0]).ljust(exAdj) + '\n'
 
-    print message
     # self._prettyPrint(summary)
     if status or minorStatus:
       return S_OK(summary)
@@ -297,11 +281,8 @@ class DiracProduction(DiracLHCb):
        for the given productionID and provides an up-to-date snapshot of the job status
        combinations and associated WMS JobIDs.
     """
-    if isinstance(productionID, int):
-      productionID = long(productionID)
-    if not isinstance(productionID, long):
-      if not isinstance(productionID, str):
-        return self._errorReport('Expected string, long or int for production ID')
+    if not isinstance(productionID, (int, long, str)):
+      return self._errorReport('Expected string, long or int for production ID')
 
     statusDict = self.getProdJobMetadata(productionID, status, minorStatus)
     if not statusDict['OK']:
@@ -397,11 +378,8 @@ class DiracProduction(DiracLHCb):
        for the given productionID and provides an up-to-date snapshot of the sites
        that jobs were submitted to.
     """
-    if isinstance(productionID, int):
-      productionID = long(productionID)
-    if not isinstance(productionID, long):
-      if not isinstance(productionID, str):
-        return self._errorReport('Expected string, long or int for production ID')
+    if not isinstance(productionID, (int, long, str)):
+      return self._errorReport('Expected string, long or int for production ID')
 
     statusDict = self.getProdJobMetadata(productionID, None, None, site)
     if not statusDict['OK']:
@@ -507,7 +485,7 @@ class DiracProduction(DiracLHCb):
       result = self._getActiveProductions()
       if not result['OK']:
         return result
-      productionID = result['Value'].keys()
+      productionID = result['Value']
     else:
       productionID = [productionID]
 
@@ -586,8 +564,8 @@ class DiracProduction(DiracLHCb):
 
     if not isinstance(command, str):
       return self._errorReport('Expected string, for command')
-    if not command.lower() in commands.keys():
-      return self._errorReport('Expected one of: %s for command string' % (', '.join(commands.keys())))
+    if not command.lower() in commands:
+      return self._errorReport('Expected one of: %s for command string' % (', '.join(commands)))
 
     self.log.verbose('Requested to change production %s with command "%s"' % (productionID,
                                                                               command.lower().capitalize()))
@@ -702,11 +680,8 @@ class DiracProduction(DiracLHCb):
     """Checks the given LFN(s) status in the productionDB.  All productions
        are considered by default but can restrict to productionID.
     """
-    if isinstance(productionID, int):
-      productionID = long(productionID)
-    if not isinstance(productionID, long):
-      if not isinstance(productionID, str):
-        return self._errorReport('Expected string, long or int for production ID')
+    if not isinstance(productionID, (int, long, str)):
+      return self._errorReport('Expected string, long or int for production ID')
 
     if isinstance(lfns, str):
       lfns = lfns.replace('LFN:', '')
@@ -774,11 +749,8 @@ class DiracProduction(DiracLHCb):
     """ Extend Simulation type Production by number of jobs.
         Usage: extendProduction <ProductionNameOrID> nJobs
     """
-    if isinstance(productionID, int):
-      productionID = long(productionID)
-    if not isinstance(productionID, long):
-      if not isinstance(productionID, str):
-        return self._errorReport('Expected string or long for production ID')
+    if not isinstance(productionID, (int, long, str)):
+      return self._errorReport('Expected string, long or int for production ID')
 
     if isinstance(numberOfJobs, str):
       try:
