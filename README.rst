@@ -1,3 +1,7 @@
+Citations
+  .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.1451768.svg
+   :target: https://doi.org/10.5281/zenodo.1451768
+
 Documentation
   .. image:: https://readthedocs.org/projects/lhcb-dirac/badge
       :target: http://lhcb-dirac.readthedocs.io/
