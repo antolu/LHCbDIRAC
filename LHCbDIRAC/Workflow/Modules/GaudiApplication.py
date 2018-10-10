@@ -158,7 +158,8 @@ class GaudiApplication(ModuleBase):
       if self.multicoreStep.upper() == 'Y':
         ra.multicore = self.multicoreJob
       ra.prodConfFileName = prodConfFileName
-      ra.applicationLog = self.applicationLog
+      if self.applicationLog:
+        ra.applicationLog = self.applicationLog
       ra.stdError = self.stdError
 
       # Now really running

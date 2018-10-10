@@ -3,14 +3,11 @@
 Handler for MCStatsElasticDB
 """
 
-from DIRAC import gLogger, S_OK, S_ERROR
-from DIRAC.Core.DISET.RequestHandler import RequestHandler
-from LHCbDIRAC.ProductionManagementSystem.DB.MCStatsElasticDB import MCStatsElasticDB
-
 __RCSID__ = "$Id$"
 
-global mcStatsDB
-mcStatsDB = False
+from DIRAC import gLogger, S_OK
+from DIRAC.Core.DISET.RequestHandler import RequestHandler
+from LHCbDIRAC.ProductionManagementSystem.DB.MCStatsElasticDB import MCStatsElasticDB
 
 
 def initializeMCStatsElasticDBHandler(_serviceinfo):
@@ -20,8 +17,8 @@ def initializeMCStatsElasticDBHandler(_serviceinfo):
 
 
 class MCStatsElasticDBHandler(RequestHandler):
-  def __init__(self, *args, **kargs):
-    RequestHandler.__init__(self, *args, **kargs)
+  """ Tiny service for setting/getting/removing data from ElasticSearch MCStats DB
+  """
 
   types_set = [basestring, basestring, basestring]
 

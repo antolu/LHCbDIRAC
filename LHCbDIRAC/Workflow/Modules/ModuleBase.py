@@ -371,6 +371,8 @@ class ModuleBase(object):
         else:
           if 'outputDataName' not in fileTypeDict:
             fileTypeDict['outputDataName'] = self.outputFilePrefix + '.' + fileTypeDict['outputDataType']
+    else:
+      self.applicationLog = self.step_commons.get('applicationLog', self.applicationLog)
 
     self.inputDataType = self.step_commons.get('inputDataType', self.inputDataType)
 

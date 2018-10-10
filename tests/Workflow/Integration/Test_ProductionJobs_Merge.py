@@ -33,8 +33,7 @@ class ProductionJobTestCase(IntegrationTest):
 class MCMergeSuccess(ProductionJobTestCase):
   def test_Integration_Production(self):
 
-    lfns = ['/lhcb/MC/2012/BDSTH.STRIP.DST/00051752/0000/00051752_00001269_2.bdsth.Strip.dst',
-            '/lhcb/MC/2012/BDSTH.STRIP.DST/00051752/0000/00051752_00001263_2.bdsth.Strip.dst']
+    lfns = ['/lhcb/MC/2012/BDSTH.STRIP.DST/00051752/0000/00051752_00001263_2.bdsth.Strip.dst']
     # From request 31139
     optionFiles = '$APPCONFIGOPTS/Merging/DVMergeDST.py;$APPCONFIGOPTS/DaVinci/DataType-2012.py;'
     optionFiles += '$APPCONFIGOPTS/Merging/WriteFSR.py;$APPCONFIGOPTS/Merging/MergeFSR.py'

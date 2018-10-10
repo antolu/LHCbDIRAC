@@ -16,11 +16,11 @@ import DIRAC
 from DIRAC.Core.Utilities.File import mkDir
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
-from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient, printOperation
+from DIRAC.Core.Utilities.List import breakListIntoChunks
 from DIRAC.DataManagementSystem.Client.DataManager import DataManager
 from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
-from DIRAC.Core.Utilities.List import breakListIntoChunks
-from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient, printOperation
+from DIRAC.WorkloadManagementSystem.Client.JobMonitoringClient import JobMonitoringClient
 
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
@@ -1086,7 +1086,7 @@ class TransformationDebug(object):
     else:
       jobs = list(int(jid) for jid in job)
     if not self.monitoring:
-      self.monitoring = RPCClient('WorkloadManagement/JobMonitoring')
+      self.monitoring = JobMonitoringClient()
     res = self.monitoring.getJobsStatus(jobs)
     if res['OK']:
       jobStatus = res['Value']
@@ -1115,7 +1115,7 @@ class TransformationDebug(object):
     else:
       jobs = list(int(jid) for jid in job)
     if not self.monitoring:
-      self.monitoring = RPCClient('WorkloadManagement/JobMonitoring')
+      self.monitoring = JobMonitoringClient()
     res = self.monitoring.getJobsSites(jobs)
     if res['OK']:
       jobSites = res['Value']
@@ -1134,7 +1134,7 @@ class TransformationDebug(object):
     else:
       jobs = list(int(jid) for jid in job)
     if not self.monitoring:
-      self.monitoring = RPCClient('WorkloadManagement/JobMonitoring')
+      self.monitoring = JobMonitoringClient()
     jobCPU = {}
     stdoutTag = ' (h:m:s)'
     for job in jobs:
@@ -1170,7 +1170,7 @@ class TransformationDebug(object):
     :type checkLogs: boolean
     """
     if not self.monitoring:
-      self.monitoring = RPCClient('WorkloadManagement/JobMonitoring')
+      self.monitoring = JobMonitoringClient()
     failedLfns = {}
     jobLogURL = {}
     jobSites = {}
