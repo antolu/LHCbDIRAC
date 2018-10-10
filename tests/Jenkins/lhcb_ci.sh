@@ -358,7 +358,7 @@ function submitAndMatch(){
   installLHCbDIRAC
   submitJob
 
-  #Run the full pilot, including the JobAgent
+  # Run the full pilot, including the JobAgent
   cd $PILOTINSTALLDIR
   if [ $? -ne 0 ]
   then
@@ -367,6 +367,8 @@ function submitAndMatch(){
   fi
   prepareForPilot
   default
+  
+  # Adding the LHCb pilot command files
   cp $TESTCODE/LHCbDIRAC/LHCbDIRAC/WorkloadManagementSystem/PilotAgent/LHCbPilotCommands.py $PILOTINSTALLDIR/LHCbPilotCommands.py
 
   if [ ! -z "$PILOT_VERSION" ]
