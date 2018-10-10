@@ -1372,7 +1372,7 @@ class LHCbBookkeepingManager(BaseESManager):
     """get a node for a given path"""
     path = self.getAbsolutePath(path)['Value']
     entity = self._getEntity(path)
-    if isinstance(entity.__class__, None):
+    if not isinstance(entity, objects.Entity):
       gLogger.error(path + " doesn't exist!")
       # raise ValueError, "Invalid path %s" % path
     return S_OK(entity)

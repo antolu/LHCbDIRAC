@@ -21,7 +21,6 @@ def sendMail(msg=''):
   queue = gConfig.getValue('LocalSite/CEQueue')
   body = "*** THIS IS AN AUTOMATED MESSAGE ***" + '\n\n' + msg + '\n\n'
   body = body + "At site %s, CE = %s, queue = %s" % (site, ce, queue) + '\n\n'
-  body = body + "Consider inserting it in the OSCompatibility section of the CS"
 
   for mA in mailAddress.replace(' ', '').split(','):
     NotificationClient().sendMail(mailAddress, "Problem with DIRAC architecture",
@@ -47,7 +46,7 @@ if __name__ == "__main__":
     if not platform:
       gLogger.fatal("There is no platform corresponding to this machine")
       if not full:
-        sendMail()
+        sendMail("There is no platform corresponding to this machine")
       dExit(1)
     if not full:
       print platform
@@ -66,7 +65,7 @@ if __name__ == "__main__":
     configurations = None
 
   gLogger.notice("This machine is platform", platform)
-  compatibleConfigs = getLHCbConfigsForPlatform(platform).get('Value')
+  compatibleConfigs = getLHCbConfigsForPlatform(platform)
   if not compatibleConfigs:
     gLogger.notice("No compatible configurations found")
     dExit(0)
