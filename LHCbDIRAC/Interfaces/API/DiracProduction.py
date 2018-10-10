@@ -24,7 +24,6 @@ class DiracProduction(DiracLHCb):
   """ class for managing productions
   """
 
-  #############################################################################
   def __init__(self, tsClientIn=None):
     """Instantiates the Workflow object and some default parameters.
     """
@@ -60,7 +59,6 @@ class DiracProduction(DiracLHCb):
                      'validated': ['ValidatedOutput', 'Manual'],
                      'removed': ['RemovedFiles', 'Manual']}
 
-  #############################################################################
   def getProduction(self, productionID, printOutput=False):
     """Returns the metadata associated with a given production ID. Protects against
        LFN: being prepended and different types of production ID.
@@ -76,9 +74,8 @@ class DiracProduction(DiracLHCb):
     if printOutput:
       adj = self.prodAdj
       prodInfo = result['Value']
-      headers = self.prodHeaders.values()
       top = ''
-      for i in headers:
+      for i in self.prodHeaders.itervalues():
         top += i.ljust(adj)
       message = ['ProductionID'.ljust(adj) + top + '\n']
       # very painful to make this consistent, better improved first on the server side
@@ -89,8 +86,6 @@ class DiracProduction(DiracLHCb):
       message.append(info)
       print '\n'.join(message)
     return S_OK(result['Value'])
-
-  #############################################################################
 
   def getProductionLoggingInfo(self, productionID, printOutput=False):
     """The logging information for the given production is returned.  This includes
@@ -124,7 +119,6 @@ class DiracProduction(DiracLHCb):
 
     return result
 
-  #############################################################################
   def getProductionSummary(self, productionID=None, printOutput=False):
     """Returns a detailed summary for the productions in the system. If production ID is
        specified, the result is restricted to this value. If printOutput is specified,
@@ -153,7 +147,6 @@ class DiracProduction(DiracLHCb):
 
     return result
 
-  #############################################################################
   def getProductionApplicationSummary(self, productionID, status=None, minorStatus=None, printOutput=False):
     """Returns an application status summary for the productions in the system. If printOutput is
        specified, the result is printed to the screen.  This queries the WMS
@@ -186,8 +179,8 @@ class DiracProduction(DiracLHCb):
     summary = {}
     submittedJobs = 0
     doneJobs = 0
-    for job, atts in statusDict['Value'].items():
-      for key, val in atts.items():
+    for job, atts in statusDict['Value'].iteritems():
+      for key, val in atts.iteritems():
         if key == 'Status':
           uniqueStatus = val.capitalize()
           if uniqueStatus not in summary:
@@ -239,11 +232,11 @@ class DiracProduction(DiracLHCb):
     message += ':\n\n'
     message += 'Status'.ljust(statAdj) + 'MinorStatus'.ljust(mStatAdj) + 'ApplicationStatus'.ljust(mStatAdj) + \
         'Total'.ljust(totalAdj) + 'Example'.ljust(exAdj) + '\n'
-    for stat, metadata in summary.items():
+    for stat, metadata in summary.iteritems():
       message += '\n'
-      for minor, appInfo in metadata.items():
+      for minor, appInfo in metadata.iteritems():
         message += '\n'
-        for appStat, jobInfo in appInfo.items():
+        for appStat, jobInfo in appInfo.iteritems():
           message += stat.ljust(statAdj) + minor.ljust(mStatAdj) + appStat.ljust(mStatAdj) + \
               str(jobInfo['Total']).ljust(totalAdj) + str(jobInfo['JobList'][0]).ljust(exAdj) + '\n'
 
@@ -274,7 +267,6 @@ class DiracProduction(DiracLHCb):
     # self.pPrint(result)
     return result
 
-  #############################################################################
   def getProductionJobSummary(self, productionID, status=None, minorStatus=None, printOutput=False):
     """Returns a job summary for the productions in the system. If printOutput is
        specified, the result is printed to the screen.  This queries the WMS
@@ -293,8 +285,8 @@ class DiracProduction(DiracLHCb):
     summary = {}
     submittedJobs = 0
     doneJobs = 0
-    for job, atts in statusDict['Value'].items():
-      for key, val in atts.items():
+    for job, atts in statusDict['Value'].ietritems():
+      for key, val in atts.iteritems():
         if key == 'Status':
           uniqueStatus = val.capitalize()
           if uniqueStatus not in summary:
@@ -339,9 +331,9 @@ class DiracProduction(DiracLHCb):
     message += ':\n\n'
     message += 'Status'.ljust(statAdj) + 'MinorStatus'.ljust(mStatAdj) + 'Total'.ljust(totalAdj) + \
         'Example'.ljust(exAdj) + '\n'
-    for stat, metadata in summary.items():
+    for stat, metadata in summary.iteritems():
       message += '\n'
-      for minor, jobInfo in metadata.items():
+      for minor, jobInfo in metadata.iteritems():
         message += stat.ljust(statAdj) + minor.ljust(mStatAdj) + str(jobInfo['Total']).ljust(totalAdj) + \
             str(jobInfo['JobList'][0]).ljust(exAdj) + '\n'
 
@@ -371,7 +363,6 @@ class DiracProduction(DiracLHCb):
     result['Value'] = summary
     return result
 
-  #############################################################################
   def getProductionSiteSummary(self, productionID, site=None, printOutput=False):
     """Returns a site summary for the productions in the system. If printOutput is
        specified, the result is printed to the screen.  This queries the WMS
@@ -390,8 +381,8 @@ class DiracProduction(DiracLHCb):
     submittedJobs = 0
     doneJobs = 0
 
-    for job, atts in statusDict['Value'].items():
-      for key, val in atts.items():
+    for job, atts in statusDict['Value'].iteritems():
+      for key, val in atts.iteritems():
         if key == 'Site':
           uniqueSite = val
           currentStatus = atts['Status'].capitalize()
@@ -439,9 +430,9 @@ class DiracProduction(DiracLHCb):
     message += ':\n\n'
     message += 'Site'.ljust(siteAdj) + 'Status'.ljust(statAdj) + 'Total'.ljust(totalAdj) + \
         'Example'.ljust(exAdj) + '\n'
-    for siteStr, metadata in summary.items():
+    for siteStr, metadata in summary.iteritems():
       message += '\n'
-      for stat, jobInfo in metadata.items():
+      for stat, jobInfo in metadata.iteritems():
         message += siteStr.ljust(siteAdj) + stat.ljust(statAdj) + str(jobInfo['Total']).ljust(totalAdj) + \
             str(jobInfo['JobList'][0]).ljust(exAdj) + '\n'
 
@@ -470,16 +461,13 @@ class DiracProduction(DiracLHCb):
     result['Value'] = summary
     return result
 
-  #############################################################################
   def getProductionProgress(self, productionID=None, printOutput=False):
     """Returns the status of jobs as seen by the production management infrastructure.
     """
-    if isinstance(productionID, int):
-      productionID = long(productionID)
-    if productionID:
-      if not isinstance(productionID, long):
-        if not isinstance(productionID, str):
-          return self._errorReport('Expected string, long or int for production ID')
+    if not isinstance(productionID, (int, long, str)):
+      return self._errorReport('Expected string, long or int for production ID')
+
+    productionID = long(productionID)
 
     if not productionID:
       result = self._getActiveProductions()
@@ -506,15 +494,13 @@ class DiracProduction(DiracLHCb):
     statAdj = int(self.prodAdj)
     countAdj = int(self.prodAdj)
     message = 'ProductionID'.ljust(idAdj) + 'Status'.ljust(statAdj) + 'Count'.ljust(countAdj) + '\n\n'
-    for prod, info in progress.items():
-      for status, count in info.items():
+    for prod, info in progress.iteritems():
+      for status, count in info.iteritems():
         message += str(prod).ljust(idAdj) + status.ljust(statAdj) + str(count).ljust(countAdj) + '\n'
       message += '\n'
 
     print message
     return result
-
-  #############################################################################
 
   def _getActiveProductions(self, printOutput=False):
     """Returns a dictionary of active production IDs and their status, e.g. automatic, manual.
@@ -538,16 +524,14 @@ class DiracProduction(DiracLHCb):
 
     return S_OK(currentProductions)
 
-  #############################################################################
   def getProductionCommands(self):
     """ Returns the list of possible commands and their meaning.
     """
     prodCommands = {}
-    for keyword, statusSubMode in self.commands.items():
+    for keyword, statusSubMode in self.commands.iteritems():
       prodCommands[keyword] = {'Status': statusSubMode[0], 'SubmissionMode': statusSubMode[1]}
     return S_OK(prodCommands)
 
-  #############################################################################
   def production(self, productionID, command, disableCheck=True):
     """Allows basic production management by supporting the following commands:
        - start : set production status to Active, job submission possible
@@ -556,12 +540,11 @@ class DiracProduction(DiracLHCb):
        - manual: set produciton submission mode to manual, e.g. dirac-production-submit
     """
     commands = self.commands
-    if isinstance(productionID, int):
-      productionID = long(productionID)
-    if not isinstance(productionID, long):
-      if not isinstance(productionID, str):
-        return self._errorReport('Expected string, long or int for production ID')
 
+    if not isinstance(productionID, (int, long, str)):
+      return self._errorReport('Expected string, long or int for production ID')
+
+    productionID = long(productionID)
     if not isinstance(command, str):
       return self._errorReport('Expected string, for command')
     if not command.lower() in commands:
@@ -595,7 +578,6 @@ class DiracProduction(DiracLHCb):
     self.log.verbose('Setting transformation agent type to %s successful' % (actions[1]))
     return S_OK('Production %s status updated' % productionID)
 
-  #############################################################################
   def productionFileSummary(self, productionID, selectStatus=None, outputFile=None,
                             orderOutput=True, printSummary=False, printOutput=False):
     """ Allows to investigate the input files for a given production transformation
@@ -619,7 +601,7 @@ class DiracProduction(DiracLHCb):
         totalRecords += 1
         record = ''
         recordStatus = ''
-        for n, v in lfnDict.items():
+        for n, v in lfnDict.iteritems():
           record += str(n) + ' = ' + str(v).ljust(adj) + ' '
           if n == 'Status':
             recordStatus = v
@@ -647,7 +629,7 @@ class DiracProduction(DiracLHCb):
     if printSummary:
       print '\nSummary for %s files in production %s\n' % (totalRecords, productionID)
       print 'Status'.ljust(adj) + ' ' + 'Total'.ljust(adj) + 'Percentage'.ljust(adj) + '\n'
-      for n, v in summary.items():
+      for n, v in summary.iteritems():
         percentage = int(100 * int(v) / totalRecords)
         print str(n).ljust(adj) + ' ' + str(v).ljust(adj) + ' ' + str(percentage).ljust(2) + ' % '
       print '\n'
@@ -675,7 +657,6 @@ class DiracProduction(DiracLHCb):
 
     return fileSummary
 
-  #############################################################################
   def checkFilesStatus(self, lfns, productionID='', printOutput=False):
     """Checks the given LFN(s) status in the productionDB.  All productions
        are considered by default but can restrict to productionID.
@@ -698,8 +679,6 @@ class DiracProduction(DiracLHCb):
       self._prettyPrint(fileStatus['Value'])
     return fileStatus
 
-  #############################################################################
-
   def getWMSProdJobID(self, jobID, printOutput=False):
     """This method takes the DIRAC WMS JobID and returns the Production JobID information.
     """
@@ -717,8 +696,6 @@ class DiracProduction(DiracLHCb):
       self._prettyPrint(info)
     return S_OK(info)
 
-  #############################################################################
-
   def getProdJobInfo(self, productionID, jobID, printOutput=False):
     """Retrieve production job information from Production Manager service.
     """
@@ -733,7 +710,6 @@ class DiracProduction(DiracLHCb):
       self._prettyPrint(jobInfo)
     return S_OK(jobInfo)
 
-  #############################################################################
   def selectProductionJobs(self, productionID, status=None, minorStatus=None, applicationStatus=None,
                            site=None, owner=None, date=None):
     """Wraps around DIRAC API selectJobs(). Arguments correspond to the web page
@@ -744,7 +720,6 @@ class DiracProduction(DiracLHCb):
       date = '2001-01-01'
     return self.selectJobs(status, minorStatus, applicationStatus, site, owner, str(productionID).zfill(8), date)
 
-  #############################################################################
   def extendProduction(self, productionID, numberOfJobs, printOutput=False):
     """ Extend Simulation type Production by number of jobs.
         Usage: extendProduction <ProductionNameOrID> nJobs
@@ -767,7 +742,6 @@ class DiracProduction(DiracLHCb):
 
     return result
 
-  #############################################################################
   def getProdJobMetadata(self, productionID, status=None, minorStatus=None, site=None):
     """Function to get the WMS job metadata for selected fields. Given a production ID will return
        the current WMS status information for all jobs in that production starting from the creation
@@ -787,8 +761,6 @@ class DiracProduction(DiracLHCb):
 
     jobsList = result['Value']
     return self.status(jobsList)
-
-  #############################################################################
 
   def launchProduction(self, prod, publishFlag, testFlag, requestID,
                        extend=0, tracking=0, MCsimflag=False):
@@ -838,5 +810,3 @@ class DiracProduction(DiracLHCb):
       Setting ID = %s (useless, just for the test)' % (publishFlag, prodID))
 
     return S_OK(prodID)
-
-# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
