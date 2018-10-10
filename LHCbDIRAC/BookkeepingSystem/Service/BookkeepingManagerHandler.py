@@ -914,7 +914,7 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.renameFile(oldLFN, newLFN)
 
   #############################################################################
-  types_getProductionProcessingPassID = [long]
+  types_getProductionProcessingPassID = [(int, long)]
 
   @staticmethod
   def export_getProductionProcessingPassID(prodid):
@@ -2394,7 +2394,7 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.fixRunLuminosity(runnumbers)
 
   #############################################################################
-  types_getProductionProducedEvents = [long]
+  types_getProductionProducedEvents = [(long, int)]
 
   @staticmethod
   def export_getProductionProducedEvents(prodid):
