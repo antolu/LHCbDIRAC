@@ -272,7 +272,7 @@ Fix the remained productions:
 declare
 nb number;
 begin
-FOR stcont in (select distinct ss.production from stepscontainer ss where ss.production in (select p.production from prods p where p.processed='N' and p.production>0 and p.production=3364)) LOOP
+FOR stcont in (select distinct ss.production from stepscontainer ss where ss.production in (select p.production from prods p where p.processed='N' and p.production>0)) LOOP
   DBMS_OUTPUT.put_line (stcont.production);
   FOR st in (select s.stepid, step from steps s, stepscontainer st where st.stepid=s.stepid and st.production=stcont.production order by step) LOOP
     select count(*) into nb from jobs j, files f, filetypes ft where ft.filetypeid=f.filetypeid and f.jobid=j.jobid and j.production=stcont.production and j.stepid=st.stepid and f.filetypeid not in (9,17) and eventtypeid is not null;
