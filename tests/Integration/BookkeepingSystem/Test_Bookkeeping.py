@@ -29,7 +29,7 @@ class DataInsertTestCase(unittest.TestCase):
     self.xmlJob = """<?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE Job SYSTEM "book.dtd">
 <Job ConfigName="Test" ConfigVersion="Test01" Date="%jDate%" Time="%jTime%">
-  <TypedParameter Name="Production" Value="12" Type="Info"/>
+  <TypedParameter Name="Production" Value="%runnb%" Type="Info"/>
   <TypedParameter Name="Name" Value="%runnb%" Type="Info"/>
   <TypedParameter Name="Location" Value="LHCb Online" Type="Info"/>
   <TypedParameter Name="ProgramName" Value="Moore" Type="Info"/>
