@@ -15,6 +15,7 @@ procedure updateJobNbofevt(v_jobid number);
 procedure updateEventInputStat(v_production number, fixstripping BOOLEAN);
 procedure updateJobEvtinpStat(v_jobid number, fixstripping BOOLEAN);
 PROCEDURE destroyDatasets;
+PROCEDURE updateProdOutputFiles;
 
 end;
 /
@@ -143,6 +144,17 @@ BEGIN
 	FOR i in 1 .. productionsteps.COUNT LOOP
 		dbms_output.put_line('production step delete:' || productionsteps(i));
 		DELETE steps WHERE stepid=productionsteps(i);
+	END LOOP;
+	COMMIT;
+END;
+PROCEDURE updateProdOutputFiles IS
+BEGIN 
+	FOR prod IN(SELECT j.production,f.eventtypeid, f.filetypeid, f.gotreplica, f.visibilityflag 
+	FROM jobs j, files f WHERE 
+		f.inserttimestamp >= SYSTIMESTAMP - 1 AND 
+		j.jobid = f.jobid AND 
+		f.filetypeid NOT IN(9,17) GROUP BY j.production, f.eventtypeid, f.filetypeid, f.gotreplica, f.visibilityflag Order by f.gotreplica,f.visibilityflag asc) LOOP
+		UPDATE productionoutputfiles SET visible=prod.visibilityflag, gotreplica=prod.gotreplica WHERE production=prod.production AND eventtypeid=prod.eventtypeid AND filetypeid=prod.filetypeid;
 	END LOOP;
 	COMMIT;
 END;
