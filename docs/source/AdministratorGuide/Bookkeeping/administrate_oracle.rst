@@ -270,3 +270,22 @@ The following services/agent needs to be stopped before the deep down time (Syst
 	StorageHistoryAgents(s)
 
 Just before the intervention stop all Bookkeeping services.
+
+===============================================
+Automatic updating of the productionoutputfiles
+================================================
+
+BEGIN
+DBMS_SCHEDULER.CREATE_JOB (
+   job_name             => 'produpdatejob',
+   job_type             => 'PLSQL_BLOCK',
+   job_action           => 'BEGIN BKUTILITIES.updateProdOutputFiles(); END;',
+   repeat_interval      => 'FREQ=MINUTELY; interval=10', 
+   start_date           => systimestamp,
+   enabled              =>  TRUE
+   );
+END;
+/
+
+For monitoring:
+select JOB_NAME, STATE, LAST_START_DATE, LAST_RUN_DURATION, NEXT_RUN_DATE, RUN_COUNT, FAILURE_COUNT from USER_SCHEDULER_JOBS;
