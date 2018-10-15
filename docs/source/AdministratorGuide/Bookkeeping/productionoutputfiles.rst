@@ -292,3 +292,15 @@ FOR stcont in (select distinct ss.production from stepscontainer ss where ss.pro
 END LOOP;
 END;
 /
+
+select * from prods where processed='N';
+
+PRODUCTION P S P
+---------- - - -
+     24179 N N N
+    -42854 N N N
+
+SQL>
+
+Two production are problematic. The eventtypeid is null for 24179. -42854 is not yet deleted...
+
