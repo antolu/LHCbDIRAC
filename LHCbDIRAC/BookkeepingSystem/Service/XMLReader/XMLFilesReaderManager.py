@@ -11,7 +11,7 @@ from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.FileParam import FilePara
 from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.JobParameters import JobParameters
 from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.JobReader import JobReader
 from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.ReplicaReader import ReplicaReader
-from LHCbDIRAC.BookkeepingSystem.DB.DataTakingConditionInterpreter import  BeamEnergyCondition, \
+from LHCbDIRAC.BookkeepingSystem.DB.DataTakingConditionInterpreter import BeamEnergyCondition, \
     VeloCondition, \
     MagneticFieldCondition, \
     EcalCondition, \
@@ -165,7 +165,7 @@ class XMLFilesReaderManager(object):
 
       if not evtExists and outputfile.getFileType() not in ['LOG']:
         inputFiles = job.getJobInputFiles()
-        if len(inputFiles) > 0:
+        if inputFiles:
           fileName = inputFiles[0].getFileName()
           res = self.bkClient_.getFileMetadata([fileName])
           if res['OK']:
@@ -196,7 +196,7 @@ class XMLFilesReaderManager(object):
           return S_ERROR('It can not fill the EventTypeId because there is no input files!')
 
       infiles = job.getJobInputFiles()
-      if not job.exists('RunNumber') and len(infiles) > 0:
+      if not job.exists('RunNumber') and infiles:
         runnumber = -1
         tck = -2
         runnumbers = []
@@ -292,7 +292,7 @@ class XMLFilesReaderManager(object):
 
       if res['OK']:
         value = res["Value"]
-        if len(value) > 0 and value[0][2] is not None:
+        if value and value[0][2] is not None:
           sumEventInputStat += value[0][2]
       else:
         return S_ERROR(res['Message'])
@@ -319,7 +319,7 @@ class XMLFilesReaderManager(object):
     else:
       evtinput = sumEventInputStat
 
-    if len(inputfiles) > 0:
+    if inputfiles:
       if not job.exists('EventInputStat'):
         newJobParams = JobParameters()
         newJobParams.setName('EventInputStat')
