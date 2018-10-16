@@ -24,6 +24,7 @@ Before we created a table for keeping track about the migration.
 
 The migration started with the runs (production<0) and with the prods.processed='N':
 
+  ```sql
 	declare
 	begin
 	FOR stcont in (select distinct ss.production from stepscontainer ss where ss.production in (select p.production from prods p where p.processed='N' and p.production<0)) LOOP
@@ -44,14 +45,20 @@ The migration started with the runs (production<0) and with the prods.processed=
 	END LOOP;
 	END;
 	/
-	
+  ```
+
+
 After I have noticed we have jobs without stepid. In order to fix this issue executed the following commands:
 
+	```sql
 	create table stepscontainer_2018_09_20 as select * from stepscontainer;
+	```
+	
 	- this is used for backup, because the duplicated entries will be deleted...
 
 To fill the stepid for the non processed runs:
 	
+	```sql
 	declare
 	found number;
 	prname varchar2(256);
@@ -92,6 +99,7 @@ To fill the stepid for the non processed runs:
 	END LOOP;
 	END;
 	/
+	```
 	
 After executing this procedure 21309 productions are fixed: select count(*) from prods where stepid='Y' and production<0;
 
