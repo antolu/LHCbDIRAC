@@ -1,5 +1,4 @@
 .. _administrate_oracle:
-
 =======================================
 LHCbBookkeeping database administration
 =======================================
@@ -18,7 +17,6 @@ We are using 3 database accounts:
 
     3. LHCB_DIRACBOOKKEEPING (main account)
 
-
 The main account is always locked. Every time when you want to use it you have to unlock.
 
 Before login to the development db, you have to unlock the database:
@@ -29,8 +27,7 @@ Important: you must only unlock the following account: lhcbr   lhcb_diracbookkee
 
 You have two ways to login:
 
-
- 1. using sqldeveloper
+1. using sqldeveloper
 
     ConnectionName: give a name
 
@@ -59,7 +56,6 @@ You have two ways to login:
 
     sqlplus LHCB_DIRACBOOKKEEPING/password@LHCB_DIRACBOOKKEEPING
 
-
 Compile oracle stored procedure
 ===============================
 
@@ -68,6 +64,7 @@ In order to compile the stored procedure you need the sql file: https://gitlab.c
 You can find it in the tar.gz file in the release in case you want to update the prodction db.
 
 NOTE: I recommend to use the stored procedure, which is in the tar.gz.
+
 
     1. Login the database using sqlplus
 
@@ -82,7 +79,6 @@ NOTE: I recommend to use the stored procedure, which is in the tar.gz.
 
 Discover slow queries in the db
 ===============================
-
 Note: If you are not familiar with Oracle better to send a mail to phydb.support@cern.ch mailing list. You can write we have problem with the database the queries are very slow. IT/DB expert will find the slow queries and will probaly tell what is the problem and try to solve.
 
 https://cern.ch/session-manager is a portal provided by IT/DB where you can logon and find the running query. You can find the query which is running very long. You can get the execution plan and also can take the query and run in sqlplus. So you can compare the execution plan which is in the web and in sqlplus.
@@ -117,12 +113,11 @@ How to identify problematic queries:
 
         5. execute the qurey
 
- After when the query will finish then you will have the execution plan and you will have the real execution time as well. I propose to look the following
- parameters::
+After when the query will finish then you will have the execution plan and you will have the real execution time as well. I propose to look the following
+parameters::
 
    Cost (%CPU) , consistent gets, physical reads
-
-
+   
 For example::
 
 
@@ -168,16 +163,13 @@ For example::
        - the consistent gets is very high
        - physical reads are very high
 
-
-
 Note:
 
     - You may have query which needs to read lot of data. In this case the consistent gets and physical reads are very high numbers. In that example if the consistent gets and physical reads are very high for example more than 10k we have problem. This is because the query only returned 131 rows.
     - TABLE ACCESS FULL is not good. You have to make sure that the query uses an index. This is not always true.
     - parallel execution you have to make sure if the query is running parallel, the processes does not send to much data between each other. If you run a query parallel and the consistent gets is very high then you have a problem. Contact to oracle IT/DB if you do not know what to do...
     - CARTESIAN join: If you see that word in the execution plan, the query is wrong.
-
-
+    
 =================================
 Steps in the Bookkeeping database
 =================================
@@ -209,13 +201,16 @@ The steps table has 3 triggers::
    STEP_INSERT: This trigger is used to replace NULL, None to an empty string.
    steps_before_insert: It checks that the processing pass contains a '/'.
    step_update: The steps which are already used can not be modified.
-
+   
 Modifying steps
 ===============
 
 We may want to modify an already used steps. A step can be modified if the trigger is disabled. The following commands has to be performed in order to modify a step:
+
+.. code-block:: sql
+
    alter trigger step_update disable;
-   update steps set stepname='Reco16Smog for 2015 pA', processingpass='Reco16Smog' where stepid=129609; an alternative is to used the StepManager page
+   update steps set stepname='Reco16Smog for 2015 pA', processingpass='Reco16Smog' where stepid=129609; --an alternative is to used the StepManager page
    alter trigger step_update enable;
 
 ==================================
@@ -227,28 +222,33 @@ The processing pass is a collection of steps. The processing pass is stored in t
    ParentID
    Name
 
-The following example illustrates how to create a step::
+The following example illustrates how to create a step:
 
-   select max(id)+1 from processing;
-   select * from processing where name='Real Data';
-   insert into processing(id,parentid, name)values(1915,12,'Reco16Smog');
+.. code-block:: sql
+
+    select max(id)+1 from processing;
+    select * from processing where name='Real Data';
+    insert into processing(id,parentid, name)values(1915,12,'Reco16Smog');
 
 In this example we have created the following processing pass: /Real Data/Reco16Smog
 
-The following query can be used to check the step::
+The following query can be used to check the step:
 
-   SELECT * FROM (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID
+.. code-block:: sql
+    
+    SELECT * FROM (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID
          FROM processing v   START WITH id in (select distinct id from processing where name='Real Data')
-   CONNECT BY NOCYCLE PRIOR  id=parentid) v   where v.path='/Real Data/Reco16Smog';
+    CONNECT BY NOCYCLE PRIOR  id=parentid) v   where v.path='/Real Data/Reco16Smog';
 
-If we know the processing id, we can use the following query to found out the processing pass::
+If we know the processing id, we can use the following query to found out the processing pass:
 
-   SELECT v.id,v.path FROM (SELECT distinct  LEVEL-1 Pathlen, SYS_CONNECT_BY_PATH(name, '/') Path, id
+.. code-block:: sql
+    
+    SELECT v.id,v.path FROM (SELECT distinct  LEVEL-1 Pathlen, SYS_CONNECT_BY_PATH(name, '/') Path, id
       FROM processing
       WHERE LEVEL > 0 and id=1915
       CONNECT BY PRIOR id=parentid order by Pathlen desc) v where rownum<=1;
       
-  
 ================================
 Bookkeeping down time
 ================================
@@ -271,21 +271,28 @@ The following services/agent needs to be stopped before the deep down time (Syst
 
 Just before the intervention stop all Bookkeeping services.
 
+
 ===============================================
 Automatic updating of the productionoutputfiles
-================================================
+===============================================
+Create an oracle periodic job:
 
-BEGIN
-DBMS_SCHEDULER.CREATE_JOB (
-   job_name             => 'produpdatejob',
-   job_type             => 'PLSQL_BLOCK',
-   job_action           => 'BEGIN BKUTILITIES.updateProdOutputFiles(); END;',
-   repeat_interval      => 'FREQ=MINUTELY; interval=10', 
-   start_date           => systimestamp,
-   enabled              =>  TRUE
-   );
-END;
-/
+.. code-block:: sql
+
+  BEGIN
+    DBMS_SCHEDULER.CREATE_JOB (
+       job_name             => 'produpdatejob',
+       job_type             => 'PLSQL_BLOCK',
+       job_action           => 'BEGIN BKUTILITIES.updateProdOutputFiles(); END;',
+       repeat_interval      => 'FREQ=MINUTELY; interval=10', 
+       start_date           => systimestamp,
+       enabled              =>  TRUE
+       );
+    END;
+    /
 
 For monitoring:
-select JOB_NAME, STATE, LAST_START_DATE, LAST_RUN_DURATION, NEXT_RUN_DATE, RUN_COUNT, FAILURE_COUNT from USER_SCHEDULER_JOBS;
+
+.. code-block:: sql
+
+    select JOB_NAME, STATE, LAST_START_DATE, LAST_RUN_DURATION, NEXT_RUN_DATE, RUN_COUNT, FAILURE_COUNT from USER_SCHEDULER_JOBS;
