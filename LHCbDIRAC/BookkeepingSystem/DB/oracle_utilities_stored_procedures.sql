@@ -148,13 +148,19 @@ BEGIN
 	COMMIT;
 END;
 PROCEDURE updateProdOutputFiles IS
+exits number;
 BEGIN 
-	FOR prod IN(SELECT j.production,f.eventtypeid, f.filetypeid, f.gotreplica, f.visibilityflag 
+	FOR prod IN(SELECT j.production,J.STEPID, f.eventtypeid, f.filetypeid, f.gotreplica, f.visibilityflag 
 	FROM jobs j, files f WHERE 
 		f.inserttimestamp >= SYSTIMESTAMP - 1 AND 
 		j.jobid = f.jobid AND 
-		f.filetypeid NOT IN(9,17) GROUP BY j.production, f.eventtypeid, f.filetypeid, f.gotreplica, f.visibilityflag Order by f.gotreplica,f.visibilityflag asc) LOOP
-		UPDATE productionoutputfiles SET visible=prod.visibilityflag, gotreplica=prod.gotreplica WHERE production=prod.production AND eventtypeid=prod.eventtypeid AND filetypeid=prod.filetypeid;
+		f.filetypeid NOT IN(9,17) GROUP BY j.production, J.STEPID, f.eventtypeid, f.filetypeid, f.gotreplica, f.visibilityflag Order by f.gotreplica,f.visibilityflag asc) LOOP
+		SELECT count(*) INTO exits FROM  productionoutputfiles WHERE production=prod.production AND eventtypeid=prod.eventtypeid AND filetypeid=prod.filetypeid AND stepid=prod.stepid;
+		IF exits>0 then
+			UPDATE productionoutputfiles SET visible=prod.visibilityflag, gotreplica=prod.gotreplica WHERE production=prod.production AND eventtypeid=prod.eventtypeid AND filetypeid=prod.filetypeid AND stepid=prod.stepid;
+		ELSE
+			INSERT INTO productionoutputfiles(production, stepid, filetypeid, visible, eventtypeid,gotreplica)VALUES(prod.production,prod.stepid, prod.filetypeid, prod.visibilityflag,prod.eventtypeid, prod.gotreplica);
+		END IF;
 	END LOOP;
 	COMMIT;
 END;
