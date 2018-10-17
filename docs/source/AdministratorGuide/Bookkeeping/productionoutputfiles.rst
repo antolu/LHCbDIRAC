@@ -402,3 +402,55 @@ We run some consistent checks in order to make sure the productionoutputfiles ta
 	/
 
 1035 production found.
+
+The following script is used to fix the productions which are wrong in the productionoutputfiles tabe.
+
+.. code-block:: sql
+
+	declare 
+		counter number;
+		nb number;
+		begin
+		counter:=0;
+		for p in (select production,EVENTTYPEID,FILETYPEID, programname, programversion, simid, daqperiodid from prodview) 
+	    LOOP
+	   if p.simid>0 then
+	    select count(*) into nb from productionoutputfiles prod, productionscontainer ct, steps s where ct.production=prod.production and 
+	     prod.production=p.production and prod.filetypeid=p.filetypeid and prod.eventtypeid=p.eventtypeid and prod.gotreplica='Yes' and prod.Visible='Y' and
+	     ct.simid=p.simid and s.stepid=prod.stepid;
+	    else
+	     select count(*) into nb from productionoutputfiles prod, productionscontainer ct, steps s where ct.production=prod.production and 
+	     prod.production=p.production and prod.filetypeid=p.filetypeid and prod.eventtypeid=p.eventtypeid and prod.gotreplica='Yes' and prod.Visible='Y' and
+	     ct.daqperiodid=p.daqperiodid and s.stepid=prod.stepid;
+	   end if;
+	   if nb=0 then
+	    for dat in (select j.production, J.STEPID, f.eventtypeid, f.filetypeid, f.gotreplica, f.visibilityflag from 
+	        jobs j, files f where j.jobid=f.jobid and j.production=p.production and f.filetypeid not in (9,17) and 
+	        f.eventtypeid is not null GROUP BY j.production, j.stepid, f.eventtypeid, f.filetypeid, f.gotreplica, f.visibilityflag Order by f.gotreplica,f.visibilityflag asc)
+	    LOOP
+	     select count(*) into nb from productionoutputfiles where production=dat.production and 
+	        stepid=dat.stepid and filetypeid=dat.filetypeid and visible=dat.visibilityflag and 
+	        eventtypeid=dat.eventtypeid and gotreplica=dat.gotreplica;
+	     if nb=0 then
+	        DBMS_OUTPUT.put_line (nb||' '||p.production||'  '||p.EVENTTYPEID||' '||p.FILETYPEID);
+	        select count(*) into nb from productionoutputfiles where production=dat.production and 
+	        stepid=dat.stepid and filetypeid=dat.filetypeid and visible=dat.visibilityflag and 
+	        eventtypeid=dat.eventtypeid;
+	        if nb=0 then
+	            INSERT INTO productionoutputfiles(production, stepid, filetypeid, visible, eventtypeid,gotreplica)VALUES(dat.production,dat.stepid, dat.filetypeid, dat.visibilityflag,dat.eventtypeid, dat.gotreplica);
+	        else
+	            update productionoutputfiles set gotreplica=dat.gotreplica where production=dat.production and 
+	        stepid=dat.stepid and filetypeid=dat.filetypeid and visible=dat.visibilityflag and 
+	        eventtypeid=dat.eventtypeid;
+	        END IF;
+	        counter:=counter+1;
+	     end if;
+	    END LOOP;
+	   end if;
+	   if nb>1 then
+	    DBMS_OUTPUT.put_line ('DOUBLE:'||nb||' '||p.production||'  '||p.EVENTTYPEID||' '||p.FILETYPEID);
+	   END IF;
+	END LOOP;
+	DBMS_OUTPUT.put_line ('COUNTER:'||counter);
+	END;
+	/
