@@ -366,3 +366,39 @@ Fix the remained productions:
     -42854 N N N
 
 Two production are problematic. The eventtypeid is null for 24179. -42854 is not yet deleted...
+
+==================
+Consistency checks
+==================
+We run some consistent checks in order to make sure the productionoutputfiles table correctly filled.
+
+.. code-block:: sql
+
+	declare 
+	counter number;
+	nb number;
+	begin
+	counter:=0;
+	for p in (select production,EVENTTYPEID,FILETYPEID, programname, programversion, simid, daqperiodid from prodview)LOOP
+	   if p.simid>0 then
+	    select count(*) into nb from productionoutputfiles prod, productionscontainer ct, steps s where ct.production=prod.production and 
+	     prod.production=p.production and prod.filetypeid=p.filetypeid and prod.eventtypeid=p.eventtypeid and prod.gotreplica='Yes' and prod.Visible='Y' and
+	     ct.simid=p.simid and s.stepid=prod.stepid and s.applicationname=p.programname and s.applicationversion=p.programversion;
+	    else
+	     select count(*) into nb from productionoutputfiles prod, productionscontainer ct, steps s where ct.production=prod.production and 
+	     prod.production=p.production and prod.filetypeid=p.filetypeid and prod.eventtypeid=p.eventtypeid and prod.gotreplica='Yes' and prod.Visible='Y' and
+	     ct.daqperiodid=p.daqperiodid and s.stepid=prod.stepid and s.applicationname=p.programname and s.applicationversion=p.programversion;
+	   end if;
+	   if nb=0 then
+	    DBMS_OUTPUT.put_line (nb||' '||p.production||'  '||p.EVENTTYPEID||' '||p.FILETYPEID);
+	    counter:=counter+1;
+	   end if;
+	   if nb>1 then
+	    DBMS_OUTPUT.put_line ('DOUBLE:'||nb||' '||p.production||'  '||p.EVENTTYPEID||' '||p.FILETYPEID);
+	   END IF;
+	END LOOP;
+	DBMS_OUTPUT.put_line ('COUNTER:'||counter);
+	END;
+	/
+
+1035 production found.
