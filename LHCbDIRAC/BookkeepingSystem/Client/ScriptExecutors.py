@@ -1158,7 +1158,7 @@ def executeGetStats(dmScript):
         lumiString = 'Luminosity' if nDatasets == 1 else 'Avg luminosity'
         gLogger.notice('%s: %.3f %s' % (lumiString.ljust(tab), lumi, lumiUnit))
       elif name == 'SizePerLumi':
-        value *= nDatasets
+        # value *= nDatasets
         gLogger.notice("%s: %.1f GB" % (('Size  per %s' % '/pb').ljust(tab), value * 1000000. / 1000000000.))
     if lumi:
       filesPerLumi = nfiles / lumi

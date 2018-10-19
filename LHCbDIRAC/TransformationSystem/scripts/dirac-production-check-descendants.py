@@ -247,8 +247,10 @@ if __name__ == '__main__':
         gLogger.notice(
             "WARNING: %d of these files have a BAD data quality flag and thus may have been removed" %
             len(badLfns))
-      if fixIt:
+        lfns -= badLfns
+      if fixIt and lfns:
         fixIt = False
+        gLogger.notice("Processed LFNs without descendants (%d) -> ERROR!" % len(lfns))
         gLogger.notice("Resetting them 'Unused'")
         res = cc.transClient.setFileStatusForTransformation(prod, 'Unused', list(lfns), force=True)
         if not res['OK']:
@@ -258,7 +260,6 @@ if __name__ == '__main__':
         if not fp:
           fp = open(fileName, 'w')
         if badLfns:
-          lfns -= badLfns
           fp.write('\nProcButBAD '.join([''] + sorted(badLfns)))
           gLogger.notice("BAD files processed without descendants can be checked using:")
           gLogger.notice("     grep ProcButBAD %s" % fileName)
