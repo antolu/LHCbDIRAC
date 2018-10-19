@@ -145,3 +145,4 @@ DROP INDEX JOBS_DIRACJOBID_JOBID; --it was a composite index on DIRACJOBID and J
 --I have changed to have two separate index on DIRACJOBID and JobID.
 CREATE INDEX DIRACJOBID ON jobs(diracjobid) LOCAL;
 
+create index prodcont_config_id on productionscontainer(configurationid);

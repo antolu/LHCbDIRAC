@@ -1216,14 +1216,14 @@ class MCInsertTestCase(unittest.TestCase):
                         "G4settings": "specified in sim step",
                         "Visible": 'Y'}
     self.productionSteps = {"SimulationConditions": "Beam4000GeV-2012-MagUp-Nu2.5-Pythia8",
-                            "ConfigName": "MC",
-                            "ConfigVersion": "2012",
+                            "ConfigName": "test",
+                            "ConfigVersion": "Jenkins",
                             "Production": self.production,
                             "Steps": []}
 
     self.xmlStep1 = """<?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE Job SYSTEM "book.dtd">
-  <Job ConfigName="MC" ConfigVersion="2012" Date="%jDate%" Time="%jTime%">
+  <Job ConfigName="test" ConfigVersion="Jenkins" Date="%jDate%" Time="%jTime%">
   <TypedParameter Name="CPUTIME" Type="Info" Value="36196.1"/>
   <TypedParameter Name="ExecTime" Type="Info" Value="36571.0480781"/>
   <TypedParameter Name="WNMODEL" Type="Info" Value="Intel(R)Xeon(R)CPUE5-2650v2@2.60GHz"/>
@@ -1269,7 +1269,7 @@ class MCInsertTestCase(unittest.TestCase):
 
     self.xmlStep2 = """<?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE Job SYSTEM "book.dtd">
-<Job ConfigName="MC" ConfigVersion="2012" Date="%jDate%" Time="%jTime%">
+<Job ConfigName="test" ConfigVersion="Jenkins" Date="%jDate%" Time="%jTime%">
 <TypedParameter Name="CPUTIME" Type="Info" Value="234.52"/>
 <TypedParameter Name="ExecTime" Type="Info" Value="342.997269869"/>
 <TypedParameter Name="WNMODEL" Type="Info" Value="Intel(R)Xeon(R)CPUE5-2650v2@2.60GHz"/>
@@ -1313,7 +1313,7 @@ class MCInsertTestCase(unittest.TestCase):
 
     self.xmlStep3 = """<?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE Job SYSTEM "book.dtd">
-<Job ConfigName="MC" ConfigVersion="2012" Date="%jDate%" Time="%jTime%">
+<Job ConfigName="test" ConfigVersion="Jenkins" Date="%jDate%" Time="%jTime%">
 <TypedParameter Name="CPUTIME" Type="Info" Value="521.94"/>
 <TypedParameter Name="ExecTime" Type="Info" Value="576.953828096"/>
 <TypedParameter Name="WNMODEL" Type="Info" Value="Intel(R)Xeon(R)CPUE5-2650v2@2.60GHz"/>
@@ -1357,7 +1357,7 @@ class MCInsertTestCase(unittest.TestCase):
 
     self.xmlStep4 = """<?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE Job SYSTEM "book.dtd">
-<Job ConfigName="MC" ConfigVersion="2012" Date="%jDate%" Time="%jTime%">
+<Job ConfigName="test" ConfigVersion="Jenkins" Date="%jDate%" Time="%jTime%">
 <TypedParameter Name="CPUTIME" Type="Info" Value="677.39"/>
 <TypedParameter Name="ExecTime" Type="Info" Value="836.60585618"/>
 <TypedParameter Name="WNMODEL" Type="Info" Value="Intel(R)Xeon(R)CPUE5-2650v2@2.60GHz"/>
@@ -1401,7 +1401,7 @@ class MCInsertTestCase(unittest.TestCase):
 
     self.xmlStep5 = """<?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE Job SYSTEM "book.dtd">
-<Job ConfigName="MC" ConfigVersion="2012" Date="%jDate%" Time="%jTime%">
+<Job ConfigName="test" ConfigVersion="Jenkins" Date="%jDate%" Time="%jTime%">
 <TypedParameter Name="CPUTIME" Type="Info" Value="494.27"/>
 <TypedParameter Name="ExecTime" Type="Info" Value="617.996832132"/>
 <TypedParameter Name="WNMODEL" Type="Info" Value="Intel(R)Xeon(R)CPUE5-2650v2@2.60GHz"/>
@@ -1445,7 +1445,7 @@ class MCInsertTestCase(unittest.TestCase):
 
     self.xmlStep6 = """<?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE Job SYSTEM "book.dtd">
-<Job ConfigName="MC" ConfigVersion="2012" Date="%jDate%" Time="%jTime%">
+<Job ConfigName="test" ConfigVersion="Jenkins" Date="%jDate%" Time="%jTime%">
 <TypedParameter Name="CPUTIME" Type="Info" Value="518.02"/>
 <TypedParameter Name="ExecTime" Type="Info" Value="585.730292082"/>
 <TypedParameter Name="WNMODEL" Type="Info" Value="Intel(R)Xeon(R)CPUE5-2650v2@2.60GHz"/>
@@ -1489,7 +1489,7 @@ class MCInsertTestCase(unittest.TestCase):
 
     self.xmlStep7 = """<?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE Job SYSTEM "book.dtd">
-<Job ConfigName="MC" ConfigVersion="2012" Date="%jDate%" Time="%jTime%">
+<Job ConfigName="test" ConfigVersion="Jenkins" Date="%jDate%" Time="%jTime%">
 <TypedParameter Name="CPUTIME" Type="Info" Value="641.7"/>
 <TypedParameter Name="ExecTime" Type="Info" Value="709.81375289"/>
 <TypedParameter Name="WNMODEL" Type="Info" Value="Intel(R)Xeon(R)CPUE5-2650v2@2.60GHz"/>
@@ -1533,7 +1533,7 @@ class MCInsertTestCase(unittest.TestCase):
 
     self.xmlStep8 = """<?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE Job SYSTEM "book.dtd">
-<Job ConfigName="MC" ConfigVersion="2012" Date="%jDate%" Time="%jTime%">
+<Job ConfigName="test" ConfigVersion="Jenkins" Date="%jDate%" Time="%jTime%">
 <TypedParameter Name="CPUTIME" Type="Info" Value="472.93"/>
 <TypedParameter Name="ExecTime" Type="Info" Value="493.59373498"/>
 <TypedParameter Name="WNMODEL" Type="Info" Value="Intel(R)Xeon(R)CPUE5-2650v2@2.60GHz"/>
@@ -1942,8 +1942,8 @@ class MCProductionTest (MCXMLReportInsert):
     Test the production registration
     """
     prodSteps = {"SimulationConditions": "Beam4000GeV-2012-MagUp-Nu2.5-Pythia8",
-                 "ConfigName": "MC",
-                 "ConfigVersion": "2012",
+                 "ConfigName": "test",
+                 "ConfigVersion": "Jenkins",
                  "Production": 3,
                  "EventType": 11104131,
                  "Steps": []}
@@ -2041,14 +2041,14 @@ class MCProductionTest (MCXMLReportInsert):
           'WNCache': '2593.748',
           'WNModel': 'Intel(R)Xeon(R)CPUE5-2650v2@2.60GHz',
           'NumberOfEvents': 411,
-          'ConfigName': 'MC',
+          'ConfigName': 'test',
           'WNMemory': '700256.0',
           'RunNumber': None,
           'FirstEventNumber': 1,
           'CPUTime': 472.93,
           'FillNumber': None,
           'WorkerNode': 'b6bd1ec9ae.cern.ch',
-          'ConfigVersion': '2012',
+          'ConfigVersion': 'Jenkins',
           'JobStart': self.jobStart,
           'JobEnd': self.jobEnd,
           'Tck': 'None',
@@ -2068,14 +2068,14 @@ class MCProductionTest (MCXMLReportInsert):
           'WNCache': '2593.748',
           'WNModel': 'Intel(R)Xeon(R)CPUE5-2650v2@2.60GHz',
           'NumberOfEvents': 411,
-          'ConfigName': 'MC',
+          'ConfigName': 'test',
           'WNMemory': '2001584.0',
           'RunNumber': None,
           'FirstEventNumber': 1,
           'CPUTime': 641.7,
           'FillNumber': None,
           'WorkerNode': 'b6bd1ec9ae.cern.ch',
-          'ConfigVersion': '2012',
+          'ConfigVersion': 'Jenkins',
           'JobStart': self.jobStart,
           'JobEnd': self.jobEnd,
           'Tck': 'None',
@@ -2221,6 +2221,230 @@ class MCProductionTest (MCXMLReportInsert):
     self.assertDictEqual(retVal['Value'], {'DIGI': 'Y', 'XDIGI': 'Y'})
 
 
+class TestBookkeepingUserInterface(MCInsertTestCase):
+  """
+  For testing the User Interface using the inserted data.
+  This must work using an empty database
+  """
+
+  def test_addFiles(self):
+    lfns = ['/lhcb/MC/2012/SIM/00056438/0000/00056438_00001025_test_1.sim',
+            '/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_2.digi']
+    retVal = self.bk.addFiles(lfns)
+    self.assertTrue(retVal['Value']['Successful'])
+    self.assertEqual(retVal['Value']['Failed'], [])
+    self.assertEqual(retVal['Value']['Successful'], lfns)
+
+  def test_getFileTypes(self):
+    bkQuery = {'ConfigName': 'test', 'ConfigVersion': 'Jenkins', 'Production': 2, 'Visible': 'N'}
+    retVal = self.bk.getFileTypes(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 2)
+    outputFileTypes = ['SIM', 'DIGI']
+    for rec in retVal['Value']['Records']:
+      self.assertTrue(rec[0] in outputFileTypes)
+
+    bkQuery['EventType'] = 11104131
+    retVal = self.bk.getFileTypes(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 2)
+    outputFileTypes = ['SIM', 'DIGI']
+    for rec in retVal['Value']['Records']:
+      self.assertTrue(rec[0] in outputFileTypes)
+
+    bkQuery['ConditionDescription'] = 'Beam4000GeV-2012-MagUp-Nu2.5-Pythia8'
+    retVal = self.bk.getFileTypes(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 2)
+    outputFileTypes = ['SIM', 'DIGI']
+    for rec in retVal['Value']['Records']:
+      self.assertTrue(rec[0] in outputFileTypes)
+
+    bkQuery['ProcessingPass'] = '/Sim09b'
+    retVal = self.bk.getFileTypes(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 2)
+    outputFileTypes = ['SIM', 'DIGI']
+    for rec in retVal['Value']['Records']:
+      self.assertTrue(rec[0] in outputFileTypes)
+
+  def test_getFilesSummary(self):
+    bkQuery = {'ConfigName': 'test', 'ConfigVersion': 'Jenkins', 'Production': 2, 'Visible': 'N'}
+    retVal = self.bk.getFilesSummary(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    self.assertEqual(sorted(retVal['Value']['ParameterNames']), sorted(
+        ['NbofFiles', 'NumberOfEvents', 'FileSize', 'Luminosity', 'InstLuminosity']))
+    self.assertEqual(retVal['Value']['Records'][0], [2, 822, 1104707781, 0, 0])
+
+    bkQuery['ReplicaFlag'] = 'No'
+    retVal = self.bk.getFilesSummary(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    self.assertEqual(sorted(retVal['Value']['ParameterNames']), sorted(
+        ['NbofFiles', 'NumberOfEvents', 'FileSize', 'Luminosity', 'InstLuminosity']))
+    self.assertEqual(retVal['Value']['Records'][0], [6, 2466, 988452372, 0, 0])
+
+    bkQuery['FileType'] = 'DIGI'
+    retVal = self.bk.getFilesSummary(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    self.assertEqual(sorted(retVal['Value']['ParameterNames']), sorted(
+        ['NbofFiles', 'NumberOfEvents', 'FileSize', 'Luminosity', 'InstLuminosity']))
+    self.assertEqual(retVal['Value']['Records'][0], [6, 2466, 988452372, 0, 0])
+
+    bkQuery['FileType'] = 'SIM'
+    bkQuery['ReplicaFlag'] = 'Yes'
+    retVal = self.bk.getFilesSummary(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    self.assertEqual(sorted(retVal['Value']['ParameterNames']), sorted(
+        ['NbofFiles', 'NumberOfEvents', 'FileSize', 'Luminosity', 'InstLuminosity']))
+    self.assertEqual(retVal['Value']['Records'][0], [1, 411, 862802861, 0, 0])
+
+  def test_getFilesWithMetadata(self):
+    bkQuery = {'ConfigName': 'test', 'ConfigVersion': 'Jenkins', 'Production': 2, 'Visible': 'N'}
+    parameterNames = [u'FileName', u'EventStat', u'FileSize', u'CreationDate', u'JobStart', u'JobEnd', u'WorkerNode',
+                      u'FileType', u'RunNumber', u'FillNumber', u'FullStat', u'DataqualityFlag',
+                      u'EventInputStat', u'TotalLuminosity', u'Luminosity', u'InstLuminosity', u'TCK',
+                      u'GUID', u'ADLER32', u'EventType', u'MD5SUM',
+                      u'VisibilityFlag', u'JobId', u'GotReplica', u'InsertTimeStamp']
+    retVal = self.bk.getFilesWithMetadata(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 2)
+    self.assertEqual(sorted(retVal['Value']['ParameterNames']), sorted(parameterNames))
+    self.assertEqual(len(retVal['Value']['Records']), 2)
+
+    bkQuery['ReplicaFlag'] = 'No'
+    retVal = self.bk.getFilesWithMetadata(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 6)
+    self.assertEqual(sorted(retVal['Value']['ParameterNames']), sorted(parameterNames))
+    self.assertEqual(len(retVal['Value']['Records']), 6)
+
+    bkQuery['FileType'] = 'DIGI'
+    retVal = self.bk.getFilesWithMetadata(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 6)
+    self.assertEqual(sorted(retVal['Value']['ParameterNames']), sorted(parameterNames))
+    self.assertEqual(len(retVal['Value']['Records']), 6)
+
+    bkQuery['FileType'] = 'SIM'
+    bkQuery['ReplicaFlag'] = 'Yes'
+    retVal = self.bk.getFilesWithMetadata(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    self.assertEqual(sorted(retVal['Value']['ParameterNames']), sorted(parameterNames))
+    self.assertEqual(len(retVal['Value']['Records']), 1)
+
+    bkQuery['EventType'] = 11104131
+    retVal = self.bk.getFilesWithMetadata(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    self.assertEqual(sorted(retVal['Value']['ParameterNames']), sorted(parameterNames))
+    self.assertEqual(len(retVal['Value']['Records']), 1)
+
+    bkQuery['ProcessingPass'] = '/Sim09b'
+    retVal = self.bk.getFilesWithMetadata(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    self.assertEqual(sorted(retVal['Value']['ParameterNames']), sorted(parameterNames))
+    self.assertEqual(len(retVal['Value']['Records']), 1)
+
+    bkQuery['FileType'] = 'DIGI'
+    bkQuery['ReplicaFlag'] = 'Yes'
+    retVal = self.bk.getFilesWithMetadata(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    self.assertEqual(sorted(retVal['Value']['ParameterNames']), sorted(parameterNames))
+    self.assertEqual(len(retVal['Value']['Records']), 1)
+
+  def test_getFiles(self):
+    bkQuery = {'ConfigName': 'test', 'ConfigVersion': 'Jenkins', 'Production': 2, 'Visible': 'N'}
+
+    retVal = self.bk.getFiles(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(len(retVal['Value']), 2)
+
+    bkQuery['ReplicaFlag'] = 'No'
+    retVal = self.bk.getFiles(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(len(retVal['Value']), 6)
+
+    bkQuery['FileType'] = 'DIGI'
+    retVal = self.bk.getFiles(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(len(retVal['Value']), 6)
+
+    bkQuery['FileType'] = 'SIM'
+    bkQuery['ReplicaFlag'] = 'Yes'
+    retVal = self.bk.getFiles(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(len(retVal['Value']), 1)
+
+    bkQuery['ProcessingPass'] = '/Sim09b'
+    bkQuery['ReplicaFlag'] = 'Yes'
+    retVal = self.bk.getFiles(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(len(retVal['Value']), 1)
+
+    bkQuery['EventType'] = 11104131
+    bkQuery['ReplicaFlag'] = 'Yes'
+    retVal = self.bk.getFiles(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(len(retVal['Value']), 1)
+
+    bkQuery['FileType'] = 'DIGI'
+    bkQuery['ReplicaFlag'] = 'Yes'
+    retVal = self.bk.getFiles(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(len(retVal['Value']), 1)
+
 if __name__ == '__main__':
 
   mcTestSuite = unittest.defaultTestLoader.loadTestsFromTestCase(MCProductionRegistration)
@@ -2229,7 +2453,9 @@ if __name__ == '__main__':
   unittest.TextTestRunner(verbosity=2, failfast=True).run(mcTestSuite)
   suite = unittest.defaultTestLoader.loadTestsFromTestCase(RAWDataInsert)
   suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestMethods))
+  suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestBookkeepingUserInterface))
   suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestRemoveFiles))
   suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestDestoryDataset))
   testResult = unittest.TextTestRunner(verbosity=2, failfast=True).run(suite)
   sys.exit(not testResult.wasSuccessful())
+

@@ -733,7 +733,11 @@ class OracleBookkeepingDB(object):
 
     :return: the available configuration names
     """
-    command = ' select distinct Configname from prodview'
+
+    command = "select c.configname from configurations c, productionoutputfiles prod, productionscontainer cont\
+                where cont.configurationid=c.configurationid\
+                and prod.production=cont.production and prod.visible='Y' and prod.gotreplica='Yes'\
+                group by c.configname order by c.configname"
     return self.dbR_.query(command)
 
   ##############################################################################
@@ -755,8 +759,11 @@ class OracleBookkeepingDB(object):
     :return: the configuration version for a given configname"""
     result = S_ERROR()
     if configname != default:
-      command = " select distinct configversion from prodview where\
-       configname='%s'" % (configname)
+      command = "select c.configversion from configurations c, productionoutputfiles prod, productionscontainer cont\
+                  where cont.configurationid=c.configurationid\
+                  and c.configname='%s' and prod.production=cont.production\
+                  and prod.visible='Y' and prod.gotreplica='Yes' \
+                  group by c.configversion order by c.configversion" % (configname)
       result = self.dbR_.query(command)
     else:
       result = S_ERROR('You must provide a Configuration Name!')
@@ -771,15 +778,16 @@ class OracleBookkeepingDB(object):
     :param str configVersion: configuration version
     :param long evt: event type id
     :return: the conditions for a given configuration name, version and event type"""
-    condition = ''
+
+    condition = " and cont.production=prod.production and prod.visible='Y' and prod.gotreplica='Yes'"
     if configName != default:
-      condition += " and prodview.configname='%s' " % (configName)
+      condition += " and c.configurationid=cont.configurationid  and c.configname='%s' " % (configName)
 
     if configVersion != default:
-      condition += " and prodview.configversion='%s' " % (configVersion)
+      condition += " and c.configurationid=cont.configurationid and c.configversion='%s' " % (configVersion)
 
     if evt != default:
-      condition += " and prodview.eventtypeid=%s" % (str(evt))
+      condition += " and prod.eventtypeid=%s" % (str(evt))
 
     command = 'select distinct simulationConditions.SIMID,data_taking_conditions.DAQPERIODID,\
     simulationConditions.SIMDESCRIPTION, simulationConditions.BEAMCOND, \
@@ -793,9 +801,10 @@ class OracleBookkeepingDB(object):
     data_taking_conditions.RICH1,data_taking_conditions.RICH2, \
     data_taking_conditions.SPD_PRS, data_taking_conditions.ECAL, \
     data_taking_conditions.HCAL, data_taking_conditions.MUON, data_taking_conditions.L0, data_taking_conditions.HLT,\
-     data_taking_conditions.VeloPosition from simulationConditions,data_taking_conditions,prodview where \
-      prodview.simid=simulationConditions.simid(+) and \
-      prodview.DAQPERIODID=data_taking_conditions.DAQPERIODID(+)' + condition
+     data_taking_conditions.VeloPosition from simulationConditions,data_taking_conditions, productionoutputfiles prod,\
+     productionscontainer cont, configurations c where \
+      cont.simid=simulationConditions.simid(+) and \
+      cont.DAQPERIODID=data_taking_conditions.DAQPERIODID(+)' + condition
 
     return self.dbR_.query(command)
 
@@ -818,29 +827,30 @@ class OracleBookkeepingDB(object):
     precords = []
     pparameters = []
 
-    condition = ''
+    condition = " and cont.production=prod.production and prod.visible='Y' and prod.gotreplica='Yes'"
     if configName != default:
-      condition += " and prodview.configname='%s' " % (configName)
+      condition += " and c.configurationid=cont.configurationid  and c.configname='%s' " % (configName)
 
     if configVersion != default:
-      condition += " and prodview.configversion='%s' " % (configVersion)
+      condition += " and c.configurationid=cont.configurationid and c.configversion='%s' " % (configVersion)
+
+    if eventType != default:
+      condition += " and prod.eventtypeid=%s" % (str(eventType))
 
     if conddescription != default:
-      retVal = self.__getConditionString(conddescription)
+      retVal = self.__getConditionString(conddescription, 'cont')
       if not retVal['OK']:
         return retVal
       else:
         condition += retVal['Value']
 
     if production != default:
-      condition += ' and prodview.production=' + str(production)
+      condition += ' and prod.production=' + str(production)
+
     tables = ''
     if runnumber != default:
       tables += ' , prodrunview '
       condition += ' and prodrunview.production=prodview.production and prodrunview.runnumber=%s' % (str(runnumber))
-
-    if eventType != default:
-      condition += " and prodview.eventtypeid=%s" % (str(eventType))
 
     proc = path.split('/')[len(path.split('/')) - 1]
     if proc != '':
@@ -860,10 +870,10 @@ class OracleBookkeepingDB(object):
       if pro == '':
         return S_ERROR('Empty Directory')
       command = 'select distinct eventTypes.EventTypeId,\
-       eventTypes.Description from eventtypes,prodview,productionscontainer,processing %s where \
-        prodview.production=productionscontainer.production and \
-        eventTypes.EventTypeId=prodview.eventtypeid and \
-        productionscontainer.processingid=processing.id and \
+       eventTypes.Description from eventtypes, productionoutputfiles prod,\
+         productionscontainer cont, configurations c, processing %s where \
+        eventTypes.EventTypeId=prod.eventtypeid and \
+        cont.processingid=processing.id and \
         processing.id in (%s) %s' % (tables, pro, condition)
 
       retVal = self.dbR_.query(command)
@@ -876,16 +886,16 @@ class OracleBookkeepingDB(object):
 
       command = "SELECT distinct name \
       FROM processing   where parentid in (%s) \
-      START WITH id in (select distinct productionscontainer.processingid \
-      from productionscontainer,prodview %s where \
-      productionscontainer.production=prodview.production  %s )  CONNECT BY NOCYCLE PRIOR  parentid=id \
+      START WITH id in (select distinct cont.processingid \
+      from productionscontainer cont, productionoutputfiles prod, configurations c %s where \
+      cont.production=prod.production  %s )  CONNECT BY NOCYCLE PRIOR  parentid=id \
       order by name desc" % (pro, tables, condition)
     else:
       command = 'SELECT distinct name \
       FROM processing  where parentid is null START WITH id in \
-      (select distinct productionscontainer.processingid \
-      from productionscontainer, prodview %s where \
-      productionscontainer.production=prodview.production %s ) CONNECT BY NOCYCLE PRIOR  parentid=id \
+      (select distinct cont.processingid \
+      from productionscontainer cont, productionoutputfiles prod, configurations c %s where \
+      cont.production=prod.production %s ) CONNECT BY NOCYCLE PRIOR  parentid=id \
       order by name desc' % (tables, condition)
     retVal = self.dbR_.query(command)
     if retVal['OK']:
