@@ -6,6 +6,15 @@ use DIRAC v6r20p13
 * fix the code style
 * simplify the Bookkeeping client
 
+[v9r2p8]
+use DIRAC v6r20p16
+
+* correct code style
+* simplify the list checking
+* fix size per lumi
+* fix printout
+* register runs to the productionoutputfiles
+
 [v9r2p7]
 use DIRAC v6r20p14
 
