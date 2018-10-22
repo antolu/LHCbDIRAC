@@ -1,3 +1,53 @@
+[v9r3-pre5]
+use DIRAC v6r20p16
+
+* bookkeeping db schema
+* fix the script
+* add script to generate the synonyms
+* add database schema
+* Add information on IDR errors
+* correct code style
+* add more docs
+* format the documentation
+* butify the code
+* add automatic update documentation
+* small correction
+* add more documentation
+* docs for propagating the productionoutputfiles table
+* simplify the list checking
+* fix size per lumi
+* fix printout
+* register runs to the productionoutputfiles
+* code improvements
+* just comments
+* code improvements
+* Update README.rst
+* use isinstance correctly
+* fix import
+* using Clients instead of RPC
+* removed confusing/unused overloading
+* simplification
+* commenting out while discovering what's wrong
+* fixes in determining platform
+* autopep8
+* remove wrong import
+* add docstring
+* autopep8
+* add doc string
+* accept integers as well
+* take into account the end run
+* possible to call the method using None
+* accept integers as well
+* using DMSHelpers for getting the storage elements list
+* autopep8
+* just some docstrings
+* deleted empty folders
+* restored test of voboxes
+* application log was not correctly set for user jobs
+* just 1 input file, for simplicity
+* no tabs
+* remove Platforms
+
 [v9r3-pre4]
 use DIRAC v6r20p13
 
