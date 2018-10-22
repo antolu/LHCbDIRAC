@@ -7,3 +7,4 @@ Bookkeeping
 
    administrate_oracle.rst
    productionoutputfiles.rst
+   databaseschema.rst
