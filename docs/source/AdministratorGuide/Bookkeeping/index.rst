@@ -6,3 +6,4 @@ Bookkeeping
    :maxdepth: 2
 
    administrate_oracle.rst
+   productionoutputfiles.rst
