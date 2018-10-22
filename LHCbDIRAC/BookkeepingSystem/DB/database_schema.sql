@@ -461,4 +461,159 @@ CREATE TABLE STEPSCONTAINER
 
   CREATE INDEX STEPS_ID ON STEPSCONTAINER (STEPID);
 
+create or replace type stepobj is object (
+stepid number,
+STEPNAME	 VARCHAR2(256),
+APPLICATIONNAME	 VARCHAR2(128),
+APPLICATIONVERSION	 VARCHAR2(128),
+OPTIONFILES	 VARCHAR2(1000),
+DDDB	 VARCHAR2(256),
+CONDDB VARCHAR2(256),
+EXTRAPACKAGES	 VARCHAR2(256),
+VISIBLE	 CHAR(1),
+PROCESSINGPASS VARCHAR2(256),
+USABLE VARCHAR2(10),
+DQTag VARCHAR2(256),
+OptionsFormat VARCHAR2(30),
+ISMULTICORE CHAR(1),
+SYSTEMCONFIG VARCHAR2(256),
+mcTCK VARCHAR2(256),
+rstepid number,
+rSTEPNAME	 VARCHAR2(256),
+rAPPLICATIONNAME	 VARCHAR2(128),
+rAPPLICATIONVERSION	 VARCHAR2(128),
+rOPTIONFILES	 VARCHAR2(1000),
+rDDDB	 VARCHAR2(256),
+rCONDDB VARCHAR2(256),
+rEXTRAPACKAGES	 VARCHAR2(256),
+rVISIBLE	 CHAR(1),
+rPROCESSINGPASS VARCHAR2(256),
+rUSABLE VARCHAR2(10),
+rDQTag VARCHAR2(256),
+rOptionsFormat VARCHAR2(30),
+riSMULTICORE CHAR(1),
+rSYSTEMCONFIG VARCHAR2(256),
+RmcTCK VARCHAR2(256)
+);
+
+create or replace type step_table is table of stepobj;
+
+create or replace type runnb_quality_eventtype is object (runnumber number, dataqualityflag varchar2(256), eventtypeid number);
+
+create or replace type runnb_proc is object (runnumber number, processingpass varchar2(256));
+
+create or replace type run_proc_table is table of runnb_proc;
+
+create or replace type metadata0bj is object (
+  FILENAME varchar2(256),
+  ADLER32 varchar2(256),
+  CREATIONDATE timestamp(6),
+  EVENTSTAT NUMBER,
+  EVENTTYPEID NUMBER,
+  Name varchar2(256),
+  GOTREPLICA varchar2(3),
+  GUID varchar2(256),
+  MD5SUM varchar2(256),
+  FILESIZE number,
+  FullStat number,
+  DATAQUALITYFLAG varchar2(256),
+  jobid number(38,0),
+  runnumber number,
+  inserttimestamp timestamp(6),
+  luminosity number,
+  instluminosity number ,
+  VISIBILITYFLAG CHAR(1),
+  fileid number,
+  filetypeid number
+ );
+ 
+ create or replace type metadata_table is table of metadata0bj;
+ 
+ create or replace type lists IS TABLE OF VARCHAR2(256);
+ 
+ create or replace type jobMetadata is object(lfn varchar2(256),
+  DiracJobId                  NUMBER,
+  DiracVersion                VARCHAR2(256),
+  EventInputStat              NUMBER,
+  ExecTime                    FLOAT,
+  FirstEventNumber            NUMBER,
+  Location                    VARCHAR2(256),
+  Name                        VARCHAR2(256),
+  NumberOfEvents              NUMBER,
+  StatisticsRequested         NUMBER,
+  WNCPUPower                  VARCHAR2(256),
+  CPUTime                     FLOAT,
+  WNCache                     VARCHAR2(256),
+  WNMemory                    VARCHAR2(256),
+  WNModel                     VARCHAR2(256),
+  WORKERNODE                  varchar2(256),
+  WNCPUHS06                   FLOAT,
+  jobid                       number,
+  totalLuminosity             NUMBER,
+  production                  NUMBER,
+  ProgramName                 VARCHAR2(256),
+  ProgramVersion              VARCHAR2(256),
+  WNMJFHS06                   FLOAT);
+  
+create or replace type ftype as object(
+name varchar2(256), 
+visible char(1)
+);
+
+create or replace TYPE filetypesARRAY is VARRAY(30) OF ftype;
+
+create or replace type
+directoryMetadata_new is object
+(lfn varchar2(256),
+production number,
+configname varchar2(256),
+configversion  varchar2(256),
+eventtypeid number,
+filetype varchar2(256),
+processingpass varchar2(256),
+ConditionDescription varchar2(256),
+VISIBILITYFLAG CHAR(1));
+
+create or replace type
+directoryMetadata is object
+(production number,
+configname varchar2(256),
+configversion  varchar2(256),
+eventtypeid number,
+filetype varchar2(256),
+processingpass varchar2(256),
+ConditionDescription varchar2(256),
+VISIBILITYFLAG CHAR(1));
+
+create or replace type bulk_collect_run_quality_evt is table of runnb_quality_eventtype;
+
+create or replace type bulk_collect_jobMetadata is table of jobMetadata;
+
+create or replace type bulk_collect_directoryMetadata is table of directoryMetadata;
+
+create or replace type bulk_collect_directoryMet_new is table of directoryMetadata_new;
+
+CREATE SEQUENCE  APPLICATIONS_INDEX_SEQ MINVALUE 1 MAXVALUE 999999999999999999999999999 INCREMENT BY 1 START WITH 1;
+
+CREATE SEQUENCE  CONFIGURATIONID_SEQ MINVALUE 1 MAXVALUE 999999999999999999999999999 INCREMENT BY 1 START WITH 1;
+
+CREATE SEQUENCE  FILEID_SEQ  MINVALUE 1 MAXVALUE 999999999999999999999999999 INCREMENT BY 1 START WITH 1;
+
+CREATE SEQUENCE  GROUPID_SEQ  MINVALUE 1 MAXVALUE 999999999999999999999999999 INCREMENT BY 1 START WITH 1;
+ 
+CREATE SEQUENCE  JOBID_SEQ  MINVALUE 1 MAXVALUE 999999999999999999999999999 INCREMENT BY 1 START WITH 1;
+
+CREATE SEQUENCE  PASS_INDEX_SEQ  MINVALUE 1 MAXVALUE 999999999999999999999999999 INCREMENT BY 1 START WITH 1;
+
+CREATE SEQUENCE  PRODUCTION_SEQ  MINVALUE -99999999999999999999999999 MAXVALUE -1 INCREMENT BY -1 START WITH -1;
+
+CREATE SEQUENCE  SIMULATIONCONDID_SEQ  MINVALUE 1 MAXVALUE 999999999999999999999999999 INCREMENT BY 1 START WITH 1;
+
+CREATE SEQUENCE  TAGS_INDEX_SEQ  MINVALUE 1 MAXVALUE 999999999999999999999999999 INCREMENT BY 1 START WITH 1;
+
+create materialized view prodrunview 
+PARALLEL 4
+build immediate
+refresh next sysdate+3/24 
+select distinct jobs.Production, jobs.runnumber from jobs, files where files.jobid=jobs.jobid and files.gotreplica='Yes' and files.visibilityflag='Y' and jobs.runnumber is not NULL;
 
