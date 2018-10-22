@@ -806,7 +806,7 @@ class TransformationDebug(object):
 
           fts3FileStatusCount = defaultdict(int)
           for fts3Op in fts3Ops:
-            for fts3File in fts3Op.ftsFiles:
+            for fts3File in fts3Op['ftsFiles']:
               fts3FileStatusCount[fts3File.status] += 1
 
           prStr = []
@@ -817,11 +817,11 @@ class TransformationDebug(object):
 
           fts3Jobs = []
           for fts3Op in fts3Ops:
-            fts3Jobs.extend(fts3Op.ftsJobs)
+            fts3Jobs.extend(fts3Op['ftsJobs'])
 
           for job in fts3Jobs:
             gLogger.notice('\tFTS jobs associated:', '%s@%s (%s completed at %s %%)' %
-                           (job.ftsGUID, job.ftsServer, job.status, job.completeness))
+                           (job['ftsGUID'], job['ftsServer'], job['status'], job['completeness']))
           if not fts3Jobs:
             gLogger.notice('\tNo FTS jobs found for that request')
         except ImportError as e:
@@ -1172,6 +1172,7 @@ class TransformationDebug(object):
     if not self.monitoring:
       self.monitoring = JobMonitoringClient()
     failedLfns = {}
+    idrLfns = {}
     jobLogURL = {}
     jobSites = {}
     jobCPU = {}
@@ -1220,7 +1221,15 @@ class TransformationDebug(object):
                                         'non-zero exit status' in applicationStatus.lower() or
                                         'problem executing application' in applicationStatus.lower()):
           exitedJobs.update(dict.fromkeys(jobs, applicationStatus))
-        if majorStatus == 'Failed' and minorStatus == 'Job stalled: pilot not running':
+        elif majorStatus == 'Failed' and applicationStatus == 'Failed Input Data Resolution ':
+          # Try and find out which file was faulty
+          for job1 in jobs:
+            res = self.monitoring.getJobParameter(job1, 'DownloadInputData')
+            if res['OK'] and 'Failed to download' in res['Value']['DownloadInputData']:
+              lfns = res['Value']['DownloadInputData'].split('Failed to download')[1].split(':')[1].split()
+              for lfn in lfns:
+                idrLfns.setdefault(lfn, []).append(job1)
+        elif majorStatus == 'Failed' and minorStatus == 'Job stalled: pilot not running':
           lastLine = ''
           # Now get last lines
           for job1 in sorted(jobs) + [0]:
@@ -1266,8 +1275,8 @@ class TransformationDebug(object):
             for lfns in badLfns.itervalues():
               lfnsFound &= set(lfns)
             if lfnsFound:
-              for lfn, job, reason in [(lfn, job, badLfns[job][lfn])
-                                       for job, lfns in badLfns.iteritems() for lfn in set(lfns) & lfnsFound]:
+              for lfn, job, reason in [(l, job, badLfns[job][l])
+                                       for job, lfns in badLfns.iteritems() for l in set(lfns) & lfnsFound]:
                 if job in exitedJobs:
                   exitStatus = exitedJobs[job].split('status ')
                   if len(exitStatus) == 2:
@@ -1275,6 +1284,19 @@ class TransformationDebug(object):
                 failedLfns.setdefault((lfn, reason), []).append(job)
             else:
               gLogger.notice("No common error was found in all XML summary files")
+    if idrLfns:
+      gLogger.notice("\nSummary of failures due to Input Data Resolution")
+      for(lfn, jobs) in idrLfns.iteritems():
+        jobs = sorted(set(jobs))
+        js = set(jobSites.get(job, 'Unknown') for job in jobs)
+        if len(js) == 1:
+          gLogger.notice("\nERROR ==> %s could not be downloaded by jobs: %s (%s)" %
+                         (lfn, ', '.join(str(job) for job in jobs), list(js)[0]))
+        else:
+          gLogger.notice("\nERROR ==> %s could not be downloaded by jobs: %s" %
+                         (lfn, ', '.join("%d (%s)" % (job, jobSites.get(job, 'Unknown'))
+                                         for job in jobs)))
+
     if failedLfns:
       gLogger.notice("\nSummary of failures due to: Application Exited with non-zero status")
       lfnDict = {}
