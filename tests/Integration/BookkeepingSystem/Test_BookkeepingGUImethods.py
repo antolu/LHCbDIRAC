@@ -308,8 +308,8 @@ class TestMethods(unittest.TestCase):
                                            'EventType': '90000000', 'FileType': 'BHADRON.DST',
                                            'ProcessingPass': '/Real Data/Reco10/Stripping13b',
                                            'Visible': 'Y',
-                                           'fullpath': '/LHCb/Collision11/Beam3500GeV-VeloClosed-MagDown/Real Data/Reco10/\
-                                      Stripping13b/90000000/BHADRON.DST',
+                                           'fullpath': '/LHCb/Collision11/Beam3500GeV-VeloClosed-MagDown/\
+                                           Real Data/Reco10/Stripping13b/90000000/BHADRON.DST',
                                            'ConfigVersion': 'Collision11', 'Quality': ['OK']})
     self.assertTrue(retVal['OK'])
     self.assertTrue(retVal['Value']['ParameterNames'])
@@ -324,8 +324,8 @@ class TestMethods(unittest.TestCase):
                                            'EventType': '90000000', 'FileType': 'EW.DST',
                                            'ProcessingPass': '/Real Data/Reco10/Stripping13b',
                                            'Visible': 'Y',
-                                           'fullpath': '/LHCb/Collision11/Beam3500GeV-VeloClosed-MagDown/Real Data/Reco10/\
-                                      Stripping13b/90000000/EW.DST',
+                                           'fullpath': '/LHCb/Collision11/Beam3500GeV-VeloClosed-MagDown/\
+                                           Real Data/Reco10/Stripping13b/90000000/EW.DST',
                                            'ConfigVersion': 'Collision11', 'Quality': ['OK']})
     self.assertTrue(retVal['OK'])
     self.assertTrue(retVal['Value']['ParameterNames'])
