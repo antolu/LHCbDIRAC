@@ -539,7 +539,7 @@ def wrongJob():
 # #     gaudirunJob.setCPUTime( 172800 )
 # #     gaudirunJob.setTag( ['MultiProcessor'] )
 # #
-# #     result = self.dirac.submit( gaudirunJob )
+# #     result = self.dirac.submitJob(gaudirunJob)
 # #     gLogger.info( 'Submission Result: ', result )
 # #
 # #     jobID = int( result['Value'] )

@@ -25,5 +25,5 @@ j.setBannedSites( tier1s )
 # print j.workflow
 
 # submit the job to dirac
-result = dirac.submit( j )
+result = dirac.submitJob(j)
 print result

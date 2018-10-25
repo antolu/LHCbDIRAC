@@ -13,10 +13,10 @@ j.application.options = ['ntuple_options_grid.py']
 j.application.readInputData('inputdata.py')
 j.backend = Dirac()
 j.backend.settings['Destination'] = 'LCG.CERN.cern'
-j.submit()
+j.submitJob()
 
 jBK = Job(name='GangaJob-DVv41r2-wInputBKK')
 jBK.application = myApp
 jBK.application.options = ['ntuple_options_grid_withBKK.py']
 jBK.backend = Dirac()
-jBK.submit()
+jBK.submitJob()

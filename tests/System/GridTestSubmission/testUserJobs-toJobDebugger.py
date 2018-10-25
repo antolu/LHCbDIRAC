@@ -50,7 +50,7 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
 
     helloJ.setCPUTime( 17800 )
     helloJ.setDestination( 'DIRAC.JobDebugger.cern' )
-    result = self.dirac.submit( helloJ )
+    result = self.dirac.submitJob(helloJ)
     gLogger.info( "Hello world job: ", result )
     jobID = int( result['Value'] )
     jobsSubmittedList.append( jobID )
@@ -70,7 +70,7 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
 
     helloJ.setCPUTime( 17800 )
     helloJ.setPlatform( 'x86_64-slc6' )
-    result = self.dirac.submit( helloJ )
+    result = self.dirac.submitJob(helloJ)
     gLogger.info( "Hello world job: ", result )
 
     jobID = int( result['Value'] )
@@ -97,7 +97,7 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
 
     helloJ.setOutputData( ['testFileUpload.txt'] )
 
-    result = self.dirac.submit( helloJ )
+    result = self.dirac.submitJob(helloJ)
     gLogger.info( "Hello world with output: ", result )
 
     jobID = int( result['Value'] )

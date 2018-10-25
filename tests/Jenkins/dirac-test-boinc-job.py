@@ -31,7 +31,7 @@ helloJMP.setType('Test')
 helloJMP.setCPUTime(17800)
 helloJMP.setDestination('BOINCCert.World.org')
 helloJMP.setOutputData(["%s_toto.txt" % now])
-result = dirac.submit(helloJMP)
+result = dirac.submitJob(helloJMP)
 gLogger.info("Result: ", result)
 if not result['OK']:
   gLogger.error("Problem submitting job", result['Message'])

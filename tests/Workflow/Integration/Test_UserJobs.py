@@ -248,7 +248,7 @@ class UserJobsFailingLocalSuccess(FailingUserJobTestCase):
     os.environ['JOBID'] = '12345'
 
     gaudirunJob = createJob()
-    result = DiracLHCb().submit(gaudirunJob, mode='Local')
+    result = DiracLHCb().submitJob(gaudirunJob, mode='Local')
     self.assertFalse(result['OK'])
 
     del os.environ['JOBID']

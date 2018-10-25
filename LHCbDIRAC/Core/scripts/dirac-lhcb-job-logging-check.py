@@ -60,13 +60,13 @@ def getJobMetadata( localwmsStatus, localminorStatus, localappStatus, localsite,
 
 def getAttributes( localjobID ):
   """ get the attributes of the JOB """
-  result = dirac.attributes( localjobID, printOutput = False )
+  result = dirac.getJobAttributes(localjobID, printOutput = False)
   if result['OK']:
     return result['Value']['Owner']
 
 def getLogging( localjobID ):
   """ get the logging info of the JOB """
-  result = dirac.loggingInfo( localjobID, printOutput = False )
+  result = dirac.getJobLoggingInfo( localjobID, printOutput = False )
   if result['OK']:
     try:
       for status in result['Value']:
@@ -86,7 +86,7 @@ def getLogging( localjobID ):
 
 def getParameters( localjobID ):
   """ get the parameters of the JOB """
-  result = dirac.parameters( localjobID, printOutput = False )
+  result = dirac.getJobParameters(localjobID, printOutput = False)
   if result['OK']:
     try:
       localnode = result['Value']['HostName']

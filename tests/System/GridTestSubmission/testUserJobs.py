@@ -41,7 +41,7 @@ except AttributeError:
             'LCG.NIKHEF.nl', 'LCG.PIC.es', 'LCG.RAL.uk', 'LCG.RRCKI.ru', 'LCG.SARA.nl']
 cernSite = [s for s in tier1s if '.CERN.' in s][0]
 helloJ.setBannedSites( tier1s )
-result = dirac.submit( helloJ )
+result = dirac.submitJob(helloJ)
 gLogger.info( "Hello world job: ", result )
 
 ########################################################################################
@@ -57,7 +57,7 @@ helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 
 helloJ.setCPUTime( 17800 )
 helloJ.setDestination( cernSite )
-result = dirac.submit( helloJ )
+result = dirac.submitJob(helloJ)
 gLogger.info( "Hello world job: ", result )
 
 ########################################################################################
@@ -73,7 +73,7 @@ helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 
 helloJ.setCPUTime( 17800 )
 helloJ.setPlatform( 'x86_64-slc6' )
-result = dirac.submit( helloJ )
+result = dirac.submitJob(helloJ)
 gLogger.info( "Hello world job: ", result )
 
 ########################################################################################
@@ -89,7 +89,7 @@ helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 
 helloJ.setCPUTime( 17800 )
 helloJ.setPlatform( 'x86_64-slc5' )
-result = dirac.submit( helloJ )
+result = dirac.submitJob(helloJ)
 gLogger.info( "Hello world job: ", result )
 
 ########################################################################################
@@ -107,7 +107,7 @@ helloJ.setCPUTime( 17800 )
 
 helloJ.setOutputData( ['testFileUpload.txt'] )
 
-result = dirac.submit( helloJ )
+result = dirac.submitJob(helloJ)
 gLogger.info( "Hello world with output: ", result )
 
 ########################################################################################
@@ -125,7 +125,7 @@ helloJ.setCPUTime( 17800 )
 
 helloJ.setOutputData( ['testFileReplication.txt'], replicate = 'True' )
 
-result = dirac.submit( helloJ )
+result = dirac.submitJob(helloJ)
 gLogger.info( "Hello world with output and replication: ", result )
 
 ########################################################################################
@@ -155,7 +155,7 @@ gaudirunJob.setApplication( 'Gauss', 'v45r5', options, extraPackages = 'AppConfi
 gaudirunJob.setDIRACPlatform()
 gaudirunJob.setCPUTime( 172800 )
 
-result = dirac.submit( gaudirunJob )
+result = dirac.submitJob(gaudirunJob)
 gLogger.info( 'Submission Result: ', result )
 
 ########################################################################################
@@ -186,7 +186,7 @@ gaudirunJob.setDIRACPlatform()
 gaudirunJob.setCPUTime( 172800 )
 gaudirunJob.setTag( ['MultiProcessor'] )
 
-result = dirac.submit( gaudirunJob )
+result = dirac.submitJob(gaudirunJob )
 gLogger.info( 'Submission Result: ', result )
 
 ########################################################################################
@@ -216,7 +216,7 @@ gaudirunJob.setApplication( 'Boole', 'v26r3', options,
 gaudirunJob.setDIRACPlatform()
 gaudirunJob.setCPUTime( 172800 )
 
-result = dirac.submit( gaudirunJob )
+result = dirac.submitJob(gaudirunJob )
 gLogger.info( 'Submission Result: ', result )
 
 ########################################################################################
@@ -225,5 +225,5 @@ gLogger.info( "\n Submitting gaudiRun job (Gauss only) that will use a configura
 gLogger.info( "This will generate a job that should become Completed, use the failover, and only later it will be Done" )
 
 gaudirunJob = createJob()
-result = dirac.submit( gaudirunJob )
+result = dirac.submitJob(gaudirunJob )
 gLogger.info( 'Submission Result: ', result )
