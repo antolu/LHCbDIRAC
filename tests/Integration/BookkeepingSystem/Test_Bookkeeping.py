@@ -1635,7 +1635,8 @@ class MCProductionRegistration (MCInsertTestCase):
 
     self.assertTrue(retVal['OK'])
     self.assertTrue(retVal['Value'] > 0)
-    self.productionSteps['Steps'].append({'StepId': retVal['Value'], 'Visible': 'Y'})
+    self.productionSteps['Steps'].append(
+        {'StepId': retVal['Value'], 'Visible': 'Y', 'OutputFileTypes': [{'Visible': 'N', 'FileType': 'SIM'}]})
 
     retVal = self.bk.insertStep(
         {'Step': {'ApplicationName': 'Boole',
@@ -2235,7 +2236,7 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
     self.assertEqual(retVal['Value']['Failed'], [])
     self.assertEqual(retVal['Value']['Successful'], lfns)
 
-  def test_getFileTypes(self):
+  def aatest_getFileTypes(self):
     bkQuery = {'ConfigName': 'test', 'ConfigVersion': 'Jenkins', 'Production': 2, 'Visible': 'N'}
     retVal = self.bk.getFileTypes(bkQuery)
     self.assertTrue(retVal['OK'])
@@ -2280,7 +2281,7 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
     for rec in retVal['Value']['Records']:
       self.assertTrue(rec[0] in outputFileTypes)
 
-  def test_getFilesSummary(self):
+  def aatest_getFilesSummary(self):
     bkQuery = {'ConfigName': 'test', 'ConfigVersion': 'Jenkins', 'Production': 2, 'Visible': 'N'}
     retVal = self.bk.getFilesSummary(bkQuery)
     self.assertTrue(retVal['OK'])
@@ -2326,7 +2327,7 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
         ['NbofFiles', 'NumberOfEvents', 'FileSize', 'Luminosity', 'InstLuminosity']))
     self.assertEqual(retVal['Value']['Records'][0], [1, 411, 862802861, 0, 0])
 
-  def test_getFilesWithMetadata(self):
+  def aatest_getFilesWithMetadata(self):
     bkQuery = {'ConfigName': 'test', 'ConfigVersion': 'Jenkins', 'Production': 2, 'Visible': 'N'}
     parameterNames = [u'FileName', u'EventStat', u'FileSize', u'CreationDate', u'JobStart', u'JobEnd', u'WorkerNode',
                       u'FileType', u'RunNumber', u'FillNumber', u'FullStat', u'DataqualityFlag',
@@ -2404,7 +2405,7 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
     self.assertEqual(sorted(retVal['Value']['ParameterNames']), sorted(parameterNames))
     self.assertEqual(len(retVal['Value']['Records']), 1)
 
-  def test_getFiles(self):
+  def aatest_getFiles(self):
     bkQuery = {'ConfigName': 'test', 'ConfigVersion': 'Jenkins', 'Production': 2, 'Visible': 'N'}
 
     retVal = self.bk.getFiles(bkQuery)
@@ -2444,6 +2445,100 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
     retVal = self.bk.getFiles(bkQuery)
     self.assertTrue(retVal['OK'])
     self.assertEqual(len(retVal['Value']), 1)
+
+  def test_getProductions(self):
+    bkQuery = {'ConditionDescription': 'Beam4000GeV-2012-MagUp-Nu2.5-Pythia8',
+               'ConfigName': 'test',
+               'ConfigVersion': 'Jenkins',
+               'EventType': 11104131,
+               'Production': 2,
+               'Visible': 'N'}
+    retVal = self.bk.getProductions(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    self.assertEqual(retVal['Value']['Records'], [[2]])
+
+    bkQuery['FileType'] = 'SIM'
+    retVal = self.bk.getProductions(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    self.assertEqual(retVal['Value']['Records'], [[2]])
+
+    bkQuery['FileType'] = 'DIGI'
+    retVal = self.bk.getProductions(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    self.assertEqual(retVal['Value']['Records'], [[2]])
+
+    bkQuery['ReplicaFlag'] = 'Yes'
+    retVal = self.bk.getProductions(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    self.assertEqual(retVal['Value']['Records'], [[2]])
+
+    bkQuery['ProcessingPass'] = '/Sim09b'
+    retVal = self.bk.getProductions(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    self.assertEqual(retVal['Value']['Records'], [[2]])
+
+    bkQuery['ProcessingPass'] = '/Sim09ba'
+    retVal = self.bk.getProductions(bkQuery)
+    self.assertFalse(retVal['OK'])
+
+  def test_getProcessingPass(self):
+    bkQuery = {'ConfigName': 'Test', 'ConfigVersion': 'Test01', 'ConditionDescription': 'Beam450GeV-MagDown'}
+    retVal = self.bk.getProcessingPass(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'][0]['ParameterNames'])
+    self.assertTrue(retVal['Value'][0]['Records'])
+    self.assertTrue(retVal['Value'][0]['TotalRecords'])
+    self.assertEqual(retVal['Value'][0]['TotalRecords'], 1)
+    self.assertEqual(retVal['Value'][0]['Records'], [['Real Data']])
+
+    retVal = self.bk.getProcessingPass(bkQuery, '/Real Data')
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'][1]['ParameterNames'])
+    self.assertTrue(retVal['Value'][1]['Records'])
+    self.assertTrue(retVal['Value'][1]['TotalRecords'])
+    self.assertEqual(retVal['Value'][1]['TotalRecords'], 1)
+    self.assertEqual(retVal['Value'][1]['ParameterNames'], ['EventType', 'Description'])
+    self.assertEqual(retVal['Value'][1]['Records'], [[30000000, 'minbias']])
+
+    bkQuery['RunNumber'] = 1122
+    retVal = self.bk.getProcessingPass(bkQuery, '/Real Data')
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'][1]['ParameterNames'])
+    self.assertEqual(retVal['Value'][1]['ParameterNames'], ['EventType', 'Description'])
+    self.assertEqual(retVal['Value'][1]['TotalRecords'], 0)
+
+  def test_getConditions(self):
+    bkQuery = {'ConfigName': 'Test', 'ConfigVersion': 'Test01'}
+    retVal = self.bk.getConditions(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value'][0]['TotalRecords'], 0)
+    self.assertEqual(retVal['Value'][1]['TotalRecords'], 1)
+
+    bkQuery['EventType'] = 30000000
+    retVal = self.bk.getConditions(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value'][0]['TotalRecords'], 0)
+    self.assertEqual(retVal['Value'][1]['TotalRecords'], 1)
 
 if __name__ == '__main__':
 

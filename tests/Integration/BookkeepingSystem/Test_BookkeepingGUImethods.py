@@ -335,6 +335,64 @@ class TestMethods(unittest.TestCase):
     self.assertEqual(sorted(retVal['Value']['ParameterNames']), sorted(parameterNames))
     self.assertEqual(len(retVal['Value']['Records']), 2314)
 
+  def test_getProcessingPass(self):
+    bkQuery = {'ConfigVersion': 'Collision10', 'ProcessingPass': '',
+               'ConfigName': 'LHCb', 'ConditionDescription': 'Beam3500GeV-VeloClosed-MagDown'}
+    retVal = self.bk.getProcessingPass(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'][0]['ParameterNames'])
+    self.assertTrue(retVal['Value'][0]['Records'])
+    self.assertTrue(retVal['Value'][0]['TotalRecords'])
+    self.assertEqual(retVal['Value'][0]['TotalRecords'], 1)
+    self.assertEqual(retVal['Value'][0]['Records'], [['Real Data']])
+
+    retVal = self.bk.getProcessingPass(bkQuery, '/Real Data')
+    self.assertTrue(retVal['OK'])
+    procnames = ['WF-Validation-05',
+                 'WF-Validation-04',
+                 'Reco08-MINBIAS-FIRST-14-NB',
+                 'Reco08',
+                 'Reco07-SPD-CALIBRATION',
+                 'Reco07',
+                 'Reco05',
+                 'Reco04',
+                 'Reco03',
+                 'CHARM-FIRST-14-NB-Merged',
+                 'CHARM-FIRST-14-NB']
+    for rec in retVal['Value'][0]['Records']:
+      self.assertTrue(rec[0] in procnames)
+
+    evts = [93000000, 90000000, 92000000, 91000000]
+    for rec in retVal['Value'][1]['Records']:
+      self.assertTrue(rec[0] in evts)
+
+    retVal = self.bk.getProcessingPass(bkQuery, '/Real Data/Reco08')
+    self.assertTrue(retVal['OK'])
+    procnames = ['Stripping14', 'Stripping12c', 'Stripping12b']
+    for rec in retVal['Value'][0]['Records']:
+      self.assertTrue(rec[0] in procnames)
+
+    evts = [90000000]
+    for rec in retVal['Value'][1]['Records']:
+      self.assertTrue(rec[0] in evts)
+
+    retVal = self.bk.getProcessingPass(bkQuery, '/Real Data/Reco08/Stripping14')
+    self.assertTrue(retVal['OK'])
+
+    evts = [90000000]
+    for rec in retVal['Value'][1]['Records']:
+      self.assertTrue(rec[0] in evts)
+
+    bkQuery['RunNumber'] = 81621
+    retVal = self.bk.getProcessingPass(bkQuery, '/Real Data/Reco08')
+    self.assertTrue(retVal['OK'])
+    procnames = ['Stripping14', 'Stripping12c', 'Stripping12b']
+    for rec in retVal['Value'][0]['Records']:
+      self.assertTrue(rec[0] in procnames)
+
+    evts = [90000000]
+    for rec in retVal['Value'][1]['Records']:
+      self.assertTrue(rec[0] in evts)
 
 if __name__ == '__main__':
 
