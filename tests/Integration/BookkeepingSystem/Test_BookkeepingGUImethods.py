@@ -394,6 +394,101 @@ class TestMethods(unittest.TestCase):
     for rec in retVal['Value'][1]['Records']:
       self.assertTrue(rec[0] in evts)
 
+  def test_getMoreProductionInformations(self):
+    retVal = self.bk.getMoreProductionInformations(18120)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value']['ConfigName'], 'LHCb')
+    self.assertEqual(retVal['Value']['ConfigVersion'], 'Collision12')
+    self.assertEqual(retVal['Value']['Data taking conditions'], 'Beam4000GeV-VeloClosed-MagDown')
+    self.assertEqual(retVal['Value']['Processing pass'], '/Real Data/Reco13a/Stripping19a')
+    self.assertEqual(retVal['Value']['ProgramName'], 'DaVinci')
+    self.assertEqual(retVal['Value']['ProgramVersion'], 'v30r4p1')
+
+  def test_getProductionSummary(self):
+    bkQuery = {'Visible': 'Y', 'ConfigName': 'LHCb', 'ConditionDescription': 'Beam3500GeV-VeloClosed-MagDown',
+               'EventType': '90000000', 'FileType': 'EW.DST', 'ConfigVersion':
+               'Collision11', 'ProcessingPass': '/Real Data/Reco10/Stripping13b', 'Quality': ['OK']}
+    retVal = self.bk.getProductionSummary(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 4)
+
+  def test_getVisibleFilesWithMetadata(self):
+    bkQuery = {'Visible': 'Y', 'ConfigName': 'LHCb', 'ConditionDescription': 'Beam3500GeV-VeloClosed-MagDown',
+               'EventType': '90000000', 'FileType': 'EW.DST', 'ConfigVersion':
+               'Collision11', 'ProcessingPass': '/Real Data/Reco10/Stripping13b', 'Quality': ['OK']}
+    retVal = self.bk.getVisibleFilesWithMetadata(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(len(retVal['Value']['LFNs']), 3223)
+    self.assertEqual(retVal['Value']['Summary']['EventInputStat'], 2673532842)
+    self.assertEqual(retVal['Value']['Summary']['FileSize'], 7551.21445591)
+    self.assertEqual(retVal['Value']['Summary']['InstLuminosity'], 0)
+    self.assertEqual(retVal['Value']['Summary']['Luminosity'], 212911143.681)
+    self.assertEqual(retVal['Value']['Summary']['Number Of Files'], 3223)
+    self.assertEqual(retVal['Value']['Summary']['Number of Events'], 78548304)
+    self.assertEqual(retVal['Value']['Summary']['TotalLuminosity'], 0)
+
+  def test_getEventTypes(self):
+    bkQuery = {'Visible': 'Y', 'ConfigName': 'LHCb', 'ConditionDescription': 'Beam3500GeV-VeloClosed-MagDown',
+               'EventType': '90000000', 'FileType': 'EW.DST', 'ConfigVersion':
+               'Collision11', 'ProcessingPass': '/Real Data/Reco10/Stripping13b', 'Quality': ['OK']}
+    retVal = self.bk.getEventTypes(bkQuery)
+    self.assertTrue(retVal['OK'])
+    evts = [[97000000, 'Beam Gas'],
+            [93000000, 'Luminosity stream online'],
+            [90000000, 'Full stream'],
+            [96000001, 'Nobias stream'],
+            [93000001, 'Luminosity stream online'],
+            [91000001, 'Express Stream'],
+            [90000001, 'stream?'],
+            [95000000, 'Calib stream'],
+            [95000001, 'Calib stream'],
+            [91000000, 'Express stream'],
+            [96000000, 'NoBias stream']]
+
+    for rec in retVal['Value']['Records']:
+      self.assertTrue(rec in evts)
+
+  def test_getRuns(self):
+    retVal = self.bk.getRuns({'ConfigName': 'LHCb', 'ConfigVersion': 'Collision12'})
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(len(retVal['Value']), 1280)
+
+  def test_getTCKs(self):
+    bkQuery = {'Visible': 'Y', 'ConfigName': 'LHCb', 'ConditionDescription': 'Beam3500GeV-VeloClosed-MagDown',
+               'EventType': '90000000', 'FileType': 'EW.DST', 'ConfigVersion':
+               'Collision11', 'ProcessingPass': '/Real Data/Reco10/Stripping13b', 'Quality': ['OK']}
+    retVal = self.bk.getTCKs(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(sorted(retVal['Value']), sorted(['0x57e60',
+                                                      '0x710035',
+                                                      '0x5b0032',
+                                                      '0x730035',
+                                                      '0x75320',
+                                                      '0x6d0032',
+                                                      '4A0033',
+                                                      '0x5a0032',
+                                                      '0x700034']))
+
+  def test_getStepsMetadata(self):
+    bkQuery = {'Visible': 'Y', 'ConfigName': 'LHCb', 'ConditionDescription': 'Beam3500GeV-VeloClosed-MagDown',
+               'EventType': '90000000', 'FileType': 'EW.DST', 'ConfigVersion':
+               'Collision11', 'ProcessingPass': '/Real Data/Reco10/Stripping13b', 'Quality': ['OK']}
+    retVal = self.bk.getStepsMetadata(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    self.assertTrue('Step-13438' in retVal['Value']['Records'])
+    expected = [['StepId', 13438],
+                ['StepName', 'Stripping13b-Merging-NoCalib'],
+                ['ApplicationName', 'DaVinci'],
+                ['ApplicationVersion', 'v28r3'],
+                ['OptionFiles', '$APPCONFIGOPTS/Merging/DV-Stripping13-Merging.py'],
+                ['DDDB', 'head-20110302'],
+                ['CONDDB', 'head-20110512'],
+                ['ExtraPackages', 'AppConfig.v3r102'],
+                ['Visible', 'N']]
+    for value in expected:
+      self.assertTrue(value in retVal['Value']['Records']['Step-13438'])
+
 if __name__ == '__main__':
 
   querySuite = unittest.defaultTestLoader.loadTestsFromTestCase(TestMethods)

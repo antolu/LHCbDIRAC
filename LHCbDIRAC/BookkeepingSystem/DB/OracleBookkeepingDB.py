@@ -499,7 +499,7 @@ class OracleBookkeepingDB(object):
     if stepid != default:
       condition = " and s.stepid=%s" % stepid
 
-    command = "select ft.name, s.visible from productionoutputfiles s, filetypes ft where \
+    command = "select distinct ft.name, s.visible from productionoutputfiles s, filetypes ft where \
     s.filetypeid=ft.filetypeid and s.production=%s %s" % (
         prod, condition)
     retVal = self.dbR_.query(command)
@@ -1128,8 +1128,9 @@ class OracleBookkeepingDB(object):
       runnumbers = []
 
     tables = ' files f, dataquality d, jobs j, productionoutputfiles prod, productionscontainer cont, filetypes ft '
-    condition = " and cont.production=prod.production %s " % self.__buildVisible(visible=visible,
-                                                                                 replicaFlag='Yes')
+    condition = " and cont.production=prod.production and \
+    j.production=prod.production and \
+    prod.eventtypeid=f.eventtypeid %s " % self.__buildVisible(visible=visible, replicaFlag='Yes')
 
     retVal = self.__buildStartenddate(startDate, endDate, condition, tables)
     if not retVal['OK']:
@@ -1161,7 +1162,7 @@ class OracleBookkeepingDB(object):
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildProduction(production, condition, tables)
+    retVal = self.__buildProduction(production, condition, tables, useMainTables=False)
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -1226,7 +1227,8 @@ class OracleBookkeepingDB(object):
     For retrieving the productions form the view.
     :return: the available productions
     """
-    command = ' select distinct production from prodview where production > 0'
+    command = "select distinct production from productionoutputfiles where production > 0 and\
+    gotreplica='Yes' and visible='Y'"
     res = self.dbR_.query(command)
     return res
 
@@ -1286,8 +1288,12 @@ class OracleBookkeepingDB(object):
 
     :param long prodid: production number
     :return: the statistics of a production"""
-    command = 'select prodview.configname, prodview.configversion, prodview.ProgramName, prodview.programversion from \
-    prodview  where prodview.production=' + str(prodid)
+
+    command = "select c.configname, c.configversion, s.ApplicationName, s.ApplicationVersion from \
+    productionscontainer cont, configurations c, stepscontainer scont, steps s where cont.production=%s and\
+    cont.configurationid=c.configurationid and cont.production=scont.production and scont.stepid=s.stepid \
+    group by c.configname, c.configversion, s.ApplicationName, s.ApplicationVersion" % prodid
+
     res = self.dbR_.query(command)
     if not res['OK']:
       return S_ERROR(res['Message'])
@@ -3442,81 +3448,88 @@ and files.qualityid= dataquality.qualityid" % lfn
     condition = ''
     tables = ' files f,jobs j '
 
-    useView = ftype not in (default, 'RAW')
-
     retVal = self.__buildConfiguration(configName, configVersion, condition, tables)
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-
-    retVal = self.__buildProduction(production, condition, tables, visible, useView=useView)
+    print '1', tables
+    retVal = self.__buildProduction(production, condition, tables)
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-
+    print '2', tables
     retVal = self.__buildTCKS(tcks, condition, tables)
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
+    print '3', tables
 
-    retVal = self.__buildProcessingPass(procPass, condition, tables, visible, useView=useView)
+    retVal = self.__buildProcessingPass(procPass, condition, tables)
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-
-    retVal = self.__buildFileTypes(ftype, condition, tables, visible, useView=useView)
+    print '4', tables
+    retVal = self.__buildFileTypes(ftype, condition, tables)
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
+    print '5', tables
 
     retVal = self.__buildRunnumbers(runnumbers, startRunID, endRunID, condition, tables)
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
+    print '6', tables
 
-    retVal = self.__buildEventType(evt, condition, tables, visible, useView=useView)
+    retVal = self.__buildEventType(evt, condition, tables)
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
+    print '7', tables
 
     retVal = self.__buildStartenddate(startDate, endDate, condition, tables)
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
+    print '8', tables
 
     retVal = self.__buildDataquality(flag, condition, tables)
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
+    print '9', tables
 
     retVal = self.__buildReplicaflag(replicaFlag, condition, tables)
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
+    print '10', tables
 
     retVal = self.__buildVisibilityflag(visible, condition, tables)
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
+    print '11', tables
 
-    retVal = self.__buildConditions(simdesc, datataking, condition, tables, visible, useView=useView)
+    retVal = self.__buildConditions(simdesc, datataking, condition, tables)
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
+    print '12', tables
 
-    hint = ''
-    if (not startDate and not endDate) and tables.strip() == 'files f,jobs j  ,filetypes ft':
-      hint = '/*+INDEX(j JOBS_PRODUCTIONID) INDEX(f FILES_JOB_EVENT_FILETYPE) INDEX(ft FILETYPES_ID_NAME)*/'
+    # hint = ''
+    # if (not startDate and not endDate) and tables.strip() == 'files f,jobs j  ,filetypes ft':
+    #  hint = '/*+INDEX(j JOBS_PRODUCTIONID) INDEX(f FILES_JOB_EVENT_FILETYPE) INDEX(ft FILETYPES_ID_NAME)*/'
 
     if nbofEvents:
-      command = " select %s sum(f.eventstat) \
-      from %s where f.jobid= j.jobid %s " % (hint, tables, condition)
+      command = " select sum(f.eventstat) \
+      from %s where f.jobid= j.jobid %s " % (tables, condition)
     elif filesize:
-      command = " select %s sum(f.filesize) \
-      from %s where f.jobid= j.jobid %s " % (hint, tables, condition)
+      command = " select sum(f.filesize) \
+      from %s where f.jobid= j.jobid %s " % (tables, condition)
     else:
-      command = " select %s distinct f.filename \
-      from %s where f.jobid= j.jobid %s " % (hint, tables, condition)
+      command = " select distinct f.filename \
+      from %s where f.jobid= j.jobid %s " % (tables, condition)
     res = self.dbR_.query(command)
 
     return res
@@ -3569,22 +3582,23 @@ and files.qualityid= dataquality.qualityid" % lfn
     disable the view usage.
     """
 
-    if production not in [default, None] and 'productionoutputfiles' not in tables.upper():
-        tables += ' ,productionoutputfiles prod'
-
+    table = 'prod'
     if production not in [default, None]:
+      if useMainTables:
+        table = 'j'
+      else:
+        if 'productionoutputfiles' not in tables.lower():
+          tables += ' ,productionoutputfiles prod'
+
       if isinstance(production, list) and len(production) > 0:
         condition += ' and '
         cond = ' ( '
         for i in production:
-          cond += ' prod.production=%s or ' % str(i)
+          cond += ' %s.production=%s or ' % (table, str(i))
         cond = cond[:-3] + ')'
         condition += cond
       elif isinstance(production, (basestring, int, long)):
-        condition += ' and prod.production=%s' % str(production)
-
-    if production not in [default, None] and useMainTables:
-      condition += ' and j.production=prod.production '
+        condition += ' and %s.production=%s' % (table, str(production))
 
     return S_OK((condition, tables))
 
@@ -3641,13 +3655,13 @@ and files.qualityid= dataquality.qualityid" % lfn
         pro += "%s," % (str(i[0]))
       pro = pro[:-1]
       pro += ')'
-      condition += " and prod.production=cont.production "
       condition += " and cont.processingid in %s" % (pro)
 
       if useMainTables:
-        condition += " and j.production=prod.production "
-      if tables.upper().find('PRODUCTIONSCONTAINER') < 0:
-        tables += ',productionscontainer prod'
+        condition += " and cont.production=j.production "
+
+      if 'productionscontainer' not in tables.lower():
+        tables += ',productionscontainer cont'
     return S_OK((condition, tables))
 
   #############################################################################
@@ -3677,9 +3691,11 @@ and files.qualityid= dataquality.qualityid" % lfn
         condition += " and ft.name='%s'" % (ftype)
       else:
         return S_ERROR('File type problem!')
-      condition += ' and prod.filetypeid=ft.filetypeid '
+
       if useMainTables:
         condition += ' and f.filetypeid=ft.filetypeid'
+      else:
+        condition += ' and ft.filetypeid=prod.filetypeid'
 
     if isinstance(ftype, basestring) and ftype == 'RAW' and 'jobs' in tables:
       # we know the production of a run is lees than 0.
@@ -3729,7 +3745,7 @@ and files.qualityid= dataquality.qualityid" % lfn
         condition += ' and %s.runnumber>=%s' % (table, str(startRunID))
       if (isinstance(endRunID, basestring) and endRunID.upper() is not default) or\
               (isinstance(endRunID, (int, long)) and endRunID is not None):
-        condition += ' and %s.runnumber<=' % (table, str(endRunID))
+        condition += ' and %s.runnumber<=%s' % (table, str(endRunID))
     return S_OK((condition, tables))
 
   #############################################################################
@@ -3745,28 +3761,32 @@ and files.qualityid= dataquality.qualityid" % lfn
     disable the view usage.
     """
 
+    table = 'prod'
     if evt not in [0, None, default]:
-      if tables.find('productionoutputfiles') < 0:
-        tables += ' ,productionoutputfiles prod'
+      if useMainTables:
+        table = 'f'
+      else:
+        if 'productionoutputfiles' not in tables.lower():
+          tables += ' ,productionoutputfiles prod'
 
       if isinstance(evt, (list, tuple)) and len(evt) > 0:
         cond = ' ( '
         for i in evt:
-          cond += " prod.eventtypeid=%s or " % (str(i))
+          cond += " %s.eventtypeid=%s or " % (table, (str(i)))
         cond = cond[:-3] + ')'
         condition += cond
       elif isinstance(evt, (basestring, int, long)):
-        condition += ' and prod.eventtypeid=' + str(evt)
+        condition += ' and %s.eventtypeid=%s' % (table, str(evt))
       if useMainTables:
         if isinstance(evt, (list, tuple)) and len(evt) > 0:
           condition += ' and '
           cond = ' ( '
           for i in evt:
-            cond += " f.eventtypeid=%s or " % (str(i))
+            cond += " %s.eventtypeid=%s or " % (table, (str(i)))
           cond = cond[:-3] + ')'
           condition += cond
         elif isinstance(evt, (basestring, int, long)):
-          condition += ' and f.eventtypeid=' + str(evt)
+          condition += ' and %s.eventtypeid=%s' % (table, str(evt))
     return S_OK((condition, tables))
 
   #############################################################################
@@ -4106,9 +4126,8 @@ and files.qualityid= dataquality.qualityid" % lfn
     if runNumbers is None:
       runNumbers = []
 
-    tables = ' files f, jobs j, productionoutputfiles prod, productionscontainer cont, filetypes ft '
-    condition = " and cont.production=prod.production %s " % self.__buildVisible(visible=visible,
-                                                                                 replicaFlag='Yes')
+    tables = ' files f, jobs j, productionscontainer cont '
+    condition = ''
 
     retVal = self.__buildStartenddate(startDate, endDate, condition, tables)
     if not retVal['OK']:
@@ -4176,7 +4195,7 @@ and files.qualityid= dataquality.qualityid" % lfn
     command = "select count(*),\
     SUM(f.EventStat), SUM(f.FILESIZE), \
     SUM(f.luminosity),SUM(f.instLuminosity) from  %s  where \
-    j.jobid=f.jobid %s" % (tables, condition)
+    j.jobid=f.jobid and j.production=cont.production %s" % (tables, condition)
     return self.dbR_.query(command)
 
   #############################################################################
@@ -5883,6 +5902,12 @@ and files.qualityid= dataquality.qualityid" % lfn
     It destroy the data used by the integration test.
     """
     return self.dbR_.executeStoredProcedure('BKUTILITIES.destroyDatasets', [], False)
+
+  def updateProductionOutputfiles(self):
+    """
+    It is used to trigger an update of the productionoutputfiles table
+    """
+    return self.dbR_.executeStoredProcedure('BKUTILITIES.updateProdOutputFiles', [], False)
 
   #############################################################################
   def getAvailableTagsFromSteps(self):
