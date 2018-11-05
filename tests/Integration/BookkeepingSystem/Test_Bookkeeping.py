@@ -1633,13 +1633,13 @@ class MCProductionRegistration (MCInsertTestCase):
                 'CONDDB': 'sim-20160321-2-vc-mu100'},
             'OutputFileTypes': [
                 {
-                    'Visible': 'N',
+                    'Visible': 'Y',
                     'FileType': 'SIM'}]})
 
     self.assertTrue(retVal['OK'])
     self.assertTrue(retVal['Value'] > 0)
     self.productionSteps['Steps'].append(
-        {'StepId': retVal['Value'], 'Visible': 'Y', 'OutputFileTypes': [{'Visible': 'N', 'FileType': 'SIM'}]})
+        {'StepId': retVal['Value'], 'Visible': 'Y', 'OutputFileTypes': [{'Visible': 'Y', 'FileType': 'SIM'}]})
 
     retVal = self.bk.insertStep(
         {'Step': {'ApplicationName': 'Boole',
@@ -2130,7 +2130,7 @@ class MCProductionTest (MCXMLReportInsert):
     """
     retVal = self.bk.getProductionOutputFileTypes({"Production": self.production})
     self.assertTrue(retVal['OK'])
-    self.assertDictEqual(retVal['Value'], {'DIGI': 'N', 'SIM': 'N'})
+    self.assertDictEqual(retVal['Value'], {'DIGI': 'N', 'SIM': 'Y'})
 
     retVal = self.bk.getAvailableSteps({'StepName': 'Cert-Sim09b - 2012 - MU - Pythia8'})
     self.assertTrue(retVal['OK'])
@@ -2138,7 +2138,7 @@ class MCProductionTest (MCXMLReportInsert):
     stepid = retVal['Value']['Records'][0][0]
     retVal = self.bk.getProductionOutputFileTypes({"Production": self.production, "StepId": stepid})
     self.assertTrue(retVal['OK'])
-    self.assertDictEqual(retVal['Value'], {'SIM': 'N'})
+    self.assertDictEqual(retVal['Value'], {'SIM': 'Y'})
 
     retVal = self.bk.getAvailableSteps({'StepName': 'Cert-Digi14a for 2012 (to use w Sim09)'})
     self.assertTrue(retVal['OK'])
@@ -2230,7 +2230,7 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
   For testing the User Interface using the inserted data.
   This must work using an empty database
   """
-
+  '''
   def test_addFiles(self):
     lfns = ['/lhcb/MC/2012/SIM/00056438/0000/00056438_00001025_test_1.sim',
             '/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_2.digi']
@@ -2249,7 +2249,7 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
     self.assertTrue(retVal['Value']['ParameterNames'])
     self.assertTrue(retVal['Value']['Records'])
     self.assertTrue(retVal['Value']['TotalRecords'])
-    self.assertEqual(retVal['Value']['TotalRecords'], 2)
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
     outputFileTypes = ['SIM', 'DIGI']
     for rec in retVal['Value']['Records']:
       self.assertTrue(rec[0] in outputFileTypes)
@@ -2260,7 +2260,7 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
     self.assertTrue(retVal['Value']['ParameterNames'])
     self.assertTrue(retVal['Value']['Records'])
     self.assertTrue(retVal['Value']['TotalRecords'])
-    self.assertEqual(retVal['Value']['TotalRecords'], 2)
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
     outputFileTypes = ['SIM', 'DIGI']
     for rec in retVal['Value']['Records']:
       self.assertTrue(rec[0] in outputFileTypes)
@@ -2271,7 +2271,7 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
     self.assertTrue(retVal['Value']['ParameterNames'])
     self.assertTrue(retVal['Value']['Records'])
     self.assertTrue(retVal['Value']['TotalRecords'])
-    self.assertEqual(retVal['Value']['TotalRecords'], 2)
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
     outputFileTypes = ['SIM', 'DIGI']
     for rec in retVal['Value']['Records']:
       self.assertTrue(rec[0] in outputFileTypes)
@@ -2282,7 +2282,7 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
     self.assertTrue(retVal['Value']['ParameterNames'])
     self.assertTrue(retVal['Value']['Records'])
     self.assertTrue(retVal['Value']['TotalRecords'])
-    self.assertEqual(retVal['Value']['TotalRecords'], 2)
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
     outputFileTypes = ['SIM', 'DIGI']
     for rec in retVal['Value']['Records']:
       self.assertTrue(rec[0] in outputFileTypes)
@@ -2297,7 +2297,7 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
     self.assertEqual(retVal['Value']['TotalRecords'], 1)
     self.assertEqual(sorted(retVal['Value']['ParameterNames']), sorted(
         ['NbofFiles', 'NumberOfEvents', 'FileSize', 'Luminosity', 'InstLuminosity']))
-    self.assertEqual(retVal['Value']['Records'][0], [2, 822, 1104707781, 0, 0])
+    self.assertEqual(retVal['Value']['Records'][0], [1, 411, 241904920, 0, 0])
 
     bkQuery['ReplicaFlag'] = 'No'
     retVal = self.bk.getFilesSummary(bkQuery)
@@ -2323,6 +2323,7 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
 
     bkQuery['FileType'] = 'SIM'
     bkQuery['ReplicaFlag'] = 'Yes'
+    bkQuery['Visible'] = 'Y'
     retVal = self.bk.getFilesSummary(bkQuery)
     self.assertTrue(retVal['OK'])
     self.assertTrue(retVal['Value']['ParameterNames'])
@@ -2345,9 +2346,9 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
     self.assertTrue(retVal['Value']['ParameterNames'])
     self.assertTrue(retVal['Value']['Records'])
     self.assertTrue(retVal['Value']['TotalRecords'])
-    self.assertEqual(retVal['Value']['TotalRecords'], 2)
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
     self.assertEqual(sorted(retVal['Value']['ParameterNames']), sorted(parameterNames))
-    self.assertEqual(len(retVal['Value']['Records']), 2)
+    self.assertEqual(len(retVal['Value']['Records']), 1)
 
     bkQuery['ReplicaFlag'] = 'No'
     retVal = self.bk.getFilesWithMetadata(bkQuery)
@@ -2371,6 +2372,7 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
 
     bkQuery['FileType'] = 'SIM'
     bkQuery['ReplicaFlag'] = 'Yes'
+    bkQuery['Visible'] = 'Y'
     retVal = self.bk.getFilesWithMetadata(bkQuery)
     self.assertTrue(retVal['OK'])
     self.assertTrue(retVal['Value']['ParameterNames'])
@@ -2402,6 +2404,7 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
 
     bkQuery['FileType'] = 'DIGI'
     bkQuery['ReplicaFlag'] = 'Yes'
+    bkQuery['Visible'] = 'N'
     retVal = self.bk.getFilesWithMetadata(bkQuery)
     self.assertTrue(retVal['OK'])
     self.assertTrue(retVal['Value']['ParameterNames'])
@@ -2416,7 +2419,7 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
 
     retVal = self.bk.getFiles(bkQuery)
     self.assertTrue(retVal['OK'])
-    self.assertEqual(len(retVal['Value']), 2)
+    self.assertEqual(len(retVal['Value']), 1)
 
     bkQuery['ReplicaFlag'] = 'No'
     retVal = self.bk.getFiles(bkQuery)
@@ -2430,8 +2433,10 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
 
     bkQuery['FileType'] = 'SIM'
     bkQuery['ReplicaFlag'] = 'Yes'
+    bkQuery['Visible'] = 'Y'
     retVal = self.bk.getFiles(bkQuery)
     self.assertTrue(retVal['OK'])
+
     self.assertEqual(len(retVal['Value']), 1)
 
     bkQuery['ProcessingPass'] = '/Sim09b'
@@ -2448,6 +2453,7 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
 
     bkQuery['FileType'] = 'DIGI'
     bkQuery['ReplicaFlag'] = 'Yes'
+    bkQuery['Visible'] = 'N'
     retVal = self.bk.getFiles(bkQuery)
     self.assertTrue(retVal['OK'])
     self.assertEqual(len(retVal['Value']), 1)
@@ -2468,6 +2474,7 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
     self.assertEqual(retVal['Value']['Records'], [[2]])
 
     bkQuery['FileType'] = 'SIM'
+    bkQuery['Visible'] = 'Y'
     retVal = self.bk.getProductions(bkQuery)
     self.assertTrue(retVal['OK'])
     self.assertTrue(retVal['Value']['ParameterNames'])
@@ -2477,6 +2484,7 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
     self.assertEqual(retVal['Value']['Records'], [[2]])
 
     bkQuery['FileType'] = 'DIGI'
+    bkQuery['Visible'] = 'N'
     retVal = self.bk.getProductions(bkQuery)
     self.assertTrue(retVal['OK'])
     self.assertTrue(retVal['Value']['ParameterNames'])
@@ -2873,6 +2881,64 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
     retVal = self.bk.getRunsForFill(29)
     self.assertTrue(retVal['OK'])
     self.assertEqual(retVal['Value'], [1122])
+
+  def test_getProductionSummaryFromView(self):
+    retVal = self.bk.getProductionSummaryFromView({'Production': 2})
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value'][0]['ConditionDescription'], 'Beam4000GeV-2012-MagUp-Nu2.5-Pythia8')
+    self.assertEqual(retVal['Value'][0]['ConfigName'], 'test')
+    self.assertEqual(retVal['Value'][0]['ConfigVersion'], 'Jenkins')
+    self.assertEqual(retVal['Value'][0]['EventType'], 11104131)
+    self.assertEqual(retVal['Value'][0]['ProcessingPass'], '/Sim09b')
+    self.assertEqual(retVal['Value'][0]['Production'], 2)
+
+  def test_getProductionSummary(self):
+    retVal = self.bk.getProductionSummary({'Production': 2})
+    self.assertTrue(retVal['OK'])
+    paramNames = ['ConfigurationName',
+                  'ConfigurationVersion',
+                  'ConditionDescription',
+                  'Processing pass ',
+                  'EventType',
+                  'EventType description',
+                  'Production',
+                  'FileType',
+                  'Number of events']
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    for param in retVal['Value']['ParameterNames']:
+      self.assertTrue(param in paramNames)
+
+    self.assertEqual(retVal['Value']['Records'], [['test',
+                                                   'Jenkins',
+                                                   'Beam4000GeV-2012-MagUp-Nu2.5-Pythia8',
+                                                   1091,
+                                                   11104131,
+                                                   'Bd_KpiKS=DecProdCut',
+                                                   2,
+                                                   'SIM',
+                                                   411]])
+
+  def test_getEventTypes(self):
+    retVal = self.bk.getEventTypes({'ConfigName': 'Test', 'ConfigVersion': 'Test01'})
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value']['Records'], [[30000000, 'minbias']])
+    self.assertEqual(retVal['Value']['ParameterNames'], ['EventType', 'Description'])
+
+    retVal = self.bk.getEventTypes({'Production': 2})
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value']['Records'], [[11104131, 'Bd_KpiKS=DecProdCut']])
+    self.assertEqual(retVal['Value']['ParameterNames'], ['EventType', 'Description'])
+
+  '''
+  def test_getLimitedFiles(self):
+    bkQuery = {'Visible': 'Y', 'ConfigName': 'Test', 'ConditionDescription': 'Beam450GeV-MagDown',
+               'MaxItem': 25, 'EventType': '30000000', 'FileType': 'RAW', 'ProcessingPass':
+               '/Real Data', 'StartItem': 0,
+               'ConfigVersion': 'Test01', 'Quality': [u'OK', u'UNCHECKED']}
+    retVal = self.bk.getLimitedFiles(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 5)
+
 
 if __name__ == '__main__':
 

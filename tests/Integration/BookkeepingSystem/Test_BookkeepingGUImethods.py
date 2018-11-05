@@ -8,6 +8,7 @@ It requires an Oracle database
 import unittest
 
 from DIRAC.Core.Base.Script import parseCommandLine
+from BookkeepingSystem.Client.BKQuery import BKQuery
 parseCommandLine()
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
@@ -410,7 +411,7 @@ class TestMethods(unittest.TestCase):
                'Collision11', 'ProcessingPass': '/Real Data/Reco10/Stripping13b', 'Quality': ['OK']}
     retVal = self.bk.getProductionSummary(bkQuery)
     self.assertTrue(retVal['OK'])
-    self.assertEqual(retVal['Value']['TotalRecords'], 4)
+    self.assertEqual(retVal['Value']['TotalRecords'], 2)
 
   def test_getVisibleFilesWithMetadata(self):
     bkQuery = {'Visible': 'Y', 'ConfigName': 'LHCb', 'ConditionDescription': 'Beam3500GeV-VeloClosed-MagDown',
@@ -488,6 +489,16 @@ class TestMethods(unittest.TestCase):
                 ['Visible', 'N']]
     for value in expected:
       self.assertTrue(value in retVal['Value']['Records']['Step-13438'])
+
+  def test_getLimitedFiles(self):
+    bkQuery = {'ConfigName': 'MC', 'StartItem': 0, 'FileType': 'DST', 'ConfigVersion': 'MC10',
+               'ConditionDescription': 'Beam3500GeV-May2010-MagDown-Fix1', 'MaxItem': 25,
+               'EventType': '30000000',
+               'ProcessingPass': '/Sim01/Trig0x002e002aFlagged/Reco08-MINBIAS',
+               'Visible': 'Y', 'Quality': [u'OK', u'UNCHECKED']}
+    retVal = self.bk.getLimitedFiles(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 25)
 
 if __name__ == '__main__':
 

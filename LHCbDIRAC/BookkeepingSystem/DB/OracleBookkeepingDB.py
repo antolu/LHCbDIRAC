@@ -1102,7 +1102,7 @@ class OracleBookkeepingDB(object):
                            filetype=default, quality=default,
                            visible=default, replicaflag=default,
                            startDate=None, endDate=None, runnumbers=None,
-                           startRunID=None, endRunID=None, tcks=default):
+                           startRunID=None, endRunID=None, tcks=default, selection=None):
     """
     For retrieving files with meta data.
 
@@ -1126,6 +1126,12 @@ class OracleBookkeepingDB(object):
 
     if runnumbers is None:
       runnumbers = []
+
+    if selection is None:
+      selection = ' distinct f.FileName, f.EventStat, f.FileSize, f.CreationDate, j.JobStart, j.JobEnd, \
+    j.WorkerNode, ft.Name, j.runnumber, j.fillnumber, f.fullstat, d.dataqualityflag, \
+    j.eventinputstat, j.totalluminosity, f.luminosity, f.instLuminosity, j.tck, f.guid, f.adler32, \
+    f.eventTypeid, f.md5sum,f.visibilityflag, j.jobid, f.gotreplica, f.inserttimestamp '
 
     tables = ' files f, dataquality d, jobs j, productionoutputfiles prod, productionscontainer cont, filetypes ft '
     condition = " and cont.production=prod.production and \
@@ -1192,13 +1198,10 @@ class OracleBookkeepingDB(object):
       return retVal
     condition, tables = retVal['Value']
 
-    command = "select distinct f.FileName, f.EventStat, f.FileSize, f.CreationDate, j.JobStart, j.JobEnd, \
-    j.WorkerNode, ft.Name, j.runnumber, j.fillnumber, f.fullstat, d.dataqualityflag, \
-    j.eventinputstat, j.totalluminosity, f.luminosity, f.instLuminosity, j.tck, f.guid, f.adler32, \
-    f.eventTypeid, f.md5sum,f.visibilityflag, j.jobid, f.gotreplica, f.inserttimestamp from %s  where \
+    command = "select %s from %s  where \
     j.jobid=f.jobid  and \
     ft.filetypeid=f.filetypeid and \
-    f.qualityid=d.qualityid %s" % (tables, condition)
+    f.qualityid=d.qualityid %s" % (selection, tables, condition)
     return self.dbR_.query(command)
 
   #############################################################################
@@ -2921,64 +2924,52 @@ class OracleBookkeepingDB(object):
     :param long evttype: event type id
     :return: production statistics
     """
-    conditions = ''
 
-    if cName != default:
-      conditions += " and bview.configname='%s'" % (cName)
+    tables = ' productionoutputfiles prod, productionscontainer cont, simulationconditions sim,\
+     data_taking_conditions daq, configurations c '
+    condition = " cont.production=prod.production and\
+    c.configurationid=cont.configurationid  %s " % self.__buildVisible(visible='Y', replicaFlag='Yes')
 
-    if cVersion != default:
-      conditions += " and bview.configversion='%s'" % (cVersion)
+    retVal = self.__buildConfiguration(cName, cVersion, condition, tables)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
 
-    if ftype != default:
-      conditions += " and f.filetypeid=ftypes.filetypeid and ftypes.name='%s'" % (ftype)
-    else:
-      conditions += ' and bview.filetypeid= f.filetypeid  \
-                      and bview.filetypeid= ftypes.filetypeid '
-    if evttype != default:
-      conditions += " and bview.eventtypeid=%d" % (int(evttype))
-    else:
-      conditions += ' and bview.eventtypeid=f.eventtypeid '
+    retVal = self.__buildProduction(production, condition, tables, useMainTables=False)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
 
-    if production != default:
-      conditions += " and j.production=%d" % (int(production))
-      conditions += ' and j.production= bview.production '
-    else:
-      conditions += ' and j.production= bview.production '
+    retVal = self.__buildEventType(evttype, condition, tables, useMainTables=False)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
 
-    if processing != default:
-      command = "select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
-                                           FROM processing v   \
-                                           START WITH id in (select distinct id from processing where name='%s') \
-                                              CONNECT BY NOCYCLE PRIOR  id=parentid) v \
-                     where v.path='%s'" % (processing.split('/')[1], processing)
-      retVal = self.dbR_.query(command)
-      if not retVal['OK']:
-        return retVal
-      else:
-        pro = '('
-        for i in retVal['Value']:
-          pro += "%s," % (str(i[0]))
-        pro = pro[:-1]
-        pro += (')')
-        if len(pro) > 1:
-          conditions += " and prod.processingid in %s" % (pro)
+    retVal = self.__buildProcessingPass(processing, condition, tables)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
 
-    if conddesc != default:
-      retVal = self.__getConditionString(conddesc, 'prod')
-      if not retVal['OK']:
-        return retVal
-      else:
-        conditions += retVal['Value']
+    retVal = self.__buildFileTypes(ftype, condition, tables, useMainTables=False)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
 
-    command = " select bview.configname, bview.configversion, sim.simdescription, daq.description, \
- prod.processingid, bview.eventtypeid,bview.description, bview.production, ftypes.name, sum(f.eventstat) \
-from jobs j, prodview bview, files f, filetypes ftypes, productionscontainer prod, simulationconditions sim, \
-data_taking_conditions daq where j.jobid= f.jobid and f.gotreplica='Yes' and bview.programname= j.programname and \
-  bview.programversion= j.programversion and sim.simid(+)=bview.simid and \
-  daq.daqperiodid(+)=bview.daqperiodid  and bview.production = prod.production " + conditions
+    retVal = self.__buildConditions(default, conddesc, condition, tables)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
 
-    command += "group by bview.configname, bview.configversion, sim.simdescription, \
-    daq.description, prod.processingid, bview.eventtypeid, bview.description, bview.production, ftypes.name"
+    command = " select c.configname, c.configversion, sim.simdescription, daq.description, \
+ cont.processingid, prod.eventtypeid,e.description, prod.production, ftypes.name, sum(f.eventstat) \
+from jobs j, files f, filetypes ftypes, eventtypes e, %s where j.jobid= f.jobid and \
+f.gotreplica='Yes' and prod.stepid= j.stepid and e.eventtypeid=f.eventtypeid and prod.eventtypeid=f.eventtypeid and\
+  prod.stepid= j.stepid and sim.simid(+)=cont.simid and prod.filetypeid=f.filetypeid and \
+  prod.filetypeid=ftypes.filetypeid and daq.daqperiodid(+)=cont.daqperiodid  and \
+  prod.production = cont.production and %s\
+  group by c.configname, c.configversion, sim.simdescription, \
+    daq.description, cont.processingid, prod.eventtypeid, e.description, \
+    prod.production, ftypes.name" % (tables, condition)
     retVal = self.dbR_.query(command)
     if not retVal['OK']:
       return S_ERROR(retVal['Message'])
@@ -3320,10 +3311,10 @@ and files.qualityid= dataquality.qualityid" % lfn
         retVal = self.__getProcessingPassId(proc.split('/')[1:][0], proc)
         if retVal['OK']:
           processingid = retVal['Value']
-          command = "select distinct bview.production  from prodview bview,\
-           prodrunview prview, productionscontainer prod where \
-      bview.production=prview.production and prview.runnumber=%d and \
-      bview.production>0 and bview.production=prod.production and prod.processingid=%d" % (run, processingid)
+          command = "select distinct prod.production  from productionoutputfiles prod,\
+           prodrunview prview, productionscontainer cont where \
+      prod.production=prview.production and prview.runnumber=%d and \
+      prod.production>0 and prod.production=cont.production and cont.processingid=%d" % (run, processingid)
           result = self.dbR_.query(command)
       else:
         result = S_ERROR('The processing pass is missing!')
@@ -3452,70 +3443,61 @@ and files.qualityid= dataquality.qualityid" % lfn
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-    print '1', tables
+
     retVal = self.__buildProduction(production, condition, tables)
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-    print '2', tables
+
     retVal = self.__buildTCKS(tcks, condition, tables)
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-    print '3', tables
 
     retVal = self.__buildProcessingPass(procPass, condition, tables)
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-    print '4', tables
+
     retVal = self.__buildFileTypes(ftype, condition, tables)
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-    print '5', tables
 
     retVal = self.__buildRunnumbers(runnumbers, startRunID, endRunID, condition, tables)
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-    print '6', tables
 
     retVal = self.__buildEventType(evt, condition, tables)
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-    print '7', tables
 
     retVal = self.__buildStartenddate(startDate, endDate, condition, tables)
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-    print '8', tables
 
     retVal = self.__buildDataquality(flag, condition, tables)
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-    print '9', tables
 
     retVal = self.__buildReplicaflag(replicaFlag, condition, tables)
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-    print '10', tables
 
     retVal = self.__buildVisibilityflag(visible, condition, tables)
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-    print '11', tables
 
     retVal = self.__buildConditions(simdesc, datataking, condition, tables)
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-    print '12', tables
 
     # hint = ''
     # if (not startDate and not endDate) and tables.strip() == 'files f,jobs j  ,filetypes ft':
@@ -3940,161 +3922,30 @@ and files.qualityid= dataquality.qualityid" % lfn
     :param list tcks: run TCKs
     :return: the visible files
     """
-
-    if tcks is None:
-      tcks = []
-
-    if runnumbers is None:
-      runnumbers = []
-
-    condition = ''
-
-    tables = ' jobs j, files f'
-    yes = False
-    if configName != default:
-      condition += " and c.configname='%s' " % (configName)
-      yes = True
-
-    if configVersion != default:
-      condition += " and c.configversion='%s' " % (configVersion)
-      yes = True
-
-    if yes:
-      condition += ' and j.configurationid=c.configurationid'
-      tables += ' ,configurations c '
-
+    conddescription = datataking
     if simdesc != default:
       conddescription = simdesc
-    else:
-      conddescription = datataking
 
-    sim_dq_conditions = ''
-    if conddescription != default:
-      retVal = self.__getConditionString(conddescription, 'prod')
-      if retVal['OK']:
-        sim_dq_conditions = retVal['Value']
-      else:
-        return retVal
+    selection = ' distinct f.filename, f.eventstat, j.eventinputstat, \
+     j.runnumber, j.fillnumber, f.filesize, j.totalluminosity, f.luminosity, f.instLuminosity, j.tck '
 
-    if production != default:
-      if isinstance(production, list):
-        condition += ' and '
-        cond = ' ( '
-        for i in production:
-          cond += 'j.production=' + str(i) + ' or '
-        cond = cond[:-3] + ')'
-        condition += cond
-      else:
-        condition += ' and j.production=' + str(production)
-
-    if len(runnumbers) > 0:
-      if isinstance(runnumbers, list):
-        condition += ' and '
-        cond = ' ( '
-        for i in runnumbers:
-          cond += 'j.runnumber=' + str(i) + ' or '
-        cond = cond[:-3] + ')'
-        condition += cond
-
-    fcond = ''
-    tables2 = ' ,filetypes ftypes '
-    tables += ' ,filetypes ftypes '
-    if ftype != 'ALL':
-      if isinstance(ftype, list):
-        for i in ftype:
-          condition += " and ftypes.Name='%s'" % (str(i))
-          fcond += " and ftypes.Name='%s'" % (str(i))
-
-      elif isinstance(ftype, basestring):
-        condition += " and ftypes.Name='%s'" % (str(ftype))
-        fcond += " and ftypes.Name='%s'" % (str(ftype))
-      fcond += 'and bview.filetypeid=ftypes.filetypeid '
-      condition += ' and f.filetypeid=ftypes.filetypeid '
-    econd = ''
-    if evt != 0:
-      if isinstance(evt, (list, tuple)):
-        econd += " and bview.eventtypeid=%s" % (str(i))
-        condition += " and f.eventtypeid=%s" % (str(i))
-
-      elif isinstance(evt, (basestring, int, long)):
-        econd += " and bview.eventtypeid='%s'" % (str(evt))
-        condition += " and f.eventtypeid=%s" % (str(evt))
-
-    if len(tcks) > 0:
-      if isinstance(tcks, list):
-        cond = '('
-        for i in tcks:
-          cond += "j.tck='%s' or " % (i)
-        cond = cond[:-3] + ')'
-        condition = " and %s " % (cond)
-      elif isinstance(tcks, basestring):
-        condition += " and j.tck='%s'" % (tcks)
-      else:
-        return S_ERROR('The TCK should be a list or a string')
-
-    if procPass != default:
-      if not re.search('^/', procPass):
-        procPass = procPass.replace(procPass, '/%s' % procPass)
-      condition += " and j.production in (select  bview.production from productionscontainer prod,\
-       ( select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID FROM processing v \
-                     START WITH id in (select distinct id from processing where name='%s') \
-                                           CONNECT BY NOCYCLE PRIOR  id=parentid) v \
-                         where v.path='%s') proc, prodview bview %s \
-                             where \
-                               prod.processingid=proc.id and \
-                               bview.production=prod.production \
-                               %s %s %s \
-                )" % (procPass.split('/')[1], procPass, tables2, fcond, econd, sim_dq_conditions)
-
-    if startDate is not None:
-      condition += ' and f.inserttimestamp >= TO_TIMESTAMP (\'' + str(startDate) + '\',\'YYYY-MM-DD HH24:MI:SS\')'
-
-    if endDate is not None:
-      condition += ' and f.inserttimestamp <= TO_TIMESTAMP (\'' + str(endDate) + '\',\'YYYY-MM-DD HH24:MI:SS\')'
-    elif startDate is not None and endDate is None:
-      currentTimestamp = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
-      condition += " and f.inserttimestamp <= TO_TIMESTAMP ('%s','YYYY-MM-DD HH24:MI:SS')" % (str(currentTimestamp))
-
-    if flag != default:
-      if isinstance(flag, (list, tuple)):
-        conds = ' ('
-        for i in flag:
-          quality = None
-          command = 'select QualityId from dataquality where dataqualityflag=\'' + str(i) + '\''
-          res = self.dbR_.query(command)
-          if not res['OK']:
-            gLogger.error('Data quality problem:', res['Message'])
-          elif len(res['Value']) == 0:
-            return S_ERROR('Dataquality is missing!')
-          else:
-            quality = res['Value'][0][0]
-          conds += ' f.qualityid=' + str(quality) + ' or'
-        condition += 'and' + conds[:-3] + ')'
-      else:
-        quality = None
-        command = 'select QualityId from dataquality where dataqualityflag=\'' + str(flag) + '\''
-        res = self.dbR_.query(command)
-        if not res['OK']:
-          gLogger.error('Data quality problem:', res['Message'])
-        elif len(res['Value']) == 0:
-          return S_ERROR('Dataquality is missing!')
-        else:
-          quality = res['Value'][0][0]
-
-        condition += ' and f.qualityid=' + str(quality)
-
-    if startRunID is not None:
-      condition += ' and j.runnumber>=' + str(startRunID)
-    if endRunID is not None:
-      condition += ' and j.runnumber<=' + str(endRunID)
-
-    command = " select distinct f.filename, f.eventstat, j.eventinputstat, \
-     j.runnumber, j.fillnumber, f.filesize, j.totalluminosity, f.luminosity, f.instLuminosity, j.tck from %s where\
-     f.jobid= j.jobid and f.visibilityflag='Y'  and f.gotreplica='Yes' %s " % (tables, condition)
-
-    res = self.dbR_.query(command)
-
-    return res
+    return self.getFilesWithMetadata(configName,
+                                     configVersion,
+                                     conddescription,
+                                     procPass,
+                                     evt,
+                                     production,
+                                     ftype,
+                                     flag,
+                                     'Y',
+                                     'Yes',
+                                     startDate,
+                                     endDate,
+                                     runnumbers,
+                                     startRunID,
+                                     endRunID,
+                                     tcks,
+                                     selection)
 
   #############################################################################
   def getFilesSummary(self, configName, configVersion, conditionDescription=default, processingPass=default,
@@ -4220,84 +4071,56 @@ and files.qualityid= dataquality.qualityid" % lfn
     :pram long maxitems: maximum returned rows
     :return: a list of limited number of files
     """
-    condition = ''
-    if configName != default:
-      condition += " and c.configname='%s' " % (configName)
 
-    if configVersion != default:
-      condition += " and c.configversion='%s' " % (configVersion)
+    tables = ' files f, jobs j, productionoutputfiles prod, productionscontainer cont, filetypes ft, dataquality d '
+    condition = " and cont.production=prod.production and d.qualityid=f.qualityid and \
+    j.production=prod.production and \
+    prod.eventtypeid=f.eventtypeid %s " % self.__buildVisible(visible='Y', replicaFlag='Yes')
 
-    sim_dq_conditions = ''
-    if conddescription != default:
-      retVal = self.__getConditionString(conddescription, 'prod')
-      if retVal['OK']:
-        sim_dq_conditions = retVal['Value']
-        condition += sim_dq_conditions
-      else:
-        return retVal
+    retVal = self.__buildConfiguration(configName, configVersion, condition, tables)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
 
-    tables = ''
-    if evt != default:
-      tables += ' ,prodview bview'
-      condition += '  and j.production=bview.production and bview.production=prod.production\
-       and bview.eventtypeid=%s and f.eventtypeid=bview.eventtypeid ' % (evt)
+    retVal = self.__buildConditions(default, conddescription, condition, tables)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
 
-    if production != default:
-      condition += ' and j.production=%d' % (int(production))
+    retVal = self.__buildProduction(production, condition, tables, useMainTables=False)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
 
-    if runnb != default:
-      condition += ' and j.runnumber=%d' % (int(runnb))
+    retVal = self.__buildReplicaflag('Yes', condition, tables)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
 
-    if filetype != default:
-      condition += " and ftypes.name='%s' and bview.filetypeid=ftypes.filetypeid " % (filetype)
+    retVal = self.__buildDataquality(quality, condition, tables)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
 
-    if quality != 'ALL':
-      tables += ' ,dataquality d '
-      condition += 'and d.qualityid=f.qualityid '
-      if isinstance(quality, basestring):
-        command = "select QualityId from dataquality where dataqualityflag='%s'" % (quality)
-        res = self.dbR_.query(command)
-        if not res['OK']:
-          gLogger.error('Data quality problem:', res['Message'])
-        elif len(res['Value']) == 0:
-          return S_ERROR('Dataquality is missing!')
-        else:
-          quality = res['Value'][0][0]
-        condition += ' and f.qualityid=' + str(quality)
-      else:
-        if isinstance(quality, list) and len(quality) > 0:
-          conds = ' ('
-          for i in quality:
-            quality = None
-            command = "select QualityId from dataquality where dataqualityflag='%s'" % (i)
-            res = self.dbR_.query(command)
-            if not res['OK']:
-              gLogger.error('Data quality problem:', res['Message'])
-            elif len(res['Value']) == 0:
-              return S_ERROR('Dataquality is missing!')
-            else:
-              quality = res['Value'][0][0]
-            conds += ' f.qualityid=' + str(quality) + ' or'
-          condition += 'and' + conds[:-3] + ')'
+    retVal = self.__buildProcessingPass(processing, condition, tables)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
 
-    if processing != default:
-      command = "select distinct prod.processingid from productionscontainer prod where \
-           prod.processingid in (select v.id from \
-           (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID FROM processing v \
-         START WITH id in (select distinct id from processing where name='%s') \
-         CONNECT BY NOCYCLE PRIOR  id=parentid) v \
-        where v.path='%s') %s" % (processing.split('/')[1], processing, sim_dq_conditions)
+    retVal = self.__buildEventType(evt, condition, tables, useMainTables=False)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
 
-      retVal = self.dbR_.query(command)
-      if not retVal['OK']:
-        return retVal
-      pro = '('
-      for i in retVal['Value']:
-        pro += "%s," % (str(i[0]))
-      pro = pro[:-1]
-      pro += (')')
+    retVal = self.__buildFileTypes(filetype, condition, tables, useMainTables=False)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
 
-      condition += " and prod.processingid in %s" % (pro)
+    retVal = self.__buildRunnumbers(runnb, None, None, condition, tables)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
 
     command = "select fname, fstat, fsize, fcreation, jstat, jend, jnode, ftypen, evttypeid, \
     jrun, jfill, ffull, dflag,   jevent, jtotal, flum, finst, jtck from \
@@ -4305,15 +4128,15 @@ and files.qualityid= dataquality.qualityid" % lfn
                evttypeid, jrun, jfill, ffull, dflag,   jevent, jtotal, flum, finst, jtck from \
                   (select ROWNUM r, f.FileName fname, f.EventStat fstat, f.FileSize fsize, \
                   f.CreationDate fcreation, j.JobStart jstat, j.JobEnd jend, j.WorkerNode jnode, \
-                  ftypes.Name ftypen, f.eventtypeid evttypeid, j.runnumber jrun, j.fillnumber jfill,\
+                  ft.Name ftypen, f.eventtypeid evttypeid, j.runnumber jrun, j.fillnumber jfill,\
                    f.fullstat ffull, d.dataqualityflag dflag,j.eventinputstat jevent, j.totalluminosity jtotal,\
-                           f.luminosity flum, f.instLuminosity finst, j.tck jtck from files f, jobs j,\
-                            productionscontainer prod, configurations c, filetypes ftypes %s where \
+                           f.luminosity flum, f.instLuminosity finst, j.tck jtck from %s where \
     j.jobid=f.jobid and \
-    ftypes.filetypeid=f.filetypeid and \
+    ft.filetypeid=prod.filetypeid and \
+    f.filetypeid=prod.filetypeid and \
     f.gotreplica='Yes' and \
     f.visibilityflag='Y' and \
-    j.configurationid=c.configurationid  %s) where\
+    cont.configurationid=c.configurationid  %s) where\
      rownum <=%d ) where r >%d" % (tables, condition, int(maxitems), int(startitem))
     return self.dbR_.query(command)
 
@@ -4751,21 +4574,23 @@ and files.qualityid= dataquality.qualityid" % lfn
     :param long prod: production number
     :return: event types
     """
-    condition = ''
-    result = S_ERROR()
-    if configName != default:
-      condition += " prodview.configname='%s' " % (configName)
 
-    if configVersion != default:
-      condition += " and prodview.configversion='%s' " % (configVersion)
+    tables = '  productionoutputfiles prod, productionscontainer cont, eventtypes e, configurations c '
+    condition = " cont.production=prod.production and \
+    prod.eventtypeid=e.eventtypeid %s " % self.__buildVisible(visible='Y', replicaFlag='Yes')
 
-    if prod != default:
-      if condition == '':
-        condition += " prodview.production=%d" % (int(prod))
-      else:
-        condition += " and prodview.production=%d" % (int(prod))
+    retVal = self.__buildConfiguration(configName, configVersion, condition, tables)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
 
-    command = ' select distinct prodview.eventtypeid, prodview.description from  prodview where ' + condition
+    retVal = self.__buildProduction(prod, condition, tables, useMainTables=False)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
+
+    command = ' select e.eventtypeid, e.description \
+    from  %s where %s group by e.eventtypeid, e.description' % (tables, condition)
     retVal = self.dbR_.query(command)
     records = []
     if retVal['OK']:
@@ -5669,26 +5494,32 @@ and files.qualityid= dataquality.qualityid" % lfn
     configName = in_dict.get('ConfigName', default)
     configVersion = in_dict.get('ConfigVersion', default)
 
-    condition = ""
-    if evt != default:
-      condition += "and bview.eventtypeid=%d" % (int(evt))
+    tables = ' productionoutputfiles prod, productionscontainer cont, simulationconditions sim,\
+     data_taking_conditions daq, configurations c '
+    condition = " cont.production=prod.production and\
+    c.configurationid=cont.configurationid  %s " % self.__buildVisible(visible='Y', replicaFlag='Yes')
 
-    if prod != default:
-      condition += " and bview.production=%d" % (int(prod))
+    retVal = self.__buildConfiguration(configName, configVersion, condition, tables)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
 
-    if configName != default:
-      condition += " and bview.configname='%s'" % (configName)
+    retVal = self.__buildProduction(prod, condition, tables, useMainTables=False)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
 
-    if configVersion != default:
-      condition += " and bview.configversion='%s'" % (configVersion)
+    retVal = self.__buildEventType(evt, condition, tables, useMainTables=False)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
 
-    command = "select bview.production, bview.eventtypeid, bview.configname, bview.configversion, \
+    command = "select prod.production, prod.eventtypeid, c.configname, c.configversion, \
                       BOOKKEEPINGORACLEDB.getProductionProcessingPass(prod.production),\
                       sim.simdescription, daq.description\
-                 from prodview bview, simulationconditions sim, data_taking_conditions daq, productionscontainer prod \
-                 where sim.simid(+)=bview.simid and \
-                daq.daqperiodid(+)=bview.daqperiodid and \
-                bview.production=prod.production %s" % (condition)
+                 from %s \
+                 where sim.simid(+)=cont.simid and \
+                daq.daqperiodid(+)=cont.daqperiodid and %s" % (tables, condition)
     parameterNames = ['Production',
                       'EventType',
                       'ConfigName',
