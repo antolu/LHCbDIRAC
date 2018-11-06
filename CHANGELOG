@@ -56,6 +56,12 @@ use DIRAC v6r20p13
 * fix the code style
 * simplify the Bookkeeping client
 
+[v9r2p9]
+use DIRAC v6r20p18
+
+* revert fts3 undue changes
+* Add information on IDR errors
+
 [v9r2p8]
 use DIRAC v6r20p16
 
