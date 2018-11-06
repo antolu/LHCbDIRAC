@@ -1,23 +1,24 @@
-''' AccountingCommand module
-'''
+""" AccountingCommand module
+"""
+
+__RCSID__ = "$Id$"
 
 from datetime import datetime, timedelta
 
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.AccountingSystem.Client.ReportsClient import ReportsClient
 from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getSites
 from DIRAC.ResourceStatusSystem.Command.Command import Command
 from DIRAC.ResourceStatusSystem.Utilities import CSHelpers
 
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 
-__RCSID__ = "$Id$"
-
 
 class AccountingCommand(Command):
-  '''
+  """
     Accounting "master" Command
-  '''
+  """
 
   def __init__(self, args=None, clients=None):
 
@@ -44,14 +45,14 @@ class AccountingCommand(Command):
 
 
 class JobAccountingCommand(AccountingCommand):
-  '''
+  """
     Accounting command that gets information of the WMSHistory type.
-  '''
+  """
 
   def _storeCommand(self, results):
-    '''
+    """
       Stores the results of doNew method on the database.
-    '''
+    """
 
     for result in results:
 
@@ -70,11 +71,11 @@ class JobAccountingCommand(AccountingCommand):
     return S_OK()
 
   def _prepareCommand(self):
-    '''
+    """
       AccountingCommand requires two arguments:
       - hours  : <int>
       - name   : <str>
-    '''
+    """
 
     if 'hours' not in self.args:
       return S_ERROR('Number of hours not specified')
@@ -136,10 +137,10 @@ class JobAccountingCommand(AccountingCommand):
     return S_OK(uniformResult)
 
   def doCache(self):
-    '''
+    """
       Method that reads the cache table and tries to read from it. It will
       return a list of dictionaries if there are results.
-    '''
+    """
 
     params = self._prepareCommand()
     if not params['OK']:
@@ -155,10 +156,10 @@ class JobAccountingCommand(AccountingCommand):
     return S_OK(result)
 
   def doMaster(self):
-    '''
-    '''
+    """
+    """
 
-    sites = CSHelpers.getSites()
+    sites = getSites()
     if not sites['OK']:
       return sites
     sites = sites['Value']
@@ -177,14 +178,14 @@ class JobAccountingCommand(AccountingCommand):
 
 
 class PilotAccountingCommand(AccountingCommand):
-  '''
+  """
     Accounting command that gets information of the Pilot type.
-  '''
+  """
 
   def _storeCommand(self, results):
-    '''
+    """
       Stores the results of doNew method on the database.
-    '''
+    """
 
     for result in results:
 
@@ -198,12 +199,12 @@ class PilotAccountingCommand(AccountingCommand):
     return S_OK()
 
   def _prepareCommand(self):
-    '''
+    """
       AccountingCommand requires four arguments:
       - hours       : <int>
       - name : <str>
       - elementType : <str>
-    '''
+    """
 
     if 'hours' not in self.args:
       return S_ERROR('Number of hours not specified')
@@ -287,10 +288,10 @@ class PilotAccountingCommand(AccountingCommand):
     return S_OK(uniformResult)
 
   def doCache(self):
-    '''
+    """
       Method that reads the cache table and tries to read from it. It will
       return a list of dictionaries if there are results.
-    '''
+    """
 
     params = self._prepareCommand()
     if not params['OK']:
@@ -312,7 +313,7 @@ class PilotAccountingCommand(AccountingCommand):
 
   def doMaster(self):
 
-    siteNames = CSHelpers.getSites()
+    siteNames = getSites()
     if not siteNames['OK']:
       return siteNames
     siteNames = siteNames['Value']
@@ -335,6 +336,3 @@ class PilotAccountingCommand(AccountingCommand):
         self.metrics['failed'].append(result)
 
     return S_OK(self.metrics)
-
-#...............................................................................
-# EOF

@@ -92,7 +92,7 @@ if not storageElements:
 
 gLogger.info( 'Existing LFN has replicas at: %s' % ', '.join( storageElements ) )
 
-oldGUID = dirac.getMetadata( oldLFN )
+oldGUID = dirac.getLfnMetadata(oldLFN)
 if not oldGUID['OK'] or oldGUID['Value']['Failed']:
   leave( 'Could not obtain GUID from LFC for %s - %s' % oldLFN, oldGUID, exitCode = 2 )
 oldGUID = oldGUID['Value']['Successful'][oldLFN]['GUID']

@@ -34,7 +34,7 @@ except IndexError:
 helloJ.setExecutable("exe-script.py", "", "helloWorld.log")
 helloJ.setCPUTime(17800)
 helloJ.setDestination('DIRAC.Jenkins.ch')
-result = dirac.submit(helloJ)
+result = dirac.submitJob(helloJ)
 gLogger.info("Hello world job: ", result)
 if not result['OK']:
   gLogger.error("Problem submitting job", result['Message'])
@@ -58,7 +58,7 @@ inputJ.setInputData('/lhcb/test/DIRAC/Jenkins/jenkinsInputTestFile.txt')  # this
 inputJ.setInputDataPolicy('download')
 inputJ.setCPUTime(17800)
 inputJ.setDestination('DIRAC.Jenkins.ch')
-result = dirac.submit(inputJ)
+result = dirac.submitJob(inputJ)
 gLogger.info("Hello world job with input: ", result)
 if not result['OK']:
   gLogger.error("Problem submitting job", result['Message'])
@@ -77,7 +77,7 @@ helloJMP.setExecutable("exe-script.py", "", "helloWorld.log")
 helloJMP.setCPUTime(17800)
 helloJMP.setDestination('DIRAC.Jenkins.ch')
 helloJMP.setTag('MultiProcessor')  # this should make the difference!
-result = dirac.submit(helloJMP)
+result = dirac.submitJob(helloJMP)
 gLogger.info("Hello world job MP: ", result)
 if not result['OK']:
   gLogger.error("Problem submitting job", result['Message'])
@@ -93,7 +93,7 @@ gaudiJ.setApplication('Gauss', 'v49r5', '$APPCONFIGOPTS/Gauss/DataType-2012.py',
                       events=1)
 gaudiJ.setCPUTime(17800)
 gaudiJ.setDestination('DIRAC.Jenkins.ch')
-result = dirac.submit(gaudiJ)
+result = dirac.submitJob(gaudiJ)
 gLogger.info("Gaudi job: ", result)
 if not result['OK']:
   gLogger.error("Problem submitting job", result['Message'])

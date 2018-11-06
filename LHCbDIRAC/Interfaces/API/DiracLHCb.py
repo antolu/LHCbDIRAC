@@ -5,6 +5,8 @@
 
 """
 
+__RCSID__ = "$Id$"
+
 import os
 import glob
 import fnmatch
@@ -12,11 +14,11 @@ import time
 
 from DIRAC import S_OK, S_ERROR, gConfig, gLogger
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getSites
 from DIRAC.Core.Utilities.SiteSEMapping import getSEsForSite, getSitesForSE
 from DIRAC.Interfaces.API.Dirac import Dirac
 from DIRAC.Interfaces.API.DiracAdmin import DiracAdmin
 from DIRAC.ResourceStatusSystem.Client.ResourceStatus import ResourceStatus
-from DIRAC.ResourceStatusSystem.Utilities.CSHelpers import getSites
 
 from LHCbDIRAC.Core.Utilities.File import makeGuid
 from LHCbDIRAC.Core.Utilities.ClientTools import mergeRootFiles
@@ -24,8 +26,6 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClie
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import printDMResult
 from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import getAccessURL
-
-__RCSID__ = "$Id$"
 
 COMPONENT_NAME = 'DiracLHCb'
 
@@ -881,7 +881,7 @@ class DiracLHCb(Dirac):
     sites = siteMask['Value']
     bannedSites = []
     for site in totalList:
-      if not site in sites:
+      if site not in sites:
         bannedSites.append(site)
 
     if printOutput:
@@ -987,7 +987,7 @@ class DiracLHCb(Dirac):
       # Some files don't have active replicas
       return self._errorReport('No active replica found for', str(siteLfns['']))
     # Get size of files
-    metadataDict = self.getMetadata(lfns, printOutput)
+    metadataDict = self.getLfnMetadata(lfns, printOutput)
     if not metadataDict['OK']:
       return metadataDict
     fileSizes = dict((lfn, metadataDict['Value']['Successful'].get(lfn, {}).get('Size', maxSizePerJob))
