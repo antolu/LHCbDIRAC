@@ -512,6 +512,7 @@ class TestMethods(unittest.TestCase):
     self.assertTrue(retVal['OK'])
     self.assertEqual(len(retVal['Value']), 195)
 
+
 if __name__ == '__main__':
 
   querySuite = unittest.defaultTestLoader.loadTestsFromTestCase(TestMethods)

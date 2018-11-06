@@ -2937,7 +2937,7 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
     retVal = self.bk.getLimitedFiles(bkQuery)
     self.assertTrue(retVal['OK'])
     self.assertEqual(retVal['Value']['TotalRecords'], 5)
-  
+
   def test_getListOfRuns(self):
     bkQuery = {'Visible': 'Y', 'ConfigName': 'Test', 'ConditionDescription': 'Beam450GeV-MagDown',
                'MaxItem': 25, 'EventType': '30000000', 'FileType': 'RAW', 'ProcessingPass':
@@ -2978,6 +2978,7 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
       for record in retVal['Value']['Records'][step]:
         if record[0] not in 'StepId':
           self.assertTrue(record in stepMeta)
+
 
 if __name__ == '__main__':
 
