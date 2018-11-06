@@ -2230,7 +2230,7 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
   For testing the User Interface using the inserted data.
   This must work using an empty database
   """
-  '''
+
   def test_addFiles(self):
     lfns = ['/lhcb/MC/2012/SIM/00056438/0000/00056438_00001025_test_1.sim',
             '/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_2.digi']
@@ -2538,10 +2538,10 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
     retVal = self.bk.getProcessingPass(bkQuery, '/Real Data')
     self.assertTrue(retVal['OK'])
     self.assertTrue(retVal['Value'][0]['ParameterNames'])
-    #self.assertEqual(retVal['Value'][0]['TotalRecords'], 0)
+    self.assertEqual(retVal['Value'][0]['TotalRecords'], 0)
     self.assertTrue(retVal['Value'][1]['ParameterNames'])
     self.assertEqual(retVal['Value'][1]['ParameterNames'], ['EventType', 'Description'])
-    #self.assertEqual(retVal['Value'][1]['TotalRecords'], 0)
+    self.assertEqual(retVal['Value'][1]['TotalRecords'], 1)
 
   def test_getConditions(self):
     bkQuery = {'ConfigName': 'Test', 'ConfigVersion': 'Test01'}
@@ -2937,7 +2937,7 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
     retVal = self.bk.getLimitedFiles(bkQuery)
     self.assertTrue(retVal['OK'])
     self.assertEqual(retVal['Value']['TotalRecords'], 5)
-  '''
+  
   def test_getListOfRuns(self):
     bkQuery = {'Visible': 'Y', 'ConfigName': 'Test', 'ConditionDescription': 'Beam450GeV-MagDown',
                'MaxItem': 25, 'EventType': '30000000', 'FileType': 'RAW', 'ProcessingPass':
@@ -2948,6 +2948,36 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
     self.assertEqual(len(retVal['Value']), 1)
     self.assertEqual(retVal['Value'], [1122])
 
+  def test_getTCKs(self):
+    bkQuery = {'Visible': 'Y', 'ConfigName': 'Test', 'ConditionDescription': 'Beam450GeV-MagDown',
+               'MaxItem': 25, 'EventType': '30000000', 'FileType': 'RAW', 'ProcessingPass':
+               '/Real Data', 'StartItem': 0,
+               'ConfigVersion': 'Test01', 'Quality': [u'OK', u'UNCHECKED']}
+    retVal = self.bk.getTCKs(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value'], ['-0x7f6bffff'])
+
+  def test_getStepsMetadata(self):
+    bkQuery = {'Visible': 'Y', 'ConfigName': 'Test', 'ConditionDescription': 'Beam450GeV-MagDown',
+               'MaxItem': 25, 'EventType': '30000000', 'FileType': 'RAW', 'ProcessingPass':
+               '/Real Data', 'StartItem': 0,
+               'ConfigVersion': 'Test01', 'Quality': [u'OK', u'UNCHECKED']}
+    retVal = self.bk.getStepsMetadata(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    stepMeta = [['StepName', 'Real Data'],
+                ['ApplicationName', 'Moore'],
+                ['ApplicationVersion', 'v0r111'],
+                ['OptionFiles', 'NULL'],
+                ['DDDB', 'xyz'],
+                ['CONDDB', 'xy'],
+                ['ExtraPackages', 'NULL'],
+                ['Visible', 'Y']]
+
+    for step in retVal['Value']['Records']:
+      for record in retVal['Value']['Records'][step]:
+        if record[0] not in 'StepId':
+          self.assertTrue(record in stepMeta)
 
 if __name__ == '__main__':
 

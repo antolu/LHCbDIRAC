@@ -507,6 +507,11 @@ class TestMethods(unittest.TestCase):
     self.assertTrue(retVal['OK'])
     self.assertEqual(len(retVal['Value']), 530)
 
+  def test_getRunsGroupedByDataTaking(self):
+    retVal = self.bk.getRunsGroupedByDataTaking()
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(len(retVal['Value']), 195)
+
 if __name__ == '__main__':
 
   querySuite = unittest.defaultTestLoader.loadTestsFromTestCase(TestMethods)
