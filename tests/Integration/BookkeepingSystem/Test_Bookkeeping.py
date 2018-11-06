@@ -2929,7 +2929,6 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
     self.assertEqual(retVal['Value']['Records'], [[11104131, 'Bd_KpiKS=DecProdCut']])
     self.assertEqual(retVal['Value']['ParameterNames'], ['EventType', 'Description'])
 
-  '''
   def test_getLimitedFiles(self):
     bkQuery = {'Visible': 'Y', 'ConfigName': 'Test', 'ConditionDescription': 'Beam450GeV-MagDown',
                'MaxItem': 25, 'EventType': '30000000', 'FileType': 'RAW', 'ProcessingPass':
@@ -2938,6 +2937,16 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
     retVal = self.bk.getLimitedFiles(bkQuery)
     self.assertTrue(retVal['OK'])
     self.assertEqual(retVal['Value']['TotalRecords'], 5)
+  '''
+  def test_getListOfRuns(self):
+    bkQuery = {'Visible': 'Y', 'ConfigName': 'Test', 'ConditionDescription': 'Beam450GeV-MagDown',
+               'MaxItem': 25, 'EventType': '30000000', 'FileType': 'RAW', 'ProcessingPass':
+               '/Real Data', 'StartItem': 0,
+               'ConfigVersion': 'Test01', 'Quality': [u'OK', u'UNCHECKED']}
+    retVal = self.bk.getListOfRuns(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(len(retVal['Value']), 1)
+    self.assertEqual(retVal['Value'], [1122])
 
 
 if __name__ == '__main__':

@@ -8,7 +8,6 @@ It requires an Oracle database
 import unittest
 
 from DIRAC.Core.Base.Script import parseCommandLine
-from BookkeepingSystem.Client.BKQuery import BKQuery
 parseCommandLine()
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
@@ -499,6 +498,14 @@ class TestMethods(unittest.TestCase):
     retVal = self.bk.getLimitedFiles(bkQuery)
     self.assertTrue(retVal['OK'])
     self.assertEqual(retVal['Value']['TotalRecords'], 25)
+
+  def test_getListOfRuns(self):
+    bkQuery = {'Visible': 'Y', 'ConfigName': 'LHCb', 'ConditionDescription': 'Beam3500GeV-VeloClosed-MagDown',
+               'EventType': '90000000', 'FileType': 'EW.DST', 'ConfigVersion':
+               'Collision11', 'ProcessingPass': '/Real Data/Reco10/Stripping13b', 'Quality': ['OK']}
+    retVal = self.bk.getListOfRuns(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(len(retVal['Value']), 530)
 
 if __name__ == '__main__':
 
