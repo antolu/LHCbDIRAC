@@ -806,7 +806,7 @@ class TransformationDebug(object):
 
           fts3FileStatusCount = defaultdict(int)
           for fts3Op in fts3Ops:
-            for fts3File in fts3Op['ftsFiles']:
+            for fts3File in fts3Op.ftsFiles:
               fts3FileStatusCount[fts3File.status] += 1
 
           prStr = []
@@ -817,11 +817,11 @@ class TransformationDebug(object):
 
           fts3Jobs = []
           for fts3Op in fts3Ops:
-            fts3Jobs.extend(fts3Op['ftsJobs'])
+            fts3Jobs.extend(fts3Op.ftsJobs)
 
           for job in fts3Jobs:
             gLogger.notice('\tFTS jobs associated:', '%s@%s (%s completed at %s %%)' %
-                           (job['ftsGUID'], job['ftsServer'], job['status'], job['completeness']))
+                           (job.ftsGUID, job.ftsServer, job.status, job.completeness))
           if not fts3Jobs:
             gLogger.notice('\tNo FTS jobs found for that request')
         except ImportError as e:
