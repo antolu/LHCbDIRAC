@@ -83,7 +83,7 @@ class ErrorLogging(ModuleBase):
           appConfigVersion=appConfigVersion,
           jobID=self.prod_job_id,
           prodID=self.production_id,
-          wmsID=self.jobIDs,
+          wmsID=self.jobID,
           name=self.errorLogNamejson)
 
       if not result['OK']:
