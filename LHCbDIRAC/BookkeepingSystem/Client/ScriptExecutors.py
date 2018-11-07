@@ -801,14 +801,23 @@ def executeFileSisters(dmScript, level=1):
       diracExit(1)
 
     ancestors = {}
-    # More than one file in the input list may have teh same ancestor(s)
+    # More than one file in the input list may have the same ancestor(s), check if they are sisters/cousins
     for lfn, ancList in result['Value']['Successful'].iteritems():
-      for anc in ancList:
-        ancestors.setdefault(anc['FileName'], []).append(lfn)
+      sameAncestors = set(anc['FileName'] for anc in ancList) & set(ancestors)
+      skip = False
+      if sameAncestors:
+        # Some of the input files share the same ancestor, are they sisters/cousins?
+        for sameAnc in sameAncestors:
+          for desc in ancestors[sameAnc]:
+            # Check if this file has the same type as lfn: if so, they are sisters/cousins, then keep only one
+            if lfnTypes[lfn] == lfnTypes[desc]:
+              skip = True
+      if not skip:
+        for anc in ancList:
+          ancestors.setdefault(anc['FileName'], []).append(lfn)
     # print ancestors
 
     res = bkClient.getFileDescendants(ancestors.keys(), depth=999999, production=prod, checkreplica=checkreplica)
-    # print res
 
     fullResult['OK'] = res['OK']
     if res['OK']:
