@@ -1,3 +1,14 @@
+[v9r3-pre6]
+use DIRAC v6r20p18
+
+* Once more fix
+* Another  BuG fix
+* BUG fix for ErrorLogging module
+* revert fts3 undue changes
+* The last parameter to MCStatsClient().set should be string but not dictionary
+* fix style
+* adjusting calls from deprecated ones
+
 [v9r3-pre5]
 use DIRAC v6r20p16
 
