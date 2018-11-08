@@ -1544,7 +1544,7 @@ procedure setFileInvisible(
   lfn varchar2
  )is
  begin
-  update files set visibilityFlag='N' where files.filename=lfn;
+  update files set visibilityFlag='N',inserttimestamp = sys_extract_utc(systimestamp) where files.filename=lfn;
   commit;
  end;
 
@@ -1552,7 +1552,7 @@ procedure setFileVisible(
   lfn varchar2
  )is
  begin
-  update files set visibilityFlag='Y' where files.filename=lfn;
+  update files set visibilityFlag='Y',inserttimestamp = sys_extract_utc(systimestamp) where files.filename=lfn;
   commit;
  end;
 
