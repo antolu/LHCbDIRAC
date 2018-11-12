@@ -20,3 +20,4 @@ This page is the work in progress. See more material here soon !
    BOINC/index.rst
    Recipes/index.rst
    logging.rst
+   lhcbMessageQueues
