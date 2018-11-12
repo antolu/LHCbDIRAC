@@ -19,3 +19,4 @@ This page is the work in progress. See more material here soon !
    flushing.rst
    BOINC/index.rst
    Recipes/index.rst
+   logging.rst
