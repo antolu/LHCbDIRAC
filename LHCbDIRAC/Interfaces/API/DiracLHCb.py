@@ -190,7 +190,8 @@ class DiracLHCb(Dirac):
 
     result = self._bkClient.getFileAncestors(lfns, depth, replica=replica)
     if not result['OK']:
-      return S_ERROR('Could not get ancestors: ' + result['Message'])
+      self.log.error('Could not get ancestors', result['Message'])
+      return result
     ancestors = set(x['FileName'] for ancestors in result['Value']['Successful'].itervalues() for x in ancestors)
 
     return S_OK(lfns + list(ancestors))
@@ -640,7 +641,7 @@ class DiracLHCb(Dirac):
         final.append(flag.upper())
       else:
         flag = flag.upper()
-        if not flag in bkFlags['Value']:
+        if flag not in bkFlags['Value']:
           msg = 'Specified DQ flag "%s" is not in allowed list: %s' % (flag, ', '.join(bkFlags['Value']))
           self.log.error(msg)
           return S_ERROR(msg)
@@ -869,16 +870,18 @@ class DiracLHCb(Dirac):
        @type printOutput: boolean
        @return: S_OK,S_ERROR
     """
-    siteMask = DiracAdmin().getSiteMask()
-    if not siteMask['OK']:
-      return siteMask
 
-    totalList = getSites()
+    res = getSites()
+    if not res['OK']:
+      self.log.error('Could not get list of sites from CS', res['Message'])
+      return res
+    totalList = res['Value']
 
-    if not totalList['OK']:
-      return S_ERROR('Could not get list of sites from CS')
-    totalList = totalList['Value']
-    sites = siteMask['Value']
+    res = DiracAdmin().getSiteMask()
+    if not res['OK']:
+      return res
+
+    sites = res['Value']
     bannedSites = []
     for site in totalList:
       if site not in sites:
@@ -910,7 +913,8 @@ class DiracLHCb(Dirac):
     res = gConfig.getSections('/Resources/StorageElements', True)
 
     if not res['OK']:
-      return S_ERROR('Failed to get storage element information')
+      self.log.error('Failed to get storage element information', res['Message'])
+      return res
 
     if printOutput:
       self.log.notice('%s %s %s' % ('Storage Element'.ljust(25), 'Read Status'.rjust(15), 'Write Status'.rjust(15)))

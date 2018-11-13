@@ -101,7 +101,7 @@ class DiracProduction(DiracLHCb):
       return result
     if not result['Value']:
       self.log.warn('No logging information found for productionID %s' % (productionID))
-      return S_ERROR('No logging info found')
+      return result
 
     if not printOutput:
       return result
@@ -784,7 +784,7 @@ class DiracProduction(DiracLHCb):
 
     if not result['OK']:
       gLogger.error('Error during prod creation:\n%s\ncheck that the wkf name is unique.' % (result['Message']))
-      return S_ERROR(result['Message'])
+      return result
 
     if publishFlag:
       prodID = result['Value']
