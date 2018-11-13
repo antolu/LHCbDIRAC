@@ -152,7 +152,7 @@ exits number;
 BEGIN 
 	FOR prod IN(SELECT j.production,J.STEPID, f.eventtypeid, f.filetypeid, f.gotreplica, f.visibilityflag 
 	FROM jobs j, files f WHERE 
-		f.inserttimestamp >= SYSTIMESTAMP - 1 AND 
+		f.inserttimestamp >= SYSTIMESTAMP - 3 AND 
 		j.jobid = f.jobid AND 
 		f.filetypeid NOT IN(9,17) GROUP BY j.production, J.STEPID, f.eventtypeid, f.filetypeid, f.gotreplica, f.visibilityflag Order by f.gotreplica,f.visibilityflag asc) LOOP
 		SELECT count(*) INTO exits FROM  productionoutputfiles WHERE production=prod.production AND eventtypeid=prod.eventtypeid AND filetypeid=prod.filetypeid AND stepid=prod.stepid;

@@ -1135,8 +1135,8 @@ class OracleBookkeepingDB(object):
 
     tables = ' files f, dataquality d, jobs j, productionoutputfiles prod, productionscontainer cont, filetypes ft '
     condition = " and cont.production=prod.production and \
-    j.production=prod.production and \
-    prod.eventtypeid=f.eventtypeid %s " % self.__buildVisible(visible=visible, replicaFlag='Yes')
+    j.production=prod.production and j.stepid=prod.stepid  and \
+    prod.eventtypeid=f.eventtypeid %s " % self.__buildVisible(visible=visible, replicaFlag=replicaflag)
 
     retVal = self.__buildStartenddate(startDate, endDate, condition, tables)
     if not retVal['OK']:
@@ -3478,12 +3478,14 @@ and files.qualityid= dataquality.qualityid" % lfn
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-
+    
+    print '!!!!!!!!!!!!!!!!!', flag
     retVal = self.__buildDataquality(flag, condition, tables)
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
 
+    print 'FGSDFGSFDGSFDG', condition
     retVal = self.__buildReplicaflag(replicaFlag, condition, tables)
     if not retVal['OK']:
       return retVal
@@ -3977,8 +3979,10 @@ and files.qualityid= dataquality.qualityid" % lfn
     if runNumbers is None:
       runNumbers = []
 
-    tables = ' files f, jobs j, productionscontainer cont '
-    condition = ''
+    tables = ' files f, jobs j, productionscontainer cont, productionoutputfiles prod '
+    condition = " and cont.production=prod.production and \
+    j.production=prod.production and j.stepid=prod.stepid and\
+    prod.eventtypeid=f.eventtypeid %s " % self.__buildVisible(visible=visible, replicaFlag=replicaFlag)
 
     retVal = self.__buildStartenddate(startDate, endDate, condition, tables)
     if not retVal['OK']:
@@ -4010,12 +4014,12 @@ and files.qualityid= dataquality.qualityid" % lfn
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildProduction(production, condition, tables)
+    retVal = self.__buildProduction(production, condition, tables, useMainTables=False)
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildEventType(eventType, condition, tables)
+    retVal = self.__buildEventType(eventType, condition, tables, useMainTables=False)
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -4023,7 +4027,7 @@ and files.qualityid= dataquality.qualityid" % lfn
     if production != default:
       condition += ' and j.production=' + str(production)
 
-    retVal = self.__buildFileTypes(fileType, condition, tables)
+    retVal = self.__buildFileTypes(fileType, condition, tables, useMainTables=False)
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -4033,7 +4037,7 @@ and files.qualityid= dataquality.qualityid" % lfn
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildProcessingPass(processingPass, condition, tables)
+    retVal = self.__buildProcessingPass(processingPass, condition, tables, useMainTables=False)
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -4046,7 +4050,8 @@ and files.qualityid= dataquality.qualityid" % lfn
     command = "select count(*),\
     SUM(f.EventStat), SUM(f.FILESIZE), \
     SUM(f.luminosity),SUM(f.instLuminosity) from  %s  where \
-    j.jobid=f.jobid and j.production=cont.production %s" % (tables, condition)
+    j.jobid=f.jobid and \
+    prod.production=cont.production and prod.filetypeid=f.filetypeid %s" % (tables, condition)
     return self.dbR_.query(command)
 
   #############################################################################
@@ -4074,7 +4079,7 @@ and files.qualityid= dataquality.qualityid" % lfn
 
     tables = ' files f, jobs j, productionoutputfiles prod, productionscontainer cont, filetypes ft, dataquality d '
     condition = " and cont.production=prod.production and d.qualityid=f.qualityid and \
-    j.production=prod.production and \
+    j.production=prod.production and j.stepid=prod.stepid and \
     prod.eventtypeid=f.eventtypeid %s " % self.__buildVisible(visible='Y', replicaFlag='Yes')
 
     retVal = self.__buildConfiguration(configName, configVersion, condition, tables)

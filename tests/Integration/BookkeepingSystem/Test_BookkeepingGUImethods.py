@@ -106,7 +106,7 @@ class TestMethods(unittest.TestCase):
                                       '/Sim01/Trig0x002e002aFlagged/Reco08', 'Visible': 'Y',
                                       'fullpath': '/MC/MC10/Beam3500GeV- \
                                       Oct2010-MagUp-Nu2.5/Sim01/Trig0x002e002aFlagged/Reco08/11436000/DST',
-                                      'ConfigVersion': 'MC10', 'Quality': ['OK']})
+                                      'ConfigVersion': 'MC10', 'DataQuality': ['OK']})
     self.assertTrue(retVal['OK'])
     self.assertTrue(retVal['Value']['ParameterNames'])
     self.assertTrue(retVal['Value']['Records'])
@@ -122,7 +122,7 @@ class TestMethods(unittest.TestCase):
                                       'Visible': 'Y',
                                       'fullpath': '/MC/MC10/Beam3500GeV-Oct2010-\
                                       MagUp-Nu2.5/Sim01/Trig0x002e002aFlagged/Reco08/11836001/DST',
-                                      'ConfigVersion': 'MC10', 'Quality': ['OK']})
+                                      'ConfigVersion': 'MC10', 'DataQuality': ['OK']})
     self.assertTrue(retVal['OK'])
     self.assertTrue(retVal['Value']['ParameterNames'])
     self.assertTrue(retVal['Value']['Records'])
@@ -138,7 +138,7 @@ class TestMethods(unittest.TestCase):
                                       '/Sim01/Rec03-WithTruth', 'Visible': 'Y',
                                       'fullpath': '/MC/Upgrade/Beam7TeV-UpgradeML1.0-MagDown-\
                                       Lumi2-25ns/Sim01/Rec03-WithTruth/13104011/DST',
-                                      'ConfigVersion': 'Upgrade', 'Quality': ['OK']})
+                                      'ConfigVersion': 'Upgrade', 'DataQuality': ['OK']})
     self.assertTrue(retVal['OK'])
     self.assertTrue(retVal['Value']['ParameterNames'])
     self.assertTrue(retVal['Value']['Records'])
@@ -154,7 +154,7 @@ class TestMethods(unittest.TestCase):
                                       '/Upgrade-Sim01/Rec02', 'Visible': 'Y',
                                       'fullpath': '/MC/Upgrade/Beam7TeV-UpgradeML1.1-MagDown-Lumi10-25ns\
                                       /Upgrade-Sim01/Rec02/10000000/XDST',
-                                      'ConfigVersion': 'Upgrade', 'Quality': ['OK']})
+                                      'ConfigVersion': 'Upgrade', 'DataQuality': ['OK']})
     self.assertTrue(retVal['OK'])
     self.assertTrue(retVal['Value']['ParameterNames'])
     self.assertTrue(retVal['Value']['Records'])
@@ -170,7 +170,7 @@ class TestMethods(unittest.TestCase):
                                       'Visible': 'Y',
                                       'fullpath': '/LHCb/Collision11/Beam3500GeV-VeloClosed-MagDown/Real Data/Reco10/\
                                       Stripping13b/90000000/BHADRON.DST',
-                                      'ConfigVersion': 'Collision11', 'Quality': ['OK']})
+                                      'ConfigVersion': 'Collision11', 'DataQuality': ['OK']})
     self.assertTrue(retVal['OK'])
     self.assertTrue(retVal['Value']['ParameterNames'])
     self.assertTrue(retVal['Value']['Records'])
@@ -186,7 +186,7 @@ class TestMethods(unittest.TestCase):
                                       'Visible': 'Y',
                                       'fullpath': '/LHCb/Collision11/Beam3500GeV-VeloClosed-MagDown/Real Data/Reco10/\
                                       Stripping13b/90000000/EW.DST',
-                                      'ConfigVersion': 'Collision11', 'Quality': ['OK']})
+                                      'ConfigVersion': 'Collision11', 'DataQuality': ['OK']})
     self.assertTrue(retVal['OK'])
     self.assertTrue(retVal['Value']['ParameterNames'])
     self.assertTrue(retVal['Value']['Records'])
@@ -202,7 +202,7 @@ class TestMethods(unittest.TestCase):
                                       'EventType': '90000000',
                                       'FileType': 'RADIATIVE.DST',
                                       'ProcessingPass': '/Real Data/Reco10/Stripping13b',
-                                      'Quality': ['OK'],
+                                      'DataQuality': ['OK'],
                                       'Visible': 'N',
                                       'fullpath': '/LHCb/Collision11/Beam3500GeV-VeloClosed-\
                                       MagDown/Real Data/Reco10/Stripping13b/90000000/RADIATIVE.DST'})
@@ -221,7 +221,7 @@ class TestMethods(unittest.TestCase):
                                       'EventType': '90000000',
                                       'FileType': 'SEMILEPTONIC.DST',
                                       'ProcessingPass': '/Real Data/Reco10/Stripping13b',
-                                      'Quality': ['OK'],
+                                      'DataQuality': ['OK'],
                                       'Visible': 'N',
                                       'fullpath': '/LHCb/Collision11/Beam3500GeV-VeloClosed-MagDown/Real\
                                        Data/Reco10/Stripping13b/90000000/SEMILEPTONIC.DST'})
@@ -248,7 +248,7 @@ class TestMethods(unittest.TestCase):
                                            '/Sim01/Trig0x002e002aFlagged/Reco08', 'Visible': 'Y',
                                            'fullpath': '/MC/MC10/Beam3500GeV- Oct2010-MagUp-Nu2.5/Sim01\
                                            /Trig0x002e002aFlagged/Reco08/11436000/DST',
-                                           'ConfigVersion': 'MC10', 'Quality': ['OK']})
+                                           'ConfigVersion': 'MC10', 'DataQuality': ['OK']})
     self.assertTrue(retVal['OK'])
     self.assertTrue(retVal['Value']['ParameterNames'])
     self.assertTrue(retVal['Value']['Records'])
@@ -264,7 +264,7 @@ class TestMethods(unittest.TestCase):
                                            'Visible': 'Y',
                                            'fullpath': '/MC/MC10/Beam3500GeV-Oct2010-MagUp-Nu2.5/Sim01/\
                                       Trig0x002e002aFlagged/Reco08/11836001/DST',
-                                           'ConfigVersion': 'MC10', 'Quality': ['OK']})
+                                           'ConfigVersion': 'MC10', 'DataQuality': ['OK']})
     self.assertTrue(retVal['OK'])
     self.assertTrue(retVal['Value']['ParameterNames'])
     self.assertTrue(retVal['Value']['Records'])
@@ -279,7 +279,7 @@ class TestMethods(unittest.TestCase):
                                            '/Sim01/Rec03-WithTruth', 'Visible': 'Y',
                                            'fullpath': '/MC/Upgrade/Beam7TeV-UpgradeML1.0-MagDown-\
                                       Lumi2-25ns/Sim01/Rec03-WithTruth/13104011/DST',
-                                           'ConfigVersion': 'Upgrade', 'Quality': ['OK']})
+                                           'ConfigVersion': 'Upgrade', 'DataQuality': ['OK']})
     self.assertTrue(retVal['OK'])
     self.assertTrue(retVal['Value']['ParameterNames'])
     self.assertTrue(retVal['Value']['Records'])
@@ -294,7 +294,7 @@ class TestMethods(unittest.TestCase):
                                            '/Upgrade-Sim01/Rec02', 'Visible': 'Y',
                                            'fullpath': '/MC/Upgrade/Beam7TeV-UpgradeML1.1-MagDown-Lumi10-25ns\
                                       /Upgrade-Sim01/Rec02/10000000/XDST',
-                                           'ConfigVersion': 'Upgrade', 'Quality': ['OK']})
+                                           'ConfigVersion': 'Upgrade', 'DataQuality': ['OK']})
     self.assertTrue(retVal['OK'])
     self.assertTrue(retVal['Value']['ParameterNames'])
     self.assertTrue(retVal['Value']['Records'])
@@ -310,7 +310,7 @@ class TestMethods(unittest.TestCase):
                                            'Visible': 'Y',
                                            'fullpath': '/LHCb/Collision11/Beam3500GeV-VeloClosed-MagDown/\
                                            Real Data/Reco10/Stripping13b/90000000/BHADRON.DST',
-                                           'ConfigVersion': 'Collision11', 'Quality': ['OK']})
+                                           'ConfigVersion': 'Collision11', 'DataQuality': ['OK']})
     self.assertTrue(retVal['OK'])
     self.assertTrue(retVal['Value']['ParameterNames'])
     self.assertTrue(retVal['Value']['Records'])
@@ -326,7 +326,7 @@ class TestMethods(unittest.TestCase):
                                            'Visible': 'Y',
                                            'fullpath': '/LHCb/Collision11/Beam3500GeV-VeloClosed-MagDown/\
                                            Real Data/Reco10/Stripping13b/90000000/EW.DST',
-                                           'ConfigVersion': 'Collision11', 'Quality': ['OK']})
+                                           'ConfigVersion': 'Collision11', 'DataQuality': ['OK']})
     self.assertTrue(retVal['OK'])
     self.assertTrue(retVal['Value']['ParameterNames'])
     self.assertTrue(retVal['Value']['Records'])
@@ -407,7 +407,7 @@ class TestMethods(unittest.TestCase):
   def test_getProductionSummary(self):
     bkQuery = {'Visible': 'Y', 'ConfigName': 'LHCb', 'ConditionDescription': 'Beam3500GeV-VeloClosed-MagDown',
                'EventType': '90000000', 'FileType': 'EW.DST', 'ConfigVersion':
-               'Collision11', 'ProcessingPass': '/Real Data/Reco10/Stripping13b', 'Quality': ['OK']}
+               'Collision11', 'ProcessingPass': '/Real Data/Reco10/Stripping13b', 'DataQuality': ['OK']}
     retVal = self.bk.getProductionSummary(bkQuery)
     self.assertTrue(retVal['OK'])
     self.assertEqual(retVal['Value']['TotalRecords'], 2)
@@ -415,7 +415,7 @@ class TestMethods(unittest.TestCase):
   def test_getVisibleFilesWithMetadata(self):
     bkQuery = {'Visible': 'Y', 'ConfigName': 'LHCb', 'ConditionDescription': 'Beam3500GeV-VeloClosed-MagDown',
                'EventType': '90000000', 'FileType': 'EW.DST', 'ConfigVersion':
-               'Collision11', 'ProcessingPass': '/Real Data/Reco10/Stripping13b', 'Quality': ['OK']}
+               'Collision11', 'ProcessingPass': '/Real Data/Reco10/Stripping13b', 'DataQuality': 'ALL'}
     retVal = self.bk.getVisibleFilesWithMetadata(bkQuery)
     self.assertTrue(retVal['OK'])
     self.assertEqual(len(retVal['Value']['LFNs']), 3223)
@@ -427,10 +427,22 @@ class TestMethods(unittest.TestCase):
     self.assertEqual(retVal['Value']['Summary']['Number of Events'], 78548304)
     self.assertEqual(retVal['Value']['Summary']['TotalLuminosity'], 0)
 
+    bkQuery['DataQuality'] = ['OK']
+    retVal = self.bk.getVisibleFilesWithMetadata(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(len(retVal['Value']['LFNs']), 3221)
+    self.assertEqual(retVal['Value']['Summary']['EventInputStat'], 2673340311)
+    self.assertEqual(retVal['Value']['Summary']['FileSize'], 7550.81089238)
+    self.assertEqual(retVal['Value']['Summary']['InstLuminosity'], 0)
+    self.assertEqual(retVal['Value']['Summary']['Luminosity'], 212901847.494)
+    self.assertEqual(retVal['Value']['Summary']['Number Of Files'], 3221)
+    self.assertEqual(retVal['Value']['Summary']['Number of Events'], 78545483)
+    self.assertEqual(retVal['Value']['Summary']['TotalLuminosity'], 0)
+
   def test_getEventTypes(self):
     bkQuery = {'Visible': 'Y', 'ConfigName': 'LHCb', 'ConditionDescription': 'Beam3500GeV-VeloClosed-MagDown',
                'EventType': '90000000', 'FileType': 'EW.DST', 'ConfigVersion':
-               'Collision11', 'ProcessingPass': '/Real Data/Reco10/Stripping13b', 'Quality': ['OK']}
+               'Collision11', 'ProcessingPass': '/Real Data/Reco10/Stripping13b', 'DataQuality': ['OK']}
     retVal = self.bk.getEventTypes(bkQuery)
     self.assertTrue(retVal['OK'])
     evts = [[97000000, 'Beam Gas'],
@@ -456,7 +468,7 @@ class TestMethods(unittest.TestCase):
   def test_getTCKs(self):
     bkQuery = {'Visible': 'Y', 'ConfigName': 'LHCb', 'ConditionDescription': 'Beam3500GeV-VeloClosed-MagDown',
                'EventType': '90000000', 'FileType': 'EW.DST', 'ConfigVersion':
-               'Collision11', 'ProcessingPass': '/Real Data/Reco10/Stripping13b', 'Quality': ['OK']}
+               'Collision11', 'ProcessingPass': '/Real Data/Reco10/Stripping13b', 'DataQuality': ['OK']}
     retVal = self.bk.getTCKs(bkQuery)
     self.assertTrue(retVal['OK'])
     self.assertEqual(sorted(retVal['Value']), sorted(['0x57e60',
@@ -472,7 +484,7 @@ class TestMethods(unittest.TestCase):
   def test_getStepsMetadata(self):
     bkQuery = {'Visible': 'Y', 'ConfigName': 'LHCb', 'ConditionDescription': 'Beam3500GeV-VeloClosed-MagDown',
                'EventType': '90000000', 'FileType': 'EW.DST', 'ConfigVersion':
-               'Collision11', 'ProcessingPass': '/Real Data/Reco10/Stripping13b', 'Quality': ['OK']}
+               'Collision11', 'ProcessingPass': '/Real Data/Reco10/Stripping13b', 'DataQuality': ['OK']}
     retVal = self.bk.getStepsMetadata(bkQuery)
     self.assertTrue(retVal['OK'])
     self.assertEqual(retVal['Value']['TotalRecords'], 1)
@@ -494,7 +506,7 @@ class TestMethods(unittest.TestCase):
                'ConditionDescription': 'Beam3500GeV-May2010-MagDown-Fix1', 'MaxItem': 25,
                'EventType': '30000000',
                'ProcessingPass': '/Sim01/Trig0x002e002aFlagged/Reco08-MINBIAS',
-               'Visible': 'Y', 'Quality': [u'OK', u'UNCHECKED']}
+               'Visible': 'Y', 'DataQuality': [u'OK', u'UNCHECKED']}
     retVal = self.bk.getLimitedFiles(bkQuery)
     self.assertTrue(retVal['OK'])
     self.assertEqual(retVal['Value']['TotalRecords'], 25)
@@ -502,7 +514,14 @@ class TestMethods(unittest.TestCase):
   def test_getListOfRuns(self):
     bkQuery = {'Visible': 'Y', 'ConfigName': 'LHCb', 'ConditionDescription': 'Beam3500GeV-VeloClosed-MagDown',
                'EventType': '90000000', 'FileType': 'EW.DST', 'ConfigVersion':
-               'Collision11', 'ProcessingPass': '/Real Data/Reco10/Stripping13b', 'Quality': ['OK']}
+               'Collision11', 'ProcessingPass': '/Real Data/Reco10/Stripping13b', 'DataQuality': ['OK']}
+    retVal = self.bk.getListOfRuns(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(len(retVal['Value']), 529)
+
+    bkQuery = {'Visible': 'Y', 'ConfigName': 'LHCb', 'ConditionDescription': 'Beam3500GeV-VeloClosed-MagDown',
+               'EventType': '90000000', 'FileType': 'EW.DST', 'ConfigVersion':
+               'Collision11', 'ProcessingPass': '/Real Data/Reco10/Stripping13b', 'DataQuality': 'ALL'}
     retVal = self.bk.getListOfRuns(bkQuery)
     self.assertTrue(retVal['OK'])
     self.assertEqual(len(retVal['Value']), 530)

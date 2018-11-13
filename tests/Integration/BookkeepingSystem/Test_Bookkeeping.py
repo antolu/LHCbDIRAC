@@ -513,7 +513,7 @@ class TestMethods(DataInsertTestCase):
                'ProcessingPass': '/Sim01/Reco08',
                'Visible': 'Y',
                'ConfigVersion': 'MC10',
-               'Quality': []}
+               'DataQuality': 'ALL'}
 
     retVal = self.bk.getFiles(bkQuery)
     self.assertTrue(retVal['OK'])
@@ -526,7 +526,7 @@ class TestMethods(DataInsertTestCase):
                'ProcessingPass': '/Sim01/Reco08',
                'Visible': 'Y',
                'ConfigVersion': 'MC10',
-               'Quality': "ALL"}
+               'DataQuality': "ALL"}
 
     retVal = self.bk.getFiles(bkQuery)
     self.assertTrue(retVal['OK'])
@@ -540,7 +540,7 @@ class TestMethods(DataInsertTestCase):
                'EventType': '30000000',
                'FileType': 'DST',
                'Visible': 'Y',
-               'Quality': 'OK'}
+               'DataQuality': 'OK'}
 
     retVal = self.bk.getFiles(bkQuery)
     self.assertTrue(retVal['OK'])
@@ -562,7 +562,7 @@ class TestMethods(DataInsertTestCase):
                'ProcessingPass': '/MC10Gen01',
                'Visible': 'Y',
                'ConfigVersion': 'MC10',
-               'Quality': []}
+               'DataQuality': 'ALL'}
     retVal = self.bk.getFiles(bkQuery)
     self.assertTrue(retVal['OK'])
     self.assertEqual(len(retVal['Value']), 200)
@@ -612,7 +612,7 @@ class TestMethods(DataInsertTestCase):
                'ProcessingPass': '/MC10Gen01',
                'Visible': 'Y',
                'ConfigVersion': 'MC10',
-               'Quality': []}
+               'DataQuality': 'ALL'}
 
     retVal = self.bk.getFiles(bkQuery)
     self.assertTrue(retVal['OK'])
@@ -629,7 +629,7 @@ class TestMethods(DataInsertTestCase):
                'ProcessingPass': '/Sim01/Reco08',
                'Visible': 'Y',
                'ConfigVersion': 'MC10',
-               'Quality': []}
+               'DataQuality': 'ALL'}
 
     retVal = self.bk.getProductions(bkQuery)
     self.assertTrue(retVal['OK'])
@@ -716,7 +716,7 @@ class TestMethods(DataInsertTestCase):
                'ProcessingPass': '/Real Data/Reco10/Stripping13b',
                'Visible': 'Y',
                'ConfigVersion': 'Collision11',
-               'Quality': ['OK']}
+               'DataQuality': 'ALL'}
 
     summary = {'TotalLuminosity': 0,
                'Number Of Files': 2316,
@@ -744,6 +744,23 @@ class TestMethods(DataInsertTestCase):
 
     self.assertEqual(retVal['Value']['Summary'], summary)
     self.assertEqual(len(retVal['Value']['LFNs']), 2316)
+    self.assertEqual(retVal['Value']['LFNs'][retVal['Value']['LFNs'].keys()[0]].keys(), paramNames)
+
+    bkQuery['DataQuality'] = 'OK'
+    summary = {'EventInputStat': 2177397109,
+               'FileSize': 6315.18232392,
+               'InstLuminosity': 0,
+               'Luminosity': 174996481.488,
+               'Number Of Files': 2314,
+               'Number of Events': 69542587,
+               'TotalLuminosity': 0}
+    retVal = self.bk.getVisibleFilesWithMetadata(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['Summary'])
+    self.assertTrue(retVal['Value']['LFNs'])
+
+    self.assertEqual(retVal['Value']['Summary'], summary)
+    self.assertEqual(len(retVal['Value']['LFNs']), 2314)
     self.assertEqual(retVal['Value']['LFNs'][retVal['Value']['LFNs'].keys()[0]].keys(), paramNames)
 
     bkQuery['RunNumber'] = [90104, 92048, 87851]
@@ -784,20 +801,20 @@ class TestMethods(DataInsertTestCase):
     bkQuery.pop('StartRun')
     bkQuery.pop('EndRun')
     bkQuery['StartDate'] = "2011-06-15 19:15:25"
-    summary = {'TotalLuminosity': 0,
-               'Number Of Files': 127,
-               'Luminosity': 11841384.7998,
-               'Number of Events': 5229684,
-               'EventInputStat': 135822190,
-               'FileSize': 449.842646079,
-               'InstLuminosity': 0}
+    summary = {'EventInputStat': 135629659,
+               'FileSize': 449.439082551,
+               'InstLuminosity': 0,
+               'Luminosity': 11832088.6133,
+               'Number Of Files': 125,
+               'Number of Events': 5226863,
+               'TotalLuminosity': 0}
 
     retVal = self.bk.getVisibleFilesWithMetadata(bkQuery)
     self.assertTrue(retVal['OK'])
     self.assertTrue(retVal['Value']['Summary'])
     self.assertTrue(retVal['Value']['LFNs'])
     self.assertEqual(retVal['Value']['Summary'], summary)
-    self.assertEqual(len(retVal['Value']['LFNs']), 127)
+    self.assertEqual(len(retVal['Value']['LFNs']), 125)
 
     bkQuery['EndDate'] = "2011-06-16 19:15:25"
     summary = {'TotalLuminosity': 0,
@@ -826,7 +843,7 @@ class TestMethods(DataInsertTestCase):
                'ProcessingPass': '/Sim01/Reco08',
                'Visible': 'Y',
                'ConfigVersion': 'MC10',
-               'Quality': ['OK']}
+               'DataQuality': ['OK']}
 
     summary = {'EventInputStat': 6020000,
                'FileSize': 468.227136723,
@@ -880,7 +897,6 @@ class TestMethods(DataInsertTestCase):
     This si used to test the ganga queries
     Now test the run numbers
     """
-
     bkQuery = {'ConfigName': 'LHCb',
                'ConditionDescription': 'Beam3500GeV-VeloClosed-MagDown',
                'EventType': 90000000,
@@ -888,8 +904,12 @@ class TestMethods(DataInsertTestCase):
                'ProcessingPass': '/Real Data/Reco10/Stripping13b',
                'Visible': 'Y',
                'ConfigVersion': 'Collision11',
-               'Quality': ['OK']}
+               'DataQuality': ['OK']}
 
+    retVal = self.bk.getFiles(bkQuery)
+    self.assertEqual(len(retVal['Value']), 3221)
+
+    bkQuery['DataQuality'] = 'ALL'
     retVal = self.bk.getFiles(bkQuery)
     self.assertEqual(len(retVal['Value']), 3223)
 
@@ -930,7 +950,7 @@ class TestMethods(DataInsertTestCase):
                'ProcessingPass': '/Sim01/Reco08',
                'Visible': 'Y',
                'ConfigVersion': 'MC10',
-               'Quality': ['OK']}
+               'DataQuality': ['OK']}
 
     retVal = self.bk.getFiles(bkQuery)
     self.assertTrue(retVal['OK'])
@@ -1020,7 +1040,7 @@ class TestMethods(DataInsertTestCase):
                'ProcessingPass': '/Real Data/Reco10/Stripping13b',
                'Visible': 'Y',
                'ConfigVersion': 'Collision11',
-               'Quality': ['OK']}
+               'DataQuality': ['OK']}
 
     paramNames = [
         'FileName',
@@ -1102,7 +1122,7 @@ class TestMethods(DataInsertTestCase):
                'ProcessingPass': '/Sim01/Reco08',
                'Visible': 'Y',
                'ConfigVersion': 'MC10',
-               'Quality': ['OK']}
+               'DataQuality': ['OK']}
 
     paramNames = [
         'FileName',
@@ -2933,7 +2953,7 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
     bkQuery = {'Visible': 'Y', 'ConfigName': 'Test', 'ConditionDescription': 'Beam450GeV-MagDown',
                'MaxItem': 25, 'EventType': '30000000', 'FileType': 'RAW', 'ProcessingPass':
                '/Real Data', 'StartItem': 0,
-               'ConfigVersion': 'Test01', 'Quality': [u'OK', u'UNCHECKED']}
+               'ConfigVersion': 'Test01', 'DataQuality': [u'OK', u'UNCHECKED']}
     retVal = self.bk.getLimitedFiles(bkQuery)
     self.assertTrue(retVal['OK'])
     self.assertEqual(retVal['Value']['TotalRecords'], 5)
@@ -2942,7 +2962,7 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
     bkQuery = {'Visible': 'Y', 'ConfigName': 'Test', 'ConditionDescription': 'Beam450GeV-MagDown',
                'MaxItem': 25, 'EventType': '30000000', 'FileType': 'RAW', 'ProcessingPass':
                '/Real Data', 'StartItem': 0,
-               'ConfigVersion': 'Test01', 'Quality': [u'OK', u'UNCHECKED']}
+               'ConfigVersion': 'Test01', 'DataQuality': [u'OK', u'UNCHECKED']}
     retVal = self.bk.getListOfRuns(bkQuery)
     self.assertTrue(retVal['OK'])
     self.assertEqual(len(retVal['Value']), 1)
@@ -2952,7 +2972,7 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
     bkQuery = {'Visible': 'Y', 'ConfigName': 'Test', 'ConditionDescription': 'Beam450GeV-MagDown',
                'MaxItem': 25, 'EventType': '30000000', 'FileType': 'RAW', 'ProcessingPass':
                '/Real Data', 'StartItem': 0,
-               'ConfigVersion': 'Test01', 'Quality': [u'OK', u'UNCHECKED']}
+               'ConfigVersion': 'Test01', 'DataQuality': [u'OK', u'UNCHECKED']}
     retVal = self.bk.getTCKs(bkQuery)
     self.assertTrue(retVal['OK'])
     self.assertEqual(retVal['Value'], ['-0x7f6bffff'])
@@ -2961,7 +2981,7 @@ class TestBookkeepingUserInterface(MCInsertTestCase):
     bkQuery = {'Visible': 'Y', 'ConfigName': 'Test', 'ConditionDescription': 'Beam450GeV-MagDown',
                'MaxItem': 25, 'EventType': '30000000', 'FileType': 'RAW', 'ProcessingPass':
                '/Real Data', 'StartItem': 0,
-               'ConfigVersion': 'Test01', 'Quality': [u'OK', u'UNCHECKED']}
+               'ConfigVersion': 'Test01', 'DataQuality': [u'OK', u'UNCHECKED']}
     retVal = self.bk.getStepsMetadata(bkQuery)
     self.assertTrue(retVal['OK'])
     self.assertEqual(retVal['Value']['TotalRecords'], 1)
