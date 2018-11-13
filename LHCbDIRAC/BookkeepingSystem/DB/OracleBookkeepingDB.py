@@ -3478,14 +3478,12 @@ and files.qualityid= dataquality.qualityid" % lfn
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-    
-    print '!!!!!!!!!!!!!!!!!', flag
+
     retVal = self.__buildDataquality(flag, condition, tables)
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
 
-    print 'FGSDFGSFDGSFDG', condition
     retVal = self.__buildReplicaflag(replicaFlag, condition, tables)
     if not retVal['OK']:
       return retVal
