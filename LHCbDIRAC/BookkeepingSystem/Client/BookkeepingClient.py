@@ -27,7 +27,7 @@ class BookkeepingClient(Client):
     :param str url: can specify a specific URL
     """
     Client.__init__(self, **kwargs)
-    self.setServer('Bookkeeping/TestBookkeepingManager')
+    self.setServer('Bookkeeping/BookkeepingManager')
     if url:
       self.setServer(url)
     self.setTimeout(3600)
@@ -59,7 +59,7 @@ class BookkeepingClient(Client):
     :return: files with meta data associated
     """
     in_dict = dict(in_dict)
-    bkk = TransferClient('Bookkeeping/TestBookkeepingManager')
+    bkk = TransferClient('Bookkeeping/BookkeepingManager')
     params = JEncoder.dumps(in_dict)
     file_name = tempfile.NamedTemporaryFile()
     retVal = bkk.receiveFile(file_name.name, params)
@@ -338,7 +338,7 @@ class BookkeepingClient(Client):
     :return: list of files
     """
     in_dict = dict(in_dict)
-    bkk = TransferClient('Bookkeeping/TestBookkeepingManager')
+    bkk = TransferClient('Bookkeeping/BookkeepingManager')
     in_dict['MethodName'] = 'getFiles'
     params = JEncoder.dumps(in_dict)
     file_name = tempfile.NamedTemporaryFile()
