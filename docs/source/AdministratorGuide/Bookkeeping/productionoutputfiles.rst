@@ -1,7 +1,31 @@
 .. _productionoutputfiles:
 
+===========================
+ProductionOutputFiles table 
+===========================
+
+The table contains data which used for fast queries. It aggregates all information, which are used by the BkQuery. The queries 
+are very fast because it does not require join of the two main tables `files` and `jobs`.
+The table filled when the production is created. The addProduction method is used to propagate this table.
+The table contains the following columns::
+	
+	Production
+	Stepid
+	EventtypeId
+	FileTypeId
+	Visible
+	GotReplica
+
+The `visible` and `GotReplica` columns can be changes when all files are removed in a certain production or the file set to invisible (The files are archived, they are not supposed to 
+be used by the users.) In order to update this table the following stored procedure is used::
+		
+	BKUTILITIES.updateProdOutputFiles
+	
+This method updates the productions which `visible` and `gotreplica` flags have changed within the last 3 days. 
+The procedure is run by an Oracle job. It is scheduled every 10 minutes. More details in the :ref:`administrate_oracle`  document.
+
 ================================
-Fill ProductionOutputFiles table
+Fill ProductionOutputFiles table 
 ================================
 
 The productionoutputfiles table is used for removing the materialized views (MV). It is introduced June 2017.
