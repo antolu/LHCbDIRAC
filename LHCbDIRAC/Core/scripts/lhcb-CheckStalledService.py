@@ -47,9 +47,8 @@ for dirname in fd:
 for dirname in fd:
   status, result = commands.getstatusoutput('runsvstat ' + runit_dir + '/' + dirname)
   filename = runit_dir + '/' + dirname + '/' + logfile
-  fl = open(filename, "r")
-  listLines = fl.readlines()
-  fl.close()
+  with open(filename, "r") as fl:
+    listLines = fl.readlines()
   lastLine = listLines[-1]
   write_log('Checking ----> ' + dirname)
   for line in listLines:

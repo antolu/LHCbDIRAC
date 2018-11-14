@@ -41,8 +41,6 @@ class GangaDataFile(object):
       pass
 
     self.log.info('Creating Ganga data file %s from scratch' % self.fileName)
-    fopen = open(self.fileName, 'w')
-    fopen.close()
 
   ################################################################################
 
@@ -79,9 +77,8 @@ class GangaDataFile(object):
                                                                                                         TSDefaultStr,
                                                                                                         TSLookupMap))
 
-    f = open(self.fileName, 'w')
-    f.write(script)
-    f.close()
+    with open(self.fileName, 'w') as f:
+      f.write(script)
 
     self.log.info('Created Ganga data file %s' % self.fileName)
 
