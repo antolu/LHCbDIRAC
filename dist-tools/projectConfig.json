@@ -3,7 +3,7 @@
   "version": "v9r3-pre6",
   "used_projects": {
     "project": [
-      [ "Dirac", "v6r20p18",
+      [ "Dirac", "v6r20p20",
         [ "bin", "python", "lib" ]
       ],
       [ "LHCbGrid", "v14r2",

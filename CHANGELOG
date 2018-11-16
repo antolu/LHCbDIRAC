@@ -67,6 +67,12 @@ use DIRAC v6r20p13
 * fix the code style
 * simplify the Bookkeeping client
 
+[v9r2p10]
+use DIRAC v6r20p20
+
+* if the visibility flag is modified, the insert timestamp must be changed
+* Fix case when 2 sisters are in the input list (get-sisters)
+
 [v9r2p9]
 use DIRAC v6r20p18
 
@@ -131,8 +137,6 @@ use DIRAC v6r20p11
 
 * Worfklow: calculating output names at runtime to enable parametric jobs
 * Added ElasticDB for MC statistics
-=======
->>>>>>> upstream/master
 
 [v9r2p5]
 use DIRAC v6r20p12
