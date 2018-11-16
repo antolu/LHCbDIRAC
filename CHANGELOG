@@ -1,3 +1,9 @@
+[v9r2p10]
+use DIRAC v6r20p20
+
+* if the visibility flag is modified, the insert timestamp must be changed
+* Fix case when 2 sisters are in the input list (get-sisters)
+
 [v9r2p9]
 use DIRAC v6r20p18
 
