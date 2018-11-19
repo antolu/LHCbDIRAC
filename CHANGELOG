@@ -1,3 +1,18 @@
+[v9r3-pre7]
+use DIRAC v6r20p20
+
+* more pylint fix
+* fix pylint
+* remove BOINC from tests
+* restored lhcb-restart-agent-service.py
+* using 'with'
+* better error reporting
+* better logging
+* Docs: add docs about centralized logging
+* mostly style
+* removed some scripts not useless or not up-to-date-
+* minor/pylint
+
 [v9r3-pre6]
 use DIRAC v6r20p18
 
