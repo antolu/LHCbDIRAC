@@ -160,9 +160,10 @@ def jobWithOutput():
   timenow = time.strftime("%s")
   with open(os.path.join(wdir, timenow + "testFileUpload.txt"), "w") as f:
     f.write(timenow)
+  inp1 = [find_all(timenow + 'testFileUpload.txt', '.')[0]]
+  inp2 = [find_all('exe-script.py', rootPath, '/tests/System/GridTestSubmission')[0]]
   job = baseToAllJobs('jobWithOutput', jobClass)
-  job.setInputSandbox([find_all(timenow + 'testFileUpload.txt', '.')[0]] +
-                      [find_all('exe-script.py', rootPath, '/tests/System/GridTestSubmission')[0]])
+  job.setInputSandbox(inp1 + inp2)
   job.setExecutable("exe-script.py", "", "helloWorld.log")
   job.setOutputData([timenow + 'testFileUpload.txt'])
   res = endOfAllJobs(job)
@@ -200,8 +201,9 @@ def jobWithOutputAndPrependWithUnderscore():
   with open(os.path.join(wdir, timenow + "testFileUpload_NewPath.txt"), "w") as f:
     f.write(timenow)
   job = baseToAllJobs('jobWithOutputAndPrependWithUnderscore', jobClass)
-  job.setInputSandbox([find_all(timenow + 'testFileUpload_NewPath.txt', '.')[0]] +
-                      [find_all('exe-script.py', rootPath, '/tests/System/GridTestSubmission')[0]])
+  inp1 = [find_all(timenow + 'testFileUpload_NewPath.txt', '.')[0]]
+  inp2 = [find_all('exe-script.py', rootPath, '/tests/System/GridTestSubmission')[0]]
+  job.setInputSandbox(inp1 + inp2)
   job.setExecutable("exe-script.py", "", "helloWorld.log")
   res = job.setOutputData([timenow + 'testFileUpload_NewPath.txt'], filePrepend='testFilePrepend')
   if not res['OK']:
@@ -221,8 +223,9 @@ def jobWithOutputAndReplication():
   with open(os.path.join(wdir, timenow + "testFileReplication.txt"), "w") as f:
     f.write(timenow)
   job = baseToAllJobs('jobWithOutputAndReplication', jobClass)
-  job.setInputSandbox([find_all(timenow + 'testFileReplication.txt', '.')[0]] +
-                      [find_all('exe-script.py', rootPath, '/tests/System/GridTestSubmission')[0]])
+  inp1 = [find_all(timenow + 'testFileReplication.txt', '.')[0]]
+  inp2 = [find_all('exe-script.py', rootPath, '/tests/System/GridTestSubmission')[0]]
+  job.setInputSandbox(inp1 + inp2)
   job.setExecutable("exe-script.py", "", "helloWorld.log")
   job.setOutputData([timenow + 'testFileReplication.txt'], replicate='True')
   res = endOfAllJobs(job)
