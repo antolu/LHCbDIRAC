@@ -6,15 +6,17 @@
 
   Arguments:
      File: File containing the strings to be appended to the command (default /dev/stdin)
-           If the arguments are BK paths, the script reduces the paths merging event and file types (use --NoMerge to disable)
+           If the arguments are BK paths, the script reduces the paths merging event and file types
+           (use --NoMerge to disable)
      Command: Command to execute (separate with spaces)
               If command terminates with ", a " is appended after the argument
               If the command contains the string @arg@, it is replaced by the argument rather than the argument appended
-              If the command itself is dirac-loop, then the first occurrence only of @arg@ is replaced, which allows recursive calls
+              If the command itself is dirac-loop, then the first occurrence only of @arg@ is replaced,
+              which allows recursive calls
 """
 
 
-def reduce(arguments):
+def reduceArgs(arguments):
   """
   If the arguments look like BK paths (start with /LHCb or /MC), try to reduce the list of BK paths
   by merging event types or file types into a list.
@@ -59,10 +61,9 @@ def reduce(arguments):
 
 if __name__ == '__main__':
 
-  import sys
   import os
   import subprocess
-  from DIRAC import gLogger, exit
+  from DIRAC import gLogger, exit as Dexit
   from DIRAC.Core.Base import Script
 
   Script.registerSwitch('', 'NoMerge', 'If set, do not merge arguments if BK paths')
@@ -89,14 +90,14 @@ if __name__ == '__main__':
 
   if len(args) < 1:
     Script.showHelp()
-    exit(0)
+    Dexit(0)
 
   if not arguments:
     if os.path.exists(args[0]):
-      file = args.pop(0)
+      oFile = args.pop(0)
     else:
-      file = '/dev/stdin'
-    with open(file, 'r') as fd:
+      oFile = '/dev/stdin'
+    with open(oFile, 'r') as fd:
       arguments = fd.read().split('\n')[:-1]
 
   commands = args
@@ -117,16 +118,16 @@ if __name__ == '__main__':
       # Take the firt word
       arg = arg.strip().split()[0]
     # Escape any space left
-    argList.append(arg.replace(' ', '\ '))
+    argList.append(arg.replace(' ', r'\ '))
 
-  for arg in reduce(argList):
+  for arg in reduceArgs(argList):
     if arg:
       for command in commands:
         if '@arg@' in command:
           c = command.replace('@arg@', arg, 1) if 'dirac-loop' in command else \
               command.replace('@arg@', arg)
         elif command[-1] in ('"', "'"):
-          c = command + arg.replace('\ ', ' ') + command[-1]
+          c = command + arg.replace(r'\ ', ' ') + command[-1]
         else:
           c = command + ' ' + arg
         if not terse:

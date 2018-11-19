@@ -12,20 +12,23 @@
     FileCatalog().Catalogs = ["xmlcatalog_file:pool_xml_catalog.xml"]
 """
 
-import os, fnmatch
-from DIRAC import gLogger
-
 __RCSID__ = "$Id$"
 
-class GangaDataFile( object ):
+import os
+import fnmatch
+
+from DIRAC import gLogger
+
+
+class GangaDataFile(object):
   """ Creates ganga data file
   """
 
-  def __init__( self, fileName = 'data.py', xmlcatalog_file = 'pool_xml_catalog.xml', log = None ):
+  def __init__(self, fileName='data.py', xmlcatalog_file='pool_xml_catalog.xml', log=None):
     """ initialize
     """
     if not log:
-      self.log = gLogger.getSubLogger( 'GangaDataFile' )
+      self.log = gLogger.getSubLogger('GangaDataFile')
     else:
       self.log = log
 
@@ -33,31 +36,29 @@ class GangaDataFile( object ):
     self.xmlcatalog_file = xmlcatalog_file
 
     try:
-      os.remove( self.fileName )
+      os.remove(self.fileName)
     except OSError:
       pass
 
-    self.log.info( 'Creating Ganga data file %s from scratch' % self.fileName )
-    fopen = open( self.fileName, 'w' )
-    fopen.close()
+    self.log.info('Creating Ganga data file %s from scratch' % self.fileName)
 
   ################################################################################
 
-  def generateDataFile( self, lfns, persistency = None,
-                        TSDefaultStr = "TYP='POOL_ROOTTREE' OPT='READ'",
-                        TSLookupMap = {'*.raw':"SVC='LHCb::MDFSelector'",
-                                       '*.RAW':"SVC='LHCb::MDFSelector'",
-                                       '*.mdf':"SVC='LHCb::MDFSelector'",
-                                       '*.MDF':"SVC='LHCb::MDFSelector'"} ):
+  def generateDataFile(self, lfns, persistency=None,
+                       TSDefaultStr="TYP='POOL_ROOTTREE' OPT='READ'",
+                       TSLookupMap={'*.raw': "SVC='LHCb::MDFSelector'",
+                                    '*.RAW': "SVC='LHCb::MDFSelector'",
+                                    '*.mdf': "SVC='LHCb::MDFSelector'",
+                                    '*.MDF': "SVC='LHCb::MDFSelector'"}):
     """ generate the data file
     """
 
-    if ( type( lfns ) is not type( [] ) ):
-      self.log.error( 'Was expecting a list' )
-      raise TypeError( 'Expected List' )
-    if not len( lfns ):
-      self.log.warn( 'No file generated: was expecting a non-empty list' )
-      raise ValueError( 'list empty' )
+    if (not isinstance(lfns, type([]))):
+      self.log.error('Was expecting a list')
+      raise TypeError('Expected List')
+    if not len(lfns):
+      self.log.warn('No file generated: was expecting a non-empty list')
+      raise ValueError('list empty')
 
     script = ''
     try:
@@ -66,36 +67,33 @@ class GangaDataFile( object ):
       pass
 
     if persistency == 'ROOT':
-      script = self.__inputFileStringBuilder( len( lfns ) ) % tuple( lfns )
+      script = self.__inputFileStringBuilder(len(lfns)) % tuple(lfns)
     elif persistency == 'POOL':
-      script = self.__legacyInputFileStringBuilder( len( lfns ),
-                                                    persistency ) % ( tuple( lfns ) + self.__buildTypeSelectorTuple( lfns,
-                                                                                                                     TSDefaultStr,
-                                                                                                                     TSLookupMap ) )
+      script = self.__legacyInputFileStringBuilder(len(lfns), persistency) % (
+          tuple(lfns) + self.__buildTypeSelectorTuple(lfns, TSDefaultStr, TSLookupMap))
     else:
-      script = self.__legacyInputFileStringBuilder( len( lfns ),
-                                                    None ) % ( tuple( lfns ) + self.__buildTypeSelectorTuple( lfns,
-                                                                                                              TSDefaultStr,
-                                                                                                              TSLookupMap ) )
+      script = self.__legacyInputFileStringBuilder(len(lfns),
+                                                   None) % (tuple(lfns) + self.__buildTypeSelectorTuple(lfns,
+                                                                                                        TSDefaultStr,
+                                                                                                        TSLookupMap))
 
-    f = open( self.fileName, 'w' )
-    f.write( script )
-    f.close()
+    with open(self.fileName, 'w') as f:
+      f.write(script)
 
-    self.log.info( 'Created Ganga data file %s' % self.fileName )
+    self.log.info('Created Ganga data file %s' % self.fileName)
 
     return script
 
   ################################################################################
 
-  def __inputFileStringBuilder( self, entries ):
+  def __inputFileStringBuilder(self, entries):
     """ ROOT extension
     """
 
     script = '\n#new method'
     script += '\nfrom GaudiConf import IOExtension'
     script += '\nIOExtension("ROOT").inputFiles(['
-    script += ( '\n    "LFN:%s",' * entries )[:-1]
+    script += ('\n    "LFN:%s",' * entries)[:-1]
     script += '\n], clear=True)'
     script += '\n'
     script += '\nfrom Gaudi.Configuration import FileCatalog'
@@ -104,7 +102,7 @@ class GangaDataFile( object ):
 
   ################################################################################
 
-  def __legacyInputFileStringBuilder( self, entries, persistency = None ):
+  def __legacyInputFileStringBuilder(self, entries, persistency=None):
     """ POOL extension
     """
 
@@ -115,13 +113,13 @@ class GangaDataFile( object ):
       script += '\n    IOExtension("%s").inputFiles([' % persistency
     else:
       script += '\n    IOExtension().inputFiles(['
-    script += ( '\n        \"LFN:%s\",' * entries )[:-1]
+    script += ('\n        \"LFN:%s\",' * entries)[:-1]
     script += '\n    ], clear=True)'
     script += '\nexcept ImportError:'
     script += '\n    #Use previous method'
     script += '\n    from Gaudi.Configuration import EventSelector'
     script += '\n    EventSelector().Input=['
-    script += ( '\n        "DATAFILE=\'LFN:%s\' %s",' * entries )[:-1]
+    script += ('\n        "DATAFILE=\'LFN:%s\' %s",' * entries)[:-1]
     script += '\n    ]'
 
     script += '\n'
@@ -132,33 +130,33 @@ class GangaDataFile( object ):
 
   ################################################################################
 
-  def __typeSelectorString( self, filename, defaultStr = "TYP='POOL_ROOTTREE' OPT='READ'",
-                            lookupMap = {'*.raw':"SVC='LHCb::MDFSelector'",
-                                         '*.RAW':"SVC='LHCb::MDFSelector'",
-                                         '*.mdf':"SVC='LHCb::MDFSelector'",
-                                         '*.MDF':"SVC='LHCb::MDFSelector'"} ):
+  def __typeSelectorString(self, filename, defaultStr="TYP='POOL_ROOTTREE' OPT='READ'",
+                           lookupMap={'*.raw': "SVC='LHCb::MDFSelector'",
+                                      '*.RAW': "SVC='LHCb::MDFSelector'",
+                                      '*.mdf': "SVC='LHCb::MDFSelector'",
+                                      '*.MDF': "SVC='LHCb::MDFSelector'"}):
     """ helper function
     """
 
     for key, val in lookupMap.iteritems():
-      if fnmatch.fnmatch( filename, key ):
+      if fnmatch.fnmatch(filename, key):
         return val
 
     return defaultStr
 
   ################################################################################
 
-  def __buildTypeSelectorTuple( self, lfns, TSDefaultStr = "TYP='POOL_ROOTTREE' OPT='READ'",
-                                TSLookupMap = {'*.raw':"SVC='LHCb::MDFSelector'",
-                                               '*.RAW':"SVC='LHCb::MDFSelector'",
-                                               '*.mdf':"SVC='LHCb::MDFSelector'",
-                                               '*.MDF':"SVC='LHCb::MDFSelector'"} ):
+  def __buildTypeSelectorTuple(self, lfns, TSDefaultStr="TYP='POOL_ROOTTREE' OPT='READ'",
+                               TSLookupMap={'*.raw': "SVC='LHCb::MDFSelector'",
+                                            '*.RAW': "SVC='LHCb::MDFSelector'",
+                                            '*.mdf': "SVC='LHCb::MDFSelector'",
+                                            '*.MDF': "SVC='LHCb::MDFSelector'"}):
     """ helper function
     """
 
     r = []
-    for i in xrange( len( lfns ) ):
-      r.extend( [lfns[i], self.__typeSelectorString( lfns[i], TSDefaultStr, TSLookupMap )] )
-    return tuple( r )
+    for i in xrange(len(lfns)):
+      r.extend([lfns[i], self.__typeSelectorString(lfns[i], TSDefaultStr, TSLookupMap)])
+    return tuple(r)
 
 ################################################################################

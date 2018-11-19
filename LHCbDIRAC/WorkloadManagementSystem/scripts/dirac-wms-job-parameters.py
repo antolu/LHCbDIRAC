@@ -6,7 +6,11 @@
 """
   Retrieve parameters associated to the given DIRAC job
 """
+
+# FIXME: this is almost the same of vanilla DIRAC script that has the same name
+
 __RCSID__ = "$Id$"
+
 import DIRAC
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import Script, printDMResult
 

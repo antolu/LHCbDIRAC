@@ -1056,17 +1056,21 @@ class DiracLHCb(Dirac):
     """
     inputData = parameters.get('InputData')
     if inputData:
+      self.log.debug("DiracLHCb._getLocalInputData. InputData: %s" % inputData)
       if isinstance(inputData, basestring):
         inputData = inputData.split(';')
       inputData = [lfn.strip('LFN:') for lfn in inputData]
       ancestorsDepth = int(parameters.get('AncestorDepth', 0))
       if ancestorsDepth:
+        self.log.debug("DiracLHCb._getLocalInputData. ancestorsDepth: %d" % ancestorsDepth)
         res = self._bkClient.getFileAncestors(inputData, ancestorsDepth)
         if not res['OK']:
-          return S_ERROR("Can't get ancestors: %s" % res['Message'])
+          self.log.error("Can't get ancestors", res['Message'])
+          return res
         ancestorsLFNs = []
         for ancestorsLFN in res['Value']['Successful'].itervalues():
           ancestorsLFNs += [i['FileName'] for i in ancestorsLFN]
+        self.log.info("DiracLHCb._getLocalInputData. adding ancestors: %d" % ancestorsLFNs)
         inputData += ancestorsLFNs
 
     return S_OK(inputData)

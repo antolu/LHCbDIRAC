@@ -14,18 +14,18 @@ if __name__ == "__main__":
 
   dmScript = DMScript()
   dmScript.registerBKSwitches()
-  Script.registerSwitch( '', 'Conditions=', '   comma separated list of DataTakingConditions' )
-  Script.registerSwitch( '', 'HTML=', '   <file> : Output in html format to <file>' )
-  Script.registerSwitch( '', 'NoPrint', '   No printout' )
+  Script.registerSwitch('', 'Conditions=', '   comma separated list of DataTakingConditions')
+  Script.registerSwitch('', 'HTML=', '   <file> : Output in html format to <file>')
+  Script.registerSwitch('', 'NoPrint', '   No printout')
 
-  Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
-                                       'Usage:',
-                                       '  %s [option|cfgfile] [<LFN>] [<LFN>...]' % Script.scriptName, ] ) )
+  Script.setUsageMessage('\n'.join([__doc__.split('\n')[1],
+                                    'Usage:',
+                                    '  %s [option|cfgfile] [<LFN>] [<LFN>...]' % Script.scriptName, ]))
 
-  Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
-                                       'Usage:',
-                                       '  %s [option|cfgfile] ...' % Script.scriptName, ] ) )
-  Script.parseCommandLine( ignoreErrors = False )
+  Script.setUsageMessage('\n'.join([__doc__.split('\n')[1],
+                                    'Usage:',
+                                    '  %s [option|cfgfile] ...' % Script.scriptName, ]))
+  Script.parseCommandLine(ignoreErrors=False)
 
   switches = Script.getUnprocessedSwitches()
   outputHTML = None
@@ -34,7 +34,7 @@ if __name__ == "__main__":
   processingPass = None
   for opt, val in switches:
     if opt == "Conditions":
-      daqConditions = val.split( ',' )
+      daqConditions = val.split(',')
     elif opt == "ProcessingPass":
       processingPass = val
     elif opt == "HTML":
@@ -42,14 +42,14 @@ if __name__ == "__main__":
     elif opt == "NoPrint":
       printResult = False
 
-  bkQuery = dmScript.getBKQuery( visible = 'All' )
+  bkQuery = dmScript.getBKQuery(visible='All')
   if not bkQuery.getQueryDict():
     Script.showHelp()
-    DIRAC.exit( 2 )
+    DIRAC.exit(2)
   if daqConditions:
     bkQueries = []
     for cond in daqConditions:
-      bkQueries.append( BKQuery( bkQuery.setConditions( cond ) ) )
+      bkQueries.append(BKQuery(bkQuery.setConditions(cond)))
   else:
     bkQueries = [bkQuery]
 
@@ -58,28 +58,28 @@ if __name__ == "__main__":
   htmlOutput = ''
   summaryProdStats = []
   if outputHTML:
-    htmlTable = HTMLProgressTable( bkQuery.getProcessingPass() )
+    htmlTable = HTMLProgressTable(bkQuery.getProcessingPass())
   for bkQuery in bkQueries:
-    prodStats = statCollector.getFullStats( bkQuery, printResult = printResult )
-    summaryProdStats.append( prodStats )
+    prodStats = statCollector.getFullStats(bkQuery, printResult=printResult)
+    summaryProdStats.append(prodStats)
 
     if printResult:
-      printOutput += statCollector.outputResults( bkQuery.getConditions(), bkQuery.getProcessingPass(), prodStats )
+      printOutput += statCollector.outputResults(bkQuery.getConditions(), bkQuery.getProcessingPass(), prodStats)
 
     if outputHTML:
-      htmlTable.writeHTML( bkQuery.getConditions(), prodStats )
+      htmlTable.writeHTML(bkQuery.getConditions(), prodStats)
 
   if printResult:
     print printOutput
   if outputHTML:
     htmlSummary = ''
-    if len( summaryProdStats ) > 1:
-      htmlTable.writeHTMLSummary( summaryProdStats )
+    if len(summaryProdStats) > 1:
+      htmlTable.writeHTMLSummary(summaryProdStats)
     try:
-      f = open( outputHTML, 'w' )
-      f.write( "<head>\n<title>Progress of %s</title>\n</title>\n" % bkQueries[0].getProcessingPass() )
-      f.write( str( htmlTable.getTable() ) )
+      f = open(outputHTML, 'w')
+      f.write("<head>\n<title>Progress of %s</title>\n</title>\n" % bkQueries[0].getProcessingPass())
+      f.write(str(htmlTable.getTable()))
       f.close()
       print "Successfully wrote HTML file", outputHTML
-    except:
+    except BaseException:
       print "Failed to write HTML file", outputHTML

@@ -110,10 +110,18 @@ class SpaceTokenOccupancyTest(TestBase):
 
     itemDicts = [dict(zip(res['Columns'], item)) for item in res['Value']]
     for itemDict in itemDicts:
-
       self.generate_xml(itemDict)
 
   def generate_xml(self, itemDict):
+    """ itemDict is like
+
+      {'Endpoint': 'httpg://tbit00.nipne.ro:8446/srm/managerv2',
+       'Free': 113252649.213,
+       'Guaranteed': 0.0,
+       'LastCheckTime': datetime.datetime(2018, 11, 8, 10, 49, 14),
+       'Token': 'NIPNE-07_MC-DST',
+       'Total': 274877906.944}
+    """
 
     endpoint = itemDict['Endpoint']
 

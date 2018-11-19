@@ -56,9 +56,8 @@ def printDMResult(result, shift=4, empty="Empty directory", script=None, depth=9
     if result['OK']:
       __printDictionary(result['Value'], offset=offset, shift=shift, empty=empty, depth=depth)
       return 0
-    else:
-      gLogger.notice("Error in %s :" % script, result['Message'])
-      return 2
+    gLogger.notice("Error in %s :" % script, result['Message'])
+    return 2
   except Exception as e:  # pylint: disable=broad-except
     gLogger.notice("Exception while printing results in %s - Results:" % script, repr(e))
     gLogger.notice(result)

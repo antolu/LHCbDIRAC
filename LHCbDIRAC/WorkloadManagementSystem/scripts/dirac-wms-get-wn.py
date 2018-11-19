@@ -7,10 +7,11 @@
   Get WNs for a selection of jobs
 """
 __RCSID__ = "$Id$"
-import DIRAC
-import DIRAC.Core.Base.Script as Script
 
 import datetime
+
+import DIRAC
+import DIRAC.Core.Base.Script as Script
 
 
 if __name__ == "__main__":
