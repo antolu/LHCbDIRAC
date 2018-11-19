@@ -120,6 +120,8 @@ def helloWorldTestCLOUD():
   job.setExecutable("exe-script.py", "", "helloWorld.log")
   job.setDestination(['CLOUD.CERN.cern', 'CLOUD.YANDEX.ru'])
   return endOfAllJobs(job)
+
+
 """
 @executeWithUserProxy
 def helloWorldTestBOINC():
@@ -178,8 +180,9 @@ def jobWithOutputAndPrepend():
   with open(os.path.join(wdir, timenow + "testFileUploadNewPath.txt"), "w") as f:
     f.write(timenow)
   job = baseToAllJobs('jobWithOutputAndPrepend', jobClass)
-  job.setInputSandbox([find_all(timenow + 'testFileUploadNewPath.txt', '.')[0]] +
-                      [find_all('exe-script.py', rootPath, '/tests/System/GridTestSubmission')[0]])
+  inp1 = [find_all(timenow + 'testFileUploadNewPath.txt', '.')[0]]
+  inp2 = [find_all('exe-script.py', rootPath, '/tests/System/GridTestSubmission')[0]]
+  job.setInputSandbox(inp1 + inp2)
   job.setExecutable("exe-script.py", "", "helloWorld.log")
   job.setOutputData([timenow + 'testFileUploadNewPath.txt'], filePrepend='testFilePrepend')
   res = endOfAllJobs(job)
