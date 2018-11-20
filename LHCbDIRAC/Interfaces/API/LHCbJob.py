@@ -862,24 +862,23 @@ class LHCbJob(Job):
       return self._reportError("Expected string for platform", **kwargs)
 
     if platform and platform.lower() != 'any':
-      self._addParameter(self.workflow, 'Platform', 'JDL', platform, 'Platform ( Operating System )')
+      self._addParameter(self.workflow, 'Platform', 'JDL', platform, 'Platform (host OS + micro arch)')
     return S_OK()
 
   def setDIRACPlatform(self):
-    """ Looks inside the steps definition to find list of Configs, then translates it in a DIRAC platform
+    """ Looks inside the steps definition to find list of CMTConfigs, then translates it in a DIRAC platform
     """
     listOfConfigs = []
     for step_instance in self.workflow.step_instances:
       for parameter in step_instance.parameters:
-        if parameter.name.lower() == 'systemconfig':
-          if parameter.value:
+        if parameter.name.lower() == 'systemconfig':  # this is the place where the CMTConfigs are stored
+          if parameter.value and parameter.value.lower() != 'any':  # 'ANY' is a wildcard
             listOfConfigs.append(parameter.value)
 
     listOfConfigs = uniqueElements(listOfConfigs)
     listOfConfigs.sort(key=LooseVersion)
 
-    if not listOfConfigs or listOfConfigs[0].lower() == 'any':
-      # It was calling the base class setPlatfor('ANY') which just returns S_OK()
+    if not listOfConfigs:
       return S_OK()
 
     try:
@@ -887,8 +886,8 @@ class LHCbJob(Job):
     except (ValueError, IndexError) as error:
       self.log.exception("Exception while getting platform, don't set it", lException=error)
       return S_OK()
-    # At this stage this is never "AANY", so set it... although it is not clear it is of any use anywhere!
-    self._addParameter(self.workflow, 'Platform', 'JDL', platform, 'Platform ( Operating System )')
+    # At this stage this is never "ANY", so set it... this is used in JobDB.__checkAndPrepareJob
+    self._addParameter(self.workflow, 'Platform', 'JDL', platform, 'Platform (host OS + micro arch)')
     return S_OK()
 
   #############################################################################
