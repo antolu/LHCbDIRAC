@@ -54,6 +54,7 @@ if __name__ == "__main__":
 
   except Exception as e:
     msg = "Exception getting platform: " + repr(e)
+    gLogger.exception(msg, lException=e)
     sendMail(msg)
     dExit(1)
 
