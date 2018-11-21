@@ -3,17 +3,15 @@
 
 __RCSID__ = "$Id$"
 
-# import unittest
-# import mock
-
 import os
 
 import LHCbDIRAC.Interfaces.API.DiracProduction as moduleTested
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 
+lj = LHCbJob()
 
-def test_LJ():
-  lj = LHCbJob()
+
+def test_LJ_setApplication():
   open('optionsFiles', 'a').close()
   res = lj.setApplication('appName', 'v1r0', 'optionsFiles', systemConfig='x86_64-slc6-gcc-44-opt')
   assert res['OK'] is True
