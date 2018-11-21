@@ -1,8 +1,6 @@
 """ LHCbDIRAC's Resources helper
 """
 
-import LbPlatformUtils
-
 from DIRAC import gLogger
 
 
@@ -14,12 +12,14 @@ def getDIRACPlatform(platform):
       :returns: a list of DIRAC platforms that can run platform
   """
 
-  os = platform.split('.')[0].split('-')[1]
+  import LbPlatformUtils
+
+  osV = platform.split('.')[0].split('-')[1]
 
   # find the other OS that can run os
-  compatibleOSList = [os]
+  compatibleOSList = [osV]
   for canRun, osComp in LbPlatformUtils.OS_COMPATIBILITY.iteritems():
-    if os in osComp:
+    if osV in osComp:
       compatibleOSList.append(canRun)
 
   # find the microarchitecture that can run the microarchitecture presented in platform
@@ -60,6 +60,8 @@ def getPlatformForJob(workflow):
 
       :returns: a DIRAC platform (a string) or None
   """
+
+  import LbPlatformUtils
 
   archSet = set()
   microarchSet = set()
