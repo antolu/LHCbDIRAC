@@ -12,7 +12,7 @@ def getDIRACPlatform(platform):
       :returns: a list of DIRAC platforms that can run platform
   """
 
-  import LbPlatformUtils
+  import LbPlatformUtils  # pylint: disable=import-error
 
   osV = platform.split('.')[0].split('-')[1]
 
@@ -61,7 +61,7 @@ def getPlatformForJob(workflow):
       :returns: a DIRAC platform (a string) or None
   """
 
-  import LbPlatformUtils
+  import LbPlatformUtils  # pylint: disable=import-error
 
   archSet = set()
   microarchSet = set()

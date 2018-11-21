@@ -30,7 +30,7 @@ gLogger.setLevel('DEBUG')
     ({'x86_64+fma-centos7-gcc7-opt', 'x86_64+avx-slc6-gcc62-opt'},
      'x86_64-centos7.avx'),
 ])
-def test_getPlatformForJob(binaryTagsSet, expected):
+def NOTtest_getPlatformForJob(binaryTagsSet, expected):
   fbtMock = mock.MagicMock()
   fbtMock.return_value = binaryTagsSet
   moduleTested._findBinaryTags = fbtMock
