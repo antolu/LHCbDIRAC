@@ -1123,7 +1123,7 @@ class ProductionRequestFailure(ClientTestCase):
 
 class ProductionRequestFullChain(ClientTestCase):
 
-  def test_full(self):
+  def NOTtest_full(self):
 
     pr = ProductionRequest(self.bkClientFake, self.diracProdIn)
     pr.logger.setLevel('VERBOSE')
