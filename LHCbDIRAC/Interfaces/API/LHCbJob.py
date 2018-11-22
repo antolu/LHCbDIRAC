@@ -850,9 +850,25 @@ class LHCbJob(Job):
     return S_OK()
 
   #############################################################################
+
+  def setDIRACPlatform(self):
+    """ Use LHCbDIRAC.ConfigurationSystem.Client.Helpers.Resources.getPlatformForJob for determining DIRAC platform
+
+        :returns: S_OK/S_ERROR
+    """
+    platform = getPlatformForJob(self.workflow)
+    if platform:
+      return self.setPlatform(platform)
+    return S_OK()
+
   def setPlatform(self, platform):
-    """ Developer function: sets the target platform, e.g. x86_64-slc5
+    """ Developer function: sets the target platform, e.g. x86_64-slc6, or x86_64-slc6.avx2
         This platform is in the form of what it is returned by the dirac-architecture script)
+
+        Normally, this method should not be called directly. Instead, clients should call setDIRACPlatfom()
+
+        FIXME: this method is similar (but not same) to what is in Vanilla DIRAC Job.py
+               and should be evaluated if to change the base one and remove this.
 
         :returns: S_OK/S_ERROR
     """
@@ -864,16 +880,6 @@ class LHCbJob(Job):
     if platform and platform.lower() != 'any':
       # This is used in JobDB.__checkAndPrepareJob
       self._addParameter(self.workflow, 'Platform', 'JDL', platform, 'Platform (host OS + micro arch)')
-    return S_OK()
-
-  def setDIRACPlatform(self):
-    """ Use LHCbDIRAC.ConfigurationSystem.Client.Helpers.Resources.getPlatformForJob for determining DIRAC platform
-
-        :returns: S_OK/S_ERROR
-    """
-    platform = getPlatformForJob(self.workflow)
-    if platform:
-      return self.setPlatform(platform)
     return S_OK()
 
   #############################################################################

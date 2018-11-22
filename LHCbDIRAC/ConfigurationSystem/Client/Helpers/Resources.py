@@ -14,6 +14,13 @@ def getDIRACPlatform(platform):
 
   import LbPlatformUtils  # pylint: disable=import-error
 
+  # In JobDB.py this is called as a list
+  # In LHCb it should always be 1 and 1 only. If it's more there's an issue.
+  if isinstance(platform, list):
+    if len(platform) > 1:
+      raise RuntimeError("More than 1 platform specified for the job")
+    platform = platform[0]
+
   osV = platform.split('.')[0].split('-')[1]
 
   # find the other OS that can run os
