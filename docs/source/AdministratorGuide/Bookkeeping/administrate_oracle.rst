@@ -297,32 +297,39 @@ For monitoring:
 
     select JOB_NAME, STATE, LAST_START_DATE, LAST_RUN_DURATION, NEXT_RUN_DATE, RUN_COUNT, FAILURE_COUNT from USER_SCHEDULER_JOBS;
  
-
 ====================
 Managing partitions
 ====================
 `jobs` and `files` tables are partitioned. `jobs` table RANGE-HASH partitioned by `production` and `configurationid`. `files` table RANGE partitioned by `jobid`.
 
-`jobs` table partitions
------------------------- 
+jobs table partitions
+=====================
 
 The last partitions called `prodlast` and `runlast`. The maximum value of the `prodlast` partition is MAXVALUE. This may require to split, if we see performance degradation.
 This can happen if two many rows (`jobs`) belong to this partition.  Splitting the `prodlast` partition:
 
 .. code-block:: sql
+	
 	select max(production) from jobs PARTITION(prodlast) where production!=99998;
 	ALTER TABLE jobs SPLIT PARTITION prodlast AT (xxxxx) INTO (PARTITION prodXXX, PARTITION prodlast);
 	
 One of the possibility is to split the `prodlast` using the last production, which can be retrieved using the following query above.
-`xxxxx` is the result of the query. `prodXXX` is the last partition+1. For example::
+`xxxxx` is the result of the query. `prodXXX` is the last partition+1. For example:
 
 .. code-block:: sql
-	select max(production) from jobs PARTITION(prodlast) where production!=99998; -- which result is 83013 
+	
+	select max(production) from jobs PARTITION(prodlast) where production!=99998; 
+
+which result is 83013
+
+.. code-block:: sql 
+	
 	ALTER TABLE jobs SPLIT PARTITION prodlast AT (83013) INTO (PARTITION prod4, PARTITION prodlast);
 	
-`files` table partitions
--------------------------
-This table is RANGE partitioned by `jobid`, which can reach the maximum value of the existing partition. It this happen, the following error will appear:
+files table partitions
+======================
+
+This table is RANGE partitioned by `jobid`, which can reach the maximum value of the existing partition. It this happen, the following error will appear::
 
 	2018-07-30 01:12:00 UTC dirac-jobexec/UploadOutputData ERROR: Could not send Bookkeeping XML file to server:
 	Unable to create file /lhcb/MC/2015/SIM/00075280/0000/00075280_00009971_1.sim ! ERROR: Excution failed.: (
