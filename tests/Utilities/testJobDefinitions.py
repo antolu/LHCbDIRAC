@@ -509,8 +509,8 @@ def gaudiApplicationScriptJob():
   job.setApplicationScript('root', '6.06.02',
                            find_all('script_wrapper.py',
                                     wdir,
-                                    'tests/System/GridTestSubmission\
-                                    /script_wrapper.py')[0],  # pylint: disable=no-member
+                                    'tests/System/GridTestSubmission' +
+                                    '/script_wrapper.py')[0],  # pylint: disable=no-member
                            systemConfig='x86_64-slc6-gcc49-opt')
   job.setOutputSandbox('FitResultsToyData*.root')
   # job.setDIRACPlatform()  # pylint: disable=no-member
