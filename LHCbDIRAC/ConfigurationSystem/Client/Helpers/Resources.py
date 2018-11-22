@@ -1,27 +1,51 @@
 """ LHCbDIRAC's Resources helper
 """
 
-from DIRAC import gLogger
+import LbPlatformUtils  # pylint: disable=import-error
+
+from DIRAC import S_OK, S_ERROR, gLogger
 
 
 def getDIRACPlatform(platform):
   """ Returns list of compatible platforms.
       Used in JobDB.py
 
-      :param str platform: a string representing a DIRAC platform, e.g. x86_64-centos7.avx2+fma
-      :returns: a list of DIRAC platforms that can run platform
+      :param str platform: a string (or a list with 1 string in)
+                           representing a DIRAC platform, e.g. x86_64-centos7.avx2+fma
+      :returns: S_ERROR or S_OK() with a list of DIRAC platforms that can run platform (e.g. slc6 can run on centos7)
   """
 
-  import LbPlatformUtils  # pylint: disable=import-error
-
-  # In JobDB.py this is called as a list
+  # In JobDB.py this function is called with a list in input
   # In LHCb it should always be 1 and 1 only. If it's more there's an issue.
   if isinstance(platform, list):
     if len(platform) > 1:
-      raise RuntimeError("More than 1 platform specified for the job")
+      return S_ERROR("More than 1 platform specified for the job")
     platform = platform[0]
 
+  if not platform or platform.lower() == 'any':
+    return S_OK([])
+
+  # understanding what's what
+  try:
+    microarch = platform.split('.')[1]
+  except IndexError:  # this is the case when there's no microarchitecture in platform
+    microarch = None
+  finally:
+    archV = platform.split('-')[0]
+
   osV = platform.split('.')[0].split('-')[1]
+
+  # find the other arch that can run os
+  compatibleArchList = [archV]
+  for canRun, archComp in LbPlatformUtils.ARCH_COMPATIBILITY.iteritems():
+    if archV in archComp:
+      compatibleArchList.append(canRun)
+
+  # find the microarchitecture that can run the microarchitecture presented in platform
+  if microarch:
+    compatibleMicroArchsList = LbPlatformUtils.MICROARCH_LEVELS[0:LbPlatformUtils.MICROARCH_LEVELS.index(microarch) + 1]
+  else:
+    compatibleMicroArchsList = LbPlatformUtils.MICROARCH_LEVELS
 
   # find the other OS that can run os
   compatibleOSList = [osV]
@@ -29,23 +53,15 @@ def getDIRACPlatform(platform):
     if osV in osComp:
       compatibleOSList.append(canRun)
 
-  # find the microarchitecture that can run the microarchitecture presented in platform
-  try:
-    microarch = platform.split('.')[1]
-  except IndexError:  # this is the case when there's no microarchitecture in platform
-    microarch = None
+  compatiblePlatforms = {platform}
+  for ar in compatibleArchList:
+    for co in compatibleOSList:
+      if len(compatibleOSList) > 1 and compatibleOSList.index(co) != 0 and not microarch:
+        compatiblePlatforms.add(ar + '-' + co)
+      for cm in compatibleMicroArchsList:
+        compatiblePlatforms.add(ar + '-' + co + '.' + cm)
 
-  if microarch:
-    compatibleMicroArchsList = LbPlatformUtils.MICROARCH_LEVELS[0:LbPlatformUtils.MICROARCH_LEVELS.index(microarch)]
-  else:
-    compatibleMicroArchsList = LbPlatformUtils.MICROARCH_LEVELS
-
-  compatiblePlatforms = []
-  for co in compatibleOSList:
-    for cm in compatibleMicroArchsList:
-      compatiblePlatforms.append('x86_64-' + co + '.' + cm)
-
-  return compatiblePlatforms
+  return S_OK(list(compatiblePlatforms))
 
 
 def getPlatformForJob(workflow):
@@ -67,8 +83,6 @@ def getPlatformForJob(workflow):
 
       :returns: a DIRAC platform (a string) or None
   """
-
-  import LbPlatformUtils  # pylint: disable=import-error
 
   archSet = set()
   microarchSet = set()

@@ -37,3 +37,22 @@ def NOTtest_getPlatformForJob(binaryTagsSet, expected):
 
   res = moduleTested.getPlatformForJob(mock.MagicMock())
   assert res == expected
+
+
+@pytest.mark.parametrize("platform, expectedRes, expectedValue", [
+    ('', True, []),
+    ('ANY', True, []),
+    (['ANY'], True, []),
+    ([None], True, []),
+    (['bih', 'boh'], False, []),
+    ('x86_64-slc6', True, ['x86_64-slc6', 'x86_64-centos7', 'x86_64-slc6.avx2']),
+    ('x86_64-centos7', True, ['x86_64-centos7', 'x86_64-centos7.avx2+fma']),
+    ('x86_64-slc5', True, ['x86_64-slc5', 'x86_64-slc6', 'x86_64-slc5.avx2+fma', 'x86_64-slc5.sse4_2']),
+    ('x86_64-slc5.avx2', True, ['x86_64-slc5.avx2+fma', 'x86_64-slc6.avx2+fma', 'x86_64-slc6.avx2']),
+    ('x86_64-slc6.avx2+fma', True, ['x86_64-slc6.avx2+fma', 'x86_64-centos7.avx2+fma']),
+])
+def NOTtest_getDIRACPlatform(platform, expectedRes, expectedValue):
+  res = moduleTested.getDIRACPlatform(platform)
+  assert res['OK'] is expectedRes
+  if res['OK']:
+    assert set(expectedValue).issubset(set(res['Value'])) is True
