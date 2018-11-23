@@ -77,18 +77,16 @@
 
 import os
 import re
-from distutils.version import LooseVersion  # pylint: disable=import-error,no-name-in-module
 
 from DIRAC import S_OK, S_ERROR
 from DIRAC.Interfaces.API.Job import Job
 from DIRAC.Core.Utilities.File import makeGuid, mkDir
-from DIRAC.Core.Utilities.List import uniqueElements
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Workflow.Utilities.Utils import getStepDefinition, addStepToWorkflow
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getPlatformFromLHCbConfig
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
+from LHCbDIRAC.ConfigurationSystem.Client.Helpers.Resources import getPlatformForJob
 
 
 class LHCbJob(Job):
@@ -852,9 +850,27 @@ class LHCbJob(Job):
     return S_OK()
 
   #############################################################################
+
+  def setDIRACPlatform(self):
+    """ Use LHCbDIRAC.ConfigurationSystem.Client.Helpers.Resources.getPlatformForJob for determining DIRAC platform
+
+        :returns: S_OK/S_ERROR
+    """
+    platform = getPlatformForJob(self.workflow)
+    if platform:
+      return self.setPlatform(platform)
+    return S_OK()
+
   def setPlatform(self, platform):
-    """Developer function: sets the target platform, e.g. x86_64-slc5
-       This platform is in the form of what it is returned by the dirac-architecture script)
+    """ Developer function: sets the target platform, e.g. x86_64-slc6, or x86_64-slc6.avx2
+        This platform is in the form of what it is returned by the dirac-architecture script)
+
+        Normally, this method should not be called directly. Instead, clients should call setDIRACPlatfom()
+
+        FIXME: this method is similar (but not same) to what is in Vanilla DIRAC Job.py
+               and should be evaluated if to change the base one and remove this.
+
+        :returns: S_OK/S_ERROR
     """
     kwargs = {'platform': platform}
 
@@ -862,33 +878,8 @@ class LHCbJob(Job):
       return self._reportError("Expected string for platform", **kwargs)
 
     if platform and platform.lower() != 'any':
-      self._addParameter(self.workflow, 'Platform', 'JDL', platform, 'Platform ( Operating System )')
-    return S_OK()
-
-  def setDIRACPlatform(self):
-    """ Looks inside the steps definition to find list of Configs, then translates it in a DIRAC platform
-    """
-    listOfConfigs = []
-    for step_instance in self.workflow.step_instances:
-      for parameter in step_instance.parameters:
-        if parameter.name.lower() == 'systemconfig':
-          if parameter.value:
-            listOfConfigs.append(parameter.value)
-
-    listOfConfigs = uniqueElements(listOfConfigs)
-    listOfConfigs.sort(key=LooseVersion)
-
-    if not listOfConfigs or listOfConfigs[0].lower() == 'any':
-      # It was calling the base class setPlatfor('ANY') which just returns S_OK()
-      return S_OK()
-
-    try:
-      platform = getPlatformFromLHCbConfig(listOfConfigs[0])
-    except (ValueError, IndexError) as error:
-      self.log.exception("Exception while getting platform, don't set it", lException=error)
-      return S_OK()
-    # At this stage this is never "AANY", so set it... although it is not clear it is of any use anywhere!
-    self._addParameter(self.workflow, 'Platform', 'JDL', platform, 'Platform ( Operating System )')
+      # This is used in JobDB.__checkAndPrepareJob
+      self._addParameter(self.workflow, 'Platform', 'JDL', platform, 'Platform (host OS + micro arch)')
     return S_OK()
 
   #############################################################################
