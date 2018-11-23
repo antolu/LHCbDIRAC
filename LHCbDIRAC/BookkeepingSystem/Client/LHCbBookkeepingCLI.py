@@ -6,7 +6,6 @@ import shlex
 import argparse
 
 from __future__ import absolute_import, division, print_function, unicode_literals
-from six import string_types
 
 from DIRAC.Interfaces.API.Dirac import Dirac
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
@@ -320,11 +319,11 @@ class LHCbBookkeepingCLI(cmd.Cmd):
   @staticmethod
   def help_queries():
     """help of queries command"""
-    print "This method shows the available query types!"
-    print "Usage:"
-    print "  queries"
-    print "You can choose a query type using the 'use' command  "
-    print " NOTE: the default query type is 'Configuration'"
+    print("This method shows the available query types!")
+    print("Usage:")
+    print("  queries")
+    print("You can choose a query type using the 'use' command  ")
+    print(" NOTE: the default query type is 'Configuration'")
 
   #############################################################################
   def do_advanceQuery(self, command=''):
@@ -336,9 +335,9 @@ class LHCbBookkeepingCLI(cmd.Cmd):
   @staticmethod
   def help_advanceQuery():
     """help"""
-    print "It allows to see more level of the Bookkeeping Tree"
-    print "Usage:"
-    print "   advanceQuery"
+    print("It allows to see more level of the Bookkeeping Tree")
+    print("Usage:")
+    print("   advanceQuery")
 
   #############################################################################
   def do_standardQuery(self, command=''):
@@ -350,32 +349,32 @@ class LHCbBookkeepingCLI(cmd.Cmd):
   @staticmethod
   def help_standardQuery():
     """help"""
-    print "This is used by default"
-    print "It shows a reduced bookkeeping path."
-    print "Usage:"
-    print "   standardQuery"
+    print("This is used by default")
+    print("It shows a reduced bookkeeping path.")
+    print("Usage:")
+    print("   standardQuery")
 
   #############################################################################
   def do_dataQuality(self, command=''):
     """command"""
-    print 'The following Data Qaulity flags are available in the boookkeeping!'
+    print('The following Data Qaulity flags are available in the boookkeeping!')
     retVal = self.bk.getAvailableDataQuality()
     if retVal['OK']:
       for i in retVal['Value']:
-        print ' '.ljust(10) + i
+        print(' '.ljust(10) + i)
     else:
-      print retVal["Message"]
-    print "To set the data quality flags you heve to use 'setDataQualityFlags' command!"
-    print "More information: 'help setDataQualityFlags'"
+      print(retVal["Message"])
+    print("To set the data quality flags you heve to use 'setDataQualityFlags' command!")
+    print("More information: 'help setDataQualityFlags'")
 
   #############################################################################
   @staticmethod
   def help_dataQuality():
     """help"""
-    print 'This command shows the available data quality flags.'
-    print "Usage:"
-    print "  dataQuality"
-    print 'To change the data quality flag use the setDataQualityFlags command'
+    print('This command shows the available data quality flags.')
+    print("Usage:")
+    print("  dataQuality")
+    print('To change the data quality flag use the setDataQualityFlags command')
 
   #############################################################################
   def do_setDataQualityFlags(self, command):
@@ -387,7 +386,7 @@ class LHCbBookkeepingCLI(cmd.Cmd):
         dataquality[i] = True
       self.bk.setDataQualities(dataquality)
     else:
-      print 'ERROR: Please give a data quality flag!'
+      print('ERROR: Please give a data quality flag!')
 
   #############################################################################
   def __moreInfoProcpass(self, command):
@@ -396,14 +395,14 @@ class LHCbBookkeepingCLI(cmd.Cmd):
     retVal = self.bk.getProcessingPassSteps({'StepName': command})
     if retVal['OK']:
       proc = retVal['Value']
-      print '%d %s step founf in the bkk' % (proc['TotalRecords'], command)
+      print('%d %s step founf in the bkk' % (proc['TotalRecords'], command))
       for i in proc['Records']:
-        print ' '.ljust(5) + i
+        print(' '.ljust(5) + i)
         for j in proc['Records'][i]:
-          print ' '.ljust(10) + str(j[0]) + ':' + str(j[1])
+          print(' '.ljust(10) + str(j[0]) + ':' + str(j[1]))
         found = True
     else:
-      print 'ERROR: ', retVal['Message']
+      print('ERROR: ', retVal['Message'])
     return found
 
   #############################################################################
@@ -417,18 +416,18 @@ class LHCbBookkeepingCLI(cmd.Cmd):
         if 'level' in i and i['level'] == 'FileTypes':
           path = self.getCurrentPath()
           retVal = self.bk.getLimitedFiles({'fullpath': str(path)}, ['nb'], -1, -1)
-          print 'The selected dataset is:'
+          print('The selected dataset is:')
           for i in retVal['Extras']['Selection']:
-            print ''.ljust(5) + i + ' ' + str(retVal['Extras']['Selection'][i])
-          print 'Statistics:'
-          print ' '.ljust(5) + 'Number of files:' + str(retVal['TotalRecords'])
+            print(''.ljust(5) + i + ' ' + str(retVal['Extras']['Selection'][i]))
+          print('Statistics:')
+          print(' '.ljust(5) + 'Number of files:' + str(retVal['TotalRecords']))
           for i in retVal['Extras']['GlobalStatistics']:
-            print ''.ljust(5) + i + ' ' + str(retVal['Extras']['GlobalStatistics'][i])
+            print(''.ljust(5) + i + ' ' + str(retVal['Extras']['GlobalStatistics'][i]))
           break
         if i['name'] == name[len(name) - 1]:
           for j in i:
             if j not in ['fullpath', 'selection', 'expandable', 'method', 'level', 'name']:
-              print '   ', j, i[j]
+              print('   ', j, i[j])
         if 'level' in i and i['level'] == 'Processing Pass':
           found = self.__moreInfoProcpass(command)
           break
@@ -439,42 +438,42 @@ class LHCbBookkeepingCLI(cmd.Cmd):
         if i['name'] == command:
           for j in i:
             if j not in ['fullpath', 'selection', 'expandable', 'method', 'level', 'name']:
-              print '   ', j, i[j]
+              print('   ', j, i[j])
           found = True
         if 'level' in i and i['level'] == 'Processing Pass':
           found = self.__moreInfoProcpass(command)
           break
 
       if not found:
-        print " The '%s' does not found" % (command)
+        print(" The '%s' does not found" % (command))
 
   def do_sites(self, command):
-    print "T1 sites: %s" % ','.join(site for site in self.sites)
+    print("T1 sites: %s" % ','.join(site for site in self.sites))
 
   @staticmethod
   def help_sites(self):
     """
     help
     """
-    print "it return a list of T1 sites"
+    print("it return a list of T1 sites")
 
   #############################################################################
   @staticmethod
   def help_setDataQualityFlags():
     """help"""
-    print 'This command allows to use differnt data quality flags.'
-    print "Usage:"
-    print "  setDataQualityFlags flag1 [flag2 flag3, ... flagN]"
-    print "Arguments:"
-    print "  flag[1...N]:  Data qulaity flags."
-    print 'For example:'
-    print ' '.ljust(10) + 'setDataQualityFlags OK UNCHECKED'
+    print('This command allows to use differnt data quality flags.')
+    print("Usage:")
+    print("  setDataQualityFlags flag1 [flag2 flag3, ... flagN]")
+    print("Arguments:")
+    print("  flag[1...N]:  Data qulaity flags.")
+    print('For example:')
+    print(' '.ljust(10) + 'setDataQualityFlags OK UNCHECKED')
 
   #############################################################################
   @staticmethod
   def help_EOF():
     """quit"""
-    print "Quits the program"
+    print("Quits the program")
 
   #############################################################################
   def do_EOF(self, line):
@@ -490,6 +489,6 @@ class LHCbBookkeepingCLI(cmd.Cmd):
   @staticmethod
   def help_moreinfo():
     """help method"""
-    print "Display the statistics of the selected data."
-    print "Usage:"
-    print "  moreinfo"
+    print("Display the statistics of the selected data.")
+    print("Usage:")
+    print("  moreinfo")
