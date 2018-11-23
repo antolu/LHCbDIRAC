@@ -35,17 +35,6 @@ class SiteDirector(DIRACSiteDirector):
 
     return S_OK()
 
-  # FIXME: Commented out because of  https://its.cern.ch/jira/browse/LHCBDIRAC-711
-  # def _getTQDictForMatching(self):
-  #   """ We skip the check of platforms
-
-  #       :returns dict: tqDict of task queue descriptions
-  #   """
-  #   tqDict = DIRACSiteDirector._getTQDictForMatching(self)
-  #   tqDict.pop('Platform', None)
-
-  #   return tqDict
-
   def _getPilotOptions(self, queue, pilotsToSubmit):
     """ Adding LHCb specific options
     """

@@ -3,10 +3,14 @@
 
 from DIRAC import S_OK, S_ERROR, gLogger
 
+import DIRAC.ConfigurationSystem.Client.Helpers.Resources
+def getQueues = DIRAC.ConfigurationSystem.Client.Helpers.Resources.getQueues
+
 
 def getDIRACPlatform(platform):
   """ Returns list of compatible platforms.
-      Used in JobDB.py
+
+      Used in JobDB.py instead of DIRAC.ConfigurationSystem.Client.Helpers.Resources.getDIRACPlatform
 
       :param str platform: a string (or a list with 1 string in)
                            representing a DIRAC platform, e.g. x86_64-centos7.avx2+fma
