@@ -1,11 +1,11 @@
 """Bookkeeping file system"""
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import sys
 import cmd
 import pydoc
 import shlex
 import argparse
-
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 from DIRAC.Interfaces.API.Dirac import Dirac
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
@@ -72,7 +72,7 @@ class LHCbBookkeepingCLI(cmd.Cmd):
     This is equivalent to ls -a
     """
     if path == '':
-      path = self.getCurrentPath()
+      path = self.currentPath
     res = self.bk.list(path)
     for i in res:
       print(i['name'])
@@ -92,17 +92,17 @@ class LHCbBookkeepingCLI(cmd.Cmd):
   #############################################################################
   def __rootDirectory(self):
     """root"""
-    self.setCurrentPath('/')
-    self.__printPrompt(self.getCurrentPath())
+    self.currentPath = '/'
+    self.__printPrompt(self.currentPath)
 
   #############################################################################
   def __oneLevelback(self, logical=False):
     """ cd .. """
-    path = self.getCurrentPath().split('/')
+    path = self.currentPath.split('/')
     if path[0] == '' and path[1] == '':
       if not logical:
-        self.setCurrentPath('/')
-        self.__printPrompt(self.getCurrentPath())
+        self.currentPath = '/'
+        self.__printPrompt(self.currentPath)
       else:
         return '/'
     else:
@@ -113,8 +113,8 @@ class LHCbBookkeepingCLI(cmd.Cmd):
       if newpath == '':
         newpath = '/'
       if not logical:
-        self.setCurrentPath(newpath)
-        self.__printPrompt(self.getCurrentPath())
+        self.currentPath = newpath
+        self.__printPrompt(self.currentPath)
       else:
         return newpath
 
@@ -151,14 +151,17 @@ class LHCbBookkeepingCLI(cmd.Cmd):
 
     text = ''
     if len(path) > 0 and path[0] == '-':
-      if path[1] != 'a':
-        print("ls: invalid option -- %s" % (path[1]))
-        print("Try `help ls' for more information.")
-      else:
-        path = path[2:]
-        self.__bkListAll(path)
+      try:
+        if path[1] != 'a':
+          print("ls: invalid option -- {}".format(path[1]))
+          print("Try `help ls' for more information.")
+        else:
+          path = path[2:]
+          self.__bkListAll(path)
+      except IndexError as e:
+        print("Invalid oprion:", e)
     elif path == '':
-      res = self.__bklist(self.getCurrentPath())
+      res = self.__bklist(self.currentPath)
       for i in sorted(res):
         if paging:
           text += i['name'] + '\n'
@@ -192,11 +195,11 @@ class LHCbBookkeepingCLI(cmd.Cmd):
     if args.format is None:
       args.format = 'txt'
 
-    retVal = self.bk.list(self.getCurrentPath())
+    retVal = self.bk.list(self.currentPath)
     files = None
     if retVal:
       if 'FileName' not in retVal[0]:
-        print('No file found belong to %s bookkeeping path!' % self.getCurrentPath())
+        print('No file found belong to {} bookkeeping path!'.format(self.currentPath))
         return
       else:
         files = retVal
@@ -263,30 +266,30 @@ class LHCbBookkeepingCLI(cmd.Cmd):
   #############################################################################
   def do_cd(self, path):
     """cd command"""
-    newpath = self.getCurrentPath() + '/' + path
+    newpath = self.currentPath + '/' + path
     if path == '':
-      self.setCurrentPath('/')
-      self.__printPrompt(self.getCurrentPath())
+      self.currentPath = '/'
+      self.__printPrompt(self.currentPath)
     elif path == '..':
       self.__oneLevelback()
     elif path == '/':
       self.__rootDirectory()
     elif path[0] == '/':
       if self.__checkDirectory(path):
-        self.setCurrentPath(path)
-        self.__printPrompt(self.getCurrentPath())
+        self.currentPath = path
+        self.__printPrompt(self.currentPath)
       else:
         print('No such file or directory.')
     elif self.__checkDirectory(newpath):
       self.addCurrentPath(path)
-      self.__printPrompt(self.getCurrentPath())
+      self.__printPrompt(self.currentPath)
     else:
       print('No such file or directory.')
 
   #############################################################################
   def do_pwd(self, path):
     """pwd command"""
-    print(self.getCurrentPath())
+    print(self.currentPath)
 
   #############################################################################
   def do_queries(self, command=''):
@@ -306,7 +309,7 @@ class LHCbBookkeepingCLI(cmd.Cmd):
   #############################################################################
   @staticmethod
   def help_use():
-    """hel of use command"""
+    """help of use command"""
     print('Usage:')
     print('  use type'.rjust(10))
     print('Arguments:')
@@ -341,7 +344,7 @@ class LHCbBookkeepingCLI(cmd.Cmd):
 
   #############################################################################
   def do_standardQuery(self, command=''):
-    """commmand"""
+    """command"""
     self.bk.setAdvancedQueries(False)
     self.do_cd('/')
 
@@ -357,14 +360,14 @@ class LHCbBookkeepingCLI(cmd.Cmd):
   #############################################################################
   def do_dataQuality(self, command=''):
     """command"""
-    print('The following Data Qaulity flags are available in the boookkeeping!')
+    print('The following Data Quality flags are available in the bookkeeping!')
     retVal = self.bk.getAvailableDataQuality()
     if retVal['OK']:
       for i in retVal['Value']:
         print(' '.ljust(10) + i)
     else:
       print(retVal["Message"])
-    print("To set the data quality flags you heve to use 'setDataQualityFlags' command!")
+    print("To set the data quality flags you have to use 'setDataQualityFlags' command!")
     print("More information: 'help setDataQualityFlags'")
 
   #############################################################################
@@ -395,7 +398,7 @@ class LHCbBookkeepingCLI(cmd.Cmd):
     retVal = self.bk.getProcessingPassSteps({'StepName': command})
     if retVal['OK']:
       proc = retVal['Value']
-      print('%d %s step founf in the bkk' % (proc['TotalRecords'], command))
+      print('{0} {1} step found in the bkk'.format(proc['TotalRecords'], command))
       for i in proc['Records']:
         print(' '.ljust(5) + i)
         for j in proc['Records'][i]:
@@ -409,12 +412,12 @@ class LHCbBookkeepingCLI(cmd.Cmd):
   def do_moreinfo(self, command=''):
     """more info command"""
     if command == '':
-      previouspath = self.__oneLevelback(self.getCurrentPath())
+      previouspath = self.__oneLevelback(self.currentPath)
       values = self.__bklist(previouspath)
-      name = self.getCurrentPath().split('/')
+      name = self.currentPath.split('/')
       for i in values:
         if 'level' in i and i['level'] == 'FileTypes':
-          path = self.getCurrentPath()
+          path = self.currentPath
           retVal = self.bk.getLimitedFiles({'fullpath': str(path)}, ['nb'], -1, -1)
           print('The selected dataset is:')
           for i in retVal['Extras']['Selection']:
@@ -432,7 +435,7 @@ class LHCbBookkeepingCLI(cmd.Cmd):
           found = self.__moreInfoProcpass(command)
           break
     else:
-      values = self.__bklist(self.getCurrentPath())
+      values = self.__bklist(self.currentPath)
       found = False
       for i in values:
         if i['name'] == command:
@@ -461,11 +464,11 @@ class LHCbBookkeepingCLI(cmd.Cmd):
   @staticmethod
   def help_setDataQualityFlags():
     """help"""
-    print('This command allows to use differnt data quality flags.')
+    print('This command allows to use different data quality flags.')
     print("Usage:")
     print("  setDataQualityFlags flag1 [flag2 flag3, ... flagN]")
     print("Arguments:")
-    print("  flag[1...N]:  Data qulaity flags.")
+    print("  flag[1...N]:  Data quality flags.")
     print('For example:')
     print(' '.ljust(10) + 'setDataQualityFlags OK UNCHECKED')
 
