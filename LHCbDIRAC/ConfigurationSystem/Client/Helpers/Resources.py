@@ -4,7 +4,9 @@
 from DIRAC import S_OK, S_ERROR, gLogger
 
 import DIRAC.ConfigurationSystem.Client.Helpers.Resources
-def getQueues = DIRAC.ConfigurationSystem.Client.Helpers.Resources.getQueues
+getQueues = DIRAC.ConfigurationSystem.Client.Helpers.Resources.getQueues
+getDIRACPlaforms = DIRAC.ConfigurationSystem.Client.Helpers.Resources.getDIRACPlaforms
+getCompatiblePlatforms = DIRAC.ConfigurationSystem.Client.Helpers.Resources.getCompatiblePlatforms
 
 
 def getDIRACPlatform(platform):
