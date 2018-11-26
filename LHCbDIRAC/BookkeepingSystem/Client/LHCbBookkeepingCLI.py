@@ -7,7 +7,7 @@ import pydoc
 import shlex
 import argparse
 
-from DIRAC.Interfaces.API.Dirac import Dirac
+from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
 from LHCbDIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient import LHCB_BKKDBClient
 
@@ -24,7 +24,7 @@ class LHCbBookkeepingCLI(cmd.Cmd):
     cmd.Cmd.__init__(self)
     self.prompt = "$[/]$"
     self.bk = LHCB_BKKDBClient()
-    self.diracAPI = Dirac()
+    self.diracAPI = DiracLHCb()
     self.currentPath = '/'
     self.do_setDataQualityFlags('OK')
     self.saveParser = argparse.ArgumentParser(description="Save LFNS", prog='save')
@@ -33,18 +33,7 @@ class LHCbBookkeepingCLI(cmd.Cmd):
     self.saveParser.add_argument("-n", "--num", help="number of files to be saved")
     self.saveParser.add_argument("-c", "--with-fileCatalog", help="save POOL XML catalog in a given site")
     self.sites = {}
-    try:
-      shortSiteNames = DMSHelpers().getShortSiteNames(withStorage=False, tier=(0, 1))
-    except AttributeError:
-      shortSiteNames = {"CERN": "LCG.CERN.cern",
-                        "RAL": "LCG.RAL.uk",
-                        "IN2P3": "LCG.IN2P3.fr",
-                        "GRIDKA": "LCG.GRIDKA.de",
-                        "NIKHEF": "LCG.NIKHEF.nl",
-                        "CNAF": "LCG.CNAF.it",
-                        "RRCKI": "LCG.RRCKI.ru",
-                        "PIC": "LCG.PIC.es"}
-    self.sites.update(shortSiteNames)
+    self.sites = DMSHelpers().getShortSiteNames(withStorage=False, tier=(0, 1))
 
   #############################################################################
   def addCurrentPath(self, path):
@@ -78,14 +67,14 @@ class LHCbBookkeepingCLI(cmd.Cmd):
       print(i['name'])
       for j in i:
         if j not in ['fullpath', 'selection', 'expandable', 'method', 'level', 'name']:
-          print ('   ', j, i[j])
+          print('   ', j, i[j])
 
   #############################################################################
   def __checkDirectory(self, path):
     """is empty directory"""
     res = self.bk.list(path)
     retValue = False
-    if len(res) > 0:
+    if res:
       retValue = True
     return retValue
 
@@ -451,14 +440,14 @@ class LHCbBookkeepingCLI(cmd.Cmd):
         print(" The '%s' does not found" % (command))
 
   def do_sites(self, command):
-    print("T1 sites: %s" % ','.join(site for site in self.sites))
+    print("T0/1 sites: %s" % ','.join(site for site in self.sites))
 
   @staticmethod
   def help_sites(self):
     """
     help
     """
-    print("it return a list of T1 sites")
+    print("it returns a list of T1 sites")
 
   #############################################################################
   @staticmethod
