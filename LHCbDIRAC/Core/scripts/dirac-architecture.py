@@ -31,7 +31,7 @@ if __name__ == "__main__":
   Script.parseCommandLine(ignoreErrors=True)
 
   from DIRAC import gLogger, exit as dExit
-  import LbPlatformUtils  # pylint: disable=import-error
+  import LbPlatformUtils
 
   try:
     # Get the platform name. If an error occurs, an exception is thrown
