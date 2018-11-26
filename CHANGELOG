@@ -1,3 +1,9 @@
+[v9r2p11]
+use DIRAC v6r20p22
+
+* Docs: add doc about our MQ
+* Docs: add docs about centralized logging
+
 [v9r2p10]
 use DIRAC v6r20p20
 
