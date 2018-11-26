@@ -30,7 +30,7 @@ gLogger.setLevel('DEBUG')
     ({'x86_64+fma-centos7-gcc7-opt', 'x86_64+avx-slc6-gcc62-opt'},
      'x86_64-centos7.avx'),
 ])
-def NOTtest_getPlatformForJob(binaryTagsSet, expected):
+def test_getPlatformForJob(binaryTagsSet, expected):
   fbtMock = mock.MagicMock()
   fbtMock.return_value = binaryTagsSet
   moduleTested._findBinaryTags = fbtMock
@@ -51,7 +51,7 @@ def NOTtest_getPlatformForJob(binaryTagsSet, expected):
     ('x86_64-slc5.avx2', True, ['x86_64-slc5.avx2+fma', 'x86_64-slc6.avx2+fma', 'x86_64-slc6.avx2']),
     ('x86_64-slc6.avx2+fma', True, ['x86_64-slc6.avx2+fma', 'x86_64-centos7.avx2+fma']),
 ])
-def NOTtest_getDIRACPlatform(platform, expectedRes, expectedValue):
+def test_getDIRACPlatform(platform, expectedRes, expectedValue):
   res = moduleTested.getDIRACPlatform(platform)
   assert res['OK'] is expectedRes
   if res['OK']:
