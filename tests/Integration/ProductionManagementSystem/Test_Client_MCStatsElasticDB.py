@@ -50,13 +50,13 @@ class TestClientMCStatsTestCase(unittest.TestCase):
     self.data2 = json.dumps(self.data2)
 
     self.typeName = 'test'
-    self.indexName = 'mcstatsdb'
 
     # Note: index is created without self.indexName
     self.mcStatsClient = MCStatsClient()
+    self.mcStatsClient.indexName = 'lhcb-mclogerrors'
 
   def tearDown(self):
-    self.mcStatsClient.deleteIndex(self.indexName)
+    self.mcStatsClient.deleteIndex('lhcb-mclogerrors')
     self.mcStatsClient = None
 
 
@@ -66,50 +66,50 @@ class MCHandlerClientChain(TestClientMCStatsTestCase):
     # Set
 
     # Set data1
-    result = self.mcStatsClient.set(self.indexName, self.typeName, self.data1)
+    result = self.mcStatsClient.set(self.typeName, self.data1)
     self.assertTrue(result['OK'])
 
     # Set data2
-    result = self.mcStatsClient.set(self.indexName, self.typeName, self.data2)
+    result = self.mcStatsClient.set(self.typeName, self.data2)
     self.assertTrue(result['OK'])
 
     time.sleep(1)
 
     # Get data1
-    result = self.mcStatsClient.get(self.indexName, self.id1)
+    result = self.mcStatsClient.get(self.id1)
     self.assertTrue(result['OK'])
     self.assertEqual(result['Value'], self.data1)
 
     # Get data2
-    result = self.mcStatsClient.get(self.indexName, self.id2)
+    result = self.mcStatsClient.get(self.id2)
     self.assertTrue(result['OK'])
     self.assertEqual(result['Value'], self.data2)
 
     # Get empty
-    result = self.mcStatsClient.get(self.indexName, self.falseID)
+    result = self.mcStatsClient.get(self.falseID)
     self.assertTrue(result['OK'])
     self.assertEqual(result['Value'], '{}')
 
     # Remove
 
     # Remove data1
-    self.mcStatsClient.remove(self.indexName, self.id1)
+    self.mcStatsClient.remove(self.id1)
     time.sleep(3)
-    result = self.mcStatsClient.get(self.indexName, self.id1)
+    result = self.mcStatsClient.get(self.id1)
     self.assertTrue(result['OK'])
     self.assertEqual(result['Value'], '{}')
 
     # Remove data2
-    self.mcStatsClient.remove(self.indexName, self.id2)
+    self.mcStatsClient.remove(self.id2)
     time.sleep(3)
-    result = self.mcStatsClient.get(self.indexName, self.id2)
+    result = self.mcStatsClient.get(self.id2)
     self.assertTrue(result['OK'])
     self.assertEqual(result['Value'], '{}')
 
     # # Remove empty
-    self.mcStatsClient.remove(self.indexName, self.falseID)
+    self.mcStatsClient.remove(self.falseID)
     time.sleep(5)
-    result = self.mcStatsClient.get(self.indexName, self.falseID)
+    result = self.mcStatsClient.get(self.falseID)
     self.assertTrue(result['OK'])
     self.assertEqual(result['Value'], '{}')
 

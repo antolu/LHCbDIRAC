@@ -16,7 +16,7 @@ class MCStatsElasticDB(ElasticDB):
     """ Simple constructor, just initialize MCStatsElasticDB
     """
 
-    super(MCStatsElasticDB, self).__init__(self, 'MCStatsElasticDB', 'ProductionManagement/MCStatsElasticDB')
+    super(MCStatsElasticDB, self).__init__('MCStatsElasticDB', 'ProductionManagement/MCStatsElasticDB')
 
     # self.typeName = 'LogErr'    # We assume the type of the data is from LogErr
     # self.mapping = {

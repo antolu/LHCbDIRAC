@@ -15,7 +15,7 @@ class MCStatsClient(Client):
     super(MCStatsClient, self).__init__(**kwargs)
     self.setServer('ProductionManagement/MCStatsElasticDB')
 
-    self.indexName = 'lhcb-MCLogErrors'
+    self.indexName = 'lhcb-mclogerrors'
 
   def set(self, typeName, data):
     """ set some data
