@@ -4,7 +4,7 @@ MCStatsElasticDBClient > MCStatsElasticDBHandler > MCStatsElasticDB
 
 It assumes the server is running
 """
-import unittest
+
 import json
 import time
 
@@ -14,107 +14,98 @@ parseCommandLine()
 from LHCbDIRAC.ProductionManagementSystem.Client.MCStatsClient import MCStatsClient
 
 
-class TestClientMCStatsTestCase(unittest.TestCase):
-  def setUp(self):
-    self.id1 = 1
-    self.id2 = 2
-    self.falseID = 3
+id1 = 1
+id2 = 2
+falseID = 3
 
-    self.data1 = {
-        "Errors": {
-            "ID": {
-                "wmsID": "6",
-                "ProductionID": "5",
-                "JobID": self.id1
-            },
-            "Error1": 10,
-            "Error2": 5,
-            "Error3": 3
-        }
+data1 = {
+    "Errors": {
+        "ID": {
+            "wmsID": "6",
+            "ProductionID": "5",
+            "JobID": id1
+        },
+        "Error1": 10,
+        "Error2": 5,
+        "Error3": 3
     }
+}
 
-    self.data2 = {
-        "Errors": {
-            "ID": {
-                "wmsID": "6",
-                "ProductionID": "5",
-                "JobID": self.id2
-            },
-            "Error1": 7,
-            "Error2": 9
-        }
+data2 = {
+    "Errors": {
+        "ID": {
+            "wmsID": "6",
+            "ProductionID": "5",
+            "JobID": id2
+        },
+        "Error1": 7,
+        "Error2": 9
     }
+}
 
-    # This is needed to convert '' to ""
-    self.data1 = json.dumps(self.data1)
-    self.data2 = json.dumps(self.data2)
+# This is needed to convert '' to ""
+data1 = json.dumps(data1)
+data2 = json.dumps(data2)
 
-    self.typeName = 'test'
+typeName = 'test'
 
-    # Note: index is created without self.indexName
-    self.mcStatsClient = MCStatsClient()
-    self.mcStatsClient.indexName = 'lhcb-mclogerrors'
-
-  def tearDown(self):
-    self.mcStatsClient.deleteIndex('lhcb-mclogerrors')
-    self.mcStatsClient = None
+# Note: index is created without self.indexName
+mcStatsClient = MCStatsClient()
+mcStatsClient.indexName = 'lhcb-mclogerrors'
 
 
-class MCHandlerClientChain(TestClientMCStatsTestCase):
-  def test_setAndGetandRemove(self):
+def test_setAndGetandRemove():
 
-    # Set
+  # Set
 
-    # Set data1
-    result = self.mcStatsClient.set(self.typeName, self.data1)
-    self.assertTrue(result['OK'])
+  # Set data1
+  result = mcStatsClient.set(typeName, data1)
+  assert result['OK'] is True
 
-    # Set data2
-    result = self.mcStatsClient.set(self.typeName, self.data2)
-    self.assertTrue(result['OK'])
+  # Set data2
+  result = mcStatsClient.set(typeName, data2)
+  assert result['OK'] is True
 
-    time.sleep(1)
+  time.sleep(1)
 
-    # Get data1
-    result = self.mcStatsClient.get(self.id1)
-    self.assertTrue(result['OK'])
-    self.assertEqual(result['Value'], self.data1)
+  # Get data1
+  result = mcStatsClient.get(id1)
+  assert result['OK'] is True
+  assert result['Value'] == data1
 
-    # Get data2
-    result = self.mcStatsClient.get(self.id2)
-    self.assertTrue(result['OK'])
-    self.assertEqual(result['Value'], self.data2)
+  # Get data2
+  result = mcStatsClient.get(id2)
+  assert result['OK'] is True
+  assert result['Value'] == data2
 
-    # Get empty
-    result = self.mcStatsClient.get(self.falseID)
-    self.assertTrue(result['OK'])
-    self.assertEqual(result['Value'], '{}')
+  # Get empty
+  result = mcStatsClient.get(falseID)
+  assert result['OK'] is True
+  assert result['Value'] == '{}'
 
-    # Remove
+  # Remove
 
-    # Remove data1
-    self.mcStatsClient.remove(self.id1)
-    time.sleep(3)
-    result = self.mcStatsClient.get(self.id1)
-    self.assertTrue(result['OK'])
-    self.assertEqual(result['Value'], '{}')
+  # Remove data1
+  mcStatsClient.remove(id1)
+  time.sleep(3)
+  result = mcStatsClient.get(id1)
+  assert result['OK'] is True
+  assert result['Value'] == '{}'
 
-    # Remove data2
-    self.mcStatsClient.remove(self.id2)
-    time.sleep(3)
-    result = self.mcStatsClient.get(self.id2)
-    self.assertTrue(result['OK'])
-    self.assertEqual(result['Value'], '{}')
+  # Remove data2
+  mcStatsClient.remove(id2)
+  time.sleep(3)
+  result = mcStatsClient.get(id2)
+  assert result['OK'] is True
+  assert result['Value'] == '{}'
 
-    # # Remove empty
-    self.mcStatsClient.remove(self.falseID)
-    time.sleep(5)
-    result = self.mcStatsClient.get(self.falseID)
-    self.assertTrue(result['OK'])
-    self.assertEqual(result['Value'], '{}')
+  # # Remove empty
+  mcStatsClient.remove(falseID)
+  time.sleep(5)
+  result = mcStatsClient.get(falseID)
+  assert result['OK'] is True
+  assert result['Value'] == '{}'
 
 
-if __name__ == '__main__':
-  suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestClientMCStatsTestCase)
-  suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(MCHandlerClientChain))
-  testResult = unittest.TextTestRunner(verbosity=2).run(suite)
+mcStatsClient.deleteIndex('lhcb-mclogerrors')
+mcStatsClient = None
