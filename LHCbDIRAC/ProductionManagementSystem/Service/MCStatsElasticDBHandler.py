@@ -1,6 +1,4 @@
-
-"""
-Handler for MCStatsElasticDB
+""" DIRAC service that expose access for MCStatsElasticDB (ElasticSearch DB)
 """
 
 __RCSID__ = "$Id$"

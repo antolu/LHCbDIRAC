@@ -1,16 +1,23 @@
 """
 A database wrapper for ElasticDB to insert data into elasticsearch from Gauss & Boole simulations
 """
+
 import json
-from elasticsearch import Elasticsearch
+
 from DIRAC import gLogger, S_OK, S_ERROR
-from DIRAC.Core.Base.ElasticDB import ElasticDB as DB
-ES = Elasticsearch()
+from DIRAC.Core.Base.ElasticDB import ElasticDB
 
 
-class MCStatsElasticDB(DB):
-  def __init__(self, indexName='mcstatsdb'):
-    DB.__init__(self, 'MCStatsDB', 'ProductionManagement/MCStatsDB')
+class MCStatsElasticDB(ElasticDB):
+  """ Exposes interface to Elastic DB index lhcb-mcstatsdb
+  """
+
+  def __init__(self):
+    """ Simple constructor, just initialize MCStatsElasticDB
+    """
+
+    super(MCStatsElasticDB, self).__init__(self, 'MCStatsElasticDB', 'ProductionManagement/MCStatsElasticDB')
+
     # self.typeName = 'LogErr'    # We assume the type of the data is from LogErr
     # self.mapping = {
     #     "Log_output": {
@@ -38,8 +45,6 @@ class MCStatsElasticDB(DB):
     #     }
     # }
 
-#############################################################################
-
   def set(self, indexName, typeName, data):
     """
     Inserts data into specified index using data given in argument
@@ -56,8 +61,6 @@ class MCStatsElasticDB(DB):
     else:
       gLogger.error("ERROR: Couldn't insert data", result['Message'])
     return result
-
-#############################################################################
 
   def get(self, indexName, jobID):
     """
@@ -93,8 +96,6 @@ class MCStatsElasticDB(DB):
       data = source['_source']
       resultDict.update(data)
     return S_OK(json.dumps(resultDict))
-
-#############################################################################
 
   def remove(self, indexName, jobID):
     """
