@@ -1,19 +1,25 @@
 """ LHCbDIRAC's Resources helper
 """
 
+import LbPlatformUtils
+
 from DIRAC import S_OK, S_ERROR, gLogger
+
+import DIRAC.ConfigurationSystem.Client.Helpers.Resources
+getQueues = DIRAC.ConfigurationSystem.Client.Helpers.Resources.getQueues
+getDIRACPlatforms = DIRAC.ConfigurationSystem.Client.Helpers.Resources.getDIRACPlatforms
+getCompatiblePlatforms = DIRAC.ConfigurationSystem.Client.Helpers.Resources.getCompatiblePlatforms
 
 
 def getDIRACPlatform(platform):
   """ Returns list of compatible platforms.
-      Used in JobDB.py
+
+      Used in JobDB.py instead of DIRAC.ConfigurationSystem.Client.Helpers.Resources.getDIRACPlatform
 
       :param str platform: a string (or a list with 1 string in)
                            representing a DIRAC platform, e.g. x86_64-centos7.avx2+fma
       :returns: S_ERROR or S_OK() with a list of DIRAC platforms that can run platform (e.g. slc6 can run on centos7)
   """
-
-  import LbPlatformUtils  # pylint: disable=import-error
 
   # In JobDB.py this function is called with a list in input
   # In LHCb it should always be 1 and 1 only. If it's more there's an issue.
@@ -83,8 +89,6 @@ def getPlatformForJob(workflow):
 
       :returns: a DIRAC platform (a string) or None
   """
-
-  import LbPlatformUtils  # pylint: disable=import-error
 
   archSet = set()
   microarchSet = set()

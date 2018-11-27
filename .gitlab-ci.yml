@@ -34,6 +34,7 @@ stages:
     - pip install --upgrade pip
     - pip list
     - pip install -r DIRAC/requirements.txt
+    - pip install LbPlatformUtils --trusted-host=lhcb-pypi.web.cern.ch --extra-index-url=https://lhcb-pypi.web.cern.ch/lhcb-pypi/simple
 
   stage: test
   only:
