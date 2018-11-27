@@ -318,15 +318,13 @@ class LHCbConfigureArchitecture(LHCbCommandBase, ConfigureArchitecture):
     if self.pp.localConfigFile:
       cfg.append(self.pp.localConfigFile)  # this file is as input
 
-    architectureCmd = "%s %s" % (self.pp.architectureScript, " ".join(cfg))
+    binaryTagCmd = "%s %s" % (self.pp.architectureScript, " ".join(cfg))
 
-    retCode, binaryTag = self.executeAndGetOutput(architectureCmd, self.pp.installEnv)
+    retCode, binaryTag = self.executeAndGetOutput(binaryTagCmd, self.pp.installEnv)
     if retCode:
       self.log.error("There was an error getting the binary tag [ERROR %d]" % retCode)
       self.exitWithError(retCode)
     self.log.info("BinaryTag determined: %s" % binaryTag)
-
-    binaryTag = super(LHCbConfigureArchitecture, self).execute()
 
     self.log.info('Setting variable CMTCONFIG=%s' % binaryTag)
     os.environ['CMTCONFIG'] = binaryTag
