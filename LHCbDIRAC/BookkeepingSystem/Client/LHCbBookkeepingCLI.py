@@ -1,97 +1,109 @@
 """Bookkeeping file system"""
-import sys, cmd, pydoc
+from __future__ import absolute_import, division, print_function, unicode_literals
+
+import sys
+import cmd
+import pydoc
+import shlex
+import argparse
+
+from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
+from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
+from LHCbDIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient import LHCB_BKKDBClient
 
 __RCSID__ = "$Id$"
 
-from LHCbDIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient  import LHCB_BKKDBClient
 
 #############################################################################
 class LHCbBookkeepingCLI(cmd.Cmd):
   """class"""
   #############################################################################
+
   def __init__(self):
     """constructor"""
     cmd.Cmd.__init__(self)
     self.prompt = "$[/]$"
-    self.__bk = LHCB_BKKDBClient()
-    self.__currentPath = '/'
+    self.bk = LHCB_BKKDBClient()
+    self.diracAPI = DiracLHCb()
+    self.currentPath = '/'
     self.do_setDataQualityFlags('OK')
-
-  #############################################################################
-  def setCurrentPath(self, path):
-    """current path(node)"""
-    self.__currentPath = path
+    self.saveParser = argparse.ArgumentParser(description="Save LFNS", prog='save')
+    self.saveParser.add_argument('filename', type=str, help='file name')
+    self.saveParser.add_argument("-f", "--format", help="txt or py")
+    self.saveParser.add_argument("-n", "--num", help="number of files to be saved")
+    self.saveParser.add_argument("-c", "--with-fileCatalog", help="save POOL XML catalog in a given site")
+    self.sites = {}
+    self.sites = DMSHelpers().getShortSiteNames(withStorage=False, tier=(0, 1))
 
   #############################################################################
   def addCurrentPath(self, path):
     """add a path"""
-    if path[0] != '/' and len(self.__currentPath) == 1:
-      self.__currentPath += path
+    if path[0] != '/' and len(self.currentPath) == 1:
+      self.currentPath += path
     else:
-      self.__currentPath += '/' + path
+      self.currentPath += '/' + path
 
   #############################################################################
-  def getCurrentPath(self):
-    """get current path"""
-    return self.__currentPath
-
-  #############################################################################
-  def __printPrompt(self,  path = '/'):
+  def __printPrompt(self, path=None):
     """prints the prompt"""
+    if path is None:
+      path = '/'
     self.prompt = '$[' + path + ']$'
 
   #############################################################################
   def __bklist(self, path):
     """list a path"""
-    retVal =  self.__bk.list(path)
+    retVal = self.bk.list(path)
     return retVal
 
   def __bkListAll(self, path):
-    """???"""
+    """list the directory with metadata.
+    This is equivalent to ls -a
+    """
     if path == '':
-      path = self.getCurrentPath()
-    res = self.__bk.list(path)
+      path = self.currentPath
+    res = self.bk.list(path)
     for i in res:
-      print i['name']
+      print(i['name'])
       for j in i:
         if j not in ['fullpath', 'selection', 'expandable', 'method', 'level', 'name']:
-          print '   ', j, i[j]
+          print('   ', j, i[j])
 
   #############################################################################
   def __checkDirectory(self, path):
     """is empty directory"""
-    res = self.__bk.list(path)
+    res = self.bk.list(path)
     retValue = False
-    if len(res) > 0:
+    if res:
       retValue = True
     return retValue
 
   #############################################################################
   def __rootDirectory(self):
     """root"""
-    self.setCurrentPath('/')
-    self.__printPrompt(self.getCurrentPath())
+    self.currentPath = '/'
+    self.__printPrompt(self.currentPath)
 
   #############################################################################
-  def __oneLevelback(self, logical = False):
-    """ .. """
-    path = self.getCurrentPath().split('/')
+  def __oneLevelback(self, logical=False):
+    """ cd .. """
+    path = self.currentPath.split('/')
     if path[0] == '' and path[1] == '':
       if not logical:
-        self.setCurrentPath('/')
-        self.__printPrompt(self.getCurrentPath())
+        self.currentPath = '/'
+        self.__printPrompt(self.currentPath)
       else:
         return '/'
     else:
       newpath = ''
-      for i in xrange(len(path) -1):
+      for i in xrange(len(path) - 1):
         if path[i] != '':
           newpath += '/' + path[i]
       if newpath == '':
         newpath = '/'
       if not logical:
-        self.setCurrentPath(newpath)
-        self.__printPrompt(self.getCurrentPath())
+        self.currentPath = newpath
+        self.__printPrompt(self.currentPath)
       else:
         return newpath
 
@@ -99,21 +111,21 @@ class LHCbBookkeepingCLI(cmd.Cmd):
   @staticmethod
   def help_ls():
     """provides help"""
-    print "Usage: ls [OPTION]... [FILE]..."
-    print "List information about the FILEs (the current directory by default)."
-    print " Available options: -a"
-    print 'Usage: ls or ls -a'
-    print 'ls -a [FILE]'
-    print 'Note: You can do paging using the | more'
-    print 'For example: ls | more'
+    print("Usage: ls [OPTION]... [FILE]...")
+    print("List information about the FILEs (the current directory by default).")
+    print(" Available options: -a")
+    print('Usage: ls or ls -a')
+    print('ls -a [FILE]')
+    print('Note: You can do paging using the | more')
+    print('For example: ls | more')
 
   @staticmethod
   def help_cd():
     """help cd command"""
-    print " cd <dir>"
-    print "cd .."
-    print "cd /"
-    print "cd"
+    print(" cd <dir>")
+    print("cd ..")
+    print("cd /")
+    print("cd")
 
   #############################################################################
   def do_ls(self, path):
@@ -128,26 +140,29 @@ class LHCbBookkeepingCLI(cmd.Cmd):
 
     text = ''
     if len(path) > 0 and path[0] == '-':
-      if path[1] != 'a':
-        print "ls: invalid option -- %s" % (path[1])
-        print "Try `help ls' for more information."
-      else:
-        path = path[2:]
-        self.__bkListAll(path)
+      try:
+        if path[1] != 'a':
+          print("ls: invalid option -- {}".format(path[1]))
+          print("Try `help ls' for more information.")
+        else:
+          path = path[2:]
+          self.__bkListAll(path)
+      except IndexError as e:
+        print("Invalid oprion:", e)
     elif path == '':
-      res = self.__bklist(self.getCurrentPath())
-      for i in res:
+      res = self.__bklist(self.currentPath)
+      for i in sorted(res):
         if paging:
           text += i['name'] + '\n'
         else:
-          print i['name']
+          print(i['name'])
     else:
       res = self.__bklist(path)
-      for i in res:
+      for i in sorted(res):
         if paging:
           text += i['name'] + '\n'
         else:
-          print i['name']
+          print(i['name'])
     if paging:
       pydoc.ttypager(text)
 
@@ -159,142 +174,199 @@ class LHCbBookkeepingCLI(cmd.Cmd):
   #############################################################################
   def do_save(self, command):
     """save command"""
-    print command
-    parameters = command.split(' ')
-    filename = parameters[0]
-    saveType = parameters[1]
-    files = self.__bk.list(self.getCurrentPath())
+    try:
+      args = self.saveParser.parse_args(shlex.split(command))
+    except argparse.ArgumentError as exc:
+      print(exc)
+    except SystemExit:
+      self.saveParser.print_help()
+      return
+    if args.format is None:
+      args.format = 'txt'
+
+    retVal = self.bk.list(self.currentPath)
+    files = None
+    if retVal:
+      if 'FileName' not in retVal[0]:
+        print('No file found belong to {} bookkeeping path!'.format(self.currentPath))
+        return
+      else:
+        files = retVal
+    else:
+      print(retVal)
+      return
+    if args.num is not None:
+      try:
+        nb = long(args.num)
+      except ValueError as v:
+        print(v)
+        return
+      nbOfFiles = nb
+    else:
+      nbOfFiles = len(files)
+
     lfns = {}
-    for i in xrange(len(files)):
+    for i in xrange(nbOfFiles):
       lfns[files[i]['FileName']] = files[i]
 
-    if saveType == 'txt':
-      text = self.__bk.writeJobOptions(lfns, '', saveType)
-      fileName = open(filename, 'w')
-      fileName.write(text)
-      fileName.close()
-    elif saveType == 'py':
-      text = self.__bk.writeJobOptions(lfns, filename, saveType)
-      fileName = open(filename, 'w')
-      fileName.write(text)
-      fileName.close()
+    if args.with_fileCatalog:
+      site = args.with_fileCatalog
+      lfnList = lfns.keys()
+      totalFiles = len(lfnList)
+      ff = args.filename.split('.')
+      catalog = ff[0] + '.xml'
+      retVal = self.diracAPI.getInputDataCatalog(lfnList, site, catalog, True)
+      nbofsuccsessful = 0
+      if retVal['OK']:
+        slist = {}
+        faild = {}
+        if 'Successful' in retVal['Value']:
+          slist = retVal['Value']['Successful']
+        if 'Failed' in retVal['Value']:
+          faild = retVal['Value']['Failed']
+        nbofsuccsessful = len(slist)
+        nboffaild = len(faild)
+        exist = {}
+        for i in slist:
+          exist[i] = lfns[i]
+
+        self.bk.writeJobOptions(exist,
+                                args.filename,
+                                savedType=None,
+                                catalog=catalog,
+                                savePfn=slist)
+
+        message = 'Total files:' + str(totalFiles) + '\n'
+        if site is not None:
+          if nbofsuccsessful:
+            message += str(nbofsuccsessful) + ' found ' + site + '\n'
+          if nboffaild:
+            message += str(nboffaild) + ' not found ' + site
+        print(message)
+        return
+    if args.format == 'txt':
+      text = self.bk.writeJobOptions(lfns, '', args.format)
+    elif args.format == 'py':
+      text = self.bk.writeJobOptions(lfns, args.filename, args.format)
+
+    with open(args.filename, 'w') as f:
+      f.write(text)
 
   #############################################################################
   def do_cd(self, path):
     """cd command"""
-    newpath = self.getCurrentPath()+ '/'+path
+    newpath = self.currentPath + '/' + path
     if path == '':
-      self.setCurrentPath('/')
-      self.__printPrompt(self.getCurrentPath())
+      self.currentPath = '/'
+      self.__printPrompt(self.currentPath)
     elif path == '..':
       self.__oneLevelback()
     elif path == '/':
       self.__rootDirectory()
     elif path[0] == '/':
       if self.__checkDirectory(path):
-        self.setCurrentPath(path)
-        self.__printPrompt(self.getCurrentPath())
+        self.currentPath = path
+        self.__printPrompt(self.currentPath)
       else:
-        print 'No such file or directory.'
+        print('No such file or directory.')
     elif self.__checkDirectory(newpath):
       self.addCurrentPath(path)
-      self.__printPrompt(self.getCurrentPath())
+      self.__printPrompt(self.currentPath)
     else:
-      print 'No such file or directory.'
-
+      print('No such file or directory.')
 
   #############################################################################
   def do_pwd(self, path):
     """pwd command"""
-    print self.getCurrentPath()
-   
+    print(self.currentPath)
+
   #############################################################################
   def do_queries(self, command=''):
     """execute query"""
-    retVal = self.__bk.getPossibleParameters()
-    print 'The following bookkeeping query types are available:'
+    retVal = self.bk.getPossibleParameters()
+    print('The following bookkeeping query types are available:')
     for i in retVal:
-      print ' '.rjust(10)+i
-    print "You can change the query types using the 'use' command"
+      print(' '.rjust(10) + i)
+    print("You can change the query types using the 'use' command")
 
   #############################################################################
   def do_use(self, command):
     """use command"""
-    self.__bk.setParameter(str(command))
+    self.bk.setParameter(str(command))
     self.do_cd('/')
 
   #############################################################################
   @staticmethod
   def help_use():
-    """hel of use command"""
-    print 'Usage:'
-    print '  use type'.rjust(10)
-    print 'Arguments:'
-    print ' type: bookkeeping query type'.rjust(10)
-    print "The 'type' can be found using the 'queries' command!"
-    print "EXAMPE:"
-    print ' '.rjust(10)+"use 'Event type'"
+    """help of use command"""
+    print('Usage:')
+    print('  use type'.rjust(10))
+    print('Arguments:')
+    print(' type: bookkeeping query type'.rjust(10))
+    print("The 'type' can be found using the 'queries' command!")
+    print("EXAMPE:")
+    print(' '.rjust(10) + "use 'Event type'")
 
   #############################################################################
   @staticmethod
   def help_queries():
     """help of queries command"""
-    print "This method shows the available query types!"
-    print "Usage:"
-    print "  queries"
-    print "You can choose a query type using the 'use' command  "
-    print " NOTE: the default query type is 'Configuration'"
+    print("This method shows the available query types!")
+    print("Usage:")
+    print("  queries")
+    print("You can choose a query type using the 'use' command  ")
+    print(" NOTE: the default query type is 'Configuration'")
 
   #############################################################################
-  def do_advanceQuery(self, command = ''):
+  def do_advanceQuery(self, command=''):
     """advancedQuery command"""
-    self.__bk.setAdvancedQueries(True)
+    self.bk.setAdvancedQueries(True)
     self.do_cd('/')
 
   #############################################################################
   @staticmethod
   def help_advanceQuery():
     """help"""
-    print "It allows to see more level of the Bookkeeping Tree"
-    print "Usage:"
-    print "   advanceQuery"
-    
+    print("It allows to see more level of the Bookkeeping Tree")
+    print("Usage:")
+    print("   advanceQuery")
+
   #############################################################################
-  def do_standardQuery(self, command = ''):
-    """commmand"""
-    self.__bk.setAdvancedQueries(False)
+  def do_standardQuery(self, command=''):
+    """command"""
+    self.bk.setAdvancedQueries(False)
     self.do_cd('/')
 
   #############################################################################
   @staticmethod
   def help_standardQuery():
     """help"""
-    print "This is used by default"
-    print "It shows a reduced bookkeeping path."
-    print "Usage:"
-    print "   standardQuery"
+    print("This is used by default")
+    print("It shows a reduced bookkeeping path.")
+    print("Usage:")
+    print("   standardQuery")
 
   #############################################################################
   def do_dataQuality(self, command=''):
     """command"""
-    print 'The following Data Qaulity flags are available in the boookkeeping!'
-    retVal = self.__bk.getAvailableDataQuality()
+    print('The following Data Quality flags are available in the bookkeeping!')
+    retVal = self.bk.getAvailableDataQuality()
     if retVal['OK']:
       for i in retVal['Value']:
-        print ' '.ljust(10)+i
+        print(' '.ljust(10) + i)
     else:
-      print retVal["Message"]
-    print "To set the data quality flags you heve to use 'setDataQualityFlags' command!"
-    print "More information: 'help setDataQualityFlags'"
+      print(retVal["Message"])
+    print("To set the data quality flags you have to use 'setDataQualityFlags' command!")
+    print("More information: 'help setDataQualityFlags'")
 
   #############################################################################
   @staticmethod
   def help_dataQuality():
     """help"""
-    print 'This command shows the available data quality flags.'
-    print "Usage:"
-    print "  dataQuality"
-    print 'To change the data quality flag use the setDataQualityFlags command'
+    print('This command shows the available data quality flags.')
+    print("Usage:")
+    print("  dataQuality")
+    print('To change the data quality flag use the setDataQualityFlags command')
 
   #############################################################################
   def do_setDataQualityFlags(self, command):
@@ -304,112 +376,111 @@ class LHCbBookkeepingCLI(cmd.Cmd):
       dataquality = {}
       for i in qualities:
         dataquality[i] = True
-      self.__bk.setDataQualities(dataquality)
+      self.bk.setDataQualities(dataquality)
     else:
-      print 'ERROR: Please give a data quality flag!'
+      print('ERROR: Please give a data quality flag!')
 
   #############################################################################
   def __moreInfoProcpass(self, command):
     """more information of a directory"""
     found = False
-    retVal = self.__bk.getProcessingPassSteps({'StepName':command})
+    retVal = self.bk.getProcessingPassSteps({'StepName': command})
     if retVal['OK']:
       proc = retVal['Value']
-      print '%d %s step founf in the bkk' % (proc['TotalRecords'], command)
+      print('{0} {1} step found in the bkk'.format(proc['TotalRecords'], command))
       for i in proc['Records']:
-        print ' '.ljust(5) + i
+        print(' '.ljust(5) + i)
         for j in proc['Records'][i]:
-          print ' '.ljust(10) + str(j[0]) + ':' + str(j[1])
+          print(' '.ljust(10) + str(j[0]) + ':' + str(j[1]))
         found = True
     else:
-      print 'ERROR: ', retVal['Message']
+      print('ERROR: ', retVal['Message'])
     return found
 
   #############################################################################
   def do_moreinfo(self, command=''):
     """more info command"""
     if command == '':
-      previouspath = self.__oneLevelback(self.getCurrentPath())
+      previouspath = self.__oneLevelback(self.currentPath)
       values = self.__bklist(previouspath)
-      name = self.getCurrentPath().split('/')
+      name = self.currentPath.split('/')
       for i in values:
-        if i.has_key('level') and i['level'] == 'FileTypes':
-          path = self.getCurrentPath()
-          retVal = self.__bk.getLimitedFiles({'fullpath':str(path)}, ['nb'], -1, -1)
-          print 'The selected dataset is:'
+        if 'level' in i and i['level'] == 'FileTypes':
+          path = self.currentPath
+          retVal = self.bk.getLimitedFiles({'fullpath': str(path)}, ['nb'], -1, -1)
+          print('The selected dataset is:')
           for i in retVal['Extras']['Selection']:
-            print ''.ljust(5) + i + ' ' + str(retVal['Extras']['Selection'][i])
-          print 'Statistics:'
-          print ' '.ljust(5) + 'Number of files:' + str(retVal['TotalRecords'])
+            print(''.ljust(5) + i + ' ' + str(retVal['Extras']['Selection'][i]))
+          print('Statistics:')
+          print(' '.ljust(5) + 'Number of files:' + str(retVal['TotalRecords']))
           for i in retVal['Extras']['GlobalStatistics']:
-            print ''.ljust(5) + i + ' ' + str(retVal['Extras']['GlobalStatistics'][i])
+            print(''.ljust(5) + i + ' ' + str(retVal['Extras']['GlobalStatistics'][i]))
           break
         if i['name'] == name[len(name) - 1]:
           for j in i:
             if j not in ['fullpath', 'selection', 'expandable', 'method', 'level', 'name']:
-              print '   ', j, i[j]
-        if i.has_key('level') and i['level'] == 'Processing Pass':
+              print('   ', j, i[j])
+        if 'level' in i and i['level'] == 'Processing Pass':
           found = self.__moreInfoProcpass(command)
           break
     else:
-      values = self.__bklist(self.getCurrentPath())
+      values = self.__bklist(self.currentPath)
       found = False
       for i in values:
         if i['name'] == command:
           for j in i:
             if j not in ['fullpath', 'selection', 'expandable', 'method', 'level', 'name']:
-              print '   ', j, i[j]
+              print('   ', j, i[j])
           found = True
-        if i.has_key('level') and i['level'] == 'Processing Pass':
+        if 'level' in i and i['level'] == 'Processing Pass':
           found = self.__moreInfoProcpass(command)
           break
 
       if not found:
-        print " The '%s' does not found" % (command)
+        print(" The '%s' does not found" % (command))
+
+  def do_sites(self, command):
+    print("T0/1 sites: %s" % ','.join(site for site in self.sites))
+
+  @staticmethod
+  def help_sites(self):
+    """
+    help
+    """
+    print("it returns a list of T1 sites")
 
   #############################################################################
   @staticmethod
   def help_setDataQualityFlags():
     """help"""
-    print 'This command allows to use differnt data quality flags.'
-    print "Usage:"
-    print "  setDataQualityFlags flag1 [flag2 flag3, ... flagN]"
-    print "Arguments:"
-    print "  flag[1...N]:  Data qulaity flags."
-    print 'For example:'
-    print ' '.ljust(10)+'setDataQualityFlags OK UNCHECKED'
+    print('This command allows to use different data quality flags.')
+    print("Usage:")
+    print("  setDataQualityFlags flag1 [flag2 flag3, ... flagN]")
+    print("Arguments:")
+    print("  flag[1...N]:  Data quality flags.")
+    print('For example:')
+    print(' '.ljust(10) + 'setDataQualityFlags OK UNCHECKED')
 
   #############################################################################
   @staticmethod
   def help_EOF():
     """quit"""
-    print "Quits the program"
+    print("Quits the program")
 
   #############################################################################
   def do_EOF(self, line):
     """quit command"""
     sys.exit()
 
-  
   #############################################################################
-  @staticmethod
-  def help_save():
+  def help_save(self):
     """help"""
-    print 'This command is used to save the dataset.'
-    print 'Usage:' 
-    print '  save fileName type'
-    print 'Arguments:'
-    print '  fileName: is a text for example: ex.txt'
-    print '  type: txt or py '
-    print 'For example:'
-    print ' '.ljust(10)+'save files.dat txt'
-    
+    self.saveParser.print_help()
+
   #############################################################################
   @staticmethod
   def help_moreinfo():
     """help method"""
-    print "Display the statistics of the selected data."
-    print "Usage:"
-    print "  moreinfo"
-  
-  
+    print("Display the statistics of the selected data.")
+    print("Usage:")
+    print("  moreinfo")
