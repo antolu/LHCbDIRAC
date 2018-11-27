@@ -1,3 +1,16 @@
+[v9r3-pre9]
+use DIRAC v6r20p22
+
+* fix typos
+* restored tests
+* fixes
+* pip install LbPlatformUtils
+* adding functions from base module
+* getQueues from vanilla DIRAC module
+* fix pylint issues
+* make python 3 compatible
+* allow to create POOL XML catalog
+
 [v9r3-pre8]
 use DIRAC v6r20p21
 
