@@ -27,11 +27,29 @@ def sendMail(msg=''):
 
 if __name__ == "__main__":
   from DIRAC.Core.Base import Script
-  Script.registerSwitch('', 'Full', '   Print additional information on compatible LHCb platforms')
+  Script.registerSwitch('', 'BinaryTag', '   Print the host binary tag instead of the host dirac_platform')
   Script.parseCommandLine(ignoreErrors=True)
 
   from DIRAC import gLogger, exit as dExit
   import LbPlatformUtils
+
+  parList = Script.getUnprocessedSwitches()
+  for switch, _val in parList:
+    if switch == 'BinaryTag':
+      try:
+        # Get the binaryTag name. If an error occurs, an exception is thrown
+        binaryTag = LbPlatformUtils.host_binary_tag()
+        if not binaryTag:
+          gLogger.fatal("There is no binaryTag corresponding to this machine")
+          sendMail("There is no binaryTag corresponding to this machine")
+          dExit(1)
+        print binaryTag
+        dExit(0)
+      except Exception as e:
+        msg = "Exception getting binaryTag: " + repr(e)
+        gLogger.exception(msg, lException=e)
+        sendMail(msg)
+        dExit(1)
 
   try:
     # Get the platform name. If an error occurs, an exception is thrown

@@ -306,9 +306,27 @@ class LHCbConfigureArchitecture(LHCbCommandBase, ConfigureArchitecture):
   """
 
   def execute(self):
-    """ calls the superclass execute and then sets the CMTCONFIG variable
+    """ calls the superclass execute and then sets the CMTCONFIG variable with the host binary tag
     """
-    localArchitecture = super(LHCbConfigureArchitecture, self).execute()
+    # This sets the DIRAC architecture
+    super(LHCbConfigureArchitecture, self).execute()
 
-    self.log.info('Setting variable CMTCONFIG=%s' % localArchitecture)
-    os.environ['CMTCONFIG'] = localArchitecture
+    # Now we find the host binary tag
+    cfg = ['--BinaryTag']
+    if self.pp.useServerCertificate:
+      cfg.append('-o  /DIRAC/Security/UseServerCertificate=yes')
+    if self.pp.localConfigFile:
+      cfg.append(self.pp.localConfigFile)  # this file is as input
+
+    architectureCmd = "%s %s" % (self.pp.architectureScript, " ".join(cfg))
+
+    retCode, binaryTag = self.executeAndGetOutput(architectureCmd, self.pp.installEnv)
+    if retCode:
+      self.log.error("There was an error getting the binary tag [ERROR %d]" % retCode)
+      self.exitWithError(retCode)
+    self.log.info("BinaryTag determined: %s" % binaryTag)
+
+    binaryTag = super(LHCbConfigureArchitecture, self).execute()
+
+    self.log.info('Setting variable CMTCONFIG=%s' % binaryTag)
+    os.environ['CMTCONFIG'] = binaryTag
