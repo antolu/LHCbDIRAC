@@ -54,7 +54,7 @@ class MCStatsElasticDB(DB):
     if self.exists(indexName) and result['OK']:
       gLogger.notice('Inserting data in index:', indexName)
     else:
-      gLogger.error("ERROR: Couldn't insert data")
+      gLogger.error("ERROR: Couldn't insert data", result['Message'])
     return result
 
 #############################################################################
