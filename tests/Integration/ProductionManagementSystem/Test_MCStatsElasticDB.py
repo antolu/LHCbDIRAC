@@ -4,131 +4,116 @@ Tests set(), get() and remove() from MCStatsElasticDB
 
 import time
 import json
-import unittest
 
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
+
 from DIRAC import gLogger
 from LHCbDIRAC.ProductionManagementSystem.DB.MCStatsElasticDB import MCStatsElasticDB
 
 
-class MCStatsElasticDBTestCase(unittest.TestCase):
+id1 = 1
+id2 = 2
+falseID = 3
 
-  def __init__(self, *args, **kwargs):
-    super(MCStatsElasticDBTestCase, self).__init__(*args, **kwargs)
-
-    self.id1 = 1
-    self.id2 = 2
-    self.falseID = 3
-
-    self.data1 = {
-        "Errors": {
-            "ID": {
-                "wmsID": "6",
-                "ProductionID": "5",
-                "JobID": self.id1
-            },
-            "Error1": 10,
-            "Error2": 5,
-            "Error3": 3
-        }
+data1 = {
+    "Errors": {
+        "ID": {
+            "wmsID": "6",
+            "ProductionID": "5",
+            "JobID": id1
+        },
+        "Error1": 10,
+        "Error2": 5,
+        "Error3": 3
     }
+}
 
-    self.data2 = {
-        "Errors": {
-            "ID": {
-                "wmsID": "6",
-                "ProductionID": "5",
-                "JobID": self.id2
-            },
-            "Error1": 7,
-            "Error2": 9
-        }
+data2 = {
+    "Errors": {
+        "ID": {
+            "wmsID": "6",
+            "ProductionID": "5",
+            "JobID": id2
+        },
+        "Error1": 7,
+        "Error2": 9
     }
+}
 
-    # This is needed to convert a dict to a string
-    self.data1 = json.dumps(self.data1)
-    self.data2 = json.dumps(self.data2)
+# This is needed to convert a dict to a string
+data1 = json.dumps(data1)
+data2 = json.dumps(data2)
 
-    self.typeName = 'test'
-    self.indexName1 = 'mcstatsdb1'
-    self.indexName2 = 'mcstatsdb2'
+typeName = 'test'
+indexName1 = 'mcstatsdb1'
+indexName2 = 'mcstatsdb2'
 
-  def setUp(self):
-    gLogger.setLevel('DEBUG')
-    self.db = MCStatsElasticDB()
-
-  def tearDown(self):
-    self.db.deleteIndex(self.indexName1)
-    self.db = None
+gLogger.setLevel('DEBUG')
+db = MCStatsElasticDB()
 
 
-class TestMCStatsElasticDB(MCStatsElasticDBTestCase):
+def test_setandGetandRemove():
 
-  def test_setandGetandRemove(self):
+  # Set
 
-    # Set
+  # Set data1
+  result = db.set(indexName1, typeName, data1)
+  time.sleep(1)
+  assert result['OK'] is True
+  # Set data2
+  result = db.set(indexName1, typeName, data2)
+  time.sleep(1)
+  assert result['OK'] is True
 
-    # Set data1
-    result = self.db.set(self.indexName1, self.typeName, self.data1)
-    time.sleep(1)
-    self.assertTrue(result['OK'])
+  # Data insertion is not instantaneous, so sleep is needed
+  time.sleep(1)
 
-    # Set data2
-    result = self.db.set(self.indexName1, self.typeName, self.data2)
-    time.sleep(1)
-    self.assertTrue(result['OK'])
+  # Get
 
-    # Data insertion is not instantaneous, so sleep is needed
-    time.sleep(1)
+  # Get data1 from index1
+  result = db.get(indexName1, id1)
+  assert result['OK'] is True
+  assert result['Value'] == data1
 
-    # Get
+  # Get data2 from index1
+  result = db.get(indexName1, id2)
+  assert result['OK'] is True
+  assert result['Value'] == data2
 
-    # Get data1 from index1
-    result = self.db.get(self.indexName1, self.id1)
-    self.assertTrue(result['OK'])
-    self.assertEqual(result['Value'], self.data1)
+  # Get data1 from index2 (false)
+  result = db.get(indexName2, id1)
+  assert result['OK'] is True
+  assert result['Value'] == '{}'
 
-    # Get data2 from index1
-    result = self.db.get(self.indexName1, self.id2)
-    self.assertTrue(result['OK'])
-    self.assertEqual(result['Value'], self.data2)
+  # Get empty
+  result = db.get(indexName1, falseID)
+  assert result['OK'] is True
+  assert result['Value'] == '{}'
 
-    # Get data1 from index2 (false)
-    result = self.db.get(self.indexName2, self.id1)
-    self.assertTrue(result['OK'])
-    self.assertEqual(result['Value'], '{}')
+  # Remove
 
-    # Get empty
-    result = self.db.get(self.indexName1, self.falseID)
-    self.assertTrue(result['OK'])
-    self.assertEqual(result['Value'], '{}')
+  # Remove data1 from index1
+  db.remove(indexName1, id1)
+  time.sleep(1)
+  result = db.get(indexName1, id1)
+  assert result['OK'] is True
+  assert result['Value'] == '{}'
 
-    # Remove
+  # Remove data2 from index1
+  db.remove(indexName1, id2)
+  time.sleep(1)
+  result = db.get(indexName1, id2)
+  assert result['OK'] is True
+  assert result['Value'] == '{}'
 
-    # Remove data1 from index1
-    self.db.remove(self.indexName1, self.id1)
-    time.sleep(1)
-    result = self.db.get(self.indexName1, self.id1)
-    self.assertTrue(result['OK'])
-    self.assertEqual(result['Value'], '{}')
-
-    # Remove data2 from index1
-    self.db.remove(self.indexName1, self.id2)
-    time.sleep(1)
-    result = self.db.get(self.indexName1, self.id2)
-    self.assertTrue(result['OK'])
-    self.assertEqual(result['Value'], '{}')
-
-    # Remove empty
-    self.db.remove(self.indexName1, self.falseID)
-    time.sleep(1)
-    result = self.db.get(self.indexName1, self.falseID)
-    self.assertTrue(result['OK'])
-    self.assertEqual(result['Value'], '{}')
+  # Remove empty
+  db.remove(indexName1, falseID)
+  time.sleep(1)
+  result = db.get(indexName1, falseID)
+  assert result['OK'] is True
+  assert result['Value'] == '{}'
 
 
-if __name__ == '__main__':
-  suite = unittest.defaultTestLoader.loadTestsFromTestCase(MCStatsElasticDBTestCase)
-  suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestMCStatsElasticDB))
-  testResult = unittest.TextTestRunner(verbosity=2).run(suite)
+db.deleteIndex(indexName1)
+db = None
