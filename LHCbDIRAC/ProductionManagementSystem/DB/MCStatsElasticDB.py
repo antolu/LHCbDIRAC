@@ -55,10 +55,14 @@ class MCStatsElasticDB(ElasticDB):
 
     :returns: S_OK/S_ERROR as result of indexing
     """
+    result = self.createIndex(indexName, {})
+    if not result['OK']:
+      gLogger.error("ERROR: Cannot create index", result['Message'])
+      return result
+
+    gLogger.notice('Inserting data in index:', indexName)
     result = self.index(indexName, typeName, data)
-    if self.exists(indexName) and result['OK']:
-      gLogger.notice('Inserting data in index:', indexName)
-    else:
+    if not result['OK']:
       gLogger.error("ERROR: Couldn't insert data", result['Message'])
     return result
 
