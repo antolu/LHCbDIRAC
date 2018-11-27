@@ -20,14 +20,14 @@ class MCStatsClient(Client):
   def set(self, typeName, data):
     """ set some data
     """
-    self._getRPC().set(self.indexName, typeName, data)
+    return self._getRPC().set(self.indexName, typeName, data)
 
   def get(self, jobID):
     """ get per Job ID
     """
-    self._getRPC().get(self.indexName, jobID)
+    return self._getRPC().get(self.indexName, jobID)
 
   def remove(self, jobID):
     """ remove data for JobID
     """
-    self._getRPC().remove(self.indexName, jobID)
+    return self._getRPC().remove(self.indexName, jobID)
