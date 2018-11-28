@@ -2,7 +2,7 @@
 This tests the chain
 MCStatsElasticDBClient > MCStatsElasticDBHandler > MCStatsElasticDB
 
-It assumes the server is running
+It assumes the server is running and that ES is present and running
 """
 
 import time
@@ -75,7 +75,7 @@ def test_setAndGetandRemove():
   # Get empty
   result = mcStatsClient.get(falseID)
   assert result['OK'] is True
-  assert result['Value'] == '{}'
+  assert result['Value'] == {}
 
   # Remove
 
@@ -84,21 +84,18 @@ def test_setAndGetandRemove():
   time.sleep(3)
   result = mcStatsClient.get(id1)
   assert result['OK'] is True
-  assert result['Value'] == '{}'
+  assert result['Value'] == {}
 
   # Remove data2
   mcStatsClient.remove(id2)
   time.sleep(3)
   result = mcStatsClient.get(id2)
   assert result['OK'] is True
-  assert result['Value'] == '{}'
+  assert result['Value'] == {}
 
   # # Remove empty
   mcStatsClient.remove(falseID)
   time.sleep(5)
   result = mcStatsClient.get(falseID)
   assert result['OK'] is True
-  assert result['Value'] == '{}'
-
-  result = mcStatsClient.deleteIndex('lhcb-mclogerrors')
-  assert result['OK'] is True
+  assert result['Value'] == {}

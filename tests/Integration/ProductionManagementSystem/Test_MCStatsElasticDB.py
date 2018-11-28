@@ -79,12 +79,12 @@ def test_setandGetandRemove():
   # Get data1 from index2 (false)
   result = db.get(indexName2, id1)
   assert result['OK'] is True
-  assert result['Value'] == '{}'
+  assert result['Value'] == {}
 
   # Get empty
   result = db.get(indexName1, falseID)
   assert result['OK'] is True
-  assert result['Value'] == '{}'
+  assert result['Value'] == {}
 
   # Remove
 
@@ -93,21 +93,21 @@ def test_setandGetandRemove():
   time.sleep(1)
   result = db.get(indexName1, id1)
   assert result['OK'] is True
-  assert result['Value'] == '{}'
+  assert result['Value'] == {}
 
   # Remove data2 from index1
   db.remove(indexName1, id2)
   time.sleep(1)
   result = db.get(indexName1, id2)
   assert result['OK'] is True
-  assert result['Value'] == '{}'
+  assert result['Value'] == {}
 
   # Remove empty
   db.remove(indexName1, falseID)
   time.sleep(1)
   result = db.get(indexName1, falseID)
   assert result['OK'] is True
-  assert result['Value'] == '{}'
+  assert result['Value'] == {}
 
   # Remove the index
   result = db.deleteIndex(indexName1)

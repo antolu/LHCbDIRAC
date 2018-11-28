@@ -2,9 +2,7 @@
 A database wrapper for ElasticDB to insert data into elasticsearch from Gauss & Boole simulations
 """
 
-import json
-
-from DIRAC import gLogger, S_OK, S_ERROR
+from DIRAC import S_OK
 from DIRAC.Core.Base.ElasticDB import ElasticDB
 
 
@@ -57,13 +55,13 @@ class MCStatsElasticDB(ElasticDB):
     """
     result = self.createIndex(indexName, {})
     if not result['OK']:
-      gLogger.error("ERROR: Cannot create index", result['Message'])
+      self.log.error("ERROR: Cannot create index", result['Message'])
       return result
 
-    gLogger.notice('Inserting data in index:', indexName)
+    self.log.debug('Inserting data in index:', indexName)
     result = self.index(indexName, typeName, data)
     if not result['OK']:
-      gLogger.error("ERROR: Couldn't insert data", result['Message'])
+      self.log.error("ERROR: Couldn't insert data", result['Message'])
     return result
 
   def get(self, indexName, jobID):
@@ -88,18 +86,18 @@ class MCStatsElasticDB(ElasticDB):
         }
     }
 
-    gLogger.notice('Getting results for JobID %s in index %s' % (jobID, indexName))
+    self.log.debug('Getting results for JobID %s in index %s' % (jobID, indexName))
     result = self.query(indexName + '*', query)
 
     if not result['OK']:
-      return S_ERROR(result)
+      return result
 
     resultDict = {}
     sources = result['Value']['hits']['hits']
     for source in sources:
       data = source['_source']
       resultDict.update(data)
-    return S_OK(json.dumps(resultDict))
+    return S_OK(resultDict)
 
   def remove(self, indexName, jobID):
     """
@@ -120,5 +118,5 @@ class MCStatsElasticDB(ElasticDB):
         }
     }
 
-    gLogger.notice('Attempting to delete data with JobID: %s in index %s' % (jobID, indexName))
+    self.log.debug('Attempting to delete data with JobID: %s in index %s' % (jobID, indexName))
     return self.deleteByQuery(indexName, query)
