@@ -1,71 +1,18 @@
 #!/usr/bin/env python
-########################################################################
-# File :    dirac-bookkeeping-gui.py
-# Author :  Zoltan Mathe
-########################################################################
 """
   Command to invoke the LHCb Bookkeeping Database graphical user interface
 """
+
 __RCSID__ = "$Id$"
 
-import sys
-from PyQt4.QtGui import QApplication #pylint: disable=import-error
 
-from DIRAC.Core.Base import Script
+""" Here we simply invoke dirac-bookkeeping-gui from a v9r2pX version. Reasons are:
 
-Script.setUsageMessage('\n'.join([ __doc__.split('\n')[1],
-                                   'Usage:',
-                                   '  %s [option|cfgfile] ...' % Script.scriptName ]))
+    - v9r3 uses lcgBundle instead of LHCbGrid, and lcgBundle does not include Qt4
+    - DIRACOS will come and we don't want to make too much effort with this temporary solution of lcgBundle
+    - dirac-bookkeeping-gui is anyway set to disappear in favor of the web version
+"""
 
-Script.parseCommandLine(ignoreErrors=True)
+import os
 
-from DIRAC                                                     import gLogger
-from DIRAC.Core.Security.ProxyInfo                             import getProxyInfo
-from DIRAC.ConfigurationSystem.Client.Helpers.Registry         import getDNForUsername
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.MainWidget         import MainWidget
-
-
-
-class BookkeepingApplication(QApplication):
-  """
-  The Bookkeeping standalone gui application class
-  """
-  def __init__(self, args):
-    """initialize the class members"""
-    QApplication.__init__(self, args)
-    fileName = ''
-    savePath = ''
-    if len(args) > 1:
-      for i in xrange(1, len(args)):
-        arg = args[i]
-        opts = arg.split('=')
-        if len(opts) == 1:
-          fileName = opts[0]
-        if opts[0] == 'txt':
-          fileName = opts[1]
-        elif opts[0] == 'ds':
-          savePath = opts[1]
-        else:
-          print 'ERORR: Argument error!!'
-    self.mainWidget = MainWidget(fileName=fileName, savepath=savePath)
-    #self.mainWidget.setWindowFlags( Qt.WindowTitleHint | Qt.WindowMinimizeButtonHint | Qt.WindowSystemMenuHint)
-    self.mainWidget.show()
-    self.mainWidget.start()
-if __name__ == "__main__":
-  res = getProxyInfo(False, False)
-  if not res['OK']:
-    gLogger.error("Failed to get client proxy information.", res['Message'])
-    sys.exit(1)
-  proxyInfo = res['Value']
-  if not proxyInfo.has_key('group'):
-    errStr = "Proxy information does not contain the group."
-    gLogger.error(errStr)
-    sys.exit(1)
-  res = getDNForUsername(proxyInfo['username'])
-  if not res['OK']:
-    errStr = "ReplicaManager.__getClientCertGroup: Error getting known proxies for user."
-    gLogger.error(errStr, res['Message'])
-    sys.exit(1)
-
-  application = BookkeepingApplication(sys.argv)
-  sys.exit(application.exec_())
+os.system("lb-run -c best LHCbDIRAC/v9r2p11 dirac-bookkeeping-gui")

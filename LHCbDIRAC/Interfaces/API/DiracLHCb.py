@@ -1074,7 +1074,8 @@ class DiracLHCb(Dirac):
         ancestorsLFNs = []
         for ancestorsLFN in res['Value']['Successful'].itervalues():
           ancestorsLFNs += [i['FileName'] for i in ancestorsLFN]
-        self.log.info("DiracLHCb._getLocalInputData. adding ancestors: %d" % ancestorsLFNs)
+        self.log.info("DiracLHCb._getLocalInputData: adding %d ancestors" % len(ancestorsLFNs))
+        self.log.verbose("%s", ', '.join(ancestorsLFNs))
         inputData += ancestorsLFNs
 
     return S_OK(inputData)

@@ -1,16 +1,21 @@
 """
 A database wrapper for ElasticDB to insert data into elasticsearch from Gauss & Boole simulations
 """
-import json
-from elasticsearch import Elasticsearch
-from DIRAC import gLogger, S_OK, S_ERROR
-from DIRAC.Core.Base.ElasticDB import ElasticDB as DB
-ES = Elasticsearch()
+
+from DIRAC import S_OK
+from DIRAC.Core.Base.ElasticDB import ElasticDB
 
 
-class MCStatsElasticDB(DB):
-  def __init__(self, indexName='mcstatsdb'):
-    DB.__init__(self, 'MCStatsDB', 'ProductionManagement/MCStatsDB')
+class MCStatsElasticDB(ElasticDB):
+  """ Exposes interface to Elastic DB index lhcb-mcstatsdb
+  """
+
+  def __init__(self):
+    """ Simple constructor, just initialize MCStatsElasticDB
+    """
+
+    super(MCStatsElasticDB, self).__init__('MCStatsElasticDB', 'ProductionManagement/MCStatsElasticDB')
+
     # self.typeName = 'LogErr'    # We assume the type of the data is from LogErr
     # self.mapping = {
     #     "Log_output": {
@@ -38,8 +43,6 @@ class MCStatsElasticDB(DB):
     #     }
     # }
 
-#############################################################################
-
   def set(self, indexName, typeName, data):
     """
     Inserts data into specified index using data given in argument
@@ -50,14 +53,16 @@ class MCStatsElasticDB(DB):
 
     :returns: S_OK/S_ERROR as result of indexing
     """
-    result = self.index(indexName, typeName, data)
-    if self.exists(indexName) and result['OK']:
-      gLogger.notice('Inserting data in index:', indexName)
-    else:
-      gLogger.error("ERROR: Couldn't insert data")
-    return result
+    result = self.createIndex(indexName, {})
+    if not result['OK']:
+      self.log.error("ERROR: Cannot create index", result['Message'])
+      return result
 
-#############################################################################
+    self.log.debug('Inserting data in index:', indexName)
+    result = self.index(indexName, typeName, data)
+    if not result['OK']:
+      self.log.error("ERROR: Couldn't insert data", result['Message'])
+    return result
 
   def get(self, indexName, jobID):
     """
@@ -81,20 +86,18 @@ class MCStatsElasticDB(DB):
         }
     }
 
-    gLogger.notice('Getting results for JobID %s in index %s' % (jobID, indexName))
+    self.log.debug('Getting results for JobID %s in index %s' % (jobID, indexName))
     result = self.query(indexName + '*', query)
 
     if not result['OK']:
-      return S_ERROR(result)
+      return result
 
     resultDict = {}
     sources = result['Value']['hits']['hits']
     for source in sources:
       data = source['_source']
       resultDict.update(data)
-    return S_OK(json.dumps(resultDict))
-
-#############################################################################
+    return S_OK(resultDict)
 
   def remove(self, indexName, jobID):
     """
@@ -115,5 +118,5 @@ class MCStatsElasticDB(DB):
         }
     }
 
-    gLogger.notice('Attempting to delete data with JobID: %s in index %s' % (jobID, indexName))
+    self.log.debug('Attempting to delete data with JobID: %s in index %s' % (jobID, indexName))
     return self.deleteByQuery(indexName, query)

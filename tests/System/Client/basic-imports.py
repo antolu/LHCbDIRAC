@@ -4,8 +4,6 @@
 # pylint: disable=unused-import,import-error
 
 import pyparsing
-import PyQt4
-#import PyQt5
 import GSI
 import XRootD
 import gfal2
