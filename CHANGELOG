@@ -1,3 +1,22 @@
+[v9r3-pre10]
+use DIRAC v6r20p22
+
+* using not strings but dicts
+* no need for json
+* dict no string
+* sending a dict, and corrected typeName
+* handle case of non existing index
+* moved to pytest
+* moved to pytest
+* return value
+* bug fixes
+* Fixes for index name
+* minor bug fix
+* using old version
+* just debug
+* fix
+* setting correctly the binary tag
+
 [v9r3-pre9]
 use DIRAC v6r20p22
 
