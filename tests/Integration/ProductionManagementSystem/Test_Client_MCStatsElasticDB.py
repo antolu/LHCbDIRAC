@@ -5,7 +5,6 @@ MCStatsElasticDBClient > MCStatsElasticDBHandler > MCStatsElasticDB
 It assumes the server is running
 """
 
-import json
 import time
 
 from DIRAC.Core.Base.Script import parseCommandLine

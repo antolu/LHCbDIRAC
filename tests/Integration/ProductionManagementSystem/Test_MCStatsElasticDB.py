@@ -3,7 +3,6 @@ Tests set(), get() and remove() from MCStatsElasticDB
 """
 
 import time
-import json
 
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
