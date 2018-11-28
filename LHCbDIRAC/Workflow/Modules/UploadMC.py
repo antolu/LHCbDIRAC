@@ -56,9 +56,10 @@ class UploadMC(ModuleBase):
               self.log.verbose(jsonData)
               if self._enableModule():
                 mcLogErrorsClient = MCStatsClient()
-                res = mcLogErrorsClient.set('json', str(jsonData))
+                res = mcLogErrorsClient.set('%s-LogErrors' % app, jsonData)
                 if not res['OK']:
-                  self.log.error('%s not set, exiting without affecting workflow status' % jsonData, res['Message'])
+                  self.log.error('%s not set, exiting without affecting workflow status' % str(jsonData),
+                                 res['Message'])
               else:
                 # At this point we can see exactly what the module would have uploaded
                 self.log.info("Would have attempted to upload the following file %s" % fn)
