@@ -41,10 +41,6 @@ data2 = {
     }
 }
 
-# This is needed to convert a dict to a string
-data1 = json.dumps(data1)
-data2 = json.dumps(data2)
-
 typeName = 'test'
 indexName1 = 'mcstatsdb1'
 indexName2 = 'mcstatsdb2'
@@ -114,6 +110,6 @@ def test_setandGetandRemove():
   assert result['OK'] is True
   assert result['Value'] == '{}'
 
-
-db.deleteIndex(indexName1)
-db = None
+  # Remove the index
+  result = db.deleteIndex(indexName1)
+  assert result['OK'] is True

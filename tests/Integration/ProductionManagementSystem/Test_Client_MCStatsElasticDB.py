@@ -43,13 +43,8 @@ data2 = {
     }
 }
 
-# This is needed to convert '' to ""
-data1 = json.dumps(data1)
-data2 = json.dumps(data2)
-
 typeName = 'test'
 
-# Note: index is created without self.indexName
 mcStatsClient = MCStatsClient()
 mcStatsClient.indexName = 'lhcb-mclogerrors'
 
@@ -106,6 +101,5 @@ def test_setAndGetandRemove():
   assert result['OK'] is True
   assert result['Value'] == '{}'
 
-
-mcStatsClient.deleteIndex('lhcb-mclogerrors')
-mcStatsClient = None
+  result = mcStatsClient.deleteIndex('lhcb-mclogerrors')
+  assert result['OK'] is True
