@@ -56,6 +56,7 @@ class UploadMC(ModuleBase):
               self.log.verbose(jsonData)
               if self._enableModule():
                 mcLogErrorsClient = MCStatsClient()
+                mcLogErrorsClient.indexName = 'lhcb-' + self.production_id
                 res = mcLogErrorsClient.set('%s-LogErrors' % app, jsonData)
                 if not res['OK']:
                   self.log.error('%s not set, exiting without affecting workflow status' % str(jsonData),

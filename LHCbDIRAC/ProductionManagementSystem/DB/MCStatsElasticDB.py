@@ -66,10 +66,10 @@ class MCStatsElasticDB(ElasticDB):
 
   def get(self, indexName, jobID):
     """
-    Retrieves data given a specific JobID
+    Retrieves data given a specific WMS JobID
 
     :param str indexName: the name of the index in ELasticSearch
-    :param str JobID: The JobID Of the data in elasticsearch
+    :param int JobID: The WMS JobID of the data in elasticsearch
 
     :returns: S_OK/S_ERROR
     """
@@ -79,7 +79,7 @@ class MCStatsElasticDB(ElasticDB):
             "bool": {
                 "must": {
                     "match": {
-                        "Errors.ID.JobID": jobID
+                        "Errors.ID.wmsID": jobID
                     }
                 }
             }
@@ -101,17 +101,17 @@ class MCStatsElasticDB(ElasticDB):
 
   def remove(self, indexName, jobID):
     """
-    Removes data given a specific JobID
+    Removes data given a specific WMS JobID
 
     :param str indexName: the name of the index in ELasticSearch
-    :param str JobID: The JobID Of the data in elasticsearch
+    :param int JobID: The JobID of the data in elasticsearch
     """
     query = {
         "query": {
             "bool": {
                 "must": {
                     "match": {
-                        "Errors.ID.JobID": jobID
+                        "Errors.ID.wmsID": jobID
                     }
                 }
             }
