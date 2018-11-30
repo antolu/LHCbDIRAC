@@ -36,5 +36,5 @@ class MCStatsElasticDBHandler(RequestHandler):
 
   def export_remove(self, indexName, jobID):
 
-    self.log.debug('Called remove() with indexName = %s, with jobID = %s' % (indexName, jobID))
+    self.log.debug('Called remove() with indexName = %s, with jobID = %d' % (indexName, jobID))
     return mcStatsDB.remove(indexName, jobID)
