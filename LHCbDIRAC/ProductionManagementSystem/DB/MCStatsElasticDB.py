@@ -22,8 +22,8 @@ class MCStatsElasticDB(ElasticDB):
     #         "properties": {
     #             "ID": {
     #                 "properties": {
+    #                     "wmsID": {"type": "integer"},
     #                     "JobID": {"type": "text"},
-    #                     "TransformationID": {"type": "text"},
     #                     "ProductionID": {"type": "text"}
     #                 }
     #             },
@@ -53,12 +53,7 @@ class MCStatsElasticDB(ElasticDB):
 
     :returns: S_OK/S_ERROR as result of indexing
     """
-    result = self.createIndex(indexName, {})
-    if not result['OK']:
-      self.log.error("ERROR: Cannot create index", result['Message'])
-      return result
-
-    self.log.debug('Inserting data in index:', indexName)
+    self.log.debug('Inserting data in index %s' % indexName)
     result = self.index(indexName, typeName, data)
     if not result['OK']:
       self.log.error("ERROR: Couldn't insert data", result['Message'])
