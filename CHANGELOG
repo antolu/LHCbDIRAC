@@ -1,3 +1,9 @@
+[v9r3-pre11]
+use DIRAC v6r20p23
+
+* fix index name
+* using the production ID as index name
+
 [v9r3-pre10]
 use DIRAC v6r20p22
 
