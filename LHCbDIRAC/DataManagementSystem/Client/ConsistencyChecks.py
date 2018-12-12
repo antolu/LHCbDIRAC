@@ -26,7 +26,8 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClie
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import ProgressBar
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
-prodsWithMerge = ('MCSimulation', 'DataStripping', 'MCStripping', 'DataSwimming', 'WGProduction')
+# FIXME: this is quite dirty, what should be checked is exactly what it is done
+prodsWithMerge = ('MCSimulation', 'MCFastSimulation', 'DataStripping', 'MCStripping', 'DataSwimming', 'WGProduction')
 
 
 def getFileDescendants(transID, lfns, transClient=None, dm=None, bkClient=None, descendantsDepth=None):
@@ -61,10 +62,6 @@ def getFileDescendants(transID, lfns, transClient=None, dm=None, bkClient=None, 
   descendants = cc.getDescendants(lfns)[0]
   gLogger.setLevel(savedLevel)
   return descendants
-
-
-# FIXME: this is quite dirty, what should be checked is exactly what it is done
-prodsWithMerge = ('MCSimulation', 'DataStripping', 'MCStripping', 'DataSwimming', 'WGProduction')
 
 
 class ConsistencyChecks(DiracConsistencyChecks):

@@ -54,7 +54,8 @@ class MCSimulationTestingAgent ( AgentModule ):
 
   def execute( self ):
     # get all the idle transformations
-    res = self.transClient.getTransformations( condDict = {"Status": "Idle", "Type": "MCSimulation"} )
+    extendableTTypes = Operations().getValue('Transformations/ExtendableTransfTypes', ['MCSimulation'])
+    res = self.transClient.getTransformations(condDict={"Status": "Idle", "Type": extendableTTypes})
     if res['OK']:
       idleTransformations = res['Value']
       idleTransformations = [d.get( "TransformationID" ) for d in idleTransformations]
