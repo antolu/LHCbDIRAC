@@ -289,8 +289,8 @@ class ProductionRequest(object):
                                    multicore=prodDict['multicore'],
                                    ancestorDepth=prodDict['ancestorDepth'])
 
-      # if the production is an MCSimulation, submit to the automated testing
-      if prodDict['productionType'] == 'MCSimulation':
+      # if the production is a simulation production type, submit it to the automated testing
+      if prodDict['productionType'] in self.opsH.getValue('Transformations/ExtendableTransfTypes', ['MCSimulation']):
         prodID = self._mcSpecialCase(prod, prodDict)
 
       else:

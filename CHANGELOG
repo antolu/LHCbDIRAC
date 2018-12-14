@@ -32,6 +32,12 @@ use DIRAC v6r20p22
 * pip install LbPlatformUtils
 * adding functions from base module
 * getQueues from vanilla DIRAC module
+
+[v9r2p12]
+use DIRAC v6r20p25
+
+* allowing more than 1 type of simulation productions
+* fix typos
 * fix pylint issues
 * make python 3 compatible
 * allow to create POOL XML catalog
@@ -145,6 +151,8 @@ use DIRAC v6r20p13
 * fix the code style
 * simplify the Bookkeeping client
 
+=======
+>>>>>>> upstream/master
 [v9r2p11]
 use DIRAC v6r20p22
 

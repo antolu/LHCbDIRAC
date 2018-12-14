@@ -62,9 +62,9 @@ class DataRecoveryAgent( AgentModule ):
     self.reqClient = ReqClient()
     self.consChecks = ConsistencyChecks( interactive = False, transClient = self.transClient )
 
-    transformationTypes = Operations().getValue( 'Transformations/DataProcessing', [] )
-    self.transformationTypes = list( set( transformationTypes ) - {'MCSimulation', 'Simulation'} )
-
+    transformationTypes = Operations().getValue('Transformations/DataProcessing', [])
+    extendableTTypes = Operations().getValue('Transformations/ExtendableTransfTypes', ['MCSimulation'])
+    self.transformationTypes = list(set(transformationTypes) - set(extendableTTypes))
 
     return S_OK()
 
