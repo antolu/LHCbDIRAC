@@ -111,6 +111,7 @@ targets = '{{Target#PROD-1:MC: Target for MC (e.g. Tier2, ALL, LCG.CERN.cern or 
 eventsPerJob = '{{eventsPerJob#PROD-1:MC: Number of events per job#-1}}'
 MCPriority = '{{MCPriority#PROD-1:MC: Production priority#0}}'
 MCmulticoreFlag = '{{MCMulticoreFLag#PROD-1: multicore flag#True}}'
+MCSimulationType = '{{MCSimulationType#PROD-1:MC: type of MCSimulation#MCSimulation}}'
 simulationCompressionLvl = '{{simulationCompressionLvl#PROD-1: Compression level#LOW}}'
 simulationOutputVisFlag = ast.literal_eval( '{{simulationOutputVisFlag#PROD-1: Simulation visibility flag dictionary (one flag per step {"step":"Y|N"}) # {} }}' )
 try:
@@ -188,7 +189,7 @@ if not w1 and not w2 and not w3:
   DIRACexit( 2 )
 
 elif w1:
-  pr.prodsTypeList = ['MCSimulation']
+  pr.prodsTypeList = [MCSimulationType]
   pr.outputSEs = ['Tier1_MC-DST']
 
   pr.stepsInProds = [range( 1, len( pr.stepsList ) + 1 )]
@@ -214,7 +215,7 @@ elif w1:
   # pr.resolveSteps()
 
 elif w2:
-  pr.prodsTypeList = ['MCSimulation', 'MCReconstruction']
+  pr.prodsTypeList = [MCSimulationType, 'MCReconstruction']
   pr.outputSEs = ['Tier1-Buffer', 'Tier1_MC-DST']
 
   pr.stepsInProds = [[1, ] , xrange( 2, len( pr.stepsList ) + 1 )]
@@ -252,7 +253,7 @@ elif w2:
   # pr.resolveSteps()
 
 elif w3:
-  pr.prodsTypeList = ['MCSimulation', 'MCReconstruction', 'MCMerge']
+  pr.prodsTypeList = [MCSimulationType, 'MCReconstruction', 'MCMerge']
   pr.outputSEs = ['Tier1-Buffer', 'Tier1-Buffer', 'Tier1_MC-DST']
 
   pr.stepsInProds = [ [1, ], xrange( 2, len( pr.stepsList ) ), [len( pr.stepsList )]]
