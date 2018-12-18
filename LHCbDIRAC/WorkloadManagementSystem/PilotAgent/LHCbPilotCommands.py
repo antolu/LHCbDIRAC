@@ -166,10 +166,13 @@ class LHCbInstallDIRAC(LHCbCommandBase, InstallDIRAC):
         1. sourcing lhcbdirac from /cvmfs/lhcb.cern.ch
         2. if it fails, try sourcing lhcbdirac from /cvmfs/lhcbdev.cern.ch
     """
+    directory = 'lib/lhcb/LHCBDIRAC/lhcbdirac'
     try:
-      invokeCmd('source /cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/lhcbdirac %s | env > environmentSourceLHCbDirac' % self.pp.releaseVersion)
+      invokeCmd('source /cvmfs/lhcb.cern.ch/%s %s | env > environmentSourceLHCbDirac' % (directory,
+                                                                                         self.pp.releaseVersion))
     except OSError:
-      invokeCmd('source /cvmfs/lhcbdev.cern.ch/lib/lhcb/LHCBDIRAC/lhcbdirac %s | env > environmentSourceLHCbDirac' % self.pp.releaseVersion)
+      invokeCmd('source /cvmfs/lhcbdev.cern.ch/%s %s | env > environmentSourceLHCbDirac' % (directory,
+                                                                                            self.pp.releaseVersion))
     return parseEnvironmentFile('environmentSourceLHCbDirac')
 
   def _do_lb_run(self):
