@@ -121,15 +121,18 @@ class LHCbInstallDIRAC(LHCbCommandBase, InstallDIRAC):
         self.log.error("Invocation of LbLogin NOT successful ===> +++ABORTING+++")
         sys.exit(1)
       self.log.info("LbLogin DONE")
-      self.pp.installEnv = self._do_lb_run()
-      self.log.info("lb-run DONE, for release %s" % self.pp.releaseVersion)
+      try:
+        self.pp.installEnv = self._do_get_lhcbdiracenv()
+      except OSError:
+        self.pp.installEnv = self._do_lb_run()
+      self.log.info("source lhcbdirac env DONE, for release %s" % self.pp.releaseVersion)
 
     except OSError as e:
-      self.log.error("Exception when trying lbrun:", e)
+      self.log.error("Exception when trying to source the lhcbdirac environment:", e)
       if 'lbRunOnly' in self.pp.genericOption:
         self.exitWithError(1)
       else:
-        self.log.warn("lb-run NOT DONE: starting traditional DIRAC installation")
+        self.log.warn("Source of the lhcbdirac environment NOT DONE: starting traditional DIRAC installation")
         super(LHCbInstallDIRAC, self).execute()
 
     finally:
@@ -155,6 +158,19 @@ class LHCbInstallDIRAC(LHCbCommandBase, InstallDIRAC):
                 environment)
 
     return parseEnvironmentFile('environmentLbLogin')
+
+  def _do_get_lhcbdiracenv(self):
+    """ get the LHCbDIRAC environment of the requested version. If the version does not exist, raise OSError
+
+        Here, it tries:
+        1. sourcing lhcbdirac from /cvmfs/lhcb.cern.ch
+        2. if it fails, try sourcing lhcbdirac from /cvmfs/lhcbdev.cern.ch
+    """
+    try:
+      invokeCmd('source /cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/lhcbdirac %s | env > environmentSourceLHCbDirac' % self.pp.releaseVersion)
+    except OSError:
+      invokeCmd('source /cvmfs/lhcbdev.cern.ch/lib/lhcb/LHCBDIRAC/lhcbdirac %s | env > environmentSourceLHCbDirac' % self.pp.releaseVersion)
+    return parseEnvironmentFile('environmentSourceLHCbDirac')
 
   def _do_lb_run(self):
     """ do lb-run -c best LHCbDIRAC of the requested version. If the version does not exist, raise OSError
