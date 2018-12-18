@@ -14,7 +14,7 @@ __RCSID__ = "$Id$"
 
 # Utilities functions
 
-def invokeCmd(cmd, environment):
+def invokeCmd(cmd, environment=None):
   """ Controlled invoke of command via subprocess.Popen
 
   :param env: environment in a dict
