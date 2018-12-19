@@ -73,16 +73,16 @@ class RunApplication(object):
   def run(self):
     """ Invokes lb-run (what you call after having setup the object)
     """
-    self.log.info("Executing application %s %s for CMT configuration '%s'" % (self.applicationName,
-                                                                              self.applicationVersion,
-                                                                              self.systemConfig))
+    self.log.info("Executing application %s %s for binary tag configuration '%s'" % (self.applicationName,
+                                                                                     self.applicationVersion,
+                                                                                     self.systemConfig))
 
     lbRunOptions = self.opsH.getValue('GaudiExecution/lbRunOptions', '')
 
     extraPackagesString, runtimeProjectString, externalsString = self._lbRunCommandOptions()
 
-    # "CMT" Config
-    # if a CMTConfig is provided, then only that should be called (this should be safeguarded with the following method)
+    # if a binary tag is provided, then only that should be called 
+    # this should be safeguarded with the following method)
     # if not, we call "-c best"
     if self.systemConfig.lower() == 'any':
       self.systemConfig = 'best'

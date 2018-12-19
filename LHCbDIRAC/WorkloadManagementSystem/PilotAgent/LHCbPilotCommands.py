@@ -372,5 +372,6 @@ class ReplaceLHCbDIRACCode(LHCbCommandBase):
     zipresp.close()
     os.rename(os.getcwd() + os.path.sep + 'AlternativeCode' + os.path.sep + os.listdir('./AlternativeCode')[0],
               os.getcwd() + os.path.sep + 'AlternativeCode' + os.path.sep + 'LHCbDIRAC')
-    self.pp.installEnv['PYTHONPATH'] = os.getcwd() + os.path.sep + 'AlternativeCode' + os.path.sep + 'LHCbDIRAC' ':' \
+    self.pp.installEnv['PYTHONPATH'] = os.getcwd() + os.path.sep + 'AlternativeCode' \
+        + os.path.sep + 'LHCbDIRAC' + os.path.sep + 'LHCbDIRAC' ':' \
         + self.pp.installEnv['PYTHONPATH']
