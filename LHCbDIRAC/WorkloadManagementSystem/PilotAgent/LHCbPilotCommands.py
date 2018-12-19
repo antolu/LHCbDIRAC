@@ -347,3 +347,30 @@ class LHCbConfigureArchitecture(LHCbCommandBase, ConfigureArchitecture):
 
     self.log.info('Setting variable CMTCONFIG=%s' % binaryTag)
     os.environ['CMTCONFIG'] = binaryTag
+
+
+class ReplaceLHCbDIRACCode(LHCbCommandBase):
+  """ This command will replace LHCbDIRAC code with the one taken from a different location.
+      This command is mostly for testing purposes, and should NOT be added in default configurations.
+      It uses generic -o option for specifying a zip location (like an archive file from github).
+
+      FIXME: this command can disappear with dirac-install++
+  """
+
+  def execute(self):
+    """ Download/unzip an archive file
+    """
+    from io import BytesIO
+    from urllib2 import urlopen
+    from zipfile import ZipFile
+
+    zipresp = urlopen(self.pp.genericOption)
+    zfile = ZipFile(BytesIO(zipresp.read()))
+    os.mkdir(os.getcwd() + os.path.sep + 'AlternativeCode')
+    zfile.extractall(os.getcwd() + os.path.sep + 'AlternativeCode')
+    zfile.close()
+    zipresp.close()
+    os.rename(os.getcwd() + os.path.sep + 'AlternativeCode' + os.path.sep + os.listdir('./AlternativeCode')[0],
+              os.getcwd() + os.path.sep + 'AlternativeCode' + os.path.sep + 'LHCbDIRAC')
+    self.pp.installEnv['PYTHONPATH'] = os.getcwd() + os.path.sep + 'AlternativeCode' + os.path.sep + 'LHCbDIRAC' ':' \
+        + self.pp.installEnv['PYTHONPATH']
