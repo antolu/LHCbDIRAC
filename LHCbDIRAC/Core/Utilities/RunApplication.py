@@ -81,8 +81,8 @@ class RunApplication(object):
 
     extraPackagesString, runtimeProjectString, externalsString = self._lbRunCommandOptions()
 
-    # if a binary tag is provided, then only that should be called 
-    # this should be safeguarded with the following method)
+    # if a binary tag is provided, then only that should be called.
+    # This should be safeguarded with the following method.
     # if not, we call "-c best"
     if self.systemConfig.lower() == 'any':
       self.systemConfig = 'best'
@@ -273,8 +273,8 @@ def getLHCbEnvironment():
       If LbLogin has run before and saved the environment (like for pilots), we use that.
   """
   # FIXME: find it!
-  gConfig.debug(os.getcwd())
-  gConfig.debug(os.listdir())
+  gLogger.debug("Current directory:" + os.getcwd())
+  gLogger.debug("Content of current directory:" + os.listdir())
   if os.path.exists('environmentLbLogin'):  # this we would need anyway to find
     environment = {}
     with open('environmentLbLogin', 'r') as fp:
