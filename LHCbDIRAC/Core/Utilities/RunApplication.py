@@ -206,7 +206,7 @@ class RunApplication(object):
 
     return command
 
-  def _runApp(self, command):
+  def _runApp(self, command, env=None):
     """ Safe system call of a command
 
        :param command basestring: the command to run
@@ -216,7 +216,8 @@ class RunApplication(object):
 
     return systemCall(timeout=0,
                       cmdSeq=shlex.split(command),
-                      callbackFunction=self.__redirectLogOutput)
+                      callbackFunction=self.__redirectLogOutput,
+                      env=env)
 
   def __redirectLogOutput(self, fd, message):
     """ Callback function for the Subprocess calls (manages log files)
