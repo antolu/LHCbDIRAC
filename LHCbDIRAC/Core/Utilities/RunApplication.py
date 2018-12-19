@@ -107,8 +107,8 @@ class RunApplication(object):
     finalCommand = ' '.join([self.lbrunCommand, command])
 
     # get the environment
-    # if self.lhcbEnvironment is None:
-    #   self.lhcbEnvironment = getLHCbEnvironment()
+    if self.lhcbEnvironment is None:
+      self.lhcbEnvironment = getLHCbEnvironment()
 
     # then run it!
     runResult = self._runApp(finalCommand, self.lhcbEnvironment)
@@ -272,19 +272,22 @@ def getLHCbEnvironment():
   """ Run LbLogin and returns the environment created.
       If LbLogin has run before and saved the environment (like for pilots), we use that.
   """
-  # if os.path.exists('environmentLbLogin'): # this we would need anyway to find
-  #   environment = {}
-  #   with open( 'environmentLbLogin', 'r' ) as fp:
-  #     for line in fp:
-  #       try:
-  #         var = line.split( '=' )[0].strip()
-  #         value = '='.join( line.split( "=" )[1:] ).strip()
-  #         if '{' in value: # horrible hack... (there's a function that ends in the next line...)
-  #           value = value + '\n}'
-  #         if value:
-  #           environment[var] = value
-  #       except IndexError:
-  #         continue
-  #     fp.close()
-  #   return environment
+  # FIXME: find it!
+  gConfig.debug(os.getcwd())
+  gConfig.debug(os.listdir())
+  if os.path.exists('environmentLbLogin'):  # this we would need anyway to find
+    environment = {}
+    with open('environmentLbLogin', 'r') as fp:
+      for line in fp:
+        try:
+          var = line.split('=')[0].strip()
+          value = '='.join(line.split("=")[1:]).strip()
+          if '{' in value:  # horrible hack... (there's a function that ends in the next line...)
+            value = value + '\n}'
+          if value:
+            environment[var] = value
+        except IndexError:
+          continue
+      fp.close()
+    return environment
   return None
