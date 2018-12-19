@@ -1,6 +1,8 @@
 """ LHCb-specific pilot commands
 """
 
+__RCSID__ = "$Id$"
+
 import os
 import subprocess
 import sys
@@ -8,8 +10,6 @@ import sys
 from pilotCommands import GetPilotVersion, InstallDIRAC, ConfigureBasics  # pylint: disable=import-error
 from pilotCommands import ConfigureCPURequirements, ConfigureSite, ConfigureArchitecture  # pylint: disable=import-error
 from pilotTools import CommandBase  # pylint: disable=import-error
-
-__RCSID__ = "$Id$"
 
 
 # Utilities functions
@@ -105,26 +105,30 @@ class LHCbGetPilotVersion(LHCbCommandBase, GetPilotVersion):
 
 
 class LHCbInstallDIRAC(LHCbCommandBase, InstallDIRAC):
-  """ Try lb-run LHCbDIRAC and fall back to dirac-install when the requested version is not in CVMFS.
-      When we reach here we expect to know the release version to install
+  """ Try to source LHCbDIRAC and fall back to dirac-install when the requested version is not in CVMFS.
+      When we reach here we expect to know the release version to install.
+
+      Note: lb-run deployed versions won't be loaded and would fall back to dirac-install.
   """
 
   def execute(self):
     """ Standard module executed
     """
     try:
-      # also setting the correct environment to be used by dirac-configure, or whatever follows
-      # (by default this is not needed, since with dirac-install works in the local directory)
-      try:
-        self.pp.installEnv = self._do_lb_login()
-      except OSError as e:
-        self.log.error("Invocation of LbLogin NOT successful ===> +++ABORTING+++")
-        sys.exit(1)
-      self.log.info("LbLogin DONE")
-      try:
-        self.pp.installEnv = self._do_get_lhcbdiracenv()
-      except OSError:
-        self.pp.installEnv = self._do_lb_run()
+      environment = os.environ.copy()
+
+      if 'LHCb_release_area' not in environment:
+        environment['LHCb_release_area'] = '/cvmfs/lhcb.cern.ch/lib/lhcb/'
+      if 'CMAKE_PREFIX_PATH' not in environment:
+        CMAKE_PREFIX_PATH = ['/cvmfs/lhcb.cern.ch/lib/lhcb',
+                             '/cvmfs/lhcb.cern.ch/lib/lcg/releases',
+                             '/cvmfs/lhcb.cern.ch/lib/lcg/app/releases',
+                             '/cvmfs/lhcb.cern.ch/lib/lcg/external',
+                             '/cvmfs/lhcb.cern.ch/lib/contrib']
+        environment['CMAKE_PREFIX_PATH'] = ':'.join(CMAKE_PREFIX_PATH)
+
+      self.pp.installEnv = environment
+      self.pp.installEnv = self._do_get_lhcbdiracenv()
       self.log.info("source lhcbdirac env DONE, for release %s" % self.pp.releaseVersion)
 
     except OSError as e:
@@ -138,26 +142,9 @@ class LHCbInstallDIRAC(LHCbCommandBase, InstallDIRAC):
     finally:
       # saving also in environmentLHCbDirac file for completeness...
       # this is doing some horrible mangling unfortunately!
-      # The content of environmentLHCbDirac will be the same as the content of environmentLbRunDirac
-      # if lb-run LHCbDIRAC is successful
+      # The content of environmentLHCbDirac will be the same as the content of environmentSourceLHCbDirac
+      # if source of the LHCbDIRAC bashrc is successful
       saveEnvInFile(self.pp.installEnv, 'environmentLHCbDirac')
-
-  def _do_lb_login(self):
-    """ do LbLogin. If it doesn't work, the invokeCmd will raise OSError
-    """
-    environment = os.environ.copy()
-    if 'LHCb_release_area' not in environment:
-      environment['LHCb_release_area'] = '/cvmfs/lhcb.cern.ch/lib/lhcb/'
-
-    # check for need of devLbLogin
-    if 'devLbLogin' in self.pp.genericOption:
-      invokeCmd('. $LHCb_release_area/LBSCRIPTS/dev/InstallArea/scripts/LbLogin.sh && printenv > environmentLbLogin',
-                environment)
-    else:
-      invokeCmd('. $LHCb_release_area/LBSCRIPTS/prod/InstallArea/scripts/LbLogin.sh && printenv > environmentLbLogin',
-                environment)
-
-    return parseEnvironmentFile('environmentLbLogin')
 
   def _do_get_lhcbdiracenv(self):
     """ get the LHCbDIRAC environment of the requested version. If the version does not exist, raise OSError
@@ -178,13 +165,6 @@ class LHCbInstallDIRAC(LHCbCommandBase, InstallDIRAC):
           self.pp.releaseVersion),
           self.pp.installEnv)
     return parseEnvironmentFile('environmentSourceLHCbDirac')
-
-  def _do_lb_run(self):
-    """ do lb-run -c best LHCbDIRAC of the requested version. If the version does not exist, raise OSError
-    """
-    invokeCmd('lb-run -c best LHCbDirac/%s > environmentLbRunDirac' % self.pp.releaseVersion,
-              self.pp.installEnv)
-    return parseEnvironmentFile('environmentLbRunDirac')
 
 
 class LHCbConfigureBasics(LHCbCommandBase, ConfigureBasics):
