@@ -148,8 +148,15 @@ class UploadLogFile(ModuleBase):
 
       # Attempt to uplaod logs to the LogSE
       self.log.info('Transferring log files to the %s' % self.logSE)
-      res = S_ERROR()
-      logURL = '<a href="http://lhcb-logs.cern.ch/storage%s">Log file directory</a>' % self.logFilePath
+
+      res = returnSingleResult(StorageElement(self.logSE).getURL(self.logFilePath, protocol='https'))
+      if not res['OK']:
+        self.log.warn("Could not get dynamic URL for log", res)
+        logHttpsURL = "http://lhcb-logs.cern.ch/storage%s" % self.logFilePath
+      else:
+        logHttpsURL = res['Value']
+
+      logURL = '<a href="%s">Log file directory</a>' % logHttpsURL
       self.log.info('Logs for this job may be retrieved from %s' % logURL)
       self.log.info('putDirectory %s %s %s' % (self.logFilePath, os.path.realpath(self.logdir), self.logSE))
 
@@ -159,12 +166,6 @@ class UploadLogFile(ModuleBase):
       self.setJobParameter('Log URL', logURL)
       if res['OK']:
         self.log.info('Successfully upload log directory to %s' % self.logSE)
-        # TODO: The logURL should be constructed using the LogSE and StorageElement()
-        # FS: Tried, not available ATM in Dirac
-        # storageElement = StorageElement(self.logSE)
-        # pfn = storageElement.getPfnForLfn(self.logFilePath)['Value']
-        # logURL = getPfnForProtocol(res['Value'],'http')['Value']
-
       else:
         self.log.error("Failed to upload log files with message '%s', uploading to failover SE" % res['Message'])
         # make a tar file
