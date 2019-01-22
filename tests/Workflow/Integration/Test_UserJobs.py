@@ -327,7 +327,7 @@ def createJob(local=True):
                                              ('numberOfEvents', 'string', '', 'Events treated'),
                                              ('extraPackages', 'string', '', 'ExtraPackages'),
                                              ('listoutput', 'list', [], 'StepOutputList'),
-                                             ('SystemConfig', 'string', '', 'CMT Config')])
+                                             ('SystemConfig', 'string', '', 'binary tag')])
 
   gaudirunJob._addParameter(gaudirunJob.workflow, 'PRODUCTION_ID', 'string', '00012345', 'ProductionID')
   gaudirunJob._addParameter(gaudirunJob.workflow, 'JOB_ID', 'string', '00067890', 'JobID')

@@ -40,7 +40,6 @@ class RunApplication(object):
     """
     # Standard LHCb scripts
     self.runApp = 'lb-run'
-    self.lhcbEnvironment = None  # This may be added (the result of LbLogin)
     self.lbrunCommand = ''  # Command that will be constructed at run time
 
     # What to run
@@ -73,16 +72,16 @@ class RunApplication(object):
   def run(self):
     """ Invokes lb-run (what you call after having setup the object)
     """
-    self.log.info("Executing application %s %s for CMT configuration '%s'" % (self.applicationName,
-                                                                              self.applicationVersion,
-                                                                              self.systemConfig))
+    self.log.info("Executing application %s %s for binary tag configuration '%s'" % (self.applicationName,
+                                                                                     self.applicationVersion,
+                                                                                     self.systemConfig))
 
     lbRunOptions = self.opsH.getValue('GaudiExecution/lbRunOptions', '')
 
     extraPackagesString, runtimeProjectString, externalsString = self._lbRunCommandOptions()
 
-    # "CMT" Config
-    # if a CMTConfig is provided, then only that should be called (this should be safeguarded with the following method)
+    # if a binary tag is provided, then only that should be called.
+    # This should be safeguarded with the following method.
     # if not, we call "-c best"
     if self.systemConfig.lower() == 'any':
       self.systemConfig = 'best'
@@ -106,18 +105,11 @@ class RunApplication(object):
 
     finalCommand = ' '.join([self.lbrunCommand, command])
 
-    # get the environment
-    # if self.lhcbEnvironment is None:
-    #   self.lhcbEnvironment = getLHCbEnvironment()
-
     # then run it!
-    runResult = self._runApp(finalCommand, self.lhcbEnvironment)
+    runResult = self._runApp(finalCommand)
     if not runResult['OK']:
       self.log.error("Problem executing lb-run: %s" % runResult['Message'])
-      if self.lhcbEnvironment:
-        self.log.error("LHCb environment used: %s" % self.lhcbEnvironment)
-      else:
-        self.log.error("Environment: %s" % os.environ)
+      self.log.error("Environment: %s" % os.environ)
       raise LHCbDIRACError("Can not start %s %s" % (self.applicationName, self.applicationVersion))
 
     if runResult['Value'][0]:  # if exit status != 0
@@ -224,8 +216,8 @@ class RunApplication(object):
 
     return systemCall(timeout=0,
                       cmdSeq=shlex.split(command),
-                      env=env,  # this may be the LbLogin env
-                      callbackFunction=self.__redirectLogOutput)
+                      callbackFunction=self.__redirectLogOutput,
+                      env=env)
 
   def __redirectLogOutput(self, fd, message):
     """ Callback function for the Subprocess calls (manages log files)
@@ -266,25 +258,3 @@ def _multicoreWN():
                                                                                     siteName, gridCE), ''))
 
   return bool(tags and 'MultiProcessor' in tags)
-
-
-def getLHCbEnvironment():
-  """ Run LbLogin and returns the environment created.
-      If LbLogin has run before and saved the environment (like for pilots), we use that.
-  """
-  # if os.path.exists('environmentLbLogin'): # this we would need anyway to find
-  #   environment = {}
-  #   with open( 'environmentLbLogin', 'r' ) as fp:
-  #     for line in fp:
-  #       try:
-  #         var = line.split( '=' )[0].strip()
-  #         value = '='.join( line.split( "=" )[1:] ).strip()
-  #         if '{' in value: # horrible hack... (there's a function that ends in the next line...)
-  #           value = value + '\n}'
-  #         if value:
-  #           environment[var] = value
-  #       except IndexError:
-  #         continue
-  #     fp.close()
-  #   return environment
-  return None

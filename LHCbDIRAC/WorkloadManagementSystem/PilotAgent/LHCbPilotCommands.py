@@ -1,6 +1,8 @@
 """ LHCb-specific pilot commands
 """
 
+__RCSID__ = "$Id$"
+
 import os
 import subprocess
 import sys
@@ -9,12 +11,10 @@ from pilotCommands import GetPilotVersion, InstallDIRAC, ConfigureBasics  # pyli
 from pilotCommands import ConfigureCPURequirements, ConfigureSite, ConfigureArchitecture  # pylint: disable=import-error
 from pilotTools import CommandBase  # pylint: disable=import-error
 
-__RCSID__ = "$Id$"
-
 
 # Utilities functions
 
-def invokeCmd(cmd, environment):
+def invokeCmd(cmd, environment=None):
   """ Controlled invoke of command via subprocess.Popen
 
   :param env: environment in a dict
@@ -105,63 +105,66 @@ class LHCbGetPilotVersion(LHCbCommandBase, GetPilotVersion):
 
 
 class LHCbInstallDIRAC(LHCbCommandBase, InstallDIRAC):
-  """ Try lb-run LHCbDIRAC and fall back to dirac-install when the requested version is not in CVMFS.
-      When we reach here we expect to know the release version to install
+  """ Try to source LHCbDIRAC and fall back to dirac-install when the requested version is not in CVMFS.
+      When we reach here we expect to know the release version to install.
+
+      Note: lb-run deployed versions won't be loaded and would fall back to dirac-install.
   """
 
   def execute(self):
     """ Standard module executed
     """
     try:
-      # also setting the correct environment to be used by dirac-configure, or whatever follows
-      # (by default this is not needed, since with dirac-install works in the local directory)
-      try:
-        self.pp.installEnv = self._do_lb_login()
-      except OSError as e:
-        self.log.error("Invocation of LbLogin NOT successful ===> +++ABORTING+++")
-        sys.exit(1)
-      self.log.info("LbLogin DONE")
-      self.pp.installEnv = self._do_lb_run()
-      self.log.info("lb-run DONE, for release %s" % self.pp.releaseVersion)
+      environment = os.environ.copy()
+
+      if 'LHCb_release_area' not in environment:
+        environment['LHCb_release_area'] = '/cvmfs/lhcb.cern.ch/lib/lhcb/'
+      if 'CMAKE_PREFIX_PATH' not in environment:
+        CMAKE_PREFIX_PATH = ['/cvmfs/lhcb.cern.ch/lib/lhcb',
+                             '/cvmfs/lhcb.cern.ch/lib/lcg/releases',
+                             '/cvmfs/lhcb.cern.ch/lib/lcg/app/releases',
+                             '/cvmfs/lhcb.cern.ch/lib/lcg/external',
+                             '/cvmfs/lhcb.cern.ch/lib/contrib']
+        environment['CMAKE_PREFIX_PATH'] = ':'.join(CMAKE_PREFIX_PATH)
+
+      self.pp.installEnv = environment
+      self.pp.installEnv = self._do_get_lhcbdiracenv()
+      self.log.info("source lhcbdirac env DONE, for release %s" % self.pp.releaseVersion)
 
     except OSError as e:
-      self.log.error("Exception when trying lbrun:", e)
+      self.log.error("Exception when trying to source the lhcbdirac environment:", e)
       if 'lbRunOnly' in self.pp.genericOption:
         self.exitWithError(1)
       else:
-        self.log.warn("lb-run NOT DONE: starting traditional DIRAC installation")
+        self.log.warn("Source of the lhcbdirac environment NOT DONE: starting traditional DIRAC installation")
         super(LHCbInstallDIRAC, self).execute()
 
     finally:
       # saving also in environmentLHCbDirac file for completeness...
       # this is doing some horrible mangling unfortunately!
-      # The content of environmentLHCbDirac will be the same as the content of environmentLbRunDirac
-      # if lb-run LHCbDIRAC is successful
+      # The content of environmentLHCbDirac will be the same as the content of environmentSourceLHCbDirac
+      # if source of the LHCbDIRAC bashrc is successful
       saveEnvInFile(self.pp.installEnv, 'environmentLHCbDirac')
 
-  def _do_lb_login(self):
-    """ do LbLogin. If it doesn't work, the invokeCmd will raise OSError
+  def _do_get_lhcbdiracenv(self):
+    """ get the LHCbDIRAC environment of the requested version. If the version does not exist, raise OSError
+
+        Here, it tries:
+        1. sourcing lhcbdirac from /cvmfs/lhcb.cern.ch
+        2. if it fails, try sourcing lhcbdirac from /cvmfs/lhcbdev.cern.ch
     """
-    environment = os.environ.copy()
-    if 'LHCb_release_area' not in environment:
-      environment['LHCb_release_area'] = '/cvmfs/lhcb.cern.ch/lib/lhcb/'
-
-    # check for need of devLbLogin
-    if 'devLbLogin' in self.pp.genericOption:
-      invokeCmd('. $LHCb_release_area/LBSCRIPTS/dev/InstallArea/scripts/LbLogin.sh && printenv > environmentLbLogin',
-                environment)
-    else:
-      invokeCmd('. $LHCb_release_area/LBSCRIPTS/prod/InstallArea/scripts/LbLogin.sh && printenv > environmentLbLogin',
-                environment)
-
-    return parseEnvironmentFile('environmentLbLogin')
-
-  def _do_lb_run(self):
-    """ do lb-run -c best LHCbDIRAC of the requested version. If the version does not exist, raise OSError
-    """
-    invokeCmd('lb-run -c best LHCbDirac/%s > environmentLbRunDirac' % self.pp.releaseVersion,
-              self.pp.installEnv)
-    return parseEnvironmentFile('environmentLbRunDirac')
+    directory = 'lib/lhcb/LHCBDIRAC/lhcbdirac'
+    try:
+      invokeCmd('source /cvmfs/lhcb.cern.ch/%s %s && printenv > environmentSourceLHCbDirac' % (
+          directory,
+          self.pp.releaseVersion),
+          self.pp.installEnv)
+    except OSError:
+      invokeCmd('source /cvmfs/lhcbdev.cern.ch/%s %s && printenv > environmentSourceLHCbDirac' % (
+          directory,
+          self.pp.releaseVersion),
+          self.pp.installEnv)
+    return parseEnvironmentFile('environmentSourceLHCbDirac')
 
 
 class LHCbConfigureBasics(LHCbCommandBase, ConfigureBasics):
@@ -328,3 +331,30 @@ class LHCbConfigureArchitecture(LHCbCommandBase, ConfigureArchitecture):
 
     self.log.info('Setting variable CMTCONFIG=%s' % binaryTag)
     os.environ['CMTCONFIG'] = binaryTag
+
+
+class ReplaceLHCbDIRACCode(LHCbCommandBase):
+  """ This command will replace LHCbDIRAC code with the one taken from a different location.
+      This command is mostly for testing purposes, and should NOT be added in default configurations.
+      It uses generic -o option for specifying a zip location (like an archive file from github).
+
+      FIXME: this command can disappear with dirac-install++
+  """
+
+  def execute(self):
+    """ Download/unzip an archive file
+    """
+    from io import BytesIO
+    from urllib2 import urlopen
+    from zipfile import ZipFile
+
+    zipresp = urlopen(self.pp.genericOption)
+    zfile = ZipFile(BytesIO(zipresp.read()))
+    os.mkdir(os.getcwd() + os.path.sep + 'AlternativeCode')
+    zfile.extractall(os.getcwd() + os.path.sep + 'AlternativeCode')
+    zfile.close()
+    zipresp.close()
+    os.rename(os.getcwd() + os.path.sep + 'AlternativeCode' + os.path.sep + os.listdir('./AlternativeCode')[0],
+              os.getcwd() + os.path.sep + 'AlternativeCode' + os.path.sep + 'LHCbDIRAC')
+    self.pp.installEnv['PYTHONPATH'] = os.getcwd() + os.path.sep + 'AlternativeCode' + os.path.sep + 'LHCbDIRAC' ':' \
+        + self.pp.installEnv['PYTHONPATH']

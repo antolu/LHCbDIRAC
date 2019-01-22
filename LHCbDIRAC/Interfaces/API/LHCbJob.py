@@ -229,7 +229,7 @@ class LHCbJob(Job):
                         ('inputData', 'string', '', 'Input Data'),
                         ('numberOfEvents', 'string', '', 'Events treated'),
                         ('extraPackages', 'string', '', 'ExtraPackages'),
-                        ('SystemConfig', 'string', '', 'CMT Config')]
+                        ('SystemConfig', 'string', '', 'binary tag')]
 
     step = getStepDefinition(stepName,
                              modulesNameList=modulesNameList,
@@ -371,7 +371,7 @@ class LHCbJob(Job):
                         ('inputDataType', 'string', '', 'Input Data Type'),
                         ('inputData', 'string', '', 'Input Data'),
                         ('extraPackages', 'string', '', 'extraPackages'),
-                        ('SystemConfig', 'string', '', 'CMT Config')]
+                        ('SystemConfig', 'string', '', 'binary tag')]
 
     step = getStepDefinition(stepName,
                              modulesNameList=modulesNameList,
@@ -582,7 +582,7 @@ class LHCbJob(Job):
                       ('rootType', 'string', '', 'Root type'),
                       ('arguments', 'list', [], 'Optional arguments for payload'),
                       ('applicationLog', 'string', '', 'Log file name'),
-                      ('SystemConfig', 'string', '', 'CMT Config')]
+                      ('SystemConfig', 'string', '', 'binary tag')]
     step = getStepDefinition(stepName,
                              modulesNameList=modulesNameList,
                              importLine="LHCbDIRAC.Workflow.Modules",
@@ -826,7 +826,7 @@ class LHCbJob(Job):
                         ('executable', 'string', '', 'Executable Script'),
                         ('arguments', 'string', '', 'Arguments for executable Script'),
                         ('applicationLog', 'string', '', 'Log file name'),
-                        ('SystemConfig', 'string', '', 'CMT Config')]
+                        ('SystemConfig', 'string', '', 'binary tag')]
 
     step = getStepDefinition(stepName,
                              modulesNameList=modulesNameList,

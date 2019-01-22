@@ -34,7 +34,7 @@ class LHCbScript(Script):
     self.systemConfig = self.step_commons.get('SystemConfig', self.systemConfig)
 
   def _executeCommand(self):
-    """ Executes the self.command (uses systemCall) with CMT Config requested (if not 'ANY')
+    """ Executes the self.command (uses systemCall) with binary tag (CMTCONFIG) requested (if not 'ANY')
     """
 
     if self.systemConfig != 'ANY':

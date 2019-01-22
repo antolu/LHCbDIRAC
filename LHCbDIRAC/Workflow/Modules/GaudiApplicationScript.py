@@ -82,15 +82,15 @@ class GaudiApplicationScript(ModuleBase):
       if not self.applicationName or not self.applicationVersion:
         raise RuntimeError('No Gaudi Application defined')
       if not self.systemConfig:
-        raise RuntimeError('No CMT configuration selected')
+        raise RuntimeError('No binary tag selected')
       if not self.script:
         raise RuntimeError('No script defined')
       if not self.applicationLog:
         self.applicationLog = '%s.log' % (os.path.basename(self.script))
 
-      self.log.info("Executing application %s %s for CMT configuration %s" % (self.applicationName,
-                                                                              self.applicationVersion,
-                                                                              self.systemConfig))
+      self.log.info("Executing application %s %s for binary tag %s" % (self.applicationName,
+                                                                       self.applicationVersion,
+                                                                       self.systemConfig))
 
       gaudiCmd = []
       if re.search('.py$', self.script):

@@ -70,9 +70,9 @@ class GaudiApplication(ModuleBase):
 
       self._resolveInputVariables()
 
-      self.log.info("Executing application %s %s for CMT configuration %s" % (self.applicationName,
-                                                                              self.applicationVersion,
-                                                                              self.systemConfig))
+      self.log.info("Executing application %s %s for binary tag %s" % (self.applicationName,
+                                                                       self.applicationVersion,
+                                                                       self.systemConfig))
       if self.jobType.lower() == 'merge' or 'BOINC' in self.siteName:
         self._disableWatchdogCPUCheck()
 
