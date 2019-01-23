@@ -38,6 +38,12 @@ use DIRAC v6r20p22
 * adding functions from base module
 * getQueues from vanilla DIRAC module
 
+[v9r2p13]
+use DIRAC v6r20p26
+
+* fixed LogSE
+* LogUpload: dynamically generate the log https URL
+
 [v9r2p12]
 use DIRAC v6r20p25
 
