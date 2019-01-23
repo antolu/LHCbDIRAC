@@ -6,10 +6,16 @@ from random import shuffle
 
 from DIRAC import gLogger, gConfig
 from DIRAC.Core.Utilities.SiteSEMapping import getSEsForSite
-from DIRAC.Core.Utilities.List import uniqueElements
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import resolveSEGroup
 
 __RCSID__ = "$Id$"
+
+
+def _setLocalFirst(seList, localSEs):
+  """ return a shuffled list of SEs from seList, localSEs being first """
+  local = [se for se in seList if se in localSEs]
+  remote = [se for se in seList if se not in localSEs]
+  return shuffle(local) + shuffle(remote)
 
 
 def getDestinationSEList(outputSE, site, outputmode='Any', run=None):
@@ -48,72 +54,57 @@ def getDestinationSEList(outputSE, site, outputmode='Any', run=None):
   if result['OK']:
     gLogger.info('Found concrete SE %s' % outputSE)
     return [outputSE]
-  # There is an alias defined for this Site
-  alias_se = gConfig.getValue('/Resources/Sites/%s/%s/AssociatedSEs/%s' % (prefix, site, outputSE), [])
-  if alias_se:
-    shuffle(alias_se)
-    gLogger.info("Found associated SE %s for site %s" % (alias_se, site))
-    return alias_se
 
+  # Get local SEs
   localSEs = getSEsForSite(site)
   if not localSEs['OK']:
     raise RuntimeError(localSEs['Message'])
   localSEs = localSEs['Value']
   gLogger.verbose("Local SE list is: %s" % (localSEs))
 
+# There is an alias defined for this Site
+  associatedSEs = gConfig.getValue('/Resources/Sites/%s/%s/AssociatedSEs/%s' % (prefix, site, outputSE), [])
+  if associatedSEs:
+    associatedSEs = _setLocalFirst(associatedSEs, localSEs)
+    gLogger.info("Found associated SE %s for site %s" % (associatedSEs, site))
+    return associatedSEs
+
   groupSEs = resolveSEGroup(outputSE)
   if not groupSEs:
     raise RuntimeError("Failed to resolve SE " + outputSE)
-  shuffle(groupSEs)
   gLogger.verbose("Group SE list is: %s" % (groupSEs))
 
+  # Find a local SE or an SE considered as local because the country is associated to it
   if outputmode.lower() == "local":
+    # First, check if one SE in the group is local
     for se in localSEs:
       if se in groupSEs:
         gLogger.info("Found eligible local SE: %s" % (se))
         return [se]
 
-    # check if country is already one with associated SEs
-    section = '/Resources/Countries/%s/AssociatedSEs/%s' % (country, outputSE)
-    associatedSE = gConfig.getValue(section, [])
-    if associatedSE:
-      shuffle(associatedSE)
-      gLogger.info('Found associated SEs %s in %s' % (associatedSE, section))
-      return associatedSE
-
     # Final check for country associated SE
-    count = 0
     assignedCountry = country
-    while count < 10:
-      gLogger.verbose('Loop count = %s' % (count))
+    while True:
+      # check if country is already one with associated SEs
+      section = '/Resources/Countries/%s/AssociatedSEs/%s' % (assignedCountry, outputSE)
+      associatedSEs = gConfig.getValue(section, [])
+      if associatedSEs:
+        associatedSEs = _setLocalFirst(associatedSEs, localSEs)
+        gLogger.info('Found associated SEs %s in %s' % (associatedSEs, section))
+        return associatedSEs
+
       gLogger.verbose("/Resources/Countries/%s/AssignedTo" % assignedCountry)
       opt = gConfig.getOption("/Resources/Countries/%s/AssignedTo" % assignedCountry)
       if opt['OK'] and opt['Value']:
         assignedCountry = opt['Value']
-        gLogger.verbose('/Resources/Countries/%s/AssociatedSEs' % assignedCountry)
-        assocCheck = gConfig.getOptions('/Resources/Countries/%s/AssociatedSEs' % assignedCountry)
-        if assocCheck['OK'] and assocCheck['Value']:
-          break
-      count += 1
-
-    section = '/Resources/Countries/%s/AssociatedSEs/%s' % (assignedCountry, outputSE)
-    alias_se = gConfig.getValue(section, [])
-    if alias_se:
-      shuffle(alias_se)
-      gLogger.info("Found alias SE %s for site: %s" % (alias_se, site))
-      return alias_se
-    else:
-      raise RuntimeError("Could not establish alias SE for country %s from section: %s" % (country, section))
+      else:
+        # No associated SE and no assigned country, give up
+        raise RuntimeError("Could not establish associated SE nor assigned country for country %s" % assignedCountry)
 
   # For collective Any and All modes return the whole group
-
   # Make sure that local SEs are passing first
-  newSEList = []
-  for se in groupSEs:
-    if se in localSEs:
-      newSEList.append(se)
-  listOfSEs = uniqueElements(newSEList + groupSEs)
-  gLogger.verbose('Found unique SEs: %s' % (listOfSEs))
-  return listOfSEs
+  orderedSEs = _setLocalFirst(groupSEs, localSEs)
+  gLogger.info('Found SEs, local first: %s' % orderedSEs)
+  return orderedSEs
 
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
