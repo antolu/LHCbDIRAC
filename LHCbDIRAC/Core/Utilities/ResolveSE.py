@@ -51,6 +51,7 @@ def getDestinationSEList(outputSE, site, outputmode='Any', run=None):
   # There is an alias defined for this Site
   alias_se = gConfig.getValue('/Resources/Sites/%s/%s/AssociatedSEs/%s' % (prefix, site, outputSE), [])
   if alias_se:
+    shuffle(alias_se)
     gLogger.info("Found associated SE %s for site %s" % (alias_se, site))
     return alias_se
 
@@ -60,7 +61,7 @@ def getDestinationSEList(outputSE, site, outputmode='Any', run=None):
   localSEs = localSEs['Value']
   gLogger.verbose("Local SE list is: %s" % (localSEs))
 
-  groupSEs = resolveSEGroup(gConfig.getValue('/Resources/StorageElementGroups/' + outputSE, []))
+  groupSEs = resolveSEGroup(outputSE)
   if not groupSEs:
     raise RuntimeError("Failed to resolve SE " + outputSE)
   shuffle(groupSEs)
@@ -76,8 +77,8 @@ def getDestinationSEList(outputSE, site, outputmode='Any', run=None):
     section = '/Resources/Countries/%s/AssociatedSEs/%s' % (country, outputSE)
     associatedSE = gConfig.getValue(section, [])
     if associatedSE:
-      gLogger.info('Found associated SEs %s in %s' % (', '.join(list(associatedSE)), section))
       shuffle(associatedSE)
+      gLogger.info('Found associated SEs %s in %s' % (associatedSE, section))
       return associatedSE
 
     # Final check for country associated SE
@@ -98,6 +99,7 @@ def getDestinationSEList(outputSE, site, outputmode='Any', run=None):
     section = '/Resources/Countries/%s/AssociatedSEs/%s' % (assignedCountry, outputSE)
     alias_se = gConfig.getValue(section, [])
     if alias_se:
+      shuffle(alias_se)
       gLogger.info("Found alias SE %s for site: %s" % (alias_se, site))
       return alias_se
     else:
