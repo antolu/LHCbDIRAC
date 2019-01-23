@@ -40,9 +40,9 @@ def getDestinationSEList(outputSE, site, outputmode='Any', run=None):
     from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
     runDestination = TransformationClient().getDestinationForRun(run)
     if not runDestination['OK'] or run not in runDestination['Value']:
-      gLogger.error("Issue getting destinationForRun:", runDestination.get('Message', 'unknown run'))
-      raise RuntimeError("Issue getting destinationForRun")
+      raise RuntimeError("Issue getting destinationForRun (%d): " % run + runDestination.get('Message', 'unknown run'))
     site = runDestination['Value'][run]
+    gLogger.verbose("Site set to %s for run %d" % (site, run))
     outputmode = 'Local'
 
   # Add output SE defined in the job description
