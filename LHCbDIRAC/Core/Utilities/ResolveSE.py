@@ -15,7 +15,9 @@ def _setLocalFirst(seList, localSEs):
   """ return a shuffled list of SEs from seList, localSEs being first """
   local = [se for se in seList if se in localSEs]
   remote = [se for se in seList if se not in localSEs]
-  return shuffle(local) + shuffle(remote)
+  shuffle(local)
+  shuffle(remote)
+  return local + remote
 
 
 def getDestinationSEList(outputSE, site, outputmode='Any', run=None):
