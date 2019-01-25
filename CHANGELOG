@@ -1,3 +1,25 @@
+[v9r3-pre13]
+use DIRAC v6r21-pre3
+
+* fixed LogSE
+* LogUpload: dynamically generate the log https URL
+* failing test when deprecated method is called
+* passing an env may be necessary
+* lb-run from LbEnv should create fully isolated environment
+* passing in the environment
+* bug fix @@
+* corrected PYTHONPATH
+* bug fix
+* CMT -> binary tag
+* added ReplaceLHCbDIRACCode command
+* sourcing in current process environment
+* finding LbLogin environment
+* failing if needs to fail
+* just style
+* env can be None
+* getting env from lhcbdirac bashrc
+* use LbEnv for tests
+
 [v9r3-pre12]
 use DIRAC v6r20p25
 
