@@ -6,6 +6,7 @@
 import os
 import sys
 import time
+import tempfile
 
 import DIRAC
 from DIRAC import gLogger, gConfig
@@ -202,7 +203,7 @@ class DMScript(object):
     self.bkClientQuery = None
     self.bkClientQueryDict = {}
     self.options = {}
-    self.lastFile = os.path.join(os.environ.get('TMPDIR', '/tmp'), '%d.lastLFNs' % os.getppid())
+    self.lastFile = os.path.join(tempfile.gettempdir(), '%d.lastLFNs' % os.getppid())
     self.setLastFile = False
     self.voName = None
 
