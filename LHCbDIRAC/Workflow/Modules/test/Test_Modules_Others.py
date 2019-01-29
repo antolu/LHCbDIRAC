@@ -1,6 +1,8 @@
 """ Unit tests for Workflow Modules
 """
 
+__RCSID__ = "$Id$"
+
 # pylint: disable=protected-access, missing-docstring, invalid-name, line-too-long
 
 import unittest
@@ -41,8 +43,6 @@ getDestinationSEListMock = MagicMock()
 getDestinationSEListMock.return_value = []
 getDestinationSEListMockCNAF = MagicMock()
 getDestinationSEListMockCNAF.return_value = ['CNAF']
-
-__RCSID__ = "$Id$"
 
 
 class ModulesTestCase(unittest.TestCase):
