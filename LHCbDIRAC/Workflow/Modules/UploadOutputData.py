@@ -114,7 +114,8 @@ class UploadOutputData(ModuleBase):
       if not self._checkWFAndStepStatus():
         return S_OK("Failures detected in previous steps: no output data upload attempted")
 
-      # ## 1. Determine the final list of possible output files for the workflow and all the parameters needed to upload them.
+      # ## 1. Determine the final list of possible output files
+      # ##    for the workflow and all the parameters needed to upload them.
       # ##
 
       self.log.verbose("Getting the list of candidate files")
@@ -151,7 +152,7 @@ class UploadOutputData(ModuleBase):
         return S_OK()
 
       # ## 2. Prior to uploading any files must check (for productions with input data) that no descendant files
-      # ## already exist with replica flag in the BK.
+      # ##    already exist with replica flag in the BK.
       # ##
 
       if self.inputDataList:

@@ -6,7 +6,6 @@ __RCSID__ = "$Id$"
 # pylint: disable=protected-access, missing-docstring, invalid-name, line-too-long
 
 import unittest
-import itertools
 import os
 import copy
 import shutil
@@ -18,8 +17,6 @@ from DIRAC.Resources.Catalog.test.mock_FC import fc_mock
 
 from DIRAC import gLogger
 from DIRAC.RequestManagementSystem.Client.Request import Request
-from DIRAC.RequestManagementSystem.Client.Operation import Operation
-from DIRAC.RequestManagementSystem.Client.File import File
 
 # mocks
 from LHCbDIRAC.Workflow.Modules.mock_Commons import prod_id, prod_job_id, wms_job_id, \
@@ -32,7 +29,6 @@ from LHCbDIRAC.BookkeepingSystem.Client.test.mock_BookkeepingClient import bkc_m
 from LHCbDIRAC.Workflow.Modules.FailoverRequest import FailoverRequest
 from LHCbDIRAC.Workflow.Modules.RemoveInputData import RemoveInputData
 from LHCbDIRAC.Workflow.Modules.SendBookkeeping import SendBookkeeping
-from LHCbDIRAC.Workflow.Modules.UploadOutputData import UploadOutputData
 from LHCbDIRAC.Workflow.Modules.UserJobFinalization import UserJobFinalization
 from LHCbDIRAC.Workflow.Modules.StepAccounting import StepAccounting
 from LHCbDIRAC.Workflow.Modules.UploadLogFile import UploadLogFile
@@ -327,184 +323,6 @@ class UploadLogFileSuccess(ModulesTestCase):
     self.assertTrue(res['OK'])
     self.assertTrue(set(res['Value']) >= set(expected))
 
-##############################################################################
-# # UploadOutputData.py
-##############################################################################
-
-
-@patch("LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect=MagicMock())
-class UploadOutputDataSuccess(ModulesTestCase):
-
-  #################################################
-
-  @patch("LHCbDIRAC.Workflow.Modules.UploadOutputData.FileCatalog", side_effect=fc_mock)
-  @patch("LHCbDIRAC.Core.Utilities.ResolveSE.gConfig", side_effect=MagicMock())
-  def test_execute(self, _p, _patch, _patched):
-
-    uod = UploadOutputData(bkClient=bkc_mock, dm=dm_mock)
-    uod.siteName = 'DIRAC.Test.ch'
-    uod.failoverTransfer = self.ft_mock
-
-    # no errors, no input data
-    for wf_cs in copy.deepcopy(wf_commons):
-      if 'InputData' in wf_cs:
-        continue
-      for s_cs in step_commons:
-        fileDescendants = {}
-        self.assertFalse(uod.execute(prod_id, prod_job_id, wms_job_id,
-                                     workflowStatus, stepStatus,
-                                     wf_cs, s_cs,
-                                     step_number, step_id,
-                                     SEs=['SomeSE'],
-                                     fileDescendants=fileDescendants)['OK'])
-
-    # no errors, input data
-    for wf_cs in copy.deepcopy(wf_commons):
-      for s_cs in step_commons:
-        for transferAndRegisterFile in ({'OK': True, 'Value': {'uploadedSE': ''}}, {'OK': False, 'Message': 'error'}):
-          # for transferAndRegisterFileFailover in ( {'OK': True, 'Value': {}},
-          # {'OK': False, 'Message': 'error'} ):
-          self.ft_mock.transferAndRegisterFile.return_value = transferAndRegisterFile
-#            self.ft_mock.transferAndRegisterFileFailover.return_value = transferAndRegisterFileFailover
-          open('foo.txt', 'w').close()
-          open('bar.txt', 'w').close()
-          if 'InputData' not in wf_cs:
-            continue
-          if wf_cs['InputData'] == '':
-            continue
-          wf_cs['outputList'] = [{'outputDataType': 'txt', 'outputDataName': 'foo.txt'},
-                                 {'outputDataType': 'txt', 'outputDataName': 'bar.txt'},
-                                 ]
-          wf_cs['ProductionOutputData'] = ['/lhcb/MC/2010/DST/00012345/0001/foo.txt',
-                                           '/lhcb/MC/2010/DST/00012345/0001/bar.txt']
-#          bkc_mock.getFileDescendants.return_value = {'OK': False,
-#                                                           'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
-#                                                                        {'skipCACheck': False,
-#                                                                         'timeout': 3600} ),
-#                                                                       'getFileDescendants', ( ['foo'], 9, 0, True ) ),
-#                                                           'Value': {'Successful': {'foo.txt': ['baaar']},
-#                                                                     'Failed': [],
-#                                                                     'NotProcessed': []}}
-          fileDescendants = {'foo.txt': ['baaar']}
-          self.assertFalse(uod.execute(prod_id, prod_job_id, wms_job_id,
-                                       workflowStatus, stepStatus,
-                                       wf_cs, s_cs,
-                                       step_number, step_id,
-                                       SEs=['SomeSE'],
-                                       fileDescendants=fileDescendants)['OK'])
-#          bkc_mock.getFileDescendants.return_value = {'OK': True,
-#                                                           'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
-#                                                                        {'skipCACheck': False,
-#                                                                         'timeout': 3600} ),
-#                                                                       'getFileDescendants', ( ['foo'], 9, 0, True ) ),
-#                                                           'Value': {'Successful': {},
-#                                                                     'Failed': [],
-#                                                                     'NotProcessed': []}}
-          if wf_cs['Request'] == '':
-            continue
-          fileDescendants = {}
-          res = uod.execute(prod_id, prod_job_id, wms_job_id,
-                            workflowStatus, stepStatus,
-                            wf_cs, s_cs,
-                            step_number, step_id,
-                            SEs=['SomeSE'],
-                            fileDescendants=fileDescendants)
-          self.assertTrue(res['OK'])
-#            if transferAndRegisterFileFailover['OK']:
-#              self.assertTrue( res['OK'] )
-#            else:
-#              self.assertFalse( res['OK'] )
-          os.remove('foo.txt')
-          os.remove('bar.txt')
-
-  def test__getLFNsForBKRegistration(self, _p):
-
-    f1 = File()
-    f1.LFN = '/a/1.txt'
-    f2 = File()
-    f2.LFN = '/a/2.txt'
-    f3 = File()
-    f3.LFN = '/a/3.txt'
-
-    o1 = Operation()
-    o1.Type = 'RegisterFile'
-    o1.addFile(f1)
-    o2 = Operation()
-    o2.Type = 'RegisterFile'
-    o2.addFile(f2)
-    o3 = Operation()
-    o3.Type = 'ForwardDISET'
-    o4 = Operation()
-    o4.Type = 'RegisterFile'
-    o4.addFile(f1)
-    o4.addFile(f3)
-
-    r = Request()
-    r.addOperation(o4)
-    r.addOperation(o1)
-    r.addOperation(o2)
-    r.addOperation(o3)
-
-    uod = UploadOutputData(bkClient=bkc_mock, dm=dm_mock)
-    uod.request = r
-
-    lfns = set(['/a/1.txt', '/a/5.txt', '/a/6.txt', '/a/3.txt'])
-    lfnsForBkReg = uod._getLFNsForBKRegistration(lfns)
-    self.assertEqual(sorted(lfnsForBkReg), sorted(['/a/5.txt', '/a/6.txt']))
-
-  def test__cleanUp(self, _patch):
-    f1 = File()
-    f1.LFN = '/a/1.txt'
-    f2 = File()
-    f2.LFN = '/a/2.txt'
-    f3 = File()
-    f3.LFN = '/a/3.txt'
-
-    o1 = Operation()
-    o1.Type = 'RegisterFile'
-    o1.addFile(f1)
-    o2 = Operation()
-    o2.Type = 'RegisterFile'
-    o2.addFile(f2)
-    o3 = Operation()
-    o3.Type = 'ForwardDISET'
-    o4 = Operation()
-    o4.Type = 'RegisterFile'
-    o4.addFile(f1)
-    o4.addFile(f3)
-
-    r = Request()
-    r.addOperation(o4)
-    r.addOperation(o1)
-    r.addOperation(o2)
-    r.addOperation(o3)
-
-    uod = UploadOutputData(bkClient=bkc_mock, dm=dm_mock)
-    uod.failoverTransfer = self.ft_mock
-    uod.request = r
-
-    expected = Request()
-    expected.addOperation(o3)
-    removeOp = Operation()
-    removeOp.Type = 'RemoveFile'
-    fileRemove1 = File()
-    fileRemove1.LFN = '/a/1.txt'
-    fileRemove2 = File()
-    fileRemove2.LFN = '/a/2.txt'
-    fileRemove3 = File()
-    fileRemove3.LFN = '/a/notPresent.txt'
-    removeOp.addFile(fileRemove1)
-    removeOp.addFile(fileRemove3)
-    removeOp.addFile(fileRemove2)
-    expected.addOperation(removeOp)
-
-    uod._cleanUp({'1.txt': {'lfn': '/a/1.txt'},
-                  '2.txt': {'lfn': '/a/2.txt'},
-                  'notPresent.txt': {'lfn': '/a/notPresent.txt'}})
-
-    for opsR, opsE in itertools.izip(uod.request, expected):
-      self.assertEqual(str(opsR), str(opsE))
-
 
 ##############################################################################
 # # UserJobFinalization.py
@@ -560,7 +378,8 @@ class UserJobFinalizationSuccess(ModulesTestCase):
     res = ujf._getOrderedSEsList()
     self.assertEqual(res, ['userSE', 'CERN'])
 
-  @patch("LHCbDIRAC.Workflow.Modules.UserJobFinalization.getDestinationSEList", side_effect=getDestinationSEListMockCNAF)
+  @patch("LHCbDIRAC.Workflow.Modules.UserJobFinalization.getDestinationSEList",
+         side_effect=getDestinationSEListMockCNAF)
   def test__getOrderedSEsListCNAF(self, _patch, _patched):
 
     ujf = UserJobFinalization(bkClient=bkc_mock, dm=dm_mock)
