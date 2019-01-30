@@ -1,3 +1,15 @@
+[v9r3-pre14]
+use DIRAC v6r21-pre3
+
+* use tempfile to get temporary directory
+* remove error log before raise
+* shuffle is in place
+* Simplify logic
+* Shuffle AssociatedSEs in all cases
+* moved and corrected one test
+* style
+* removed BkInputDataAgent optimizer (disabled since long time)
+
 [v9r3-pre13]
 use DIRAC v6r21-pre3
 
