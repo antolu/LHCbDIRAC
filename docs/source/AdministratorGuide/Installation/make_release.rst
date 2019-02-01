@@ -281,6 +281,14 @@ ask the CVMFS librarians to change the prod version for the LHCbGrid on cvmfs::
 	cd /cvmfs/lhcb.cern.ch/lib/lhcb/LHCBGRID
 	rm LHCBGRID_prod; ln -s LHCBGRID_vArBpC LHCBGRID_prod
 
+new procedure for installing on cvmfs-lhcbdev
+`````````````````````````````````````````````
+
+You should member of the e-group lhcb-cvmfs-librarians.
+you login to aivoadm.cern.ch and you follow the sequence
+
+  ssh cvmfs-lhcbdev
+  
 
 Server
 ``````
