@@ -287,20 +287,20 @@ new procedure for installing on cvmfs-lhcbdev
 You should member of the e-group lhcb-cvmfs-librarians.
 you login to aivoadm.cern.ch and you follow the sequence
 
-  ssh cvmfs-lhcbdev
-  sudo -i -u cvlhcbdev
-  lbcvmfsinteractive.sh -m "install v9r3-pre4"
-  (wait to get the prompt back)
-  cd /cvmfs/lhcbdev.cern.ch/lib/lhcb/LHCBDIRAC/
-  cvmfs_server transaction lhcbdev.cern.ch
-  export DIRAC=/cvmfs/lhcbdev.cern.ch/lib/lhcb/LHCBDIRAC/v9r3-pre9 
-  source bashrc
-  dirac-install -v -r v9r3-pre13 -t server -l LHCb -e LHCb
-  rm /cvmfs/lhcbdev.cern.ch/lib/lhcb/LHCBDIRAC/pro
-  cd /
-  cvmfs_server publish lhcbdev.cern.ch
-  exit
-  exit
+    ssh cvmfs-lhcbdev
+    sudo -i -u cvlhcbdev
+    lbcvmfsinteractive.sh -m "install v9r3-pre4"
+    (wait to get the prompt back)
+    cd /cvmfs/lhcbdev.cern.ch/lib/lhcb/LHCBDIRAC/
+    cvmfs_server transaction lhcbdev.cern.ch
+    export DIRAC=/cvmfs/lhcbdev.cern.ch/lib/lhcb/LHCBDIRAC/v9r3-pre9 
+    source bashrc
+    dirac-install -v -r v9r3-pre13 -t server -l LHCb -e LHCb
+    rm /cvmfs/lhcbdev.cern.ch/lib/lhcb/LHCBDIRAC/pro
+    cd /
+    cvmfs_server publish lhcbdev.cern.ch
+    exit
+    exit
 
   
 
