@@ -290,9 +290,7 @@ you login to aivoadm.cern.ch and you follow the sequence
   ssh cvmfs-lhcbdev
   sudo -i -u cvlhcbdev
   lbcvmfsinteractive.sh -m "install v9r3-pre4"
-
   (wait to get the prompt back)
-
   cd /cvmfs/lhcbdev.cern.ch/lib/lhcb/LHCBDIRAC/
   cvmfs_server transaction lhcbdev.cern.ch
   export DIRAC=/cvmfs/lhcbdev.cern.ch/lib/lhcb/LHCBDIRAC/v9r3-pre9 
