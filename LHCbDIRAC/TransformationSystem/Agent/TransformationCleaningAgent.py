@@ -5,40 +5,38 @@
     :synopsis: clean up of finalised transformations
 """
 
+__RCSID__ = "$Id$"
+
 import ast
 
 # # from DIRAC
-from DIRAC                                                        import S_OK, S_ERROR
-from DIRAC.ConfigurationSystem.Client.Helpers.Operations          import Operations
-from DIRAC.ConfigurationSystem.Client.ConfigurationData           import gConfigurationData
-from DIRAC.DataManagementSystem.Client.DataManager                import DataManager
-from DIRAC.Resources.Catalog.FileCatalog                          import FileCatalog
-from DIRAC.DataManagementSystem.Utilities.DMSHelpers              import resolveSEGroup
+from DIRAC import S_OK, S_ERROR
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+from DIRAC.ConfigurationSystem.Client.ConfigurationData import gConfigurationData
+from DIRAC.DataManagementSystem.Client.DataManager import DataManager
+from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
 from DIRAC.TransformationSystem.Agent.TransformationCleaningAgent import TransformationCleaningAgent as DiracTCAgent
 # # from LHCbDIRAC
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient     import TransformationClient
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient           import BookkeepingClient
-from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient       import StorageUsageClient
-
-__RCSID__ = "$Id$"
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient import StorageUsageClient
 
 # # agent's name
 AGENT_NAME = 'Transformation/TransformationCleaningAgent'
 
-class TransformationCleaningAgent( DiracTCAgent ):
+
+class TransformationCleaningAgent(DiracTCAgent):
   """ .. class:: TransformationCleaningAgent
   """
 
-  def __init__( self, *args, **kwargs ):
+  def __init__(self, *args, **kwargs):
     """ c'tor
     """
-    DiracTCAgent.__init__( self, *args, **kwargs )
+    DiracTCAgent.__init__(self, *args, **kwargs)
 
-    self.directoryLocations = ['TransformationDB', 'StorageUsage' ]
+    self.directoryLocations = ['TransformationDB', 'StorageUsage']
     self.archiveAfter = 7
     self.fileTypesToKeep = ['GAUSSHIST']
-
-    self.activeStorages = []
 
     self.bkClient = None
     self.transClient = None
@@ -46,18 +44,15 @@ class TransformationCleaningAgent( DiracTCAgent ):
 
   #############################################################################
 
-  def initialize( self ):
+  def initialize(self):
     """ Standard initialize method for agents
     """
-    DiracTCAgent.initialize( self )
+    DiracTCAgent.initialize(self)
 
-    self.directoryLocations = sorted( self.am_getOption( 'DirectoryLocations', self.directoryLocations ) )
-    self.archiveAfter = self.am_getOption( 'ArchiveAfter', self.archiveAfter )  # days
+    self.directoryLocations = sorted(self.am_getOption('DirectoryLocations', self.directoryLocations))
+    self.archiveAfter = self.am_getOption('ArchiveAfter', self.archiveAfter)  # days
 
-    storageElements = resolveSEGroup( 'Tier1-DST' )
-    self.activeStorages = sorted( self.am_getOption( 'ActiveSEs', storageElements ) )
-
-    self.fileTypesToKeep = Operations().getValue( 'Transformations/FileTypesToKeep', self.fileTypesToKeep )
+    self.fileTypesToKeep = Operations().getValue('Transformations/FileTypesToKeep', self.fileTypesToKeep)
 
     self.bkClient = BookkeepingClient()
     self.transClient = TransformationClient()
@@ -65,78 +60,79 @@ class TransformationCleaningAgent( DiracTCAgent ):
 
     return S_OK()
 
-  def cleanMetadataCatalogFiles( self, transID ):
+  def cleanMetadataCatalogFiles(self, transID):
     """ clean the metadata using BKK and Data Manager. This method is a replacement of the one from base class
 
     :param self: self reference
     :param int transID: transformation ID
     """
-    res = self.bkClient.getProductionFiles( transID, 'ALL', 'Yes' )
+    res = self.bkClient.getProductionFiles(transID, 'ALL', 'Yes')
     if not res['OK']:
       return res
     bkMetadata = res['Value']
     fileToRemove = []
     yesReplica = []
-    self.log.info( "Found a total of %d files in the BK for transformation %d" % ( len( bkMetadata ), transID ) )
+    self.log.info("Found a total of %d files in the BK for transformation %d" % (len(bkMetadata), transID))
     for lfn, metadata in bkMetadata.iteritems():
       if metadata['FileType'] != 'LOG':
-        fileToRemove.append( lfn )
+        fileToRemove.append(lfn)
         if metadata['GotReplica'] == 'Yes':
-          yesReplica.append( lfn )
+          yesReplica.append(lfn)
     if fileToRemove:
-      self.log.info( "Attempting to remove %d possible remnants from the catalog and storage" % len( fileToRemove ) )
+      self.log.info("Attempting to remove %d possible remnants from the catalog and storage" % len(fileToRemove))
       # Executing with shifter proxy
-      gConfigurationData.setOptionInCFG( '/DIRAC/Security/UseServerCertificate', 'false' )
-      res = DataManager().removeFile( fileToRemove, force = True )
-      gConfigurationData.setOptionInCFG( '/DIRAC/Security/UseServerCertificate', 'true' )
+      gConfigurationData.setOptionInCFG('/DIRAC/Security/UseServerCertificate', 'false')
+      res = DataManager().removeFile(fileToRemove, force=True)
+      gConfigurationData.setOptionInCFG('/DIRAC/Security/UseServerCertificate', 'true')
       if not res['OK']:
         return res
       for lfn, reason in res['Value']['Failed'].iteritems():
-        self.log.error( "Failed to remove file found in BK", "%s %s" % ( lfn, reason ) )
+        self.log.error("Failed to remove file found in BK", "%s %s" % (lfn, reason))
       if res['Value']['Failed']:
-        return S_ERROR( "Failed to remove all files found in the BK" )
+        return S_ERROR("Failed to remove all files found in the BK")
       if yesReplica:
-        self.log.info( "Ensuring that %d files are removed from the BK" % ( len( yesReplica ) ) )
-        res = FileCatalog( catalogs = ['BookkeepingDB'] ).removeFile( yesReplica )
+        self.log.info("Ensuring that %d files are removed from the BK" % (len(yesReplica)))
+        res = FileCatalog(catalogs=['BookkeepingDB']).removeFile(yesReplica)
         if not res['OK']:
           return res
         for lfn, reason in res['Value']['Failed'].iteritems():
-          self.log.error( "Failed to remove file from BK", "%s %s" % ( lfn, reason ) )
+          self.log.error("Failed to remove file from BK", "%s %s" % (lfn, reason))
         if res['Value']['Failed']:
-          return S_ERROR( "Failed to remove all files from the BK" )
-    self.log.info( "Successfully removed all files found in the BK" )
+          return S_ERROR("Failed to remove all files from the BK")
+    self.log.info("Successfully removed all files found in the BK")
     return S_OK()
 
-  def getTransformationDirectories( self, transID ):
+  def getTransformationDirectories(self, transID):
     """ get the directories for the supplied transformation from the transformation system
 
     :param self: self reference
     :param int transID: transformation ID
     """
 
-    res = DiracTCAgent.getTransformationDirectories( self, transID )
+    res = DiracTCAgent.getTransformationDirectories(self, transID)
 
     if not res['OK']:
       return res
 
     directories = res['Value']
-    if isinstance(directories, basestring): #Check for (stupid) formats
+    if isinstance(directories, basestring):  # Check for (stupid) formats
       directories = ast.literal_eval(directories)
       if not isinstance(directories, list):
         return S_ERROR("Wrong format of output directories")
 
     if 'StorageUsage' in self.directoryLocations:
-      res = self.storageUsageClient.getStorageDirectories( '', '', transID, [] )
+      res = self.storageUsageClient.getStorageDirectories('', '', transID, [])
       if not res['OK']:
-        self.log.error( "Failed to obtain storage usage directories", res['Message'] )
+        self.log.error("Failed to obtain storage usage directories", res['Message'])
         return res
       transDirectories = res['Value']
-      directories = self._addDirs( transID, transDirectories, directories )
+      directories = self._addDirs(transID, transDirectories, directories)
 
     if not directories:
-      self.log.info( "No output directories found" )
+      self.log.info("No output directories found")
 
-    # We should be removing from the list of directories those directories created for file types that are part of those:
+    # We should be removing from the list of directories
+    # those directories created for file types that are part of those:
     # - uploaded (as output files)
     # - not merged by subsequent steps
     # but this is pretty difficult to identify at run time, so we better remove the "RemovingFiles" production status
@@ -145,7 +141,7 @@ class TransformationCleaningAgent( DiracTCAgent ):
     fileTypesToKeepDirs = []
     for fileTypeToKeep in self.fileTypesToKeep:
       fileTypesToKeepDirs.extend([x for x in directories if fileTypeToKeep in x])
-    directories = list( set(directories).difference( set(fileTypesToKeepDirs) ) )
+    directories = list(set(directories).difference(set(fileTypesToKeepDirs)))
 
-    directories = sorted( directories )
-    return S_OK( directories )
+    directories = sorted(directories)
+    return S_OK(directories)
