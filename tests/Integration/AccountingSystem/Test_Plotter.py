@@ -5,6 +5,7 @@
 
 import unittest
 
+import sys
 import math
 import operator
 from PIL import Image
@@ -295,3 +296,15 @@ class StoragePlotterUnitTest(PlotterTestCase):
 
     res = compare('%s.png' % plotName, 'LHCbDIRAC/tests/Integration/AccountingSystem/png/%s.png' % plotName)
     self.assertEqual(0.0, res)
+
+
+#############################################################################
+# Test Suite run
+#############################################################################
+
+if __name__ == '__main__':
+  suite = unittest.defaultTestLoader.loadTestsFromTestCase(PlotterTestCase)
+  suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(DataStoragePlotterUnitTest))
+  suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(StoragePlotterUnitTest))
+  testResult = unittest.TextTestRunner(verbosity=2).run(suite)
+  sys.exit(not testResult.wasSuccessful())

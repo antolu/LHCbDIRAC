@@ -3,6 +3,7 @@
 # pylint: disable=protected-access, wrong-import-position, invalid-name, missing-docstring
 
 import os
+import sys
 import copy
 import unittest
 
@@ -374,3 +375,4 @@ if __name__ == '__main__':
   suiteFailures = unittest.defaultTestLoader.loadTestsFromTestCase(FailingUserJobTestCase)
   suiteFailures.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(UserJobsFailingLocalSuccess))
   testResult = unittest.TextTestRunner(verbosity=2).run(suiteFailures)
+  sys.exit(not testResult.wasSuccessful())

@@ -8,6 +8,7 @@
 
 # pylint: disable=invalid-name,wrong-import-position
 
+import sys
 import time
 import cPickle
 import unittest
@@ -142,3 +143,4 @@ if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestProductionRequestTestCase)
   suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestProductionRequestTestCaseChain))
   testResult = unittest.TextTestRunner(verbosity=2).run(suite)
+  sys.exit(not testResult.wasSuccessful())
