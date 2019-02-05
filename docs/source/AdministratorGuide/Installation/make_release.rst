@@ -303,6 +303,23 @@ you login to aivoadm.cern.ch and you follow the sequence::
   exit
 
   
+new procedure for installing on cvmfs-lhcb
+`````````````````````````````````````````````
+
+You should member of the e-group lhcb-cvmfs-librarians.
+you login to aivoadm.cern.ch and you follow the sequence::
+
+  ssh cvmfs-lhcb
+  sudo -i -u cvlhcb
+  cd /cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/
+  cvmfs_server transaction lhcb.cern.ch
+  <do you actions ...>
+  cd /
+  cvmfs_server publish lhcb.cern.ch
+  exit
+  exit
+
+  
 
 Server
 ``````
