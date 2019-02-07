@@ -120,8 +120,12 @@ create_tarball:
     - echo -e  "PreferredAuthentications=gssapi-with-mic\nStrictHostKeyChecking=no\nHost lxplus*\n\tForwardX11Trusted yes\n\tGSSAPITrustDns yes\n\tGSSAPIDelegateCredentials yes\n\tGSSAPIAuthentication yes\n" > /root/.ssh/config
     # Configure git to use kerberos
     - git config --global http.emptyAuth true
+    # java is required by Sencha Cmd
     - yum install -y java
+    # Sencha Cmd is deployed to cvmfs
     - export PATH=/cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/Sencha/Cmd:$PATH
+    - SANCHA_PATH_DEVEL="/cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/Sencha/ext-4.2.1.883/"
+    - SANCHA_PATH_PROD="/cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/Sencha/ext-4.2.1.883/"
   stage: release
   tags:
     # We need a runner with CVMFS
@@ -139,9 +143,11 @@ create_tarball:
     #- git archive --remote  ${CI_PROJECT_DIR} origin/devel LHCbDIRAC/releases.cfg  | tar -x -v -f - --transform 's|^LHCbDIRAC/||' LHCbDIRAC/releases.cfg
     # use the kerberos gitlab auth rather than ssh
     - sed 's/ssh:\/\/git@gitlab.cern.ch:7999/https:\/\/:@gitlab.cern.ch:8443/g' -i releases.cfg
+    # Identify extjs path based on the barnch
+    - SANCHA_PATH=$(if [ $BRANCH == "devel" ]; then echo $SANCHA_PATH_DEVEL; else echo $SANCHA_PATH_PROD; fi)
     # Create the release tarball
     # The last line output by the script is the command to run in order to deploy
-    - lb-run LHCbDIRAC/prod dirac-distribution -r ${CI_COMMIT_TAG} -l LHCb -C file:///$(pwd)/releases.cfg --extjspath=/cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/Sencha/ext-4.2.1.883/ | tail -n 1  > /tmp/deploy.sh
+    - lb-run LHCbDIRAC/prod dirac-distribution -r ${CI_COMMIT_TAG} -l LHCb -C file:///$(pwd)/releases.cfg --extjspath=${SANCHA_PATH} | tail -n 1  > /tmp/deploy.sh
     # Use the proper user
     - sed "s/lhcbprod/${KRB_USERNAME}/g" -i /tmp/deploy.sh
    #  # FIXME: this is the wrong path, but is used as a test
