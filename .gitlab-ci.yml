@@ -1,6 +1,10 @@
 # This gitlab ci tests, deploys and build the docker images
 # It performs some operations with an account.
 # Its credentials are stored as secret variable KRB_PASSWORD and KRB_USERNAME
+variables:
+  SANCHA_PATH_DEVEL="/cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/Sencha/ext-4.2.1.883/"
+  SANCHA_PATH_PROD="/cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/Sencha/ext-4.2.1.883/"
+
 stages:
    # Run all the tests
   - test
@@ -124,8 +128,6 @@ create_tarball:
     - yum install -y java
     # Sencha Cmd is deployed to cvmfs
     - export PATH=/cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/Sencha/Cmd:$PATH
-    - SANCHA_PATH_DEVEL="/cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/Sencha/ext-4.2.1.883/"
-    - SANCHA_PATH_PROD="/cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/Sencha/ext-4.2.1.883/"
   stage: release
   tags:
     # We need a runner with CVMFS
@@ -149,7 +151,7 @@ create_tarball:
     # The last line output by the script is the command to run in order to deploy
     - lb-run LHCbDIRAC/prod dirac-distribution -r ${CI_COMMIT_TAG} -l LHCb -C file:///$(pwd)/releases.cfg --extjspath=${SANCHA_PATH} | tail -n 1  > /tmp/deploy.sh
     # Use the proper user
-    - sed "s/lhcbprod/${KRB_USERNAME}/g" -i /tmp/deploy.sh
+    - export USER=${KRB_USERNAME}
    #  # FIXME: this is the wrong path, but is used as a test
    #  - sed 's/\/afs\/cern.ch\/lhcb\/distribution\/LHCbDirac_project/\/afs\/cern.ch\/user\/l\/lbmesos/g' -i /tmp/deploy.sh
     # There are not html and pdf file, so the script returns a non 0 code, despite working fine
