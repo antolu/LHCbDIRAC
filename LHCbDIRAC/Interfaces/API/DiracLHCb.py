@@ -8,8 +8,6 @@
 __RCSID__ = "$Id$"
 
 import os
-import glob
-import fnmatch
 import time
 
 from DIRAC import S_OK, S_ERROR, gConfig, gLogger
@@ -21,7 +19,6 @@ from DIRAC.Interfaces.API.DiracAdmin import DiracAdmin
 from DIRAC.ResourceStatusSystem.Client.ResourceStatus import ResourceStatus
 
 from LHCbDIRAC.Core.Utilities.File import makeGuid
-from LHCbDIRAC.Core.Utilities.ClientTools import mergeRootFiles
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import printDMResult
@@ -50,7 +47,7 @@ def translateBKPath(bkPath, procPassID=3):
     bkNodes.append('/' + '/'.join(bk[procPassID:-2]))
     bkNodes.append(bk[-2])
     bkNodes.append(bk[-1])
-  except Exception:
+  except BaseException:
     gLogger.error("Incorrect BKQuery")
     bkNodes = None
   return bkNodes
@@ -115,63 +112,6 @@ class DiracLHCb(Dirac):
     return super(DiracLHCb, self).addFile(lfn, fullPath, diracSE,
                                           fileGuid=makeGuid(fullPath)[fullPath],
                                           printOutput=printOutput)
-
-  #############################################################################
-  # FIXME: Unused?
-  def rootMergeRepository(self, outputFileName, inputFileMask='*.root',
-                          location='Sandbox', requestedStates=['Done']):
-    """ Create a merged ROOT file using root files retrived in the sandbox or output data
-
-       Example Usage:
-
-       >>> print dirac.rootMergeRepository('MyMergedRootFile.root',
-       inputFileMask='DVHistos.root',location='Sandbox', requestedStates = ['Done'])
-       {'OK': True, 'Value': ''}
-
-       @param outputFileName: The target merged file
-       @type outputFileName: string
-       @param inputFileMask: Mask to be used when locating input files. Can support wildcards like 'Tuple*.root'
-       @type inputFileMask: string
-       @param location: The input files present either in the 'Sandbox' (retrieved with getOutputSandbox)
-        or 'OutputFiles' (getJobOutputData)
-       @type location: string
-       @param requestedStates: List of jobs states to be considered
-       @type requestedStates: list of strings
-       @return: S_OK,S_ERROR
-    """
-    if not self.jobRepo:
-      self.log.warn("No repository is initialised")
-      return S_OK()
-
-    # Get the input files to be used
-    jobs = self.jobRepo.readRepository()['Value']
-    inputFiles = []
-    for jobID in sorted(jobs):
-      jobDict = jobs[jobID]
-      if jobDict.get('State') in requestedStates:
-        if location == 'OutputFiles':
-          jobFiles = eval(jobDict[location])
-          for jobFile in jobFiles:
-            fileName = os.path.basename(jobFile)
-            if fnmatch.fnmatch(fileName, inputFileMask):
-              if os.path.exists(jobFile):
-                inputFiles.append(jobFile)
-              else:
-                self.log.warn("Repository output file does not exist locally", jobFile)
-        elif location == 'Sandbox':
-          globStr = "%s/%s" % (jobDict[location], inputFileMask)
-          self.log.notice(glob.glob(globStr))
-          inputFiles.extend(glob.glob(globStr))
-        else:
-          return self._errorReport("Location of .root should be 'Sandbox' or 'OutputFiles'.")
-
-    # Perform the root merger
-    res = mergeRootFiles(outputFileName, inputFiles)
-    if not res['OK']:
-      return self._errorReport(res['Message'], "Failed to perform final ROOT merger")
-    return S_OK()
-
-  #############################################################################
 
   def getBKAncestors(self, lfns, depth=1, replica=True):
     """ This function allows to retrieve ancestor files from the Bookkeeping.

@@ -1,14 +1,14 @@
 """  TransformationAgent is and LHCb class just for overwriting some of the DIRAC methods
 """
 
+__RCSID__ = "$Id$"
+
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.TransformationSystem.Agent.TransformationAgent import TransformationAgent as DIRACTransformationAgent
 
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
-
-__RCSID__ = "$Id$"
 
 AGENT_NAME = 'Transformation/LHCbTransformationAgent'
 
