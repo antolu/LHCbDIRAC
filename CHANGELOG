@@ -1,3 +1,18 @@
+[v9r3-pre15]
+use DIRAC v6r21-pre5
+
+* compile LHCbWeb
+* reporting output code
+* log
+* Update make_release.rst
+* removed unused
+* autopep8 and more
+* format test
+* Update make_release.rst
+* Update make_release.rst
+* Update make_release.rst
+* Update make_release.rst. add release for cvmfs-lhcbdev
+
 [v9r3-pre14]
 use DIRAC v6r21-pre3
 
