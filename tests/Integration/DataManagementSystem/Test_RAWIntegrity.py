@@ -3,6 +3,7 @@
 # pylint: disable=invalid-name,too-many-statements,protected-access,too-many-instance-attributes,wrong-import-position
 
 import unittest
+import sys
 import time
 import datetime
 import random
@@ -822,4 +823,5 @@ if __name__ == '__main__':
   suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(RAWIntegrityAgentTest))
   # The failfast option here is useful because the first test executed is if the db is empty.
   # if not we stop... this avoids bad accident :)
-  unittest.TextTestRunner(verbosity=2, failfast=True).run(suite)
+  testResult = unittest.TextTestRunner(verbosity=2, failfast=True).run(suite)
+  sys.exit(not testResult.wasSuccessful())

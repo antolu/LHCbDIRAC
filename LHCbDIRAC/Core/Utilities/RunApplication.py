@@ -114,6 +114,7 @@ class RunApplication(object):
 
     if runResult['Value'][0]:  # if exit status != 0
       self.log.error("lb-run or its application exited with status %d" % runResult['Value'][0])
+      self.log.error(runResult['Value'][2])
 
       # this is an lb-run specific error, available from LbScripts v9r1p8
       if runResult['Value'][0] & 0x40 and not runResult['Value'][0] & 0x80:

@@ -3,9 +3,10 @@
 """ Testings XMLs of user jobs that ran before
 """
 
-import unittest
 import os
+import sys
 import shutil
+import unittest
 
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
@@ -81,3 +82,4 @@ if __name__ == '__main__':
 #  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( Collision12Success ) )
 #  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RootMergerSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
+  sys.exit(not testResult.wasSuccessful())

@@ -6,6 +6,7 @@
 # pylint: disable=missing-docstring,invalid-name,wrong-import-position
 
 import os
+import sys
 import unittest
 
 from DIRAC.Core.Base.Script import parseCommandLine
@@ -72,3 +73,4 @@ if __name__ == '__main__':
   # suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(RecoSuccess))
   suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(StrippSuccess))
   testResult = unittest.TextTestRunner(verbosity=2).run(suite)
+  sys.exit(not testResult.wasSuccessful())

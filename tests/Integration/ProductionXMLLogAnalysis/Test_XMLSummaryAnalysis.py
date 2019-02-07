@@ -4,6 +4,7 @@
 # pylint: disable=invalid-name,wrong-import-position
 
 import os
+import sys
 import unittest
 
 from LHCbDIRAC.Core.Utilities.XMLSummaries import analyseXMLSummary, XMLSummaryError
@@ -147,7 +148,7 @@ def run():
 
 
 if __name__ == '__main__':
-  run()
+  sys.exit(not run().wasSuccessful())
 
 ################################################################################
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
