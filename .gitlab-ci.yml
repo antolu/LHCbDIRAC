@@ -1,6 +1,9 @@
 # This gitlab ci tests, deploys and build the docker images
 # It performs some operations with an account.
 # Its credentials are stored as secret variable KRB_PASSWORD and KRB_USERNAME
+variables:
+    SANCHA_PATH_DEVEL: "/cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/Sencha/ext-4.2.1.883/"
+    SANCHA_PATH_PROD: "/cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/Sencha/ext-4.2.1.883/"
 stages:
    # Run all the tests
   - test
@@ -110,9 +113,6 @@ dfsdeploy:
 # This creates and deploy the tarball on AFS
 # It is triggered with a tag only
 create_tarball:
-  variables:
-    SANCHA_PATH_DEVEL="/cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/Sencha/ext-4.2.1.883/"
-    SANCHA_PATH_PROD="/cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/Sencha/ext-4.2.1.883/"
   before_script:
     # Fetch a Kerberos token
     - echo "${KRB_PASSWORD}" | kinit ${KRB_USERNAME}@CERN.CH
