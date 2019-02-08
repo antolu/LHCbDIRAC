@@ -119,13 +119,6 @@ class LHCbInstallDIRAC(LHCbCommandBase, InstallDIRAC):
 
       if 'LHCb_release_area' not in environment:
         environment['LHCb_release_area'] = '/cvmfs/lhcb.cern.ch/lib/lhcb/'
-      if 'CMAKE_PREFIX_PATH' not in environment:
-        CMAKE_PREFIX_PATH = ['/cvmfs/lhcb.cern.ch/lib/lhcb',
-                             '/cvmfs/lhcb.cern.ch/lib/lcg/releases',
-                             '/cvmfs/lhcb.cern.ch/lib/lcg/app/releases',
-                             '/cvmfs/lhcb.cern.ch/lib/lcg/external',
-                             '/cvmfs/lhcb.cern.ch/lib/contrib']
-        environment['CMAKE_PREFIX_PATH'] = ':'.join(CMAKE_PREFIX_PATH)
 
       self.pp.installEnv = environment
       self.pp.installEnv = self._do_get_lhcbdiracenv()

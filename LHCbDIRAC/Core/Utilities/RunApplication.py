@@ -76,7 +76,7 @@ class RunApplication(object):
                                                                                      self.applicationVersion,
                                                                                      self.systemConfig))
 
-    lbRunOptions = self.opsH.getValue('GaudiExecution/lbRunOptions', '')
+    lbRunOptions = self.opsH.getValue('GaudiExecution/lbRunOptions', '--siteroot=/cvmfs/lhcb.cern.ch/lib/')
 
     extraPackagesString, runtimeProjectString, externalsString = self._lbRunCommandOptions()
 
