@@ -8,6 +8,8 @@ import copy
 import unittest
 
 from DIRAC.Core.Base.Script import parseCommandLine
+parseCommandLine()
+
 from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
 from DIRAC.tests.Utilities.utils import find_all
 
@@ -19,9 +21,6 @@ try:
   from LHCbDIRAC.tests.Utilities.IntegrationTest import IntegrationTest, FailingUserJobTestCase
 except ImportError:
   from tests.Utilities.IntegrationTest import IntegrationTest, FailingUserJobTestCase
-
-
-parseCommandLine()
 
 
 class UserJobTestCase(IntegrationTest):
@@ -370,9 +369,6 @@ if __name__ == '__main__':
 # HelloWorldSuccessOutputWithJobID ) ) #not suitable for Jenkins
   suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(GaudirunSuccess))
 #  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudiScriptSuccess ) )
+  suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(UserJobsFailingLocalSuccess))
   testResult = unittest.TextTestRunner(verbosity=2).run(suite)
-
-  suiteFailures = unittest.defaultTestLoader.loadTestsFromTestCase(FailingUserJobTestCase)
-  suiteFailures.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(UserJobsFailingLocalSuccess))
-  testResult = unittest.TextTestRunner(verbosity=2).run(suiteFailures)
   sys.exit(not testResult.wasSuccessful())

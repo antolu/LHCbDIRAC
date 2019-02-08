@@ -19,7 +19,6 @@ from tests.Utilities.IntegrationTest import IntegrationTest
 from LHCbDIRAC import rootPath
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
 
 class RegressionTestCase(IntegrationTest):
@@ -30,8 +29,6 @@ class RegressionTestCase(IntegrationTest):
     super(RegressionTestCase, self).setUp()
 
     self.diracLHCb = DiracLHCb()
-    self.bkkClient = BookkeepingClient()
-    os.chdir(os.environ['PILOTINSTALLDIR'])
 
 
 class RecoSuccess(RegressionTestCase):
