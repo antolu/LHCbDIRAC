@@ -1,3 +1,11 @@
+[v9r3-pre16]
+use DIRAC v6r21-pr65
+
+* minor fixes to tests
+* fix error message
+* make gitlab-ci cleaner
+* use environment variable for extjs directory
+
 [v9r3-pre15]
 use DIRAC v6r21-pre5
 
