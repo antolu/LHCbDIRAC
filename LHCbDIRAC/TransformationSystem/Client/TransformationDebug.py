@@ -9,7 +9,7 @@ import gzip
 import urllib
 import ssl
 import tarfile
-import fnmatch
+from fnmatch import fnmatch
 import tempfile
 
 from collections import defaultdict
@@ -24,6 +24,7 @@ from DIRAC.DataManagementSystem.Client.DataManager import DataManager
 from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
 from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient, printOperation
 from DIRAC.WorkloadManagementSystem.Client.JobMonitoringClient import JobMonitoringClient
+
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities import PluginUtilities
@@ -90,6 +91,15 @@ def _genericLfn(lfn, lfnList):
   return lfn
 
 
+def __buildURL(urlBase, ref):
+  """ Build URL from a base, checking whether the ref file is an absolute or relative path """
+  # If absolute path, get the hostas base
+  if os.path.isabs(ref):
+    urlBase = os.path.sep.join(urlBase.split(os.path.sep)[:3])
+    ref = ref[1:]
+  return os.path.join(urlBase, ref)
+
+
 def _getLog(urlBase, logFile, debug=False):
   """
   Get a logfile and return its content
@@ -110,67 +120,77 @@ def _getLog(urlBase, logFile, debug=False):
     print "Entering getLog", url, logFile
   cc = None
   if logFile and ".tgz" not in url:
-    if debug:
-      print "Opening URL ", url
-    try:
-      fd = None
-      fd = urlOpener.open(url)
-      if debug:
-        print "Open"
-      cc = fd.read()
-      if debug:
-        print "File read"
-      if "was not found on this server." in cc:
+    # Try first with index.html and then try and list the directory
+    while True:
+      try:
+        fd = None
         if debug:
-          print 'File not found:', cc
-        return ""
-    except IOError as e:
-      if debug:
-        print "Exception opening %s: %s" % (url, repr(e))
-    finally:
-      if fd:
-        fd.close()
+          print "Try opening URL ", url
+        fd = urlOpener.open(url)
+        if debug:
+          print "Open"
+        cc = fd.read()
+        # Check if the page was not found
+        if "was not found on this server." in cc or 'There was an error loading the page you requested' in cc:
+          if debug:
+            print 'File not found'
+          # If the file is not found, try with the urlBase
+          if url == urlBase:
+            return ""
+          if debug:
+            print "Try with urlBase", urlBase
+          url = urlBase
+        else:
+          if debug:
+            print "File read"
+          break
+      except IOError as e:
+        if debug:
+          print "Exception opening %s: %s" % (url, repr(e))
+        break
+      finally:
+        if fd:
+          fd.close()
     logURL = None
     if cc:
       cc = cc.split("\n")
-      for ll in cc:
-        # If the line matches the requested URL
-        if fnmatch.fnmatch(ll, '*' + logFile + '*'):
+      for line in cc:
+        # Look for an html reference
+        try:
+          ll = line.split('href=')[1].split('"')[1]
+        except IndexError:
+          continue
+        # Find the URL
+        if fnmatch(ll, '*' + logFile + '*'):
           if debug:
             print "Match found:", ll
-          try:
-            logURL = ll.split('"')[1]
-            break
-          except IndexError:
-            pass
-        elif fnmatch.fnmatch(ll, '*.tgz*'):
+          logURL = __buildURL(urlBase, ll)
+        elif fnmatch(ll, '*.tgz') or fnmatch(ll, '*.tar'):
           if debug:
-            print "Match found with tgz file:", ll
+            print "Match found with tgz or tar file:", ll
           # If a tgz file is found, it could help, but still continue!
-          try:
-            logURL = ll.split('"')[1]
-          except IndexError:
-            pass
+          logURL = __buildURL(urlBase, ll)
+        if logURL:
+          break
     if not logURL:
       if debug:
         print 'No match found'
       return ''
-    url = os.path.join(os.path.dirname(urlBase), logURL)
     if debug:
-      print "URL found:", url
+      print "URL found:", logURL
   tmp = None
   tmp1 = None
   tf = None
-  if ".tgz" in url or '.gz' in url:
+  if ".tgz" in logURL or '.gz' in logURL or '.tar' in logURL:
     if debug:
-      print "Opening tgz file ", url
+      print "Opening tar file ", logURL
     # retrieve the zipped file
-    tmp = os.path.join(os.environ.get("TMPDIR", "/tmp"), "logFile.tmp")
+    tmp = os.path.join(tempfile.gettempdir(), "logFile.tmp")
     if debug:
       print "Retrieve the file in ", tmp
     if os.path.exists(tmp):
       os.remove(tmp)
-    urlOpener.retrieve(url, tmp)
+    urlOpener.retrieve(logURL, tmp)
     with open(tmp, "r") as fd:
       cc = fd.read()
     if "404 Not Found" in cc:
@@ -178,18 +198,21 @@ def _getLog(urlBase, logFile, debug=False):
       # unpack the tarfile
     if debug:
       print "Open tarfile ", tmp
-    tf = tarfile.open(tmp, 'r:gz')
+    if '.tar' in logURL:
+      tf = tarfile.open(tmp, 'r')
+    else:
+      tf = tarfile.open(tmp, 'r:gz')
     mn = tf.getnames()
     fd = None
     if debug:
       print "Found those members", mn, ', looking for', logFile
     for fileName in mn:
-      if fnmatch.fnmatch(fileName, logFile + '*'):
+      if fnmatch(fileName, logFile + '*'):
         if debug:
           print "Found ", logFile, " in tar object ", fileName
         if '.gz' in fileName:
           # file is again a gzip file!!
-          tmp1 = os.path.join(os.environ.get("TMPDIR", "/tmp"), "logFile-1.tmp")
+          tmp1 = os.path.join(tempfile.gettempdir(), "logFile-1.tmp")
           if debug:
             print "Extract", fileName, "into", tmp1, "and open it"
           tf.extract(fileName, tmp1)
@@ -200,10 +223,10 @@ def _getLog(urlBase, logFile, debug=False):
         break
   else:
     try:
-      fd = urlOpener.open(url)
+      fd = urlOpener.open(logURL)
     except IOError as e:
       if debug:
-        print "Exception opening %s: %s" % (url, repr(e))
+        print "Exception opening %s: %s" % (logURL, repr(e))
   # read the actual file...
   if not fd:
     if debug:
@@ -250,7 +273,7 @@ def _getSandbox(job, logFile, debug=False):
       if debug:
         print 'Files:', files
       for lf in files:
-        if fnmatch.fnmatch(lf, logFile):
+        if fnmatch(lf, logFile):
           if debug:
             print file, 'matched', logFile
           with open(os.path.join(tmpDir, lf), 'r') as fd:
