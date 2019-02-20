@@ -14,11 +14,7 @@
 '''
 __RCSID__ = "$Id$"
 
-from DIRAC import gLogger
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
-
-from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, Script
-from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
 
 
 def __getSEsFromOptions(dmScript):
@@ -39,6 +35,7 @@ def __getSEsFromOptions(dmScript):
 if __name__ == '__main__':
 
   # Script initialization
+  from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, Script
 
   Script.setUsageMessage('\n'.join([__doc__,
                                     'Usage:',
@@ -52,6 +49,8 @@ if __name__ == '__main__':
   Script.registerSwitch('', 'Verbose', '   Set logging mode to INFO')
   Script.registerSwitch('', 'MaxFiles=', '   Set maximum number of files to be printed (default %d)' % maxFiles)
   Script.parseCommandLine(ignoreErrors=True)
+
+  from DIRAC import gLogger
 
   fixIt = False
   bkCheck = True
@@ -74,6 +73,7 @@ if __name__ == '__main__':
         pass
 
   # imports
+  from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
   if verbose:
     gLogger.setLevel('INFO')
   cc = ConsistencyChecks()
