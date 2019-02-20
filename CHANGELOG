@@ -1,3 +1,15 @@
+[v9r3-pre17]
+use DIRAC v6r21-pre7
+
+* remove spurious comment
+* fix conflicts
+* fix problems accessing logfiles with a proxy
+* Revert f80dcc4fe9a6e6d3ef3321d1a90714e6cfb23552 for import order on dirac-dms-check-fc2se
+* updated the files
+* removed outdated agents and policy
+* removed outdated
+* using --siteroot instead of fixing CMAKE_PREFIX_PATH
+
 [v9r3-pre16]
 use DIRAC v6r21-pr65
 
