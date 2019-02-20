@@ -7,8 +7,10 @@ import os
 import datetime
 import gzip
 import urllib
+import ssl
 import tarfile
-import fnmatch
+from fnmatch import fnmatch
+import tempfile
 
 from collections import defaultdict
 
@@ -17,6 +19,7 @@ from DIRAC.Core.Utilities.File import mkDir
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
 from DIRAC.Core.Utilities.List import breakListIntoChunks
+from DIRAC.Core.Security.Locations import getProxyLocation
 from DIRAC.DataManagementSystem.Client.DataManager import DataManager
 from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
 from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient, printOperation
@@ -88,65 +91,105 @@ def _genericLfn(lfn, lfnList):
   return lfn
 
 
+def __buildURL(urlBase, ref):
+  """ Build URL from a base, checking whether the ref file is an absolute or relative path """
+  # If absolute path, get the hostas base
+  if os.path.isabs(ref):
+    urlBase = os.path.sep.join(urlBase.split(os.path.sep)[:3])
+    ref = ref[1:]
+  return os.path.join(urlBase, ref)
+
+
 def _getLog(urlBase, logFile, debug=False):
   """
   Get a logfile and return its content
   """
   # if logFile == "" it is assumed the file is directly the urlBase
   # Otherwise it can either be referenced within urlBase or contained (.tar.gz)
+
+  # In order to use https with the correct CA, use the FancyURLOpener and the user proxy as certificate
+  context = ssl.create_default_context(capath=os.environ['X509_CERT_DIR'])
+  proxyFile = getProxyLocation()
+  urlOpener = urllib.FancyURLopener(cert_file=proxyFile, context=context)
+  if os.path.basename(urlBase) == '':
+    url = os.path.join(urlBase, 'index.html')
+  else:
+    url = urlBase
   if debug:
-    print "Entering getLog", urlBase, logFile
-  url = urlBase
+    print "Entering getLog", url, logFile
+  cc = None
   if logFile and ".tgz" not in url:
-    if debug:
-      print "Opening URL ", url
-    try:
-      fd = None
-      fd = urllib.urlopen(url)
-      cc = fd.read()
-      if "was not found on this server." in cc:
-        return ""
-    except IOError:
-      pass
-    finally:
-      if fd:
-        fd.close()
-    cc = cc.split("\n")
-    logURL = None
-    for ll in cc:
-      # If the line matches the requested URL
-      if fnmatch.fnmatch(ll, '*' + logFile + '*'):
+    # Try first with index.html and then try and list the directory
+    while True:
+      try:
+        fd = None
         if debug:
-          print "Match found:", ll
-        try:
-          logURL = ll.split('"')[1]
+          print "Try opening URL ", url
+        fd = urlOpener.open(url)
+        if debug:
+          print "Open"
+        cc = fd.read()
+        # Check if the page was not found
+        if "was not found on this server." in cc or 'There was an error loading the page you requested' in cc:
+          if debug:
+            print 'File not found'
+          # If the file is not found, try with the urlBase
+          if url == urlBase:
+            return ""
+          if debug:
+            print "Try with urlBase", urlBase
+          url = urlBase
+        else:
+          if debug:
+            print "File read"
           break
-        except IndexError:
-          pass
-      elif fnmatch.fnmatch(ll, '*.tgz*'):
-        # If a tgz file is found, it could help!
+      except IOError as e:
+        if debug:
+          print "Exception opening %s: %s" % (url, repr(e))
+        break
+      finally:
+        if fd:
+          fd.close()
+    logURL = None
+    if cc:
+      cc = cc.split("\n")
+      for line in cc:
+        # Look for an html reference
         try:
-          logURL = ll.split('"')[1]
+          ll = line.split('href=')[1].split('"')[1]
         except IndexError:
-          pass
+          continue
+        # Find the URL
+        if fnmatch(ll, '*' + logFile + '*'):
+          if debug:
+            print "Match found:", ll
+          logURL = __buildURL(urlBase, ll)
+        elif fnmatch(ll, '*.tgz') or fnmatch(ll, '*.tar'):
+          if debug:
+            print "Match found with tgz or tar file:", ll
+          # If a tgz file is found, it could help, but still continue!
+          logURL = __buildURL(urlBase, ll)
+        if logURL:
+          break
     if not logURL:
+      if debug:
+        print 'No match found'
       return ''
-    url += logURL
     if debug:
-      print "URL found:", url
+      print "URL found:", logURL
   tmp = None
   tmp1 = None
   tf = None
-  if ".tgz" in url or '.gz' in url:
+  if ".tgz" in logURL or '.gz' in logURL or '.tar' in logURL:
     if debug:
-      print "Opening tgz file ", url
+      print "Opening tar file ", logURL
     # retrieve the zipped file
-    tmp = os.path.join(os.environ.get("TMPDIR", "/tmp"), "logFile.tmp")
+    tmp = os.path.join(tempfile.gettempdir(), "logFile.tmp")
     if debug:
       print "Retrieve the file in ", tmp
     if os.path.exists(tmp):
       os.remove(tmp)
-    urllib.urlretrieve(url, tmp)
+    urlOpener.retrieve(logURL, tmp)
     with open(tmp, "r") as fd:
       cc = fd.read()
     if "404 Not Found" in cc:
@@ -154,18 +197,21 @@ def _getLog(urlBase, logFile, debug=False):
       # unpack the tarfile
     if debug:
       print "Open tarfile ", tmp
-    tf = tarfile.open(tmp, 'r:gz')
+    if '.tar' in logURL:
+      tf = tarfile.open(tmp, 'r')
+    else:
+      tf = tarfile.open(tmp, 'r:gz')
     mn = tf.getnames()
     fd = None
     if debug:
       print "Found those members", mn, ', looking for', logFile
     for fileName in mn:
-      if fnmatch.fnmatch(fileName, logFile + '*'):
+      if fnmatch(fileName, logFile + '*'):
         if debug:
           print "Found ", logFile, " in tar object ", fileName
         if '.gz' in fileName:
           # file is again a gzip file!!
-          tmp1 = os.path.join(os.environ.get("TMPDIR", "/tmp"), "logFile-1.tmp")
+          tmp1 = os.path.join(tempfile.gettempdir(), "logFile-1.tmp")
           if debug:
             print "Extract", fileName, "into", tmp1, "and open it"
           tf.extract(fileName, tmp1)
@@ -175,7 +221,11 @@ def _getLog(urlBase, logFile, debug=False):
           fd = tf.extractfile(fileName)
         break
   else:
-    fd = urllib.urlopen(url)
+    try:
+      fd = urlOpener.open(logURL)
+    except IOError as e:
+      if debug:
+        print "Exception opening %s: %s" % (logURL, repr(e))
   # read the actual file...
   if not fd:
     if debug:
@@ -206,22 +256,23 @@ def _getSandbox(job, logFile, debug=False):
   Get a sandox and return its content
   """
   from DIRAC.WorkloadManagementSystem.Client.SandboxStoreClient import SandboxStoreClient
-  import fnmatch
   sbClient = SandboxStoreClient()
-  tmpDir = os.path.join(os.environ.get("TMPDIR", "/tmp"), "sandBoxes/")
+  tmpDir = os.path.join(tempfile.gettempdir(), "sandBoxes/")
   mkDir(tmpDir)
   fd = None
   files = []
   try:
+    if debug:
+      print 'Job', job, ': sandbox being retrieved in', tmpDir
     res = sbClient.downloadSandboxForJob(job, 'Output', tmpDir)
     if res['OK']:
       if debug:
-        print 'Job', job, ': sandbox retrieved in', tmpDir
+        print 'Sandbox successfully retrieved'
       files = os.listdir(tmpDir)
       if debug:
         print 'Files:', files
       for lf in files:
-        if fnmatch.fnmatch(lf, logFile):
+        if fnmatch(lf, logFile):
           if debug:
             print file, 'matched', logFile
           with open(os.path.join(tmpDir, lf), 'r') as fd:
@@ -241,10 +292,17 @@ def _checkXMLSummary(job, logURL):
   Look in an XMLSummary file for partly processed files of failed files
   Return the list of bad LFNs
   """
+  debug = False
   try:
-    xmlFile = _getLog(logURL, 'summary*.xml*', debug=False)
+    xmlFile = _getLog(logURL, 'summary*.xml*', debug=debug)
     if not xmlFile:
-      xmlFile = _getSandbox(job, 'summary*.xml*', debug=False)
+      if debug:
+        print "XML not found in logs"
+      xmlFile = _getSandbox(job, 'summary*.xml*', debug=debug)
+      if xmlFile and debug:
+        print "XML from SB"
+    elif debug:
+      print "XML from logs"
     lfns = {}
     if xmlFile:
       for line in xmlFile:
@@ -1315,7 +1373,6 @@ class TransformationDebug(object):
         failedLfns[(lfn, reason)] = jobs
 
       for (lfn, reason), jobs in failedLfns.iteritems():
-        jobs = sorted(set(jobs))
         js = set(jobSites.get(job, 'Unknown') for job in jobs)
         # If only one site, print it once only
         if len(js) == 1:
