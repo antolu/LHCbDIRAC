@@ -106,7 +106,6 @@ def _getLog(urlBase, logFile, debug=False):
   """
   # if logFile == "" it is assumed the file is directly the urlBase
   # Otherwise it can either be referenced within urlBase or contained (.tar.gz)
-  #debug = True
 
   # In order to use https with the correct CA, use the FancyURLOpener and the user proxy as certificate
   context = ssl.create_default_context(capath=os.environ['X509_CERT_DIR'])
