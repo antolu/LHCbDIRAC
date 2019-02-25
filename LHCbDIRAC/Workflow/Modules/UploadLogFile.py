@@ -44,8 +44,6 @@ class UploadLogFile(ModuleBase):
     self.logSE = self.opsH.getValue('LogStorage/LogSE', 'LogSE')
     self.logSizeLimit = self.opsH.getValue('LogFiles/SizeLimit', 1 * 1024 * 1024)
     self.logExtensions = self.opsH.getValue('LogFiles/Extensions', [])
-    self.diracLogo = 'https://lhcb-portal-dirac.cern.ch/DIRAC/'\
-                     's:LHCb-Production/g:lhcb_prmgr/static/LHCbDIRAC/img/icons/lhcb.jpg'
     self.logFilePath = ''
     self.logLFNPath = ''
     self.logdir = ''
@@ -123,13 +121,6 @@ class UploadLogFile(ModuleBase):
         self.setApplicationStatus('Failed To Populate Log Dir')
         return S_OK()
       self.log.info('%s populated with log files.' % self.logdir)
-
-      #########################################
-      # Create a tailored index page
-      self.log.info('Creating an index page for the logs')
-      result = self.__createLogIndex(selectedFiles)
-      if not result['OK']:
-        self.log.error('Failed to create index page for logs', res['Message'])
 
       #########################################
       # Make sure all the files in the log directory have the correct permissions
@@ -346,71 +337,6 @@ class UploadLogFile(ModuleBase):
       self.log.error('Problem changing shared area permissions', str(x))
       return S_ERROR(x)
 
-    return S_OK()
-
-  #############################################################################
-
-  def __createLogIndex(self, selectedFiles):
-    """ Create a log index page for browsing the log files.
-    """
-    productionID = self.production_id
-    prodJobID = self.prod_job_id
-    wmsJobID = str(self.jobID)
-
-    targetFile = '%s/index.html' % (self.logdir)
-    fopen = open(targetFile, 'w')
-    fopen.write("""
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>\n""")
-    fopen.write("<title>Logs for Job %s of Production %s (DIRAC WMS ID %s)</title>\n" % (prodJobID,
-                                                                                         productionID,
-                                                                                         wmsJobID))
-    fopen.write("""</head>
-<body text="#000000" bgcolor="#33ffff" link="#000099" vlink="#990099"
- alink="#000099"> \n
-""")
-    fopen.write("""<IMG SRC="%s" ALT="DIRAC" WIDTH="300" HEIGHT="120" ALIGN="right" BORDER="0">
-<br>
-""" % self.diracLogo)
-    fopen.write("<h3>Log files for  Job %s_%s </h3> \n<br>" % (productionID, prodJobID))
-    for fileName in selectedFiles:
-      fopen.write('<a href="%s">%s</a><br> \n' % (fileName, fileName))
-
-    fopen.write("<p>Job %s_%s corresponds to WMS JobID %s executed at %s.</p><br>" % (productionID,
-                                                                                      prodJobID,
-                                                                                      wmsJobID,
-                                                                                      self.siteName))
-    fopen.write("<h3>Parameter summary for job %s_%s</h3> \n" % (prodJobID, productionID))
-    check = ['BannedSites', 'JobType', 'CPUTime', 'ProductionOutputData', 'LogFilePath', 'InputData', 'InputSandbox']
-    params = {}
-    for name, val in self.workflow_commons.items():
-      for item in check:
-        if name == item and val:
-          params[name] = str(val)
-
-    finalKeys = sorted(params.keys())
-    rows = ''
-    for k in finalKeys:
-      rows += """
-
-<tr>
-<td> %s </td>
-<td> %s </td>
-</tr>
-      """ % (k, params[k])
-
-    table = """<table border="1" bordercolor="#000000" width="50%" bgcolor="#BCCDFE">
-<tr>
-<td>Parameter Name</td>
-<td>Parameter Value</td>
-</tr>""" + rows + """
-</table>
-"""
-    fopen.write(table)
-    fopen.write("""</body>
-</html>""")
-    fopen.close()
     return S_OK()
 
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
