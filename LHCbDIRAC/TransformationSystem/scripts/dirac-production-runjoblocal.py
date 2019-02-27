@@ -15,18 +15,18 @@ import os
 import shutil
 
 from DIRAC import S_OK
-from DIRAC.Core.Base      import Script
+from DIRAC.Core.Base import Script
 
-Script.registerSwitch( 'D:', 'Download='    , 'Defines data acquisition as DownloadInputData'   )
-Script.registerSwitch( 'P:', 'Protocol='    , 'Defines data acquisition as InputDataByProtocol' )
-Script.parseCommandLine( ignoreErrors = False )
+Script.registerSwitch('D:', 'Download=', 'Defines data acquisition as DownloadInputData')
+Script.registerSwitch('P:', 'Protocol=', 'Defines data acquisition as InputDataByProtocol')
+Script.parseCommandLine(ignoreErrors=False)
 
-Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
-                                     '\nUsage:',
-                                     'dirac-production-runjoblocal [Data imput mode] [job ID]'
-                                     '\nArguments:',
-                                     '  Download (Job ID): Defines data aquisition as DownloadInputData',
-                                     '  Protocol (Job ID): Defines data acquisition as InputDataByProtocol\n'] ) )
+Script.setUsageMessage('\n'.join([__doc__.split('\n')[1],
+                                  '\nUsage:',
+                                  'dirac-production-runjoblocal [Data imput mode] [job ID]'
+                                  '\nArguments:',
+                                  '  Download (Job ID): Defines data aquisition as DownloadInputData',
+                                  '  Protocol (Job ID): Defines data acquisition as InputDataByProtocol\n']))
 
 from DIRAC.Core.Utilities.File import mkDir
 
@@ -36,14 +36,15 @@ _downloadinputdata = False
 _jobID = None
 
 for switch in Script.getUnprocessedSwitches():
-  if switch [ 0 ] in ( 'D', 'Download' ):
+  if switch[0] in ('D', 'Download'):
     _downloadinputdata = True
     _jobID = switch[1]
-  if switch [ 0 ] in ( 'P', 'Protocol' ):
+  if switch[0] in ('P', 'Protocol'):
     _downloadinputdata = False
     _jobID = switch[1]
 
-def __runSystemDefaults(jobID = None):
+
+def __runSystemDefaults(jobID=None):
   """
   Creates the environment for running the job and returns
   the path for the other functions.
@@ -56,6 +57,7 @@ def __runSystemDefaults(jobID = None):
   basepath = os.getcwd()
   return basepath + os.path.sep + tempdir + os.path.sep
 
+
 def __downloadJobDescriptionXML(jobID, basepath):
   """
   Downloads the jobDescription.xml file into the temporary directory
@@ -65,6 +67,7 @@ def __downloadJobDescriptionXML(jobID, basepath):
   from DIRAC.Interfaces.API.Dirac import Dirac
   jdXML = Dirac()
   jdXML.getInputSandbox(jobID, basepath)
+
 
 def __modifyJobDescription(jobID, basepath, downloadinputdata):
   """
@@ -81,36 +84,45 @@ def __modifyJobDescription(jobID, basepath, downloadinputdata):
         archive.write(basepath + "InputSandbox" + str(jobID) + os.path.sep + "jobDescription.xml")
         return S_OK("Job parameter changed from DownloadInputData to InputDataByProtocol.")
 
+
 def __downloadPilotScripts(basepath):
   """
   Downloads the scripts necessary to configure the pilot
 
   """
-  from DIRAC.Core.Utilities.Version import getVersion
-  version = getVersion()['Value']['DIRAC']
-
-  #include retry function
-  out = os.system("wget -P " + basepath +  " http://lhcbproject.web.cern.ch/lhcbproject/Operations/VM/pilotscripts/LHCbPilotCommands.py")
+  # include retry function
+  out = os.system(
+      "wget -P " + basepath
+      + " https://gitlab.cern.ch/lhcb-dirac/LHCbPilot/raw/master/LHCbPilot/LHCbPilotCommands.py")
   if not out:
     S_OK("LHCbPilotCommands.py script successfully download.\n")
   else:
     print "LHCbPilotCommands.py script download error.\n"
-  shutil.copyfile("/cvmfs/lhcb.cern.ch/lib/lhcb/DIRAC/DIRAC_" + version + "/DIRAC/WorkloadManagementSystem/PilotAgent/dirac-pilot.py"   , basepath + "dirac-pilot.py")
-  shutil.copyfile("/cvmfs/lhcb.cern.ch/lib/lhcb/DIRAC/DIRAC_" + version + "/DIRAC/WorkloadManagementSystem/PilotAgent/pilotCommands.py" , basepath + "pilotCommands.py")
-  shutil.copyfile("/cvmfs/lhcb.cern.ch/lib/lhcb/DIRAC/DIRAC_" + version + "/DIRAC/WorkloadManagementSystem/PilotAgent/pilotTools.py"    , basepath + "pilotTools.py")
 
+  out = os.system(
+      "wget -P " + basepath
+      + " https://raw.githubusercontent.com/DIRACGrid/Pilot/master/Pilot/dirac-pilot.py")
+  if not out:
+    S_OK("dirac-pilot.py script successfully download.\n")
+  else:
+    print "download error.\n"
 
-#    I decided to keep this comment just in case this comes in production again:
-#
-#   out = os.system("wget -P " + basepath +  " http://lhcbproject.web.cern.ch/lhcbproject/Operations/VM/pilotscripts/dirac-pilot.py")
-#   if not out:
-#     S_OK("dirac-pilot.py script successfully download.\n")
-#   out = os.system("wget -P " + basepath +  " http://lhcbproject.web.cern.ch/lhcbproject/Operations/VM/pilotscripts/pilotCommands.py")
-#   if not out:
-#     S_OK("pilotCommands.py script successfully download.\n")
-#   out = os.system("wget -P " + basepath +  " http://lhcbproject.web.cern.ch/lhcbproject/Operations/VM/pilotscripts/pilotTools.py")
-#   if not out:
-#     S_OK("pilotTools.py script successfully download.\n")
+  out = os.system(
+      "wget -P " + basepath
+      + " https://raw.githubusercontent.com/DIRACGrid/Pilot/master/Pilot/pilotCommands.py")
+  if not out:
+    S_OK("pilotCommands.py script successfully download.\n")
+  else:
+    print "download error.\n"
+
+  out = os.system(
+      "wget -P " + basepath
+      + " https://raw.githubusercontent.com/DIRACGrid/Pilot/master/Pilot/pilotTools.py")
+  if not out:
+    S_OK("pilotTools.py script successfully download.\n")
+  else:
+    print "download error.\n"
+
 
 def __configurePilot(basepath):
   """
@@ -127,6 +139,7 @@ def __configurePilot(basepath):
 #   else:
 #     some DErrno message
 
+
 def __runJobLocally(jobID, basepath):
   """
   Runs the job!
@@ -134,10 +147,11 @@ def __runJobLocally(jobID, basepath):
   """
   from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
   localJob = LHCbJob(basepath + "InputSandbox" + str(jobID) + os.path.sep + "jobDescription.xml")
-  localJob.setInputSandbox(os.getcwd()+"pilot.cfg")
-  localJob.setConfigArgs(os.getcwd()+"pilot.cfg")
+  localJob.setInputSandbox(os.getcwd() + "pilot.cfg")
+  localJob.setConfigArgs(os.getcwd() + "pilot.cfg")
   os.chdir(basepath)
   localJob.runLocal()
+
 
 if __name__ == "__main__":
   usedDir = os.path.expanduser('~') + os.path.sep
