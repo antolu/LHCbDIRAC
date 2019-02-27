@@ -1,3 +1,13 @@
+[v9r3-pre18]
+use DIRAC v6r21-pre8
+
+* removed afs dirs
+* added Jenkinsfile
+* added debug
+* removed creation of index.html file
+* fix typo and pylint
+* fix tests
+
 [v9r3-pre17]
 use DIRAC v6r21-pre7
 
