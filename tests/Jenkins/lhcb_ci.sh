@@ -400,45 +400,6 @@ function prepareForLHCbPilot3(){
 
 }
 
-function submitAndMatchBoinc(){
-   # This function tests BOINC. So we are going to take
-   # the pilot3 files from the portal directly
-
-  installLHCbDIRAC
-  submitBoincJob
-
-  #Run the full pilot, including the JobAgent
-  cd $PILOTINSTALLDIR
-  if [ $? -ne 0 ]
-  then
-    echo 'ERROR: cannot change to ' $PILOTINSTALLDIR
-    return
-  fi
-  prepareForLHCbPilot3
-
-
-  DIRAC_SITE=BOINCCert.World.org
-  LHCBDIRAC_SETUP=LHCb-Certification
-  CE_NAME=BOINCCert-World-CE.org
-
-  #run the dirac-pilot script
-  python dirac-pilot.py \
-   --debug \
-   --setup=$LHCBDIRAC_SETUP \
-   --pilotCFGFile=pilot.json \
-   -l LHCb \
-   -o LbRunOnly \
-   --Name=$CE_NAME \
-   --Queue=BoincCert.World.Queue \
-   --MaxCycles=1 \
-   --name=$DIRAC_SITE \
-   --cert \
-   --certLocation=/home/dirac/MrBoincHost \
-   --commandExtensions LHCbPilot \
-   --configurationServer dips://lbboinccertif.cern.ch:9135/Configuration/Server
-
-}
-
 function installLHCbDIRAC(){
 
   if [ ! "$LBRUNRELEASE" ]
@@ -520,23 +481,6 @@ function submitJob(){
   python dirac-proxy-download.py $DIRACUSERDN -R $DIRACUSERROLE -o /DIRAC/Security/UseServerCertificate=True -o /DIRAC/Security/CertFile=/home/dirac/certs/hostcert.pem -o /DIRAC/Security/KeyFile=/home/dirac/certs/hostkey.pem -o /DIRAC/Setup=LHCb-Certification -ddd
   cp $TESTCODE/LHCbDIRAC/tests/Jenkins/dirac-test-job.py .
   python dirac-test-job.py -o /DIRAC/Setup=LHCb-Certification $DEBUG
-
-  rm $PILOTINSTALLDIR/$PILOTCFG
-}
-
-function submitBoincJob(){
-
-  echo -e "==> Submitting a BOINC job"
-
-  #This is is executed from the $CLIENTINSTALLDIR
-
-  export PYTHONPATH=$TESTCODE:$PYTHONPATH
-  #Get a proxy and submit the job: this job will go to the certification setup, so we suppose the JobManager there is accepting jobs
-  getUserProxy #this won't really download the proxy, so that's why the next command is needed
-  cp $TESTCODE/DIRAC/tests/Jenkins/dirac-proxy-download.py .
-  python dirac-proxy-download.py $DIRACUSERDN -R $DIRACUSERROLE -o /DIRAC/Security/UseServerCertificate=True -o /DIRAC/Security/CertFile=/home/dirac/certs/hostcert.pem -o /DIRAC/Security/KeyFile=/home/dirac/certs/hostkey.pem -o /DIRAC/Setup=LHCb-Certification -ddd
-  cp $TESTCODE/LHCbDIRAC/tests/Jenkins/dirac-test-job.py .
-  python $TESTCODE/LHCbDIRAC/tests/Jenkins/dirac-test-boinc-job.py -o /DIRAC/Setup=LHCb-Certification $DEBUG
 
   rm $PILOTINSTALLDIR/$PILOTCFG
 }

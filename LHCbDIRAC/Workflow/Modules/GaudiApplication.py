@@ -73,7 +73,7 @@ class GaudiApplication(ModuleBase):
       self.log.info("Executing application %s %s for binary tag %s" % (self.applicationName,
                                                                        self.applicationVersion,
                                                                        self.systemConfig))
-      if self.jobType.lower() == 'merge' or 'BOINC' in self.siteName:
+      if self.jobType.lower() == 'merge' in self.siteName:
         self._disableWatchdogCPUCheck()
 
       # Resolve options files
