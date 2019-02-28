@@ -40,7 +40,7 @@ class Reco17Success(ProductionJobTestCase):
     optionFilesDQ += '$APPCONFIGOPTS/DaVinci/DaVinci-InputType-SDST.py'
     stepsInProd = [{'StepId': '131333', 'StepName': 'Reco17a',
                     'ApplicationName': 'Brunel', 'ApplicationVersion': 'v52r4',
-                    'ExtraPackages': 'AppConfig.v3r323;SQLDDDB.v7r10',
+                    'ExtraPackages': 'AppConfig.v3r323;Det/SQLDDDB.v7r11',
                     'ProcessingPass': 'Reco17a', 'Visible': 'Y', 'Usable': 'Yes',
                     'DDDB': 'dddb-20150724', 'CONDDB': 'cond-20170510', 'DQTag': '', 'OptionsFormat': '',
                     'OptionFiles': '$APPCONFIGOPTS/Brunel/DataType-2017.py;$APPCONFIGOPTS/Brunel/rdst.py',
@@ -52,7 +52,7 @@ class Reco17Success(ProductionJobTestCase):
                                       {'Visible': 'Y', 'FileType': 'BRUNELHIST'}]},
                    {'StepId': 131327, 'StepName': 'DataQuality-FULL',
                     'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v42r4',
-                    'ExtraPackages': 'AppConfig.v3r324;SQLDDDB.v7r10',
+                    'ExtraPackages': 'AppConfig.v3r324;Det/SQLDDDB.v7r11',
                     'ProcessingPass': 'DataQuality-FULL', 'Visible': 'N', 'Usable': 'Yes',
                     'DDDB': 'dddb-20150724', 'CONDDB': 'cond-20170510', 'DQTag': '', 'OptionsFormat': 'DQ',
                     'OptionFiles': optionFilesDQ,
@@ -87,7 +87,7 @@ class StrippSuccess(ProductionJobTestCase):
     optionFiles += '$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py'
     stepsInProd = [{'StepId': 125625, 'StepName': 'Stripping24r0p1-DV-v38r1p4-AppConfig-v3r323',
                     'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v38r1p4',
-                    'ExtraPackages': 'AppConfig.v3r323;SQLDDDB.v7r10',
+                    'ExtraPackages': 'AppConfig.v3r323;Det/SQLDDDB.v7r11',
                     'ProcessingPass': 'Stripping24r0p1', 'Visible': 'Y', 'Usable': 'Yes',
                     'DDDB': 'dddb-20150724', 'CONDDB': 'cond-20150828', 'DQTag': '', 'OptionsFormat': 'Stripping',
                     'OptionFiles': optionFiles,
