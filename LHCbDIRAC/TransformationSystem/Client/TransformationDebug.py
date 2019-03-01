@@ -1283,7 +1283,7 @@ class TransformationDebug(object):
           # Try and find out which file was faulty
           for job1 in jobs:
             res = self.monitoring.getJobParameter(job1, 'DownloadInputData')
-            if res['OK'] and 'Failed to download' in res['Value']['DownloadInputData']:
+            if res['OK'] and 'Failed to download' in res['Value'].get('DownloadInputData', ''):
               lfns = res['Value']['DownloadInputData'].split('Failed to download')[1].split(':')[1].split()
               for lfn in lfns:
                 idrLfns.setdefault(lfn, []).append(job1)
