@@ -10,6 +10,7 @@
 """
 
 from DIRAC import S_OK, S_ERROR, gConfig, gLogger
+from DIRAC.WorkloadManagementSystem.DB.JobDB import JobDB
 
 COMPONENT_NAME = 'LHCbJobPathResolution'
 
@@ -34,15 +35,9 @@ class JobPathResolution:
       return S_ERROR('JobPathResoulution Failure')
 
     self.log.verbose('Attempting to resolve job path for LHCb')
-    job = self.arguments['JobID']
-    section = self.arguments['ConfigPath']
-    if 'ClassAd' in self.arguments:
-      classadJob = self.arguments['ClassAd']
-      return self.__classAdPath(job, section, classadJob)
-    elif 'JobState' in self.arguments:
-      jobState = self.arguments['JobState']
-      return self.__jobStatePath(job, section, jobState)
-    return S_ERROR("No JobState or ClassAd in arguments!")
+    return self.__jobStatePath(self.arguments['JobID'],
+                               self.arguments['ConfigPath'],
+                               self.arguments['JobState'])
 
   def __jobStatePath(self, jid, section, jobState):
     path = []
@@ -57,20 +52,19 @@ class JobPathResolution:
       ancestors = gConfig.getValue('%s/AncestorFiles' % section, 'AncestorFiles')
       path.append(ancestors)
 
+    inputData = jobManifest.getOption("InputData", '').replace('Unknown', '')
+    if inputData:
+      if not jobManifest.getOption('DisableDataScheduling', False):
+        self.log.info('Job %s has input data requirement' % (jid))
+        path.append('InputData')
+      else:
+        self.log.info('Job %s has input data requirement but scheduling via input data is disabled' % (jid))
+        result = JobDB().setInputData(jid, [])
+        if not result['OK']:
+          self.log.error(result)
+          return S_ERROR('Could not reset input data to null')
+
     if not path:
       self.log.info('No LHCb specific optimizers to be added')
 
     return S_OK(path)
-
-  def __classAdPath(self, job, section, classadJob):
-    lhcbPath = ''
-    ancestorDepth = classadJob.get_expression('AncestorDepth').replace('"', '').replace('Unknown', '')
-    if ancestorDepth:
-      self.log.info('Job %s has specified ancestor depth' % (job))
-      ancestors = gConfig.getValue(section + '/AncestorFiles', 'AncestorFiles')
-      lhcbPath += ancestors + ','
-
-    if not lhcbPath:
-      self.log.info('No LHCb specific optimizers to be added')
-
-    return S_OK(lhcbPath)

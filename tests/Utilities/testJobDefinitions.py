@@ -122,18 +122,6 @@ def helloWorldTestCLOUD():
   return endOfAllJobs(job)
 
 
-"""
-@executeWithUserProxy
-def helloWorldTestBOINC():
-
-  job = baseToAllJobs( 'helloWorld-test-BOINC', jobClass )
-  job.setInputSandbox( [find_all( 'exe-script.py', rootPath, '/tests/System/GridTestSubmission' )[0]] )
-  job.setExecutable( "exe-script.py", "", "helloWorld.log" )
-  job.setDestination( ['BOINC.World.org'] )
-  return endOfAllJobs( job )
-"""
-
-
 @executeWithUserProxy
 def helloWorldTestSLC6():
 

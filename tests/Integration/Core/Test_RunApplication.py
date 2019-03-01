@@ -284,7 +284,7 @@ class BrunelSuccess(RunApplicationTestCase):
     ra.commandOptions = ['$APPCONFIGOPTS/Brunel/DataType-2017.py',
                          '$APPCONFIGOPTS/Brunel/rdst.py']
     ra.extraPackages = [('AppConfig', 'v3r323'),
-                        ('SQLDDDB', 'v7r10'),
+                        ('Det/SQLDDDB', 'v7r11'),
                         ('ProdConf', '')
                         ]
     ra.step_Number = 1
@@ -307,7 +307,7 @@ class BrunelSuccess(RunApplicationTestCase):
     ra.commandOptions = ['$APPCONFIGOPTS/Brunel/DataType-2017.py',
                          '$APPCONFIGOPTS/Brunel/rdst.py']
     ra.extraPackages = [('AppConfig', 'v3r323'),
-                        ('SQLDDDB', 'v7r10'),
+                        ('Det/SQLDDDB', 'v7r11'),
                         ('ProdConf', '')
                         ]
     ra.step_Number = 1
@@ -395,7 +395,7 @@ class DaVinciSuccess(RunApplicationTestCase):
                          '$APPCONFIGOPTS/DaVinci/InputType-RDST.py',
                          '$APPCONFIGOPTS/DaVinci/DV-RawEventJuggler-0_3-to-4_2.py']
     ra.extraPackages = [('AppConfig', 'v3r308'),
-                        ('SQLDDDB', 'v7r10'),
+                        ('Det/SQLDDDB', 'v7r11'),
                         ('ProdConf', '')
                         ]
     ra.step_Number = 1
@@ -423,7 +423,7 @@ class DaVinciSuccess(RunApplicationTestCase):
                          '$APPCONFIGOPTS/DaVinci/InputType-RDST.py',
                          '$APPCONFIGOPTS/DaVinci/DV-RawEventJuggler-0_3-to-4_2.py']
     ra.extraPackages = [('AppConfig', 'v3r308'),
-                        ('SQLDDDB', 'v7r10'),
+                        ('Det/SQLDDDB', 'v7r11'),
                         ('ProdConf', '')
                         ]
     ra.step_Number = 1
