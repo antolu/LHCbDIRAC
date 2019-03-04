@@ -469,14 +469,29 @@ function setupLHCbDIRAC(){
 
 
 function submitJob(){
+  #This is is executed from the $CLIENTINSTALLDIR
 
   echo -e "==> Submitting a simple job"
 
-  #This is is executed from the $CLIENTINSTALLDIR
-
   export PYTHONPATH=$TESTCODE:$PYTHONPATH
+
   #Get a proxy and submit the job: this job will go to the certification setup, so we suppose the JobManager there is accepting jobs
+
+  # check if errexit mode is set and disabling as the component may not exist
+  save=$-
+  if [[ $save =~ e ]]
+  then
+    set +e
+  fi
+
   getUserProxy #this won't really download the proxy, so that's why the next command is needed
+
+  # re-enabling it
+  if [[ $save =~ e ]]
+  then
+    set -e
+  fi
+
   cp $TESTCODE/DIRAC/tests/Jenkins/dirac-proxy-download.py .
   python dirac-proxy-download.py $DIRACUSERDN -R $DIRACUSERROLE -o /DIRAC/Security/UseServerCertificate=True -o /DIRAC/Security/CertFile=/home/dirac/certs/hostcert.pem -o /DIRAC/Security/KeyFile=/home/dirac/certs/hostkey.pem -o /DIRAC/Setup=LHCb-Certification -ddd
   cp $TESTCODE/LHCbDIRAC/tests/Jenkins/dirac-test-job.py .
@@ -487,7 +502,7 @@ function submitJob(){
 
 function sourcingEnv(){
 
-  echo -e "==> Sourcing the environment (inlcuding LbLogin env)"
+  echo -e "==> Sourcing the environment"
   source $PILOTINSTALLDIR/environmentLHCbDirac
 }
 
