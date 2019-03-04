@@ -24,7 +24,6 @@ transparent and reliable usage. LHCbDIRAC specializes DIRAC for LHCb.
 
 LHCbDIRAC is the LHCb extension to DIRAC:
 
-  - LHCbDIRAC documentation: `<http://lhcb-dirac.readthedocs.io/en/latest/index.html>`_
   - LHCbDIRAC hosted repository: `<https://gitlab.cern.ch/lhcb-dirac>`_
 
 
