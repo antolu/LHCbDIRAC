@@ -408,7 +408,7 @@ function installLHCbDIRAC(){
     echo '==> Installing client with dirac-install'
     installLHCbDIRACClient
   else
-    echo '==> Installing client with lb-run'
+    echo '==> Installing client from CVMFS'
     setupLHCbDIRAC
   fi
 
@@ -451,26 +451,26 @@ function installLHCbDIRACClient(){
 
 function setupLHCbDIRAC(){
 
-  echo -e "==> Invoking LbLogin.sh"
-  . /cvmfs/lhcb.cern.ch/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v8r6p5/InstallArea/scripts/LbLogin.sh
-
   local version=`cat project.version`
   echo -e "==> Invoking lb-run LHCbDirac/$version bash -norc"
-  lb-run LHCbDirac/$version bash -norc
+  source /cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/lhcbdirac $version
   local status=$?
   if [ $status -ne 0 ]
   then
-    echo -e "==> lb-run NOT successful: going to install client with dirac-install"
-    installLHCbDIRACClient
-  else
-    export PYTHONPATH=$PYTHONPATH:$CLIENTINSTALLDIR/
+    echo -e "==> lb-run from prod CVMFS NOT successful, trying from CVMFS DEV"
+    source /cvmfs/lhcbdev.cern.ch/lib/lhcb/LHCBDIRAC/lhcbdirac $version
+    local statusDev=$?
+    if [ $statusDev -ne 0 ]
+    then
+      echo -e "==> lb-run from DEV CVMFS NOT successful"
+    fi
   fi
 }
 
 
 function submitJob(){
-  #This is is executed from the $CLIENTINSTALLDIR
 
+  #This is is executed from the $CLIENTINSTALLDIR
   echo -e "==> Submitting a simple job"
 
   export PYTHONPATH=$TESTCODE:$PYTHONPATH
