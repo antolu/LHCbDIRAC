@@ -922,7 +922,7 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.getProductionProcessingPassID(prodid)
 
   #############################################################################
-  types_getProductionProcessingPass = [long]
+  types_getProductionProcessingPass = [(long, int)]
 
   @staticmethod
   def export_getProductionProcessingPass(prodid):
