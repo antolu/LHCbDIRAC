@@ -1,9 +1,14 @@
 """ File utilities module (e.g. make GUIDs)
 """
-from DIRAC import gLogger, S_OK, S_ERROR
-from DIRAC.Core.Utilities.File import makeGuid as DIRACMakeGUID
 
 __RCSID__ = "$Id$"
+
+
+import shlex
+
+from DIRAC import gLogger, S_OK
+from DIRAC.Core.Utilities.Subprocess import systemCall
+from DIRAC.Core.Utilities.File import makeGuid as DIRACMakeGUID
 
 
 def getRootFileGUIDs(fileList):
@@ -11,42 +16,16 @@ def getRootFileGUIDs(fileList):
   """
   guids = {'Successful': {}, 'Failed': {}}
   for fileName in fileList:
-    res = getRootFileGUID(fileName)
-    if res['OK']:
-      guids['Successful'][fileName] = res['Value']
-    else:
+
+    res = systemCall(timeout=0, cmdSeq=shlex.split("getRootFileGUID.py %s" % fileName))
+    if not res['OK']:
       guids['Failed'][fileName] = res['Message']
+    else:
+      if res['Value'][0]:
+        guids['Failed'][fileName] = res['Value'][2]
+      else:
+        guids['Successful'][fileName] = res['Value'][1]
   return S_OK(guids)
-
-
-def getRootFileGUID(fileName):
-  """ Function to retrieve a file GUID using Root.
-  """
-  # Setup the root environment
-  try:
-    import ROOT
-  except ImportError:
-    return S_ERROR("ROOT environment not set up: use 'lb-run --ext ROOT LHCbDirac/prod'")
-
-  from ctypes import create_string_buffer
-  try:
-    ROOT.gErrorIgnoreLevel = 2001
-    fr = ROOT.TFile.Open(fileName)
-    branch = fr.Get('Refs').GetBranch('Params')
-    text = create_string_buffer(100)
-    branch.SetAddress(text)
-    for i in xrange(branch.GetEntries()):
-      branch.GetEvent(i)
-      x = text.value
-      if x.startswith('FID='):
-        guid = x.split('=')[1]
-        return S_OK(guid)
-    return S_ERROR('GUID not found')
-  except Exception:
-    return S_ERROR("Error extracting GUID")
-  finally:
-    if fr:
-      fr.Close()
 
 
 def makeGuid(fileNames):
@@ -57,12 +36,18 @@ def makeGuid(fileNames):
 
   fileGUIDs = {}
   for fileName in fileNames:
-    guid = getRootFileGUID(fileName)
-    if guid['OK']:
-      gLogger.verbose('GUID found to be %s' % guid)
-      fileGUIDs[fileName] = guid['Value']
-    else:
+
+    res = systemCall(timeout=0, cmdSeq=shlex.split("getRootFileGUID.py %s" % fileName))
+
+    if not res['OK']:
       gLogger.error('Could not obtain GUID from file through Gaudi, using standard DIRAC method')
       fileGUIDs[fileName] = DIRACMakeGUID(fileName)
+    else:
+      if res['Value'][0]:
+        gLogger.error('Could not obtain GUID from file through Gaudi, using standard DIRAC method')
+        fileGUIDs[fileName] = DIRACMakeGUID(fileName)
+      else:
+        gLogger.verbose('GUID found to be %s' % res['Value'][1])
+        fileGUIDs[fileName] = res['Value'][1]
 
   return fileGUIDs
