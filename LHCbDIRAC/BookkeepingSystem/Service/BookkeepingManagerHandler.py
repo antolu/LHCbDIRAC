@@ -1601,7 +1601,7 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.getAvailableTags()
 
   #############################################################################
-  types_getProcessedEvents = [int]
+  types_getProcessedEvents = [(long, int)]
 
   @staticmethod
   def export_getProcessedEvents(prodid):
@@ -1609,7 +1609,7 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.getProductionProcessedEvents(prodid)
 
   #############################################################################
-  types_getProductionProcessedEvents = [long]
+  types_getProductionProcessedEvents = [(long, int)]
 
   @staticmethod
   def export_getProductionProcessedEvents(prodid):
