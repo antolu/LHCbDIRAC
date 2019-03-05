@@ -53,7 +53,7 @@ class UploadMC(ModuleBase):
           with open(fn) as fd:
             try:
               jsonData = json.load(fd)
-              self.log.verbose(jsonData)
+              self.log.verbose("Content of %s: %s" % (fn, jsonData))
               if self._enableModule():
                 mcLogErrorsClient = MCStatsClient()
                 mcLogErrorsClient.indexName = 'lhcb-mcstats-' + self.production_id
@@ -63,7 +63,7 @@ class UploadMC(ModuleBase):
                                  res['Message'])
               else:
                 # At this point we can see exactly what the module would have uploaded
-                self.log.info("Would have attempted to upload the following file %s" % fn)
+                self.log.info("Module disabled: would have attempted to upload the following file %s" % fn)
             except BaseException as ve:
               self.log.verbose("Exception loading the JSON file: content of %s follows" % fn)
               print fd.read()
