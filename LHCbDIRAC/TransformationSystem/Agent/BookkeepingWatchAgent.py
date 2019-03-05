@@ -127,8 +127,7 @@ class BookkeepingWatchAgent(AgentModule, TransformationAgentsUtilities):
       except ValueError as e:
         self._logError("fail to close %s: %s" % (self.pickleFile, e))
 
-
-################################################################################
+  ################################################################################
 
   def execute(self):
     """ Main execution method. Just fills a list, and a queue, with BKKQueries ID.
