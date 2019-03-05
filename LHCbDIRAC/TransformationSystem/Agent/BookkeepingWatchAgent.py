@@ -129,6 +129,7 @@ class BookkeepingWatchAgent(AgentModule, TransformationAgentsUtilities):
 
 
 ################################################################################
+
   def execute(self):
     """ Main execution method. Just fills a list, and a queue, with BKKQueries ID.
     """
