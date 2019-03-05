@@ -1258,10 +1258,6 @@ class TransformationPlugin(DIRACTransformationPlugin):
                                    (runID, runTargets), res['Message'])
     return S_OK(tasks)
 
-  def _RemoveDataset(self):
-    """ Backward compatibility """
-    return self._RemoveDatasetFromDisk()
-
   def _RemoveDatasetFromDisk(self):
     """ Plugin used to remove disk replicas, keeping some (e.g. archives)
     """
