@@ -6,7 +6,7 @@ __RCSID__ = "$Id$"
 
 import shlex
 
-from DIRAC import gLogger, S_OK
+from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.Subprocess import systemCall
 from DIRAC.Core.Utilities.File import makeGuid as DIRACMakeGUID
 
@@ -16,16 +16,26 @@ def getRootFileGUIDs(fileList):
   """
   guids = {'Successful': {}, 'Failed': {}}
   for fileName in fileList:
-
-    res = systemCall(timeout=0, cmdSeq=shlex.split("getRootFileGUID.py %s" % fileName))
-    if not res['OK']:
+    res = getRootFileGUID(fileName)
+    if res['OK']:
+      gLogger.verbose('GUID from ROOT', '%s' % res['Value'])
+      guids['Successful'][fileName] = res['Value']
+    else:
       guids['Failed'][fileName] = res['Message']
+  return S_OK(guids)
+
+
+def getRootFileGUID(fileName):
+    """ Function to retrieve a file GUID using Root.
+    """
+    res = systemCall(timeout=0, cmdSeq=shlex.split("getRootFileGUID %s" % fileName))
+    if not res['OK']:
+      return res
     else:
       if res['Value'][0]:
-        guids['Failed'][fileName] = res['Value'][2]
+        return S_ERROR(res['Value'][2])
       else:
-        guids['Successful'][fileName] = res['Value'][1]
-  return S_OK(guids)
+        return S_OK(res['Value'][1])
 
 
 def makeGuid(fileNames):
@@ -36,18 +46,12 @@ def makeGuid(fileNames):
 
   fileGUIDs = {}
   for fileName in fileNames:
-
-    res = systemCall(timeout=0, cmdSeq=shlex.split("getRootFileGUID.py %s" % fileName))
-
-    if not res['OK']:
+    res = getRootFileGUID(fileName)
+    if res['OK']:
+      gLogger.verbose('GUID from ROOT', '%s' % res['Value'])
+      fileGUIDs[fileName] = res['Value']
+    else:
       gLogger.error('Could not obtain GUID from file through Gaudi, using standard DIRAC method')
       fileGUIDs[fileName] = DIRACMakeGUID(fileName)
-    else:
-      if res['Value'][0]:
-        gLogger.error('Could not obtain GUID from file through Gaudi, using standard DIRAC method')
-        fileGUIDs[fileName] = DIRACMakeGUID(fileName)
-      else:
-        gLogger.verbose('GUID found to be %s' % res['Value'][1])
-        fileGUIDs[fileName] = res['Value'][1]
 
   return fileGUIDs
