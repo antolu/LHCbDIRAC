@@ -89,7 +89,7 @@ gLogger.info("\n Submitting gaudi application job targeting DIRAC.Jenkins.ch")
 gaudiJ = LHCbJob()
 gaudiJ.setName("GaudiJob-TO-Jenkins")
 gaudiJ.setApplication('Gauss', 'v49r5', '$APPCONFIGOPTS/Gauss/DataType-2012.py',
-                      extraPackages='AppConfig.v3r277;DecFiles.v29r10',
+                      extraPackages='AppConfig.v3r277;Gen/DecFiles.v29r10',
                       events=1)
 gaudiJ.setCPUTime(17800)
 gaudiJ.setDestination('DIRAC.Jenkins.ch')

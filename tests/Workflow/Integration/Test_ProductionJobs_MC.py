@@ -44,7 +44,7 @@ class MCSuccess(ProductionJobTestCase):
 
     # From request 48257
     stepsInProd = [{'StepId': 133659, 'StepName': 'Sim09d', 'ApplicationName': 'Gauss', 'ApplicationVersion': 'v49r10',
-                    'ExtraPackages': 'AppConfig.v3r359;DecFiles.v30r17',
+                    'ExtraPackages': 'AppConfig.v3r359;Gen/DecFiles.v30r17',
                     'ProcessingPass': 'Sim09d', 'Visible': 'Y', 'Usable': 'Yes',
                     'DDDB': 'dddb-20170721-3', 'CONDDB': 'sim-20161124-vc-md100', 'DQTag': '', 'OptionsFormat': '',
                     'OptionFiles': options,

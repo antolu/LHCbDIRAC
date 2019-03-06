@@ -309,7 +309,7 @@ def createJob(local=True):
   options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
 
   gaudirunJob.setApplication('Gauss', 'v45r5', options,
-                             extraPackages='AppConfig.v3r171;DecFiles.v27r14p1;ProdConf.v1r9',
+                             extraPackages='AppConfig.v3r171;Gen/DecFiles.v27r14p1;ProdConf.v1r9',
                              systemConfig='x86_64-slc5-gcc43-opt',
                              modulesNameList=['CreateDataFile',
                                               'GaudiApplication',
