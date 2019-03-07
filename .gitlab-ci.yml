@@ -4,6 +4,8 @@
 variables:
     SANCHA_PATH_DEVEL: "/cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/Sencha/ext-4.2.1.883/"
     SANCHA_PATH_PROD: "/cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/Sencha/ext-4.2.1.883/"
+    LBENV_RELEASE: "0.3.7"
+    LBPLATFORMUTILS_RELEASE: "2.1"
 stages:
    # Run all the tests
   - test
@@ -37,8 +39,8 @@ stages:
     - pip install --upgrade pip
     - pip list
     - pip install -r DIRAC/requirements.txt
-    - pip install 'LbEnv==0.3.7' --trusted-host=lhcb-pypi.web.cern.ch --extra-index-url=https://lhcb-pypi.web.cern.ch/lhcb-pypi/simple --force-reinstall
-    - pip install 'LbPlatformUtils==2.1' --trusted-host=lhcb-pypi.web.cern.ch --extra-index-url=https://lhcb-pypi.web.cern.ch/lhcb-pypi/simple --force-reinstall
+    - pip install LbEnv==$LBENV_RELEASE --trusted-host=lhcb-pypi.web.cern.ch --extra-index-url=https://lhcb-pypi.web.cern.ch/lhcb-pypi/simple --force-reinstall
+    - pip install LbPlatformUtils==$LBPLATFORMUTILS_RELEASE --trusted-host=lhcb-pypi.web.cern.ch --extra-index-url=https://lhcb-pypi.web.cern.ch/lhcb-pypi/simple --force-reinstall
 
   stage: test
   only:
