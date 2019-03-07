@@ -1481,7 +1481,7 @@ def getRemovalPlugins():
   """
   return ("DestroyDataset", 'DestroyDatasetWhenProcessed', "RemoveDatasetFromDisk",
           'RemoveReplicasKeepDestination', "ReduceReplicasKeepDestination",
-          "RemoveDataset", "RemoveReplicas", 'RemoveReplicasWhenProcessed',
+          "RemoveReplicas", 'RemoveReplicasWhenProcessed',
           'RemoveReplicasWithAncestors', 'ReduceReplicas', )
 
 

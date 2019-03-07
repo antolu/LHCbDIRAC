@@ -331,10 +331,11 @@ def executeAddTransformation(pluginScript):
           transBKQuery[transKey] = transBKQuery.pop(bkKey)
       transformation.setBkQuery(transBKQuery)
 
-    # If the transformation uses the RemoveDataset plugin, set the files invisible in the BK...
-    setInvisiblePlugins = ("RemoveDataset", "RemoveDatasetFromDisk", )
-    # Try and let them visible such that users can see they are archived
-    # setInvisiblePlugins = tuple()
+    # If the transformation uses the RemoveDatasetFromDisk plugin, set the files invisible in the BK...
+    # Try and let them visible such that users can see they are archived...
+    # It was:
+    # setInvisiblePlugins = ("RemoveDatasetFromDisk", )
+    setInvisiblePlugins = tuple()
     if invisible or plugin in setInvisiblePlugins:
       chunkSize = 1000
       progressBar = ProgressBar(len(lfns), title='Setting %d files invisible' % len(lfns), chunk=chunkSize)
@@ -342,9 +343,8 @@ def executeAddTransformation(pluginScript):
       for lfnChunk in breakListIntoChunks(lfns, chunkSize):
         progressBar.loop()
         res = bk.setFilesInvisible(lfnChunk)
-        if not res['OK']:
-          break
-        okFiles += len(lfnChunk)
+        if res['OK']:
+          okFiles += len(lfnChunk)
       if okFiles == len(lfns):
         msg = "all files successfully set invisible in BK"
       else:
