@@ -1,3 +1,22 @@
+[v9r3-pre20]
+use DIRAC v6r21
+
+* using variables instead of hardocding
+* better code
+* fixing the versions of LbEnv and LbPlatformUtils
+* adding a re-run with --debug option in case of lb-run specific error
+* splitting log messages
+* DecFiles -> Gen/DecFiles
+* importing ROOT in different environment
+* another attempt
+* add blank line for code style
+* remove obsolete plugin RemoveDataset
+* added log
+* allow int and long
+* source LHCbDIRAC not lb-run
+* disabling -e momentarily
+* allow int and long types
+
 [v9r3-pre19]
 use DIRAC v6r21-pre8
 
