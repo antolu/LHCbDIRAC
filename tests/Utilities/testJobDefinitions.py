@@ -424,7 +424,7 @@ def gaussJob():
   optPConf = "prodConf_Gauss_00012345_00067890_1.py"
   options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
   job.setApplication('Gauss', 'v45r5', options,  # pylint: disable=no-member
-                     extraPackages='AppConfig.v3r179;DecFiles.v27r14p1;ProdConf.v1r9',
+                     extraPackages='AppConfig.v3r179;Gen/DecFiles.v27r14p1;ProdConf.v1r9',
                      systemConfig='x86_64-slc5-gcc43-opt')
   job.setDIRACPlatform()  # pylint: disable=no-member
   job.setCPUTime(172800)
@@ -575,7 +575,7 @@ def wrongJob():
 # #     optPConf = "prodConf_Gauss_00012345_00067890_1.py"
 # #     options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
 # #     gaudirunJob.setApplication( 'Gauss', 'v45r5', options,
-# #                                 extraPackages = 'AppConfig.v3r179;DecFiles.v27r14p1;ProdConf.v1r9',
+# #                                 extraPackages = 'AppConfig.v3r179;Gen/DecFiles.v27r14p1;ProdConf.v1r9',
 # #                                 systemConfig = 'x86_64-slc5-gcc43-opt' )
 # #
 # #     gaudirunJob.setDIRACPlatform()

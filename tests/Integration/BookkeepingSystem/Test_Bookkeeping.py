@@ -1615,7 +1615,7 @@ class MCProductionRegistration (MCInsertTestCase):
                 'Usable': 'Yes',
                 'StepId': '',
                 'ApplicationVersion': 'v49r5',
-                'ExtraPackages': 'AppConfig.v3r277;DecFiles.v29r10',
+                'ExtraPackages': 'AppConfig.v3r277;Gen/DecFiles.v29r10',
                 'StepName': 'Cert-Sim09b - 2012 - MU - Pythia8',
                 'ProcessingPass': 'Sim09b',
                 'isMulticore': 'N',

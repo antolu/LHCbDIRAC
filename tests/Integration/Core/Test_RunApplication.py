@@ -59,7 +59,7 @@ class GaussSuccess(RunApplicationTestCase):
                          '$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py',
                          '$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py']
     ra.extraPackages = [('AppConfig', 'v3r277'),
-                        ('DecFiles', 'v29r10'),
+                        ('Gen/DecFiles', 'v29r10'),
                         ('ProdConf', '')
                         ]
     ra.prodConfFileName = find_all('test_prodConf_gauss_v49r5.py', '..')[0]
@@ -90,7 +90,7 @@ class GaussSuccess(RunApplicationTestCase):
     #                      '$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py',
     #                      '$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py']
     ra.extraPackages = [('AppConfig', 'v3r277'),
-                        ('DecFiles', 'v29r10'),
+                        ('Gen/DecFiles', 'v29r10'),
                         ]
 
     generatedOpts = 'gaudi_extra_options.py'

@@ -120,6 +120,13 @@ class RunApplication(object):
       if runResult['Value'][0] & 0x40 and not runResult['Value'][0] & 0x80:
         self.log.error("Status %d is an lb-run specific error" % runResult['Value'][0])
         self.log.error("Environment: %s" % os.environ)
+        self.log.error("Trying running the same lb-run command with --debug option, it should fail immediately anyway")
+        lbrunCommandWithDebug = ' '.join([self.runApp, lbRunOptions, '--debug',
+                                          configString, extraPackagesString,
+                                          runtimeProjectString, externalsString,
+                                          app])
+        debugCommand = ' '.join([lbrunCommandWithDebug, command])
+        self._runApp(debugCommand)
         raise LbRunError("Problem setting the environment: lb-run exited with status %d" % runResult['Value'][0])
 
       self.log.error("Status %d is an application (%s %s) error" % (runResult['Value'][0],

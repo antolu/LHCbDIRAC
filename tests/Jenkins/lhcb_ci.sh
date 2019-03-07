@@ -408,7 +408,7 @@ function installLHCbDIRAC(){
     echo '==> Installing client with dirac-install'
     installLHCbDIRACClient
   else
-    echo '==> Installing client with lb-run'
+    echo '==> Installing client from CVMFS'
     setupLHCbDIRAC
   fi
 
@@ -451,32 +451,47 @@ function installLHCbDIRACClient(){
 
 function setupLHCbDIRAC(){
 
-  echo -e "==> Invoking LbLogin.sh"
-  . /cvmfs/lhcb.cern.ch/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v8r6p5/InstallArea/scripts/LbLogin.sh
-
   local version=`cat project.version`
   echo -e "==> Invoking lb-run LHCbDirac/$version bash -norc"
-  lb-run LHCbDirac/$version bash -norc
+  source /cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/lhcbdirac $version
   local status=$?
   if [ $status -ne 0 ]
   then
-    echo -e "==> lb-run NOT successful: going to install client with dirac-install"
-    installLHCbDIRACClient
-  else
-    export PYTHONPATH=$PYTHONPATH:$CLIENTINSTALLDIR/
+    echo -e "==> lb-run from prod CVMFS NOT successful, trying from CVMFS DEV"
+    source /cvmfs/lhcbdev.cern.ch/lib/lhcb/LHCBDIRAC/lhcbdirac $version
+    local statusDev=$?
+    if [ $statusDev -ne 0 ]
+    then
+      echo -e "==> lb-run from DEV CVMFS NOT successful"
+    fi
   fi
 }
 
 
 function submitJob(){
 
+  #This is is executed from the $CLIENTINSTALLDIR
   echo -e "==> Submitting a simple job"
 
-  #This is is executed from the $CLIENTINSTALLDIR
-
   export PYTHONPATH=$TESTCODE:$PYTHONPATH
+
   #Get a proxy and submit the job: this job will go to the certification setup, so we suppose the JobManager there is accepting jobs
+
+  # check if errexit mode is set and disabling as the component may not exist
+  save=$-
+  if [[ $save =~ e ]]
+  then
+    set +e
+  fi
+
   getUserProxy #this won't really download the proxy, so that's why the next command is needed
+
+  # re-enabling it
+  if [[ $save =~ e ]]
+  then
+    set -e
+  fi
+
   cp $TESTCODE/DIRAC/tests/Jenkins/dirac-proxy-download.py .
   python dirac-proxy-download.py $DIRACUSERDN -R $DIRACUSERROLE -o /DIRAC/Security/UseServerCertificate=True -o /DIRAC/Security/CertFile=/home/dirac/certs/hostcert.pem -o /DIRAC/Security/KeyFile=/home/dirac/certs/hostkey.pem -o /DIRAC/Setup=LHCb-Certification -ddd
   cp $TESTCODE/LHCbDIRAC/tests/Jenkins/dirac-test-job.py .
@@ -487,7 +502,7 @@ function submitJob(){
 
 function sourcingEnv(){
 
-  echo -e "==> Sourcing the environment (inlcuding LbLogin env)"
+  echo -e "==> Sourcing the environment"
   source $PILOTINSTALLDIR/environmentLHCbDirac
 }
 

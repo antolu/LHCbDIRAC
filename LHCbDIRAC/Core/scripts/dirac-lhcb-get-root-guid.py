@@ -3,7 +3,10 @@
 Get the GUID of a (set of) ROOT file
 The file can be either local, an LFN or an xrootd URL (root:...)
 """
+
 __RCSID__ = "$Id$"
+
+import os
 
 from DIRAC.Core.Base import Script
 Script.setUsageMessage('\n'.join([__doc__,
@@ -13,12 +16,11 @@ Script.parseCommandLine(ignoreErrors=True)
 files = []
 for oFile in Script.getPositionalArgs():
   files += oFile.split(',')
+
 import DIRAC
-from DIRAC import gLogger
+from DIRAC.Interfaces.API.Dirac import Dirac
 from LHCbDIRAC.Core.Utilities.File import getRootFileGUIDs
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import printDMResult
-from DIRAC.Interfaces.API.Dirac import Dirac
-import os
 
 if not files:
   Script.showHelp()

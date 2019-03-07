@@ -53,23 +53,23 @@ class UploadMC(ModuleBase):
           with open(fn) as fd:
             try:
               jsonData = json.load(fd)
-              self.log.verbose(jsonData)
+              self.log.verbose("Content of JSON file", "%s: %s" % (fn, jsonData))
               if self._enableModule():
                 mcLogErrorsClient = MCStatsClient()
                 mcLogErrorsClient.indexName = 'lhcb-mcstats-' + self.production_id
                 res = mcLogErrorsClient.set('%s-LogErrors' % app, jsonData)
                 if not res['OK']:
-                  self.log.error('%s not set, exiting without affecting workflow status' % str(jsonData),
-                                 res['Message'])
+                  self.log.error('MC Error data not set, exiting without affecting workflow status',
+                                 "%s: %s" % (str(jsonData), res['Message']))
               else:
                 # At this point we can see exactly what the module would have uploaded
-                self.log.info("Would have attempted to upload the following file %s" % fn)
+                self.log.info("Module disabled", "would have attempted to upload the following file %s" % fn)
             except BaseException as ve:
               self.log.verbose("Exception loading the JSON file: content of %s follows" % fn)
               print fd.read()
               raise ve
         else:
-          self.log.info("JSON file %s not found" % fn)
+          self.log.info("JSON file not found", fn)
 
       return S_OK()
 
