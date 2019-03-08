@@ -323,7 +323,7 @@ def executeAddTransformation(pluginScript):
       bkPath = bkQuery.getPath()
       title = "Executing BK query"
       if bkPath:
-        title += " for " + path
+        title += " for " + bkPath
       else:
         title += ": " + str(bkQuery)
       progressBar = ProgressBar(1, title=title)
