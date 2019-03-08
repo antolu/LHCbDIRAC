@@ -289,14 +289,32 @@ you login to aivoadm.cern.ch and you follow the sequence::
 
   ssh cvmfs-lhcbdev
   sudo -i -u cvlhcbdev
-  lbcvmfsinteractive.sh -m "install v9r3-pre4"
+  lbcvmfsinteractive.sh -m "install vArB-preC"
   (wait to get the prompt back)
   cd /cvmfs/lhcbdev.cern.ch/lib/lhcb/LHCBDIRAC/
   cvmfs_server transaction lhcbdev.cern.ch
-  export DIRAC=/cvmfs/lhcbdev.cern.ch/lib/lhcb/LHCBDIRAC/v9r3-pre9 
+  export DIRAC=/cvmfs/lhcbdev.cern.ch/lib/lhcb/LHCBDIRAC/vDrE-preF (vDrE-preF is the previous installation)
   source bashrc
-  dirac-install -v -r v9r3-pre13 -t server -l LHCb -e LHCb --createLink
+  dirac-install -v -r vArB-preC -t server -l LHCb -e LHCb --createLink
   rm /cvmfs/lhcbdev.cern.ch/lib/lhcb/LHCBDIRAC/pro
+  source lhcbdirac vArB-preC
+  pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org --upgrade pip
+  pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org ipython
+  <deploy the test directory if it is needed>
+  mkdir tmp
+  cd tmp/
+  mkdir LHCbDIRAC
+  cd LHCbDIRAC/
+  git init
+  git remote add -f upstream https://:@gitlab.cern.ch:8443/lhcb-dirac/LHCbDIRAC.git
+  git config core.sparsecheckout true
+  echo tests/ >> .git/info/sparse-checkout
+  git pull upstream devel
+  rm -rf .git/
+  cd ../../
+  cp -r tmp/LHCbDIRAC/tests/ v9r3-pre20/LHCbDIRAC/
+  rm -rf tmp/
+  <end of tests directory deployment>
   cd /
   cvmfs_server publish lhcbdev.cern.ch
   exit
@@ -313,7 +331,13 @@ you login to aivoadm.cern.ch and you follow the sequence::
   sudo -i -u cvlhcb
   cd /cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/
   cvmfs_server transaction lhcb.cern.ch
-  <do you actions ...>
+  export DIRAC=cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/vDrEpF (vDrEpF is the previous installation)
+  source bashrc
+  dirac-install -v -r vArB-preC -t server -l LHCb -e LHCb --createLink
+  rm cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/pro
+  source lhcbdirac vArB-preC
+  pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org --upgrade pip
+  pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org ipython
   cd /
   cvmfs_server publish lhcb.cern.ch
   exit
