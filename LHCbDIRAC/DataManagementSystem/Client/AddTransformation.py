@@ -3,12 +3,15 @@ Actual engine for adding a DM transformation, called by dirac-dms-add-Transforma
 """
 __RCSID__ = "$Id$"
 
+import cPickle
 import os
+from collections import defaultdict
 
 import DIRAC
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
 from DIRAC.Core.Utilities.List import breakListIntoChunks
+from DIRAC.Core.DISET.RPCClient import RPCClient
 
 from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
@@ -34,6 +37,7 @@ def executeAddTransformation(pluginScript):
   depth = None
   userGroup = None
   listProcessingPasses = False
+  mcVersionSet = None
   nameOption = None
 
   switches = Script.getUnprocessedSwitches()
@@ -65,6 +69,8 @@ def executeAddTransformation(pluginScript):
       listProcessingPasses = True
     elif opt == 'Name':
       nameOption = val
+    elif opt == 'MCVersion':
+      mcVersionSet = set(x.lower() for x in val.split(','))
 
   if userGroup:
     from DIRAC.Core.Security.ProxyInfo import getProxyInfo
@@ -78,6 +84,10 @@ def executeAddTransformation(pluginScript):
       exit(5)
 
   plugin = pluginScript.getOption('Plugin')
+  # Default plugin for MCDST replication
+  if mcVersionSet and not plugin:
+    plugin = 'LHCbMCDSTBroadcastRandom'
+
   if not plugin and not listProcessingPasses:
     gLogger.fatal("ERROR: No plugin supplied...")
     Script.showHelp()
@@ -108,11 +118,50 @@ def executeAddTransformation(pluginScript):
     # visible = 'All'
     fcCheck = False
 
+  # If mcVersions are defined, get the processing passes
+  if mcVersionSet:
+    # We keep only numerical values or "all"
+    mcVersions = set(mcv for mcv in mcVersionSet if mcv.isdigit() or mcv == 'all')
+    if not mcVersions:
+      gLogger.fatal("Invalid MC versions", ','.join(sorted(mcVersionSet)))
+      DIRAC.exit(2)
+    if mcVersions != mcVersionSet:
+      gLogger.notice("WARNING: list of MC versions reduced to", ','.join(sorted(mcVersions)))
+    # Force transformations names to be unique
+    unique = True
+    rpc = RPCClient('ProductionManagement/ProductionRequest')
+    res = rpc.getProductionRequestList(0, 'RequestID', 'DESC', 0, 0,
+                                       {'RequestState': 'Active', 'RequestType': 'Simulation'})
+    if not res['OK']:
+      gLogger.fatal("Error getting production requests", res['Message'])
+    prodReq = res['Value']['Rows']
+    reqDict = defaultdict(set)
+    for row in prodReq:
+      mcVersion = cPickle.loads(row['Extra'])['mcConfigVersion']
+      # If "all" we take all numerical values, otherwise we take the explicit values
+      if ('all' in mcVersions and mcVersion.isdigit()) or mcVersion in mcVersions:
+        simVersion = row['ProPath'].split('/')[0]
+        reqDict[mcVersion].add(simVersion)
+    bkPaths = []
+    for mcVersion, simVersions in reqDict.iteritems():
+      for simVersion in simVersions:
+        bkPaths.append('/MC/%s//%s/*Reco*' % (mcVersion, simVersion))
+  elif not requestedLFNs:
+    # If BK path is given, set it such that one goes through the loop below
+    bkPaths = [None]
+  else:
+    bkPaths = []
+
   transBKQuery = {}
-  # If no BK queries are given, set to None to go once in the loop
-  bkQueries = [None]
-  if not requestedLFNs:
-    bkQuery = pluginScript.getBKQuery()
+  bkQueries = []
+  bkPaths.sort()
+  for bkPath in sorted(bkPaths):
+    if bkPath:
+      bkQuery = BKQuery(bkPath)
+      if not listProcessingPasses:
+        gLogger.notice("For BK path: %s" % bkPath)
+    else:
+      bkQuery = pluginScript.getBKQuery()
     if not bkQuery and not force:
       gLogger.fatal("No LFNs and no BK query were given...")
       Script.showHelp()
@@ -120,23 +169,20 @@ def executeAddTransformation(pluginScript):
     if bkQuery:
       processingPass = bkQuery.getProcessingPass()
       if '...' in processingPass or '*' in processingPass:
-        bkPath = pluginScript.getOption('BKPath').replace('RealData', 'Real Data')
+        bkPath = bkQuery.getPath().replace('RealData', 'Real Data')
         if listProcessingPasses:
           gLogger.notice("List of processing passes for BK path", bkPath)
         processingPasses = getProcessingPasses(bkQuery, depth=depth)
         if processingPasses:
           if not listProcessingPasses:
             gLogger.notice("Transformations will be launched for the following list of processing passes:")
-          gLogger.notice('\n'.join([''] + processingPasses))
+          gLogger.notice('\t' + '\n\t'.join(processingPasses))
         else:
           gLogger.notice("No processing passes matching the BK path")
-          DIRAC.exit(0)
-        if listProcessingPasses:
-          DIRAC.exit(0)
+          continue
         # Create a list of BK queries, taking into account visibility and if needed excluded file types
         exceptTypes = bkQuery.getExceptFileTypes()
         visible = bkQuery.isVisible()
-        bkQueries = []
         for pp in processingPasses:
           query = BKQuery(bkPath.replace(processingPass, pp), visible=visible)
           query.setExceptFileTypes(exceptTypes)
@@ -144,14 +190,21 @@ def executeAddTransformation(pluginScript):
       else:
         # Single BK query
         bkQueries = [bkQuery]
+    if bkPath:
+      gLogger.notice("====================================")
 
+  if listProcessingPasses:
+    DIRAC.exit(0)
   reqID = pluginScript.getRequestID()
   if not requestID and reqID:
     requestID = reqID
 
   transGroup = plugin
+  # If no BK queries are given, set to None to go once in the loop
+  if not bkQueries:
+    bkQueries = [None]
   for bkQuery in bkQueries:
-    if len(bkQueries) > 1:
+    if bkQuery != bkQueries[0]:
       gLogger.notice("**************************************")
     # Create the transformation
     transformation = Transformation()
@@ -173,7 +226,8 @@ def executeAddTransformation(pluginScript):
       if len(prods) > 5:
         prodsStr = '%d-productions' % len(prods)
       transName += '-' + fileStr + '-' + prodsStr
-    elif transBKQuery and 'BKPath' not in pluginScript.getOptions():
+    elif transBKQuery and 'FileType' in transBKQuery and \
+            'BKPath' not in pluginScript.getOptions():
       if isinstance(transBKQuery['FileType'], list):
         strQuery = ','.join(transBKQuery['FileType'])
       else:
@@ -266,11 +320,17 @@ def executeAddTransformation(pluginScript):
     if force:
       lfns = []
     elif transBKQuery:
-      progressBar = ProgressBar(1, title="Executing the BK query: %s" % bkQuery)
+      bkPath = bkQuery.getPath()
+      title = "Executing BK query"
+      if bkPath:
+        title += " for " + path
+      else:
+        title += ": " + str(bkQuery)
+      progressBar = ProgressBar(1, title=title)
       lfns = bkQuery.getLFNs(printSEUsage=(transType == 'Removal' and
                                            not pluginScript.getOption('Runs')),
                              printOutput=test)
-      progressBar.endLoop(message=("found %d files" % len(lfns)))
+      progressBar.endLoop(message=("found %d files" % len(lfns) if lfns else 'no files found'))
     else:
       lfns = requestedLFNs
     nfiles = len(lfns)
@@ -282,8 +342,7 @@ def executeAddTransformation(pluginScript):
       continue
 
     if not force and nfiles == 0:
-      gLogger.notice("No files found from BK query %s" % str(bkQuery))
-      gLogger.notice("If you anyway want to submit the transformation, use option --Force")
+      gLogger.notice("No files, but if you anyway want to submit the transformation, use option --Force")
       continue
 
     if userGroup:
@@ -393,8 +452,7 @@ def executeAddTransformation(pluginScript):
       if start:
         transformation.setStatus('Active')
         transformation.setAgentType('Automatic')
-      gLogger.notice("Transformation %d created" % transID)
-      gLogger.notice("Name: %s, Description:%s" % (transName, longName))
+      gLogger.notice("Name: %s" % transName)
       gLogger.notice("Transformation body:", transBody)
       gLogger.notice("Plugin:", plugin)
       if pluginParams:
