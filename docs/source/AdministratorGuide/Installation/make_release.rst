@@ -194,7 +194,7 @@ These pipelines will: run pylint (errors only), run all the unit tests found in 
 If the GitLab-CI pipelines are successful, we can check the system tests.
 
 2.2. Jenkins "integration" tests
-```````````````````````````
+````````````````````````````````
 
 At this `link <https://jenkins-dirac.web.cern.ch/view/LHCbDIRAC/>`_ you'll find some Jenkins Jobs ready to be started.
 Please start the following Jenkins jobs and verify their output.
@@ -277,7 +277,7 @@ Changing the prod version for LHCbGrid
 ``````````````````````````````````````
 
 ask the CVMFS librarians to change the prod version for the LHCbGrid on cvmfs::
-  
+
   cd /cvmfs/lhcb.cern.ch/lib/lhcb/LHCBGRID
   rm LHCBGRID_prod; ln -s LHCBGRID_vArBpC LHCBGRID_prod
 
@@ -320,7 +320,7 @@ you login to aivoadm.cern.ch and you follow the sequence::
   exit
   exit
 
-  
+
 new procedure for installing on cvmfs-lhcb
 `````````````````````````````````````````````
 
@@ -343,7 +343,7 @@ you login to aivoadm.cern.ch and you follow the sequence::
   exit
   exit
 
-  
+
 
 Server
 ``````
@@ -454,7 +454,7 @@ Basic instruction how to merge the devel branch into master (NOT for PATCH relea
 ```````````````````````````````````````````````````````````````````````````````````
 
 Our developer model is to keep only two branches: master and devel. When we make a major release, we have to merge devel to master.
-Before the merging,  create a new branch based on master using the web interface of GitLab. 
+Before the merging,  create a new branch based on master using the web interface of GitLab.
 This is for safety: save the in a new branch, named e.g. "v9r1" the last commit done for "v9r1" branch.
 
 After, you can merge devel to master (the following does it in a new directory, for safety)::
@@ -468,7 +468,7 @@ After, you can merge devel to master (the following does it in a new directory, 
     git merge upstream/devel
     git push upstream newMaster:master
 
-After when you merged devel to master, the 2 branches will be strictly equivalent. 
+After when you merged devel to master, the 2 branches will be strictly equivalent.
 You can make the tag for the new release starting from the master branch.
 
 5. Mesos cluster
