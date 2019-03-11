@@ -35,6 +35,30 @@ LHCbDIRAC is the LHCb extension to DIRAC:
    Certification/tree.rst
 
 
+
+Documentation sources
+=====================
+
+
++-----------------------------------------+-----------------------------------------------------------+
+|                                         |                                                           |
+| :doc:`Certification/tree`               | :doc:`DevsGuide/tree`                                     |
+|                                         |                                                           |
+| How to run the certification            |                                                           |
+| process                                 | Adding new functionality to DIRAC                         |
+|                                         |                                                           |
++-----------------------------------------+-----------------------------------------------------------+
+|                                         |                                                           |
+| :doc:`AdministratorGuide/tree`          |                                                           |
+|                                         |                                                           |
+| Administration of the DIRAC services    |                                                           |
+| (server installations)                  | Code reference to be added                                |
+|                                         |                                                           |
++-----------------------------------------+-----------------------------------------------------------+
+
+
+
+
 Indices and tables
 ==================
 
