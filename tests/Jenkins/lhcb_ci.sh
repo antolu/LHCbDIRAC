@@ -274,7 +274,7 @@ function LHCbDIRACPilotInstall(){
     commandList=$customCommands
   fi
 
-  if [ "$customOptions" ] #like "devLbLogin"
+  if [ "$customOptions" ]
   then
     echo 'Using custom options'
     options="$options -o $customOptions"
