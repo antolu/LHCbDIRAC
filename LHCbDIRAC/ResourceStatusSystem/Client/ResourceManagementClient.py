@@ -406,18 +406,8 @@ class ResourceManagementClient(DIRACRMClient):
 
     """
 
-    # Given a SE, we need to find its endpoint
-    endpoint = CSHelpers.getStorageElementEndpoint(seName)
-    if not endpoint['OK']:
-      return endpoint
-    endpoint = endpoint['Value']
-
-    spaceToken = CSHelpers.getSEToken(seName)
-    if not spaceToken['OK']:
-      return spaceToken
-    spaceToken = spaceToken['Value']
-
-    res = self.selectSpaceTokenOccupancyCache(endpoint, spaceToken)
+    # FIXME:  The DB contains the SE name as token... This is dirty but mandatory
+    res = self.selectSpaceTokenOccupancyCache(token=seName)
     if not res['OK']:
       return res
     if not res['Value']:
