@@ -24,7 +24,6 @@ transparent and reliable usage. LHCbDIRAC specializes DIRAC for LHCb.
 
 LHCbDIRAC is the LHCb extension to DIRAC:
 
-  - LHCbDIRAC documentation: `<http://lhcb-dirac.readthedocs.io/en/latest/index.html>`_
   - LHCbDIRAC hosted repository: `<https://gitlab.cern.ch/lhcb-dirac>`_
 
 
@@ -34,6 +33,30 @@ LHCbDIRAC is the LHCb extension to DIRAC:
    DevsGuide/tree.rst
    AdministratorGuide/tree.rst
    Certification/tree.rst
+
+
+
+Documentation sources
+=====================
+
+
++-----------------------------------------+-----------------------------------------------------------+
+|                                         |                                                           |
+| :doc:`Certification/tree`               | :doc:`DevsGuide/tree`                                     |
+|                                         |                                                           |
+| How to run the certification            |                                                           |
+| process                                 | Adding new functionality to DIRAC                         |
+|                                         |                                                           |
++-----------------------------------------+-----------------------------------------------------------+
+|                                         |                                                           |
+| :doc:`AdministratorGuide/tree`          |                                                           |
+|                                         |                                                           |
+| Administration of the DIRAC services    |                                                           |
+| (server installations)                  | Code reference to be added                                |
+|                                         |                                                           |
++-----------------------------------------+-----------------------------------------------------------+
+
+
 
 
 Indices and tables

@@ -21,3 +21,4 @@ This page is the work in progress. See more material here soon !
    Recipes/index.rst
    logging.rst
    lhcbMessageQueues
+   sandboxStore

@@ -1,4 +1,5 @@
 .. _administrate_oracle:
+
 =======================================
 LHCbBookkeeping database administration
 =======================================
@@ -117,7 +118,7 @@ After when the query will finish then you will have the execution plan and you w
 parameters::
 
    Cost (%CPU) , consistent gets, physical reads
-   
+
 For example::
 
 
@@ -169,7 +170,7 @@ Note:
     - TABLE ACCESS FULL is not good. You have to make sure that the query uses an index. This is not always true.
     - parallel execution you have to make sure if the query is running parallel, the processes does not send to much data between each other. If you run a query parallel and the consistent gets is very high then you have a problem. Contact to oracle IT/DB if you do not know what to do...
     - CARTESIAN join: If you see that word in the execution plan, the query is wrong.
-    
+
 =================================
 Steps in the Bookkeeping database
 =================================
@@ -201,7 +202,7 @@ The steps table has 3 triggers::
    STEP_INSERT: This trigger is used to replace NULL, None to an empty string.
    steps_before_insert: It checks that the processing pass contains a '/'.
    step_update: The steps which are already used can not be modified.
-   
+
 Modifying steps
 ===============
 
@@ -235,7 +236,7 @@ In this example we have created the following processing pass: /Real Data/Reco16
 The following query can be used to check the step:
 
 .. code-block:: sql
-    
+
     SELECT * FROM (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID
          FROM processing v   START WITH id in (select distinct id from processing where name='Real Data')
     CONNECT BY NOCYCLE PRIOR  id=parentid) v   where v.path='/Real Data/Reco16Smog';
@@ -243,25 +244,25 @@ The following query can be used to check the step:
 If we know the processing id, we can use the following query to found out the processing pass:
 
 .. code-block:: sql
-    
+
     SELECT v.id,v.path FROM (SELECT distinct  LEVEL-1 Pathlen, SYS_CONNECT_BY_PATH(name, '/') Path, id
       FROM processing
       WHERE LEVEL > 0 and id=1915
       CONNECT BY PRIOR id=parentid order by Pathlen desc) v where rownum<=1;
-      
+
 ================================
 Bookkeeping down time
 ================================
 The following services/agent needs to be stopped before the deep down time (SystemAdministrator can be used in order to manage the services)::
-	
+
 	RMS:
-		RequestExecutingAgent  
+		RequestExecutingAgent
 			check it really stops (may take long time)
 	TS:
-		BookkeepingWatchAgent  
+		BookkeepingWatchAgent
 		TransformationAgent - Reco, DM, MergePlus (this to be checked). This was not stopped the latest deep downtime
-		TransformationCleaningAgent 
-		MCSimulationTestingAgent 
+		TransformationCleaningAgent
+		MCSimulationTestingAgent
 	PMS:
 		ProductionStatusAgent
 		RequestTrackingAgent
@@ -284,7 +285,7 @@ Create an oracle periodic job:
        job_name             => 'produpdatejob',
        job_type             => 'PLSQL_BLOCK',
        job_action           => 'BEGIN BKUTILITIES.updateProdOutputFiles(); END;',
-       repeat_interval      => 'FREQ=MINUTELY; interval=10', 
+       repeat_interval      => 'FREQ=MINUTELY; interval=10',
        start_date           => systimestamp,
        enabled              =>  TRUE
        );
@@ -296,7 +297,7 @@ For monitoring:
 .. code-block:: sql
 
     select JOB_NAME, STATE, LAST_START_DATE, LAST_RUN_DURATION, NEXT_RUN_DATE, RUN_COUNT, FAILURE_COUNT from USER_SCHEDULER_JOBS;
- 
+
 ====================
 Managing partitions
 ====================
@@ -309,23 +310,23 @@ The last partitions called `prodlast` and `runlast`. The maximum value of the `p
 This can happen if two many rows (`jobs`) belong to this partition.  Splitting the `prodlast` partition:
 
 .. code-block:: sql
-	
+
 	select max(production) from jobs PARTITION(prodlast) where production!=99998;
 	ALTER TABLE jobs SPLIT PARTITION prodlast AT (xxxxx) INTO (PARTITION prodXXX, PARTITION prodlast);
-	
+
 One of the possibility is to split the `prodlast` using the last production, which can be retrieved using the following query above.
 `xxxxx` is the result of the query. `prodXXX` is the last partition+1. For example:
 
 .. code-block:: sql
-	
-	select max(production) from jobs PARTITION(prodlast) where production!=99998; 
+
+	select max(production) from jobs PARTITION(prodlast) where production!=99998;
 
 which result is 83013
 
-.. code-block:: sql 
-	
+.. code-block:: sql
+
 	ALTER TABLE jobs SPLIT PARTITION prodlast AT (83013) INTO (PARTITION prod4, PARTITION prodlast);
-	
+
 files table partitions
 ======================
 
@@ -336,7 +337,9 @@ This table is RANGE partitioned by `jobid`, which can reach the maximum value of
 	ORA-14400: inserted partition key does not map to any partition
 	ORA-06512: at "LHCB_DIRACBOOKKEEPING.BOOKKEEPINGORACLEDB", line 976
 	ORA-06512: at line 1
+
 In order to fix the issue a new partition has to be created:
 
 .. code-block:: sql
+
 	alter table files add PARTITION SECT_0620M  VALUES LESS THAN (620000000);
