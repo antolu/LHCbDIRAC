@@ -1,3 +1,17 @@
+v9r3
+use DIRAC v6r21
+
+* Fix token occupancy as token is now SE name
+* typo
+* Add option to add-transformation to get processing passes from the request DB
+* removed devLbLogin option
+* GitIgnore: vscode
+* Docs: create proper index.html
+* Docs: document LogSE
+* Docs: document sandbox store resize procedure
+* fix extension
+* add installation insturctions
+
 [v9r3-pre20]
 use DIRAC v6r21
 
