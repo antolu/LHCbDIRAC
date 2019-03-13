@@ -25,6 +25,10 @@ if __name__ == "__main__":
   Script.registerSwitch("", "Unique", "   Refuses to create a transformation with an existing name")
   Script.registerSwitch("", "Depth=", "   Depth in path for replacing /... in processing pass")
   Script.registerSwitch("", "Chown=", "   Give user/group for chown of the directories of files in the FC")
+  Script.registerSwitch(
+      "",
+      "MCVersion=",
+      "   (list of) BK ConfigVersion; gets active MC processing passes ('All' for all years)")
   Script.registerSwitch("", "ListProcessingPasses", "   Only lists the processing passes")
 
   Script.setUsageMessage('\n'.join([__doc__.split('\n')[1],
