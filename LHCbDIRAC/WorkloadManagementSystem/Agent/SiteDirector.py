@@ -30,7 +30,6 @@ class SiteDirector(DIRACSiteDirector):
                          os.path.join(rootPath,
                                       'LHCbDIRAC', 'WorkloadManagementSystem', 'PilotAgent', 'LHCbPilotCommands.py')]
 
-    self.devLbLogin = self.am_getOption('devLbLogin', False)
     self.lbRunOnly = self.am_getOption('lbRunOnly', False)
 
     return S_OK()
@@ -53,12 +52,7 @@ class SiteDirector(DIRACSiteDirector):
 
     pilotOptions.append('-E LHCbPilot')
     pilotOptions.append('-X %s' % ','.join(lhcbPilotCommands))
-    if self.devLbLogin or self.lbRunOnly:
-      opt = ''
-      if self.devLbLogin:
-        opt = 'devLbLogin'
-      if self.lbRunOnly:
-        opt = '.'.join([opt, 'lbRunOnly'])
-      pilotOptions.append('-o %s' % opt)
+    if self.lbRunOnly:
+      pilotOptions.append('-o lbRunOnly')
 
     return [pilotOptions, newPilotsToSubmit]

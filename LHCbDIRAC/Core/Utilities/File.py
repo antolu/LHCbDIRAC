@@ -28,7 +28,7 @@ def getRootFileGUIDs(fileList):
 def getRootFileGUID(fileName):
     """ Function to retrieve a file GUID using Root.
     """
-    res = systemCall(timeout=0, cmdSeq=shlex.split("getRootFileGUID %s" % fileName))
+    res = systemCall(timeout=0, cmdSeq=shlex.split("getRootFileGUID.py %s" % fileName))
     if not res['OK']:
       return res
     else:
