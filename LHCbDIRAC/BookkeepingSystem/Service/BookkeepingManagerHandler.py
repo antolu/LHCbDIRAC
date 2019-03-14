@@ -865,7 +865,7 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.getRunNbAndTck(lfn)
 
   #############################################################################
-  types_getProductionFiles = [long, basestring]
+  types_getProductionFiles = [(long, int), basestring]
 
   @staticmethod
   def export_getProductionFiles(prod, fileType, replica=default):
