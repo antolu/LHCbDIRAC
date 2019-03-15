@@ -238,48 +238,17 @@ Deploying a release means deploying it for the various installations::
 release for client
 ``````````````````
 
-Please refer to this `TWIKI page <https://twiki.cern.ch/twiki/bin/view/LHCb/ProjectRelease#LHCbDirac>`_
-a quick test to validate the installation is to run the SHELL script $LHCBRELEASE/LHCBDIRAC/LHCBDIRAC_vXrY/LHCbDiracSys/test/client_test.csh
+Open a JIRA task: https://its.cern.ch/jira/projects/LHCBDEP.
 
-go to this `web page <https://jenkins-lhcb-nightlies.web.cern.ch/job/nightly-builds/job/release/build/>`_ for asking to install the client release to CVMFS:
+* JIRA task: Summary:LHCbDirac vArBpC;  Description: Please release  LHCbDirac by following the instructions:: 
 
-* in the field "Project list" put : "Dirac vNrMpK LHCbGrid vArB LHCbDirac vArBpC"  (NOTE: LHCbGrid version can be found: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/blob/master/dist-tools/projectConfig.json)
-* in the field "platforms" put : "x86_64-slc6-gcc49-opt"
-* in the field "scripts_version" put "dirac"
-
-Then click on the "BUILD" button
-
-* within 10-15 min the build should start to appear in the nightlies page https://lhcb-nightlies.cern.ch/release/
-* if there is a problem in the build, it can be re-started via the dedicated button (it will not restart by itself after a retag)
-
-If it is the production release, and only in this case, once satisfied by the build,
-take note of the build id (you can use the direct link icon) and make the request via https://its.cern.ch/jira/projects/LHCBDEP.
-
-* NOTE: If some package is already released, please do not indicate in the Jira task. For example: a Jira task when:
-    * DIRAC is not released, then the message in the JIRA task: Summary:Dirac v6r14p37 and LHCbDirac v8r2p50; Description: Please release  Dirac and  LHCbDirac in  this order  based on build 1526;
-    * DIRAC is released, then the message in the JIRA task: Summary:LHCbDirac v8r2p50;  Description: Please release  LHCbDirac based on build 1526;
+`link <https://lhcb-dirac.readthedocs.io/en/latest/AdministratorGuide/Installation/make_release.html#new-procedure-for-installing-on-cvmfs-lhcb`>_
 
 
 Once the client has been deployed, you should setup the correct environment (lb-run LHCbDIRAC/<version> bash --norc), preferably on a CERNVM, on lxplus otherwise, and run the following two scripts:
   * Minimal test: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/blob/master/tests/System/Client/basic-imports.py
   * Bigger (certification like) test: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/blob/master/tests/System/Client/client_test.sh
 
-Changing the prod version for Pilot
-```````````````````````````````````
-
-ask the CVMFS librarians to change the prod version for the pilot on cvmfs. The commands for changing the prod::
-
-  cd /cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC
-  rm LHCBDIRAC_prod; ln -s LHCBDIRAC_vArBpC LHCBDIRAC_prod
-
-
-Changing the prod version for LHCbGrid
-``````````````````````````````````````
-
-ask the CVMFS librarians to change the prod version for the LHCbGrid on cvmfs::
-
-  cd /cvmfs/lhcb.cern.ch/lib/lhcb/LHCBGRID
-  rm LHCBGRID_prod; ln -s LHCBGRID_vArBpC LHCBGRID_prod
 
 new procedure for installing on cvmfs-lhcbdev
 `````````````````````````````````````````````
@@ -322,20 +291,20 @@ you login to aivoadm.cern.ch and you follow the sequence::
 
 
 new procedure for installing on cvmfs-lhcb
-`````````````````````````````````````````````
+``````````````````````````````````````````
 
 You should member of the e-group lhcb-cvmfs-librarians.
+The version to be deployed is vArBpC
 you login to aivoadm.cern.ch and you follow the sequence::
 
   ssh cvmfs-lhcb
   sudo -i -u cvlhcb
   cd /cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/
   cvmfs_server transaction lhcb.cern.ch
-  export DIRAC=cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/vDrEpF (vDrEpF is the previous installation)
-  source bashrc
-  dirac-install -v -r vArB-preC -t server -l LHCb -e LHCb --createLink
-  rm cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/pro
-  source lhcbdirac vArB-preC
+  source lhcbdirac vDrEpF (vDrEpF is the actual version)
+  export DIRAC=/cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/vDrEpF 
+  dirac-install -v -r vArBpC -t server -l LHCb -e LHCb --createLink
+  source lhcbdirac vArBpC
   pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org --upgrade pip
   pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org ipython
   cd /
@@ -350,9 +319,9 @@ Server
 
 To install it on the VOBOXes from lxplus::
 
-  lhcb-proxy-init -g diracAdmin
+  lhcb-proxy-init -g lhcb_admin
   dirac-admin-sysadmin-cli --host volhcbXX.cern.ch
-  >update LHCbDIRAC-v8r3p32
+  >update LHCbDIRAC v8r3p32
   >restart *
 
 The (better) alternative is using the web portal or using the following script: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/blob/devel/dist-tools/create_vobox_update.py
@@ -416,8 +385,7 @@ When the web portal machine is updated then you have to compile the WebApp::
     sudo su - dirac
     #  (for example: dirac-install -r v8r4p2 -t server -l LHCb -e LHCb,LHCbWeb,WebAppDIRAC /opt/dirac/etc/dirac.cfg)
     dirac-install -r VERSIONTOBEINSTALLED -t server -l LHCb -e LHCb,LHCbWeb,WebAppDIRAC /opt/dirac/etc/dirac.cfg
-    dirac-webapp-compile
-
+    
 
 When the compilation is finished::
 
