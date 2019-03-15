@@ -428,7 +428,7 @@ This is for safety: save the in a new branch, named e.g. "v9r1" the last commit 
 After, you can merge devel to master (the following does it in a new directory, for safety)::
 
     mkdir $(date +20%y%m%d) && cd $(date +20%y%m%d)
-    git clone ssh://git@gitlab.cern.ch:8443/lhcb-dirac/LHCbDIRAC.git
+    git clone ssh://git@gitlab.cern.ch:7999/lhcb-dirac/LHCbDIRAC.git
     cd LHCbDIRAC
     git remote rename origin upstream
     git fetch upstream
@@ -437,7 +437,20 @@ After, you can merge devel to master (the following does it in a new directory, 
     git push upstream newMaster:master
 
 After when you merged devel to master, the 2 branches will be strictly equivalent.
-You can make the tag for the new release starting from the master branch.
+You can make the tag for the new release starting from the master branch. You have to
+merge devel to master for LHCbWebDIRAC as well::
+	
+	mkdir $(date +20%y%m%d) && cd $(date +20%y%m%d)
+    git clone ssh://git@gitlab.cern.ch:7999/lhcb-dirac/LHCbWebDIRAC.git
+    cd LHCbWebDIRAC/
+    git remote rename origin upstream
+    git fetch upstream
+    git checkout -b newMaster upstream/master
+    git merge upstream/devel
+    git push upstream newMaster:master
+
+When it is ready you can create the final tag for the new release.
+
 
 5. Mesos cluster
 ========================

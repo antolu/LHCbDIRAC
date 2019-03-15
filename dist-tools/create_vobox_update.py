@@ -4,7 +4,8 @@
 #  with the command execfile vobox_update_X
 #
 
-import os, re, sys
+import os
+import sys
 
 skel_commands = """
 #
@@ -16,38 +17,42 @@ restart Framework SystemAdministrator
 #
 """
 
-if len( sys.argv ) != 2:
+if len(sys.argv) != 2:
   print 'usage: ' + sys.argv[0] + '  LHCbDirac_version'
-  sys.exit( 1 )
+  sys.exit(1)
 
 lhcbver = sys.argv[1]
 
-HOME_DIR = os.path.join( os.environ['HOME'], 'DiracAdmin' )
-file_skel = os.path.join( HOME_DIR, 'skel_vobox_update' )
-file_T1 = os.path.join( HOME_DIR, 'vobox_update_T1' )
-T1_list = ['voboxlhcb.gridpp.rl.ac.uk', 'voboxlhcb.pic.es', 'voboxlhcb.nikhef.nl', 'voboxlhcb.cr.cnaf.infn.it', 'voboxlhcb.in2p3.fr', 'voboxlhcb.gridka.de']
-#file_B = os.path.join( HOME_DIR, 'vobox_update_B' )
-#B_list = ['lbvobox27.cern.ch', 'lbvobox28.cern.ch','lbvobox18.cern.ch']
-file_C = os.path.join( HOME_DIR, 'vobox_update_C' )
-C_list = ['lbvobox100.cern.ch','lbvobox101.cern.ch','lbvobox102.cern.ch','lbvobox103.cern.ch','lbvobox109.cern.ch','lbvobox200.cern.ch', 'lbvobox111.cern.ch']
-file_D = os.path.join( HOME_DIR, 'vobox_update_D' )
-D_list = ['lbvobox06.cern.ch', 'lbvobox104.cern.ch','lbvobox105.cern.ch','lbvobox106.cern.ch','lbvobox107.cern.ch','lbvobox108.cern.ch']
-file_E = os.path.join( HOME_DIR, 'vobox_update_E' )
-E_list = ['lbvobox110.cern.ch','lbvobox201.cern.ch', 'lbvobox111.cern.ch', 'volhcb04.cern.ch']
+HOME_DIR = os.path.join(os.environ['HOME'], 'DiracAdmin')
+file_skel = os.path.join(HOME_DIR, 'skel_vobox_update')
+file_T1 = os.path.join(HOME_DIR, 'vobox_update_T1')
+T1_list = ['voboxlhcb.gridpp.rl.ac.uk', 'voboxlhcb.pic.es', 'voboxlhcb.nikhef.nl',
+           'voboxlhcb.cr.cnaf.infn.it', 'voboxlhcb.in2p3.fr', 'voboxlhcb.gridka.de']
+# file_B = os.path.join( HOME_DIR, 'vobox_update_B' )
+# B_list = ['lbvobox27.cern.ch', 'lbvobox28.cern.ch','lbvobox18.cern.ch']
+file_C = os.path.join(HOME_DIR, 'vobox_update_C')
+C_list = ['lbvobox100.cern.ch', 'lbvobox101.cern.ch', 'lbvobox102.cern.ch',
+          'lbvobox103.cern.ch', 'lbvobox109.cern.ch', 'lbvobox200.cern.ch', 'lbvobox111.cern.ch']
+file_D = os.path.join(HOME_DIR, 'vobox_update_D')
+D_list = ['lbvobox06.cern.ch', 'lbvobox104.cern.ch', 'lbvobox105.cern.ch',
+          'lbvobox106.cern.ch', 'lbvobox107.cern.ch', 'lbvobox108.cern.ch']
+file_E = os.path.join(HOME_DIR, 'vobox_update_E')
+E_list = ['lbvobox110.cern.ch', 'lbvobox201.cern.ch', 'lbvobox111.cern.ch', 'volhcb04.cern.ch']
 
-def generateTemplate( hosts, filename ):
-  fdw = open( filename, 'w' )
+
+def generateTemplate(hosts, filename):
+  fdw = open(filename, 'w')
   for machine in hosts:
     print machine
-    command = skel_commands.replace( 'LHCB_MACHINE_NAME', machine )
-    command = command.replace( 'LHCB_VERSION', lhcbver )
-    fdw.write( command )
+    command = skel_commands.replace('LHCB_MACHINE_NAME', machine)
+    command = command.replace('LHCB_VERSION', lhcbver)
+    fdw.write(command)
   fdw.close()
 
 
 if __name__ == '__main__':
   generateTemplate(T1_list, file_T1)
-  #generateTemplate(B_list, file_B)
+  # generateTemplate(B_list, file_B)
   generateTemplate(C_list, file_C)
   generateTemplate(D_list, file_D)
   generateTemplate(E_list, file_E)
