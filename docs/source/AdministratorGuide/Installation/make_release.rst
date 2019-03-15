@@ -242,7 +242,7 @@ Open a JIRA task: https://its.cern.ch/jira/projects/LHCBDEP.
 
 * JIRA task: Summary:LHCbDirac vArBpC;  Description: Please release  LHCbDirac by following the instructions:: 
 
-`link <https://lhcb-dirac.readthedocs.io/en/latest/AdministratorGuide/Installation/make_release.html#new-procedure-for-installing-on-cvmfs-lhcb`>_
+  `link <https://lhcb-dirac.readthedocs.io/en/latest/AdministratorGuide/Installation/make_release.html#new-procedure-for-installing-on-cvmfs-lhcb`>_
 
 
 Once the client has been deployed, you should setup the correct environment (lb-run LHCbDIRAC/<version> bash --norc), preferably on a CERNVM, on lxplus otherwise, and run the following two scripts:
