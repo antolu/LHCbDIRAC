@@ -1367,7 +1367,7 @@ class BookkeepingManagerHandler(RequestHandler):
     return self.export_getProductionInformations(prodid)
 
   #############################################################################
-  types_getProductionInformations = [long]
+  types_getProductionInformations = [(long, int)]
 
   @staticmethod
   def export_getProductionInformations(prodid):
