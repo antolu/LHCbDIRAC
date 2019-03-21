@@ -427,7 +427,7 @@ This is for safety: save the in a new branch, named e.g. "v9r1" the last commit 
 
 After, you can merge devel to master (the following does it in a new directory, for safety)::
 
-    mkdir $(date +20%y%m%d) && cd $(date +20%y%m%d)
+   	mkdir $(date +20%y%m%d) && cd $(date +20%y%m%d)
     git clone ssh://git@gitlab.cern.ch:7999/lhcb-dirac/LHCbDIRAC.git
     cd LHCbDIRAC
     git remote rename origin upstream
