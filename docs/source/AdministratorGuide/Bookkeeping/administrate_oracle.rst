@@ -329,12 +329,12 @@ which result is 83013
 
 	ALTER TABLE jobs SPLIT PARTITION prodlast AT (83013) INTO (PARTITION prod4, PARTITION prodlast);
 	
-Rebuild the non partitioned index:
+Rebuild the non partitioned indexes:
 
 .. code-block:: sql
    
    ALTER INDEX SYS_C00302478 REBUILD; 
-   
+   ALTER INDEX JOB_NAME_UNIQUE REBUILD;
    
 files table partitions
 ======================
