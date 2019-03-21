@@ -2401,7 +2401,7 @@ class BookkeepingManagerHandler(RequestHandler):
     """
     it returns the number of events producced for a given production.
     """
-    gLogger.debug("Retrieving the number of processed event for production", prodid)
+    gLogger.verbose("Retrieving the number of processed event for production", prodid)
     return dataMGMT_.getProductionProducedEvents(prodid)
 
   #############################################################################
