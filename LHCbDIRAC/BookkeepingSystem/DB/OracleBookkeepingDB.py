@@ -2147,7 +2147,7 @@ class OracleBookkeepingDB(object):
     :param dict job: job attributes
     :return jobId
     """
-    gLogger.info("Insert job into database!")
+    gLogger.debug("Insert job into database!")
     attrList = {'ConfigName': None,
                 'ConfigVersion': None,
                 'DiracJobId': None,

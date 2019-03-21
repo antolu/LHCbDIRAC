@@ -494,7 +494,7 @@ class BookkeepingManagerHandler(RequestHandler):
     except Exception as _:
       iscPickleFormat = True
       in_dict = cPickle.loads(parameters)
-    gLogger.info("The following dictionary received: %s" % in_dict)
+    gLogger.verbose("The following dictionary received: %s" % str(in_dict))
     methodName = in_dict.get('MethodName', default)
     if methodName == 'getFiles':
       retVal = self.__getFiles(in_dict)
@@ -508,9 +508,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
     retVal = fileHelper.stringToNetwork(fileString)
     if retVal['OK']:
-      gLogger.info('Sent file %s of size %d' % (str(in_dict), len(fileString)))
+      gLogger.debug('Sent file %s of size %d' % (str(in_dict), len(fileString)))
     else:
-      gLogger.error("Failed to send files %s" % in_dict)
+      gLogger.error("Failed to send files %s" % str(in_dict))
       result = retVal
     return result
 
@@ -1616,7 +1616,7 @@ class BookkeepingManagerHandler(RequestHandler):
     """
     it returns the number of events processed for a given production.
     """
-    gLogger.info('getProductionProcessedEvents->Production: %d ' % prodid)
+    gLogger.debug('getProductionProcessedEvents->Production: %d ' % prodid)
     return dataMGMT_.getProductionProcessedEvents(prodid)
 
   #############################################################################
@@ -1843,7 +1843,7 @@ class BookkeepingManagerHandler(RequestHandler):
     if 'RunNumbers' in in_dict:
       gLogger.verbose('RunNumbers will be removed. It will changed to RunNumbers')
 
-    gLogger.info("getVisibleFilesWithMetadata->%s", in_dict)
+    gLogger.debug("getVisibleFilesWithMetadata->%s", in_dict)
     result = {}
     retVal = dataMGMT_.getFilesWithMetadata(configName=configname,
                                             configVersion=configversion,
@@ -2236,7 +2236,7 @@ class BookkeepingManagerHandler(RequestHandler):
   @staticmethod
   def export_getDirectoryMetadata_new(lfn):
     """more info in the BookkeepingClient.py"""
-    gLogger.info("Getting the metadata for: %s" % str(lfn))
+    gLogger.verbose("Getting the metadata for: %s" % str(lfn))
     return dataMGMT_.getDirectoryMetadata(lfn)
 
     #############################################################################
@@ -2401,7 +2401,7 @@ class BookkeepingManagerHandler(RequestHandler):
     """
     it returns the number of events producced for a given production.
     """
-    gLogger.info("Retrieving the number of processed event for production", prodid)
+    gLogger.debug("Retrieving the number of processed event for production", prodid)
     return dataMGMT_.getProductionProducedEvents(prodid)
 
   #############################################################################
