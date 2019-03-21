@@ -70,3 +70,16 @@ More details
 Each and every component send their logs at the VERBOSE level in a message queue. This is configured using the `message queue backend <https://dirac.readthedocs.io/en/latest/DeveloperGuide/AddingNewComponents/Utilities/gLogger/Backends/index.html#messagequeuebackend>`_ , and the queue is described in the `MQServices resources <https://dirac.readthedocs.io/en/latest/AdministratorGuide/DIRACSites/MessageQueues/index.html?highlight=MQServices#message-queues>`_
 
 The logs are then consumed by a logstash server (`lblogs.cern.ch`), and forwarded to ElasticSearch. This is configured in the `ai-puppet-hostgroup-volhcb repository <https://gitlab.cern.ch/ai/it-puppet-hostgroup-volhcb>`_.
+
+------------
+Data storage
+------------
+
+We are using Elasticsearch (ES) to store the data, which is provided by IT `CERN centralized ES service <https://cern.service-now.com/service-portal/service-element.do?name=Elasticsearch-Service>`_. 
+The ES configuration can be found in `it-elasticsearch-project repositiry <https://gitlab.cern.ch/it-elasticsearch-project/endpoint-lhcb-dirac-logs-settings>`_.
+
+------------------
+Data Visualization
+------------------ 
+
+Kibana is used to visualize the data, which is accessible `in this link <https://es-lhcb-dirac-logs.cern.ch/kibana>`_. To access the Kibana you have to be a member of lhcb-geoc egroup. There are predefined dash boards which you can access under Dash boards menu. 
