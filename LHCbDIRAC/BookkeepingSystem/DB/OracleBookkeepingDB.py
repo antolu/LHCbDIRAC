@@ -5319,6 +5319,8 @@ and files.qualityid= dataquality.qualityid" % lfn
 
     :param list lfn: list of lfns: for example: ['/lhcb/MC/2016/LOG/00057824/0010/']
     :return: a directory meradata"""
+
+    gLogger.verbose("Getting directory metadata:", str(lfn))
     result = S_ERROR()
     lfns = [i + '%' for i in lfn]
     retVal = self.dbR_.executeStoredProcedure(packageName='BOOKKEEPINGORACLEDB.getDirectoryMetadata_new',
