@@ -364,28 +364,35 @@ class XMLFilesReaderManager(object):
       job.setJobId(jobID)
 
     if job.exists('RunNumber'):
-      runnumber = job.getParam('RunNumber').getValue()
-      gLogger.verbose("Registering the run status: Runnumber %s , JobId %s  " % (str(runnumber), str(job.getJobId())))
-      result = self.bkClient_.insertRunStatus(runnumber, job.getJobId(), "N")
-      if not result['OK']:
-        self.bkClient_.deleteJob(job.getJobId())
-        errorMessage = "Unable to register run status %s " % (result['Message'])
-        return S_ERROR(errorMessage)
+      try:
+        runnumber = long(job.getParam('RunNumber').getValue())
+      except:
+        runnumber = -1
+      if runnumber != -1:
+        gLogger.verbose("Registering the run status: Runnumber %s , JobId %s  " % (str(runnumber), str(job.getJobId())))
+        result = self.bkClient_.insertRunStatus(runnumber, job.getJobId(), "N")
+        if not result['OK']:
+          self.bkClient_.deleteJob(job.getJobId())
+          errorMessage = "Unable to register run status %s " % (result['Message'])
+          return S_ERROR(errorMessage)
 
-      # we may using HLT2 output to flag the runs as a consequence we may flagged the
-      # runs before they registered to the bookkeeping.
-      # we can flag a run using the newrunquality table
-      retVal = self.bkClient_.getProductionProcessingPassID(-1 * int(runnumber))
-      if retVal['OK']:
-        retVal = self.bkClient_.getRunAndProcessingPassDataQuality(runnumber, retVal['Value'])
+        # we may using HLT2 output to flag the runs as a consequence we may flagged the
+        # runs before they registered to the bookkeeping.
+        # we can flag a run using the newrunquality table
+        retVal = self.bkClient_.getProductionProcessingPassID(-1 * int(runnumber))
         if retVal['OK']:
-          dqvalue = retVal['Value']
-          gLogger.verbose("%d run data quality flag is %s" % (int(runnumber), dqvalue))
+          retVal = self.bkClient_.getRunAndProcessingPassDataQuality(runnumber, retVal['Value'])
+          if retVal['OK']:
+            dqvalue = retVal['Value']
+            gLogger.verbose("%d run data quality flag is %s" % (int(runnumber), dqvalue))
+          else:
+            # The report will be entered to the db.
+            gLogger.warn(retVal['Message'])
         else:
-          # The report will be entered to the db.
-          gLogger.warn(retVal['Message'])
+          gLogger.error(retVal['Message'])
       else:
-        gLogger.error(retVal['Message'])
+        # we reconstruct multiple runs
+        gLogger.warn("Run number can not determined for production:", job.getParam('Production').getValue())
 
     inputFiles = job.getJobInputFiles()
     for inputfile in inputFiles:
