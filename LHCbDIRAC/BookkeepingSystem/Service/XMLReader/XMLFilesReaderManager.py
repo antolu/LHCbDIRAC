@@ -366,7 +366,7 @@ class XMLFilesReaderManager(object):
     if job.exists('RunNumber'):
       try:
         runnumber = long(job.getParam('RunNumber').getValue())
-      except:
+      except ValueError:
         runnumber = -1
       if runnumber != -1:
         gLogger.verbose("Registering the run status: Runnumber %s , JobId %s  " % (str(runnumber), str(job.getJobId())))
