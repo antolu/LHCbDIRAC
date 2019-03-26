@@ -20,7 +20,7 @@ ENTRYPOINT [ "/opt/dirac/dockerEntrypoint.sh" ]
 # Specify the version
 ENV LHCB_DIRAC_VERSION v9r3
 
-RUN curl -L -o dirac-install https://raw.githubusercontent.com/DIRACGrid/DIRAC/integration/Core/scripts/dirac-install.py && chmod +x dirac-install && ./dirac-install -r $LHCB_DIRAC_VERSION -l LHCb -e LHCb -t server -i 27 && rm -rf /opt/dirac/.installCache
+RUN curl -L -o dirac-install https://raw.githubusercontent.com/DIRACGrid/DIRAC/integration/Core/scripts/dirac-install.py && chmod +x dirac-install && ./dirac-install -r $LHCB_DIRAC_VERSION -l LHCb -e LHCb -t server -i 27 --dirac-os && rm -rf /opt/dirac/.installCache
 
 # Copy the script so that when loging interactively the environment is correct
 RUN cp /opt/dirac/bashrc /root/.bashrc
