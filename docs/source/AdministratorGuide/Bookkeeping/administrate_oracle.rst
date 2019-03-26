@@ -307,7 +307,9 @@ jobs table partitions
 =====================
 
 The last partitions called `prodlast` and `runlast`. The maximum value of the `prodlast` partition is MAXVALUE. This may require to split, if we see performance degradation.
-This can happen if two many rows (`jobs`) belong to this partition.  Splitting the `prodlast` partition:
+This can happen if two many rows (`jobs`) belong to this partition. The recommended way to split the partition is to declare a down time, because when the partition split then the
+non partitioned indexes become invalid. The non partitioned indexes needs to be recreated, which will block writing to the DB. 
+The procedure for splitting the `prodlast` partition:
 
 .. code-block:: sql
 
@@ -326,7 +328,14 @@ which result is 83013
 .. code-block:: sql
 
 	ALTER TABLE jobs SPLIT PARTITION prodlast AT (83013) INTO (PARTITION prod4, PARTITION prodlast);
+	
+Rebuild the non partitioned indexes:
 
+.. code-block:: sql
+   
+   ALTER INDEX SYS_C00302478 REBUILD; 
+   ALTER INDEX JOB_NAME_UNIQUE REBUILD;
+   
 files table partitions
 ======================
 

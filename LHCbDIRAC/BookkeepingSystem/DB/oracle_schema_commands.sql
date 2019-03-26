@@ -140,3 +140,8 @@ CREATE SYNONYM productionoutputfiles FOR LHCB_DIRACBOOKKEEPING.productionoutputf
 
 ALTER TABLE stepscontainer DROP CONSTRAINT FK_STEPSCONTAINER_EVENTTYPEID;
 ALTER TABLE stepscontainer DROP column eventtypeid;
+
+DROP INDEX JOBS_DIRACJOBID_JOBID; --it was a composite index on DIRACJOBID and JobID columns.
+--I have changed to have two separate index on DIRACJOBID and JobID.
+CREATE INDEX DIRACJOBID ON jobs(diracjobid) LOCAL;
+

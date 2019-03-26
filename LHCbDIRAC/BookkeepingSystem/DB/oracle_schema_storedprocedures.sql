@@ -1993,7 +1993,7 @@ allfiletypes varchar2(256);
 found number := 0;
 BEGIN
 FOR i in lfns.FIRST .. lfns.LAST LOOP
-  for c in (select /*+ INDEX(f FILES_FILENAME_UNIQUE) */ distinct j.production, c.configname, c.configversion, ft.name, f.eventtypeid, f.VISIBILITYFLAG from files f, jobs j, filetypes ft, configurations c where
+  for c in (select distinct j.production, c.configname, c.configversion, ft.name, f.eventtypeid, f.VISIBILITYFLAG from files f, jobs j, filetypes ft, configurations c where
    c.configurationid=j.configurationid and ft.filetypeid = f.filetypeid and j.jobid=f.jobid and f.gotreplica='Yes' and f.filename like lfns(i)) LOOP
    select count(*) into found from productionscontainer where production=c.production;
    if found>0then
