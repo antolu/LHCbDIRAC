@@ -369,7 +369,7 @@ class XMLFilesReaderManager(object):
       except ValueError:
         runnumber = -1
       if runnumber != -1:
-        gLogger.verbose("Registering the run status: Runnumber %s , JobId %s  " % (str(runnumber), str(job.getJobId())))
+        gLogger.verbose("Registering the run status: Run number %s, JobId %s" % (str(runnumber), str(job.getJobId())))
         result = self.bkClient_.insertRunStatus(runnumber, job.getJobId(), "N")
         if not result['OK']:
           self.bkClient_.deleteJob(job.getJobId())

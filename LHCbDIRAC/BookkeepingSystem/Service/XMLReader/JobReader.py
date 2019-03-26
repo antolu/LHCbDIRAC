@@ -131,7 +131,7 @@ class JobReader(object):
         gLogger.warn("<Value> TypedParameter XML tag is missing!!")
 
       nodetype = node.getAttributeNode('Type')
-      if type is not None:
+      if nodetype is not None:
         parameters.setType(nodetype.value.encode('ascii'))
       else:
         gLogger.warn("<Type> TypedParameter XML tag is missing!!")
