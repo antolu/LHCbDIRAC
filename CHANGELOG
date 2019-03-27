@@ -1,3 +1,29 @@
+v9r3p1
+use DIRAC v6r21p2
+
+* removed old dist-tools
+* just configuration fixes
+* do not use keywords
+* add exception
+* run number can not determined when processing files from multiple runs
+* nedds to be rebuild other index
+* improve the administration documentation and optimise the query
+* change log level
+* change log level
+* fix the space
+* fix the space
+* docs for centralized logging
+* production number can be integer and long
+* change the index
+* change the authorization role
+* add instruction about how to merge devel to master of LHCbWebDIRAC
+* update machine list
+* fix the URL
+* fix indentation
+* correct the release documentation
+* accept int as well
+* Docs: document centralized logging
+
 v9r3
 use DIRAC v6r21
 

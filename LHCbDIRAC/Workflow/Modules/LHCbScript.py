@@ -46,7 +46,7 @@ class LHCbScript(Script):
   def _exitWithError(self, status):
     """ Extended here for treating case of lb-run error codes (and executable name).
     """
-    # this is an lb-run specific error, available from LbScripts v9r1p8
+    # this is an lb-run specific error
     if status & 0x40 and not status & 0x80:
       self.log.error("Status %d is an lb-run specific error" % status)
       raise LbRunError("Problem setting the environment: lb-run exited with status %d" % status,

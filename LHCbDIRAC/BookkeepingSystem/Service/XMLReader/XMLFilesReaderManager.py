@@ -92,7 +92,7 @@ class XMLFilesReaderManager(object):
   #############################################################################
   def processJob(self, job):
     """interprets the xml content"""
-    gLogger.info("Start Processing")
+    gLogger.debug("Start Processing")
 
     # prepare for the insert, check the existence of the input files and retreive the fileid
     inputFiles = [inputFile.getFileName() for inputFile in job.getJobInputFiles()]
@@ -364,28 +364,35 @@ class XMLFilesReaderManager(object):
       job.setJobId(jobID)
 
     if job.exists('RunNumber'):
-      runnumber = job.getParam('RunNumber').getValue()
-      gLogger.info("Registering the run status: Runnumber %s , JobId %s  " % (str(runnumber), str(job.getJobId())))
-      result = self.bkClient_.insertRunStatus(runnumber, job.getJobId(), "N")
-      if not result['OK']:
-        self.bkClient_.deleteJob(job.getJobId())
-        errorMessage = "Unable to register run status %s " % (result['Message'])
-        return S_ERROR(errorMessage)
+      try:
+        runnumber = long(job.getParam('RunNumber').getValue())
+      except ValueError:
+        runnumber = -1
+      if runnumber != -1:
+        gLogger.verbose("Registering the run status: Run number %s, JobId %s" % (str(runnumber), str(job.getJobId())))
+        result = self.bkClient_.insertRunStatus(runnumber, job.getJobId(), "N")
+        if not result['OK']:
+          self.bkClient_.deleteJob(job.getJobId())
+          errorMessage = "Unable to register run status %s " % (result['Message'])
+          return S_ERROR(errorMessage)
 
-      # we may using HLT2 output to flag the runs as a consequence we may flagged the
-      # runs before they registered to the bookkeeping.
-      # we can flag a run using the newrunquality table
-      retVal = self.bkClient_.getProductionProcessingPassID(-1 * int(runnumber))
-      if retVal['OK']:
-        retVal = self.bkClient_.getRunAndProcessingPassDataQuality(runnumber, retVal['Value'])
+        # we may using HLT2 output to flag the runs as a consequence we may flagged the
+        # runs before they registered to the bookkeeping.
+        # we can flag a run using the newrunquality table
+        retVal = self.bkClient_.getProductionProcessingPassID(-1 * int(runnumber))
         if retVal['OK']:
-          dqvalue = retVal['Value']
-          gLogger.info("%d run data quality flag is %s" % (int(runnumber), dqvalue))
+          retVal = self.bkClient_.getRunAndProcessingPassDataQuality(runnumber, retVal['Value'])
+          if retVal['OK']:
+            dqvalue = retVal['Value']
+            gLogger.verbose("%d run data quality flag is %s" % (int(runnumber), dqvalue))
+          else:
+            # The report will be entered to the db.
+            gLogger.warn(retVal['Message'])
         else:
-          # The report will be entered to the db.
-          gLogger.warn(retVal['Message'])
+          gLogger.error(retVal['Message'])
       else:
-        gLogger.error(retVal['Message'])
+        # we reconstruct multiple runs
+        gLogger.warn("Run number can not determined for production:", job.getParam('Production').getValue())
 
     inputFiles = job.getJobInputFiles()
     for inputfile in inputFiles:
@@ -442,7 +449,7 @@ class XMLFilesReaderManager(object):
           errorMessage = "Unable to create Replica %s !" % (str(name))
           return S_ERROR(errorMessage)
 
-    gLogger.info("End Processing!")
+    gLogger.debug("End Processing!")
 
     return S_OK()
 
@@ -571,8 +578,8 @@ class XMLFilesReaderManager(object):
                                          eventType=eventtypes)
 
       if res['OK']:
-        gLogger.info("New processing pass has been created!")
-        gLogger.info("New production is:", production)
+        gLogger.verbose("New processing pass has been created!")
+        gLogger.verbose("New production is:", production)
       elif job.exists('RunNumber'):
         gLogger.warn('The run already registered!')
       else:
@@ -633,7 +640,7 @@ class XMLFilesReaderManager(object):
   def processReplicas(self, replica):
     """process the replica registration request"""
     outputfile = replica.getFileName()
-    gLogger.info("Processing replicas: " + str(outputfile))
+    gLogger.debug("Processing replicas: " + str(outputfile))
     fileID = -1
 
     params = replica.getaprams()
@@ -656,7 +663,7 @@ class XMLFilesReaderManager(object):
         return S_ERROR(message)
       else:
         fileID = long(result['Value'][0][0])
-        gLogger.info(fileID)
+        gLogger.debug(fileID)
 
       if delete:
         result = self.dm_.getReplicas(replicaFileName)
@@ -671,6 +678,6 @@ class XMLFilesReaderManager(object):
         if not result['OK']:
           return S_ERROR("Unable to set the Got_Replica flag for " + str(replicaFileName))
 
-    gLogger.info("End Processing replicas!")
+    gLogger.debug("End Processing replicas!")
 
     return S_OK()
