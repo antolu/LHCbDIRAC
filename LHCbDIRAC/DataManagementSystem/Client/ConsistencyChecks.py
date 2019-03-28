@@ -1234,7 +1234,7 @@ class ConsistencyChecks(DiracConsistencyChecks):
     """
     for nextProd in range(self.prod + 1, self.prod + 6):
       res = self.transClient.getBookkeepingQuery(nextProd)
-      if res['OK'] and res['Value'].get('ProductionID', 0) == self.prod:
+      if res['OK'] and res['Value'].get('ProductionID') == self.prod:
         res = self.transClient.getTransformation(nextProd)
         if not res['OK']:
           return None, None
