@@ -64,7 +64,7 @@ if __name__ == "__main__":
   if len(args) == 2:
     status = args[1].split(',')
   elif not status:
-    status = 'Unknown'
+    status = ['Unknown']
   lfnsExplicit = dmScript.getOption('LFNs')
 
   transClient = TransformationClient()
@@ -94,14 +94,16 @@ if __name__ == "__main__":
       failed = {}
       for lfnChunk in breakListIntoChunks(lfns, 10000):
         res = transClient.setFileStatusForTransformation(transID, newStatus, lfnChunk,
-                                                         force=(status == 'MaxReset' or status == 'Processed') or lfnsExplicit)
+                                                         force=('MaxReset' in status or
+                                                                'Processed' in status) or lfnsExplicit)
         if res['OK']:
           resetFiles += len(res['Value'].get('Successful', res['Value']))
           for lfn, reason in res['Value'].get('Failed', {}).iteritems():
             if reason != 'File not found in the Transformation Database':
               failed.setdefault(reason, []).append(lfn)
         else:
-          print "Failed to set %d files to %s in transformation %s: %s" % (len(lfns), newStatus, transID, res['Message'])
+          print "Failed to set %d files to %s in transformation %s: %s" % \
+              (len(lfns), newStatus, transID, res['Message'])
       print "%d files were set %s in transformation %s" % (resetFiles, newStatus, transID)
       if failed:
         for reason in failed:
