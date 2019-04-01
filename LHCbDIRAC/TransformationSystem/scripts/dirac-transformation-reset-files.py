@@ -93,9 +93,9 @@ if __name__ == "__main__":
       resetFiles = 0
       failed = {}
       for lfnChunk in breakListIntoChunks(lfns, 10000):
+        force = 'MaxReset' in status or 'Processed' in status or lfnsExplicit
         res = transClient.setFileStatusForTransformation(transID, newStatus, lfnChunk,
-                                                         force='MaxReset' in status or
-                                                         'Processed' in status or lfnsExplicit)
+                                                         force=force)
         if res['OK']:
           resetFiles += len(res['Value'].get('Successful', res['Value']))
           for lfn, reason in res['Value'].get('Failed', {}).iteritems():
