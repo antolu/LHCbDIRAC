@@ -494,7 +494,7 @@ class BookkeepingManagerHandler(RequestHandler):
     except Exception as _:
       iscPickleFormat = True
       in_dict = cPickle.loads(parameters)
-    gLogger.verbose("The following dictionary received:", "%" % in_dict)
+    gLogger.verbose("The following dictionary received:", "%s" % in_dict)
     methodName = in_dict.get('MethodName', default)
     if methodName == 'getFiles':
       retVal = self.__getFiles(in_dict)
@@ -508,7 +508,7 @@ class BookkeepingManagerHandler(RequestHandler):
 
     retVal = fileHelper.stringToNetwork(fileString)
     if retVal['OK']:
-      gLogger.debug('Sent file %s of size %d' % (in_dict, len(fileString)))
+      gLogger.debug('Sent files for', '%s of size %d' % (in_dict, len(fileString)))
     else:
       gLogger.error("Failed to send files:", "%s" % in_dict)
       result = retVal
