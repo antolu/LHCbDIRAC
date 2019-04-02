@@ -302,7 +302,7 @@ class StorageUsageAgent(AgentModule):
     dirListSize = [d for d in dirList if dirContents.get(d, {}).get('Files')]
 
     startTime1 = time.time()
-    # FIXME: this should be changed to (d,True, False) when the DFC is fixed
+    # __recalculateUsage enables to recompute the directory usage in case the internal table is wrong
     for args in [(d, True, self.__recalculateUsage) for d in breakListIntoChunks(dirListSize, chunkSize)]:
       res = self.catalog.getDirectorySize(*args, timeout=600)
       if not res['OK']:
