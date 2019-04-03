@@ -2420,7 +2420,7 @@ class OracleBookkeepingDB(object):
 
     for param in conditions:
       if not datataking.__contains__(param):
-        gLogger.error("Can not insert data taking condition the files table not contains: %s " % param)
+        gLogger.error("Can not insert data taking condition the files table not contains:", "%s" % param)
         return S_ERROR("Can not insert data taking condition the files table not contains: %s " % param)
       datataking[param] = conditions[param]
 

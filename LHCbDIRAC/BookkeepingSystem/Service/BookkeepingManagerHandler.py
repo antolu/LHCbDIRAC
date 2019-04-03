@@ -1932,7 +1932,7 @@ class BookkeepingManagerHandler(RequestHandler):
     InputProductionTotalProcessingPass: it is a path of the input data processing pass
     """
 
-    gLogger.debug("%s" % infos)
+    gLogger.debug("Registering:", "%s" % infos)
     result = S_OK()
     simcond = infos.get('SimulationConditions', None)
     daqdesc = infos.get('DataTakingConditions', None)
