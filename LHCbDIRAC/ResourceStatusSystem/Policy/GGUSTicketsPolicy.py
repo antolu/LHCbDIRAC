@@ -5,12 +5,13 @@
 
 '''
 
-from DIRAC                                              import S_OK
+from DIRAC import S_OK
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
 __RCSID__ = "$Id$"
 
-class GGUSTicketsPolicy( PolicyBase ):
+
+class GGUSTicketsPolicy(PolicyBase):
   '''
   The GGUSTicketsPolicy class is a policy class that evaluates on
   how many tickets are open at the moment.
@@ -20,7 +21,7 @@ class GGUSTicketsPolicy( PolicyBase ):
   '''
 
   @staticmethod
-  def _evaluate( commandResult ):
+  def _evaluate(commandResult):
     """
     Evaluate policy on opened tickets, using args (tuple).
 
@@ -32,43 +33,43 @@ class GGUSTicketsPolicy( PolicyBase ):
     """
 
     result = {
-              'Status' : None,
-              'Reason' : None
-              }
+        'Status': None,
+        'Reason': None
+    }
 
-    if not commandResult[ 'OK' ]:
-      result[ 'Status' ] = 'Error'
-      result[ 'Reason' ] = commandResult[ 'Message' ]
-      return S_OK( result )
+    if not commandResult['OK']:
+      result['Status'] = 'Error'
+      result['Reason'] = commandResult['Message']
+      return S_OK(result)
 
-    commandResult = commandResult[ 'Value' ]
+    commandResult = commandResult['Value']
 
     if not commandResult:
-      result[ 'Status' ] = 'Unknown'
-      result[ 'Reason' ] = 'No values to take a decision'
-      return S_OK( result )
+      result['Status'] = 'Unknown'
+      result['Reason'] = 'No values to take a decision'
+      return S_OK(result)
 
     # The command returns a list of dictionaries, with only one if thre is something,
     # otherwise an empty list.
-    commandResult = commandResult[ 0 ]
+    commandResult = commandResult[0]
 
-    if not 'OpenTickets' in commandResult:
-      result[ 'Status' ] = 'Error'
-      result[ 'Reason' ] = 'Expected OpenTickets key for GGUSTickets'
-      return S_OK( result )
+    if 'OpenTickets' not in commandResult:
+      result['Status'] = 'Error'
+      result['Reason'] = 'Expected OpenTickets key for GGUSTickets'
+      return S_OK(result)
 
-    openTickets = commandResult[ 'OpenTickets' ]
+    openTickets = commandResult['OpenTickets']
 
     if openTickets == 0:
-      result[ 'Status' ] = 'Active'
-      result[ 'Reason' ] = 'NO GGUSTickets unsolved'
+      result['Status'] = 'Active'
+      result['Reason'] = 'NO GGUSTickets unsolved'
     else:
-      #FIXME: setting to Probing is way too aggresive, as we do not know the
-      #nature of the tickets
-      result[ 'Status' ] = 'Degraded'
-      result[ 'Reason' ] = '%s GGUSTickets unsolved: %s' % ( openTickets, commandResult[ 'Tickets' ] )
+      # FIXME: setting to Probing is way too aggresive, as we do not know the
+      # nature of the tickets
+      result['Status'] = 'Degraded'
+      result['Reason'] = '%s GGUSTickets unsolved: %s' % (openTickets, commandResult['Tickets'])
 
-    return S_OK( result )
+    return S_OK(result)
 
-#...............................................................................
-#EOF
+# ...............................................................................
+# EOF
