@@ -22,3 +22,4 @@ This page is the work in progress. See more material here soon !
    logging.rst
    lhcbMessageQueues
    sandboxStore
+   Popularity/index.rst
