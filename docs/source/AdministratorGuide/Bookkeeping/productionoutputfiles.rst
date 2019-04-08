@@ -4,9 +4,9 @@
 ProductionOutputFiles table 
 ===========================
 
-The table contains data which used for fast queries. It aggregates all information, which are used by the BkQuery. The queries 
+The table contains data used for speeding up some queries. This table contains aggregated data used by the BkQuery. The queries 
 are very fast because it does not require join of the two main tables `files` and `jobs`.
-The table filled when the production is created. The addProduction method is used to propagate this table.
+The table is filled when a production is created. The addProduction method add all necessary info for this table.
 The table contains the following columns::
 	
 	Production
@@ -16,12 +16,12 @@ The table contains the following columns::
 	Visible
 	GotReplica
 
-The `visible` and `GotReplica` columns can be changes when all files are removed in a certain production or the file set to invisible (The files are archived, they are not supposed to 
-be used by the users.) In order to update this table the following stored procedure is used::
+The `visible` and `GotReplica` columns can be changed when all files are removed from a production, or when a file is set to invisible (i.e. when the files are archived, they are not supposed to be used by the users.) 
+be used by the users). In order to update this table, the following stored procedure is used::
 		
 	BKUTILITIES.updateProdOutputFiles
 	
-This method updates the productions which `visible` and `gotreplica` flags have changed within the last 3 days. 
+This method updates the productions with `visible` and `gotreplica` flags that have changed in the last 3 days. 
 The procedure is run by an Oracle job. It is scheduled every 10 minutes. More details in the :ref:`administrate_oracle`  document.
 
 ================================

@@ -358,6 +358,5 @@ In order to fix the issue a new partition has to be created:
 Database monitoring
 ===================
 
-Various queries are available in the BookkeepingSystem/DB/monitoring.sql file. It can be used for discover various problems such database locks, broken oracle job, sessions, 
-used indexes, etc.
+Various queries are available in the BookkeepingSystem/DB/monitoring.sql file. They can be used for discovering problems such as database locks, broken oracle jobs, sessions, used indexes, etc.
 
