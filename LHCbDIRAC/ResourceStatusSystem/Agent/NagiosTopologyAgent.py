@@ -12,11 +12,11 @@ import xml.dom.minidom
 import urllib
 import json
 import socket
+
 from DIRAC import S_OK, rootPath, gLogger, gConfig
 from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
 from DIRAC.Resources.Storage.StorageElement import StorageElement
-#from DIRAC.Core.Utilities.Grid                       import ldapCEState
 
 __RCSID__ = "$Id$"
 AGENT_NAME = 'ResourceStatus/NagiosTopologyAgent'
@@ -444,6 +444,3 @@ def xml_append(doc, base, elem, cdata=None, **attrs):
     new_elem.appendChild(doc.createTextNode(cdata))
 
   return base.appendChild(new_elem)
-
-#.........................................................................
-# EOF

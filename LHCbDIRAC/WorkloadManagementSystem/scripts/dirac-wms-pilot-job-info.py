@@ -67,7 +67,8 @@ for gridID in args:
             params['CPUEfficiency'] = '%s %%' % (
                 100. * float(params['TotalCPUTime(s)']) / float(params['WallClockTime(s)']))
           for i, par in parameters:
-            for param in [p for p in _stringInList(par, params) if not _stringInList(p, result[jobID])]:
+            for param in [p for p in _stringInList(str(par), str(params)) if not _stringInList(str(p),
+                                                                                               str(result[jobID]))]:
               if param == 'CPUEfficiency':
                 effRequested = True
               result[jobID]['%d.%s' % (i, param)] = params[param]

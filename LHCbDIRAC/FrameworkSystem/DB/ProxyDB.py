@@ -9,20 +9,21 @@ from DIRAC import gLogger
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.FrameworkSystem.DB.ProxyDB import ProxyDB as DIRACProxyDB
 
-class ProxyDB( DIRACProxyDB ):
+
+class ProxyDB(DIRACProxyDB):
   """ Simple extension for just taking care of the message sent
   """
 
-  def _notifyProxyAboutToExpire( self, userDN, userGroup, lTime, notifLimit ):
-    result = Registry.getUsernameForDN( userDN )
-    if not result[ 'OK' ]:
+  def _notifyProxyAboutToExpire(self, userDN, userGroup, lTime, notifLimit):
+    result = Registry.getUsernameForDN(userDN)
+    if not result['OK']:
       return False
-    userName = result[ 'Value' ]
-    userEMail = Registry.getUserOption( userName, "Email", "" )
+    userName = result['Value']
+    userEMail = Registry.getUserOption(userName, "Email", "")
     if not userEMail:
-      gLogger.error( "Could not discover user email", userName )
+      gLogger.error("Could not discover user email", userName)
       return False
-    daysLeft = int( lTime / 86400 )
+    daysLeft = int(lTime / 86400)
     msgSubject = "Your proxy uploaded to LHCbDIRAC will expire in %d days" % daysLeft
     msgBody = """\
 Dear %s,
@@ -43,10 +44,10 @@ Dear %s,
 
 Cheers,
  LHCbDIRAC's Proxy Manager
-""" % ( userName, daysLeft, userDN, userGroup, userGroup )
+""" % (userName, daysLeft, userDN, userGroup, userGroup)
     fromAddr = self.getFromAddr()
-    result = self.__notifClient.sendMail( userEMail, msgSubject, msgBody, fromAddress = fromAddr )
-    if not result[ 'OK' ]:
-      gLogger.error( "Could not send email", result[ 'Message' ] )
+    result = self.__notifClient.sendMail(userEMail, msgSubject, msgBody, fromAddress=fromAddr)
+    if not result['OK']:
+      gLogger.error("Could not send email", result['Message'])
       return False
     return True

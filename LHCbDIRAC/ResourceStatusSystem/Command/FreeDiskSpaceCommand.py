@@ -73,7 +73,3 @@ class FreeDiskSpaceCommand(FDSC):
     gDataStoreClient.commit()
 
     return S_OK()
-
-
-#...............................................................................
-# EOF

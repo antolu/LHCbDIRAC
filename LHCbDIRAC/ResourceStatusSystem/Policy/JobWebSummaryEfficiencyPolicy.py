@@ -5,12 +5,13 @@
 
 '''
 
-from DIRAC                                              import S_OK
+from DIRAC import S_OK
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
 __RCSID__ = "$Id$"
 
-class JobWebSummaryEfficiencyPolicy( PolicyBase ):
+
+class JobWebSummaryEfficiencyPolicy(PolicyBase):
   '''
   The JobEfficiencyPolicy class is a policy that checks the efficiency of the
   jobs according to what is on WMS.
@@ -20,7 +21,7 @@ class JobWebSummaryEfficiencyPolicy( PolicyBase ):
   '''
 
   @staticmethod
-  def _evaluate( commandResult ):
+  def _evaluate(commandResult):
     '''
     Evaluate policy on jobs stats, using args (tuple).
 
@@ -32,57 +33,54 @@ class JobWebSummaryEfficiencyPolicy( PolicyBase ):
     '''
 
     result = {
-              'Status' : None,
-              'Reason' : None
-              }
+        'Status': None,
+        'Reason': None
+    }
 
-    if not commandResult[ 'OK' ]:
-      result[ 'Status' ] = 'Error'
-      result[ 'Reason' ] = commandResult[ 'Message' ]
-      return S_OK( result )
+    if not commandResult['OK']:
+      result['Status'] = 'Error'
+      result['Reason'] = commandResult['Message']
+      return S_OK(result)
 
-    commandResult = commandResult[ 'Value' ]
+    commandResult = commandResult['Value']
 
     if not commandResult:
-      result[ 'Status' ] = 'Unknown'
-      result[ 'Reason' ] = 'No values to take a decision'
-      return S_OK( result )
+      result['Status'] = 'Unknown'
+      result['Reason'] = 'No values to take a decision'
+      return S_OK(result)
 
     # The command returns a list of dictionaries, with only one if thre is something,
     # otherwise an empty list.
-    commandResult = commandResult[ 0 ]
+    commandResult = commandResult[0]
 
     if 'Status' not in commandResult:
-      result[ 'Status' ] = 'Error'
-      result[ 'Reason' ] = '"Status" key missing'
-      return S_OK( result )
+      result['Status'] = 'Error'
+      result['Reason'] = '"Status" key missing'
+      return S_OK(result)
 
     if 'Efficiency' not in commandResult:
-      result[ 'Status' ] = 'Error'
-      result[ 'Reason' ] = '"Efficiency" key missing'
-      return S_OK( result )
+      result['Status'] = 'Error'
+      result['Reason'] = '"Efficiency" key missing'
+      return S_OK(result)
 
-    status     = commandResult[ 'Status' ]
-    efficiency = commandResult[ 'Efficiency' ]
+    status = commandResult['Status']
+    efficiency = commandResult['Efficiency']
 
     if status == 'Good':
-      result[ 'Status' ] = 'Active'
+      result['Status'] = 'Active'
     elif status == 'Fair':
-      result[ 'Status' ] = 'Active'
+      result['Status'] = 'Active'
     elif status == 'Poor':
-      result[ 'Status' ] = 'Degraded'
+      result['Status'] = 'Degraded'
     elif status == 'Idle':
-      result[ 'Status' ] = 'Unknown'
+      result['Status'] = 'Unknown'
     elif status == 'Bad':
-      result[ 'Status' ] = 'Banned'
+      result['Status'] = 'Banned'
     else:
-      result[ 'Status' ] = 'Error'
-      result[ 'Reason' ] = 'Unknown status "%s"' % status
-      return S_OK( result )
+      result['Status'] = 'Error'
+      result['Reason'] = 'Unknown status "%s"' % status
+      return S_OK(result)
 
-    result[ 'Reason' ] = 'Jobs Efficiency: %s with status %s' % ( efficiency, status )
+    result['Reason'] = 'Jobs Efficiency: %s with status %s' % (efficiency, status)
 
-    return S_OK( result )
-
-#...............................................................................
-#EOF
+    return S_OK(result)

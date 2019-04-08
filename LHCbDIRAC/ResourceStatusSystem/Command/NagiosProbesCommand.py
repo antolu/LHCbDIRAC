@@ -4,11 +4,11 @@
 
 '''
 
+__RCSID__ = "$Id$"
+
 from DIRAC import S_OK, S_ERROR
 from DIRAC.ResourceStatusSystem.Command.Command import Command
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
-
-__RCSID__ = "$Id$"
 
 
 class NagiosProbesCommand(Command):
@@ -51,6 +51,3 @@ class NagiosProbesCommand(Command):
     res = dict([(r[0], r[1:]) for r in res['Value']])
 
     return S_OK(res)
-
-#...............................................................................
-# EOF
