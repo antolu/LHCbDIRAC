@@ -107,19 +107,18 @@ if __name__ == '__main__':
   from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
   tr = TransformationClient()
   for prod in prodList:
-    res = tr.getTransformation(prod)
-    if not res['OK']:
-      gLogger.fatal("Error getting info for transformation", '%d: %s' % (prod, res['Message']))
-      continue
-    if fileType:
-      if res['Value']['Type'] in ('Merge', 'MCMerge'):
-        gLogger.notice("It is not allowed to select file type for merging transformation", prod)
-        continue
-
     startTime = time.time()
     cc = ConsistencyChecks()
+    # Setting the prod also sets its type
+    try:
+      cc.prod = prod
+    except RuntimeError as e:
+      gLogger.exception(lException=e)
+      continue
+    if fileType and cc.transType in ('Merge', 'MCMerge'):
+      gLogger.notice("It is not allowed to select file type for merging transformation", prod)
+      continue
     cc.verbose = verbose
-    cc.prod = prod
     cc.noFC = noFC
     cc.descendantsDepth = depth
     if prod != prodList[0]:
@@ -142,9 +141,11 @@ if __name__ == '__main__':
       bkQuery = BKQuery({'Production': prod, 'FileType': 'ALL', 'Visible': 'All'})
       cc.fileType = bkQuery.getBKFileTypes()
       gLogger.notice("Looking for descendants of type %s" % str(cc.fileType))
+      notAllFileTypes = False
     else:
       cc.fileType = fileType
       cc.fileTypesExcluded = ['LOG']
+      notAllFileTypes = True
     cc.runsList = runsList
     cc.runStatus = 'Active'
     cc.fromProd = fromProd
@@ -269,10 +270,18 @@ if __name__ == '__main__':
           gLogger.notice('First %d files:' % nMax if not verbose and len(lfns) > nMax else 'All files:',
                          '\n'.join([''] + lfns[0:nMax]))
           fp.write('\nProcNoDesc '.join([''] + lfns))
-          if cc.fileType:
+          if notAllFileTypes:
             gLogger.notice("You may want to check those files again for all file types, using:")
-            gLogger.notice("     grep ProcNoDesc %s | dirac-production-check-descendants %s" % (fileName, cc.prod))
-          gLogger.notice("If you are sure, use --FixIt for resetting files Unused in TS")
+            gLogger.notice("     grep ProcNoDesc %s | dirac-production-check-descendants %d" % (fileName, cc.prod))
+          if cc.transType in ('DataStripping', 'MCReconstruction', 'MCStripping'):
+            nextProd, nextType = cc._findNextProduction()
+            if nextProd:
+              gLogger.notice("This is a %s production, thus "
+                             "the problem may come from the %s production %d" % (cc.transType, nextType, nextProd))
+              gLogger.notice("     You may check it with this command:")
+              gLogger.notice("     grep ProcNoDesc %s | dirac-bookkeeping-get-file-descendants --All | grep %d |"
+                             "dirac-production-check-descendants %d " % (fileName, cc.prod, nextProd))
+          gLogger.notice("If you are sure, use --FixIt for resetting those files Unused in TS")
         else:
           gLogger.notice("No files processed without descendants that are not BAD")
     else:

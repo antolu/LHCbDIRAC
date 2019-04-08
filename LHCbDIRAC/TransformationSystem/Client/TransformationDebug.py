@@ -678,7 +678,7 @@ class TransformationDebug(object):
     """
     replicas = {}
     for lfnChunk in breakListIntoChunks(lfns, 200):
-      res = self.dataManager.getReplicas(lfnChunk)
+      res = self.dataManager.getReplicas(lfnChunk, getUrl=False)
       if res['OK']:
         replicas.update(res['Value']['Successful'])
       else:
@@ -1902,10 +1902,7 @@ class TransformationDebug(object):
               continue
           nfiles = len(lfnsInTask)
           allFiles += lfnsInTask
-          if self.transType in self.dataManagerTransTypes:
-            replicas = self.__getReplicas(lfnsInTask)
-          else:
-            replicas = {}
+          replicas = self.__getReplicas(lfnsInTask)
           targetSE = task.get('TargetSE')
           if targetSE == 'None':
             targetSE = 'Some'

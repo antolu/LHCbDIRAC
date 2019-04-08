@@ -1226,3 +1226,17 @@ class ConsistencyChecks(DiracConsistencyChecks):
     """ Getter """
     return self._seList
   seList = property(get_seList, set_seList)
+
+  def _findNextProduction(self):
+    """
+    Find in the next productions one that uses the current production as input in the BK query
+    Returns its number and its type
+    """
+    for nextProd in range(self.prod + 1, self.prod + 6):
+      res = self.transClient.getBookkeepingQuery(nextProd)
+      if res['OK'] and res['Value'].get('ProductionID') == self.prod:
+        res = self.transClient.getTransformation(nextProd)
+        if not res['OK']:
+          return None, None
+        return (nextProd, res['Value']['Type'])
+    return None, None
