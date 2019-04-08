@@ -494,7 +494,7 @@ class BookkeepingManagerHandler(RequestHandler):
     except Exception as _:
       iscPickleFormat = True
       in_dict = cPickle.loads(parameters)
-    gLogger.verbose("The following dictionary received: %s" % str(in_dict))
+    gLogger.verbose("The following dictionary received:", "%s" % in_dict)
     methodName = in_dict.get('MethodName', default)
     if methodName == 'getFiles':
       retVal = self.__getFiles(in_dict)
@@ -508,9 +508,9 @@ class BookkeepingManagerHandler(RequestHandler):
 
     retVal = fileHelper.stringToNetwork(fileString)
     if retVal['OK']:
-      gLogger.debug('Sent file %s of size %d' % (str(in_dict), len(fileString)))
+      gLogger.debug('Sent files for', '%s of size %d' % (in_dict, len(fileString)))
     else:
-      gLogger.error("Failed to send files %s" % str(in_dict))
+      gLogger.error("Failed to send files:", "%s" % in_dict)
       result = retVal
     return result
 
@@ -655,7 +655,7 @@ class BookkeepingManagerHandler(RequestHandler):
     'ConfigName', 'ConfigVersion', 'ConditionDescription', 'EventType',
     'ProcessingPass','Production','RunNumber', 'FileType', DataQuality
     """
-    gLogger.debug('Input:' + str(in_dict))
+    gLogger.debug('Input:', "%s" % in_dict)
     result = S_ERROR()
 
     configName = in_dict.get('ConfigName', default)
@@ -1616,7 +1616,7 @@ class BookkeepingManagerHandler(RequestHandler):
     """
     it returns the number of events processed for a given production.
     """
-    gLogger.debug('getProductionProcessedEvents->Production: %d ' % prodid)
+    gLogger.debug('getProductionProcessedEvents->Production:', '%d ' % prodid)
     return dataMGMT_.getProductionProcessedEvents(prodid)
 
   #############################################################################
@@ -1739,7 +1739,7 @@ class BookkeepingManagerHandler(RequestHandler):
 
   def export_getFilesWithGivenDataSets(self, values):
     """more info in the BookkeepingClient.py"""
-    gLogger.debug('getFiles dataset:' + str(values))
+    gLogger.debug('getFiles dataset:', "%s" % values)
     return self.export_getFiles(values)
 
   #############################################################################
@@ -1843,7 +1843,7 @@ class BookkeepingManagerHandler(RequestHandler):
     if 'RunNumbers' in in_dict:
       gLogger.verbose('RunNumbers will be removed. It will changed to RunNumbers')
 
-    gLogger.debug("getVisibleFilesWithMetadata->%s", in_dict)
+    gLogger.debug("getVisibleFilesWithMetadata->", "%s" % in_dict)
     result = {}
     retVal = dataMGMT_.getFilesWithMetadata(configName=configname,
                                             configVersion=configversion,
@@ -1932,7 +1932,7 @@ class BookkeepingManagerHandler(RequestHandler):
     InputProductionTotalProcessingPass: it is a path of the input data processing pass
     """
 
-    gLogger.debug(infos)
+    gLogger.debug("Registering:", "%s" % infos)
     result = S_OK()
     simcond = infos.get('SimulationConditions', None)
     daqdesc = infos.get('DataTakingConditions', None)
@@ -2212,7 +2212,7 @@ class BookkeepingManagerHandler(RequestHandler):
     """
     It returns the step(s) which is produced  a given dataset.
     """
-    gLogger.debug('getStepsMetadata' + str(in_dict))
+    gLogger.debug('getStepsMetadata', "%s" % in_dict)
     configName = in_dict.get('ConfigName', default)
     configVersion = in_dict.get('ConfigVersion', default)
     cond = in_dict.get('ConditionDescription', default)
@@ -2236,7 +2236,7 @@ class BookkeepingManagerHandler(RequestHandler):
   @staticmethod
   def export_getDirectoryMetadata_new(lfn):
     """more info in the BookkeepingClient.py"""
-    gLogger.verbose("Getting the metadata for: %s" % str(lfn))
+    gLogger.verbose("Getting the metadata for:", "%s" % lfn)
     return dataMGMT_.getDirectoryMetadata(lfn)
 
     #############################################################################
