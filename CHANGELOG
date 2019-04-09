@@ -1,3 +1,21 @@
+v9r3p2
+use DIRAC v6r21p3
+
+* Just style and remove of outdated stuff
+* fix gLogger
+* remove FIXME
+* get replicas without restrictions
+*  fix string format
+* fix gLogger for better centralised logging
+* Docs: add Popularity documentation
+* again
+* again
+* make codestyle happy
+* protect against negative number of files or size
+* Allow multiple statues in reset-files
+* make Chris happy
+* Add information for Processed files without descendants
+
 v9r3p1
 use DIRAC v6r21p2
 

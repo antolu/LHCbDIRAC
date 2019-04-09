@@ -1981,7 +1981,7 @@ class OracleBookkeepingDB(object):
     logicalFileNames = {'Failed': []}
     ancestorList = {}
     filesWithMetadata = {}
-    gLogger.debug('original', lfn)
+    gLogger.debug('original', "%s" % lfn)
     failed = []
     for fileName in lfn:
       files = []
@@ -2098,8 +2098,8 @@ class OracleBookkeepingDB(object):
       if len(res) != 0:
         return S_OK(res)
       else:
-        gLogger.warn("File not found! ", str(fileName))
-        return S_ERROR("File not found!" + str(fileName))
+        gLogger.warn("File not found! ", "%s" % fileName)
+        return S_ERROR("File not found: %s" % fileName)
     else:
       return S_ERROR(result['Message'])
     return result
@@ -2133,8 +2133,8 @@ class OracleBookkeepingDB(object):
       if len(value) != 0:
         result = S_OK(value)
       else:
-        gLogger.error("Event type not found! ", str(eventTypeId))
-        result = S_ERROR("Event type not found!" + str(eventTypeId))
+        gLogger.error("Event type not found:", "%s" % eventTypeId)
+        result = S_ERROR("Event type not found: %s" % eventTypeId)
     else:
       result = retVal
     return result
@@ -2181,8 +2181,8 @@ class OracleBookkeepingDB(object):
 
     for param in job:
       if not attrList.__contains__(param):
-        gLogger.error("insert job error: ", " the job table not contain attribute " + param)
-        return S_ERROR(" The job table not contain attribute " + param)
+        gLogger.error("insert job error: ", " the job table not contain attribute %s" % param)
+        return S_ERROR(" The job table not contain attribute %s" % param)
 
       if param == 'JobStart' or param == 'JobEnd':  # We have to convert data format
         dateAndTime = job[param].split(' ')
@@ -2277,8 +2277,8 @@ class OracleBookkeepingDB(object):
 
     for param in fileobject:
       if param not in attrList:
-        gLogger.error("insert file error: ", " the files table not contain attribute " + param)
-        return S_ERROR(" The files table not contain attribute " + param)
+        gLogger.error("insert file error: ", " the files table not contain attribute %s " % param)
+        return S_ERROR(" The files table not contain attribute %s" % param)
 
       if param == 'CreationDate':  # We have to convert data format
         dateAndTime = fileobject[param].split(' ')
@@ -2420,8 +2420,8 @@ class OracleBookkeepingDB(object):
 
     for param in conditions:
       if not datataking.__contains__(param):
-        gLogger.error("insert datataking error: ", " the files table not contains " + param + " this attributte!!")
-        return S_ERROR(" The datatakingconditions table not contains " + param + " this attributte!!")
+        gLogger.error("Can not insert data taking condition the files table not contains:", "%s" % param)
+        return S_ERROR("Can not insert data taking condition the files table not contains: %s " % param)
       datataking[param] = conditions[param]
 
     res = self.dbW_.executeStoredFunctions('BOOKKEEPINGORACLEDB.insertDataTakingCond',
@@ -4769,7 +4769,7 @@ and files.qualityid= dataquality.qualityid" % lfn
         eventtypes = eventType
       else:
         return S_ERROR("%s event type is not valid!" % eventType)
-    gLogger.verbose("The following event types will be inserted", eventtypes)
+    gLogger.verbose("The following event types will be inserted:", "%s" % eventtypes)
 
     for step in steps:
       # the runs have more than one event type
@@ -5251,7 +5251,7 @@ and files.qualityid= dataquality.qualityid" % lfn
         result = retVal
       else:
         productions = tuple([i[0] for i in retVal['Value']])
-        gLogger.debug('Productions' + str(productions))
+        gLogger.debug('Productions:', "%s" % productions)
         parametersNames = ['id', 'name']
         for production in productions:
           retVal = self.getSteps(production)
@@ -5320,7 +5320,7 @@ and files.qualityid= dataquality.qualityid" % lfn
     :param list lfn: list of lfns: for example: ['/lhcb/MC/2016/LOG/00057824/0010/']
     :return: a directory meradata"""
 
-    gLogger.verbose("Getting directory metadata:", str(lfn))
+    gLogger.verbose("Getting directory metadata:", "%s" % lfn)
     result = S_ERROR()
     lfns = [i + '%' for i in lfn]
     retVal = self.dbR_.executeStoredProcedure(packageName='BOOKKEEPINGORACLEDB.getDirectoryMetadata_new',

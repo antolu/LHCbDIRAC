@@ -12,7 +12,6 @@ __RCSID__ = "$Id$"
 from DIRAC import S_ERROR, S_OK
 from DIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient as DIRACRMClient
 from DIRAC.Core.DISET.RPCClient import RPCClient
-from DIRAC.ResourceStatusSystem.Utilities import CSHelpers
 
 
 class ResourceManagementClient(DIRACRMClient):
@@ -45,73 +44,6 @@ class ResourceManagementClient(DIRACRMClient):
   making use of some syntactic sugar, in this case a decorator that simplifies
   the client considerably.
   """
-
-  ##############################################################################
-  # MONITORING TEST METHODS
-
-#  def insertMonitoringTest( self, metricName, serviceURI, siteName, serviceFlavour,
-#                            metricStatus, summaryData, timestamp, lastCheckTime,
-#                            meta = None ):
-#    """
-#    Inserts on MonitoringTest a new row with the arguments given.
-#
-#    :Parameters:
-#      **metricName** - `string`
-#        name of the metric
-#      **serviceURI** - `string`
-#        URI of the service
-#      **siteName** - `string`
-#        name of the site
-#      **serviceFlavour** - `string`
-#        type of service
-#      **metricStatus** - `string`
-#        metric's status
-#      **summaryData** - `string`
-#        result of the monitoring test
-#      **timestamp** - `datetime`
-#        timestamp of the test
-#      **lastCheckTime** - `datetime`
-#        last time it was cheched
-#      **meta** - `[, dict]`
-#        meta-data for the MySQL query. It will be filled automatically with the\
-#       `table` key and the proper table name.
-#
-#    :return: S_OK() || S_ERROR()
-#    """
-#    # Unused argument
-#    return self._query( 'insert', 'MonitoringTest', locals() )
-
-#  def updateMonitoringTest( self, metricName, serviceURI, siteName, serviceFlavour,
-#                            metricStatus, summaryData, timestamp, lastCheckTime,
-#                            meta = None ):
-#    """
-#    Updates on MonitoringTest a new row with the arguments given.
-#
-#    :Parameters:
-#      **metricName** - `string`
-#        name of the metric
-#      **serviceURI** - `string`
-#        URI of the service
-#      **siteName** - `string`
-#        name of the site
-#      **serviceFlavour** - `string`
-#        type of service
-#      **metricStatus** - `string`
-#        metric's status
-#      **summaryData** - `string`
-#        result of the monitoring test
-#      **timestamp** - `datetime`
-#        timestamp of the test
-#      **lastCheckTime** - `datetime`
-#        last time it was cheched
-#      **meta** - `[, dict]`
-#        meta-data for the MySQL query. It will be filled automatically with the\
-#       `table` key and the proper table name.
-#
-#    :return: S_OK() || S_ERROR()
-#    """
-#    # Unused argument
-#    return self._query( 'update', 'MonitoringTest', locals() )
 
   def selectMonitoringTest(self, metricName=None, serviceURI=None,
                            siteName=None, serviceFlavour=None,
@@ -414,5 +346,3 @@ class ResourceManagementClient(DIRACRMClient):
       return S_ERROR("Empty result")
 
     return S_OK(dict(zip(res['Columns'], res['Value'][0])))
-
-# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
