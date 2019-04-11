@@ -369,8 +369,7 @@ class ModuleBase(object):
           if 'outputDataName' not in fileTypeDict:
             fileTypeDict['outputDataName'] = self.histoName
         else:
-          if 'outputDataName' not in fileTypeDict:
-            fileTypeDict['outputDataName'] = self.outputFilePrefix + '.' + fileTypeDict['outputDataType']
+          fileTypeDict['outputDataName'] = self.outputFilePrefix + '.' + fileTypeDict['outputDataType']
     else:
       self.applicationLog = self.step_commons.get('applicationLog', self.applicationLog)
 
@@ -745,6 +744,16 @@ class ModuleBase(object):
 
   def _manageAppOutput(self, outputs):
     """ Calls self._findOutputs to find what's produced, then creates the LFNs
+
+        outputs, as called here, is created starting from step_commons['listoutput'],
+        but enriched with at least the outputDataName.
+
+        example of outputs:
+        [{'outputDataType': 'bhadron.dst', 'outputBKType': 'BHADRON.DST',
+          'outputDataName': '00012345_00012345_2.BHADRON.DST'},
+         {'outputDataType': 'calibration.dst','outputDataType': 'CALIBRATION.DST',
+          'outputDataName': '00012345_00012345_2.CALIBRATION.DST'}]
+
     """
 
     if not outputs:
@@ -776,14 +785,13 @@ class ModuleBase(object):
 
   def _findOutputs(self, stepOutput):
     """ Find which outputs of those in stepOutput (what are expected to be produced) are effectively produced.
-        stepOutput, as called here, corresponds to step_commons['listoutput']
+        stepOutput, as called here, is created starting from step_commons['listoutput']
 
-        stepOutput =
+        example of stepOutput:
         [{'outputDataType': 'bhadron.dst', 'outputBKType': 'BHADRON.DST',
-        'outputDataName': '00012345_00012345_2.BHADRON.DST'},
-        {'outputDataType': 'calibration.dst','outputDataType': 'CALIBRATION.DST',
-        'outputDataName': '00012345_00012345_2.CALIBRATION.DST'},
-
+          'outputDataName': '00012345_00012345_2.BHADRON.DST'},
+         {'outputDataType': 'calibration.dst','outputDataType': 'CALIBRATION.DST',
+          'outputDataName': '00012345_00012345_2.CALIBRATION.DST'}]
     """
 
     bkFileTypes = []

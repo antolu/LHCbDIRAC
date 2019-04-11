@@ -327,7 +327,7 @@ class Production(object):
   #############################################################################
 
   def _constructOutputFilesList(self, filesTypesList):
-    """ Build list of dictionary of output files, including HIST case
+    """ Build list of dictionary of output file types, including HIST case
     """
 
     outputList = []
