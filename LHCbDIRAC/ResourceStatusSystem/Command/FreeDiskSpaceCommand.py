@@ -6,6 +6,7 @@
 
 # DIRAC
 from DIRAC import S_OK
+from DIRAC.Core.Utilities.File import convertSizeUnits
 from DIRAC.AccountingSystem.Client.DataStoreClient import gDataStoreClient
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
 from DIRAC.ResourceStatusSystem.Command.FreeDiskSpaceCommand import FreeDiskSpaceCommand as FDSC
@@ -67,7 +68,7 @@ class FreeDiskSpaceCommand(FDSC):
       spaceTokenAccounting.setNowAsStartAndEndTime()
       spaceTokenAccounting.setValuesFromDict(accountingDict)
       spaceTokenAccounting.setValueByKey('SpaceType', sType)
-      spaceTokenAccounting.setValueByKey('Space', int(results[sType] * 1e6))
+      spaceTokenAccounting.setValueByKey('Space', int(convertSizeUnits(results[sType], 'MB', 'B')))
 
       gDataStoreClient.addRegister(spaceTokenAccounting)
     gDataStoreClient.commit()
