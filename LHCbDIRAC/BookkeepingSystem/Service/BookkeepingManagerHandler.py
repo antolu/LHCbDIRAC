@@ -1239,7 +1239,7 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.addReplica(fileName)
 
   #############################################################################
-  types_getRunInformations = [long]
+  types_getRunInformations = [(long, int)]
 
   @staticmethod
   def export_getRunInformations(runnb):
