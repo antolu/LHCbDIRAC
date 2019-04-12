@@ -542,14 +542,13 @@ class ModuleBase(object):
   def getCandidateFiles(self, outputList, outputLFNs, fileMask='', stepMask=''):
     """ Returns list of candidate files to upload, check if some outputs are missing.
 
-        outputList has the following structure:
-          [ {'outputDataType':'', 'outputDataName':''} , {...} ]
+        :param list outputList: list of outputs with the following structure::
+            [{'outputDataType': '', 'outputDataName': ''} , {...}]
+        :param list outputLFNs: output LFNs for the job
+        :param str fileMask: the output file extensions to restrict the outputs to. Can also be a list of strings
+        :param str stepMask: the step ID to restrict the outputs to. Can also be a list of strings.
 
-        outputLFNs is the list of output LFNs for the job
-
-        fileMask is the output file extensions to restrict the outputs to
-
-        returns dictionary containing type, SE and LFN for files restricted by mask
+        :returns: dictionary containing type, SE and LFN for files restricted by mask
     """
     fileInfo = {}
 
@@ -614,6 +613,12 @@ class ModuleBase(object):
 
   def _applyMask(self, candidateFilesIn, fileMask, stepMask):
     """ Select which files have to be uploaded: in principle all
+
+        :param list candidateFilesIn: list of LFNs
+        :param str fileMask: the output file extensions to restrict the outputs to. Can also be a list of strings
+        :param str stepMask: the step ID to restrict the outputs to. Can also be a list of strings.
+
+        :returns: list of LFNs
     """
     candidateFiles = copy.deepcopy(candidateFilesIn)
 

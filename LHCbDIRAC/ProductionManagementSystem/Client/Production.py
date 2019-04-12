@@ -154,19 +154,28 @@ class Production(object):
   #############################################################################
 
   def addApplicationStep(self, stepDict, inputData=None, modulesList=None):
-    """ stepDict contains everything that is in the step, for this production, e.g.:
-        {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1',
-        'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging', 'ExtraOptions': '',
-        'ProcessingPass': 'Merging', 'Visible': 'N', 'OptionsFormat': '',
-        'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py',
-        'DDDB': 'head-20110302', 'CONDDB': 'head-20110407', 'DQTag': '',
-        'isMulticore': 'N', 'SystemConfig': '', 'mcTCK': '',
-        'fileTypesIn': ['SDST'],
-        'visibilityFlag': [{'Visible': 'Y', 'FileType': 'BHADRON.DST'}],
-        'fileTypesOut': ['BHADRON.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST']}
+    """ Adds an application step to the workflow
+
+        stepDict contains everything that is in the step, for this production, e.g.::
+
+          {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1',
+          'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging', 'ExtraOptions': '',
+          'ProcessingPass': 'Merging', 'Visible': 'N', 'OptionsFormat': '',
+          'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py',
+          'DDDB': 'head-20110302', 'CONDDB': 'head-20110407', 'DQTag': '',
+          'isMulticore': 'N', 'SystemConfig': '', 'mcTCK': '',
+          'fileTypesIn': ['SDST'],
+          'visibilityFlag': [{'Visible': 'Y', 'FileType': 'BHADRON.DST'}],
+          'fileTypesOut': ['BHADRON.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST']}
 
         Note: this step treated here does not necessarily corresponds to a step of the BKK:
         the case where they might be different is the merging case.
+
+        :param dict stepDict: contains everything that is in the step, for this production
+        :param str inputData: the input data of the step. Either None, or 'previousStep', or the input to the step
+        :param list modulesList: the list of module names (str) this step is made of. If None, a default is taken.
+
+        :returns: the name (str) of the step added
     """
 
     appName = stepDict['ApplicationName']
@@ -328,6 +337,9 @@ class Production(object):
 
   def _constructOutputFilesList(self, filesTypesList):
     """ Build list of dictionary of output file types, including HIST case
+
+        :param list filesTypesList: a list of file types (str)
+        :returns: a list with a dictionary of file types, lowered
     """
 
     outputList = []
@@ -352,7 +364,10 @@ class Production(object):
   #############################################################################
 
   def addFinalizationStep(self, modulesList=None):
-    """ Add the finalization step (some defaults are inserted)
+    """ Add the finalization step to the workflow (some defaults are inserted)
+
+        :param list modulesList: the list of modules names this step is made of. If None, a default is taken.
+        :returns: None
     """
     if modulesList is None:
       modulesList = ['UploadOutputData', 'UploadLogFile', 'UploadMC', 'FailoverRequest']
