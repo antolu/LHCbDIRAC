@@ -121,7 +121,7 @@ class ProductionRequest(object):
 
   def resolveSteps(self):
     """ Given a list of steps in strings, some of which might be missing,
-        resolve it into a list of dictionary of steps
+        resolve it into a list of dictionary of steps (self.stepsListDict)
     """
     outputVisFlag = dict([k, v] for el in self.outputVisFlag for k, v in el.iteritems()
                          )  # Transform the list of dictionaries in a dictionary
@@ -136,6 +136,19 @@ class ProductionRequest(object):
         stepDict = stepDict['Value']
 
       stepsListDictItem = {}
+
+      s_in = self.bkkClient.getStepInputFiles(stepID)
+      if not s_in['OK']:
+        raise ValueError(s_in['Message'])
+      stepsListDictItem['fileTypesIn'] = [fileType[0].strip() for fileType in s_in['Value']['Records']]
+
+      s_out = self.bkkClient.getStepOutputFiles(stepID)
+      if not s_out['OK']:
+        raise ValueError(s_out['Message'])
+      fileTypesList = [fileType[0].strip() for fileType in s_out['Value']['Records']]
+      self.fullListOfOutputFileTypes = self.fullListOfOutputFileTypes + fileTypesList
+      stepsListDictItem['fileTypesOut'] = fileTypesList
+
       for parameter, value in itertools.izip(stepDict['ParameterNames'],
                                              stepDict['Records'][0]):
         if parameter.lower() in ['conddb', 'dddb', 'dqtag'] and value:
@@ -143,30 +156,31 @@ class ProductionRequest(object):
             value = self.stepsListDict[-1][parameter]
 
         if parameter == 'OptionFiles':  # Modifying the OptionFiles (for setting the compression level)
-          #
-          # If the prod manager sets a compression level for a particular step, either we append the option file
-          # or we overwrite the existing one inherited with the step
-          #
-          if len(self.compressionLvl) > count and self.compressionLvl[count] != '':
-            persist = re.compile('Compression-[A-Z]{4}-[1-9]')
-            # self.compressionLvl[count] = self.appConfig + self.compressionLvl[count] + '.py'
-            self.compressionLvl[count] = self.appConfig + self.compDict[self.compressionLvl[count].upper()] + '.py'
-            if not persist.search(value):
-              if value == '':
-                value = self.compressionLvl[count]
+          if 'MDF' not in stepsListDictItem['fileTypesOut']:  # certain MC produce MDF, which shouldn't be compressed
+            #
+            # If the prod manager sets a compression level for a particular step, either we append the option file
+            # or we overwrite the existing one inherited with the step
+            #
+            if len(self.compressionLvl) > count and self.compressionLvl[count] != '':
+              persist = re.compile('Compression-[A-Z]{4}-[1-9]')
+              # self.compressionLvl[count] = self.appConfig + self.compressionLvl[count] + '.py'
+              self.compressionLvl[count] = self.appConfig + self.compDict[self.compressionLvl[count].upper()] + '.py'
+              if not persist.search(value):
+                if value == '':
+                  value = self.compressionLvl[count]
+                else:
+                  value = ";".join((value, self.compressionLvl[count]))
               else:
-                value = ";".join((value, self.compressionLvl[count]))
-            else:
-              value = persist.sub(persist.search(self.compressionLvl[count]).group(), value)
-          #
-          # If instead the prod manager doesn't declare a compression level, e.g. for intermediate steps,
-          # we check if there is one in the options and in case we delete it. This leaves the default zip level
-          # defined inside Gaudi
-          #
-          elif len(self.compressionLvl) > count and self.compressionLvl[count] == '':
-            persist = re.compile(r'\$\w+/Persistency/Compression-[A-Z]{4}-[1-9].py;?')
-            if persist.search(value):
-              value = persist.sub('', value)
+                value = persist.sub(persist.search(self.compressionLvl[count]).group(), value)
+            #
+            # If instead the prod manager doesn't declare a compression level, e.g. for intermediate steps,
+            # we check if there is one in the options and in case we delete it. This leaves the default zip level
+            # defined inside Gaudi
+            #
+            elif len(self.compressionLvl) > count and self.compressionLvl[count] == '':
+              persist = re.compile(r'\$\w+/Persistency/Compression-[A-Z]{4}-[1-9].py;?')
+              if persist.search(value):
+                value = persist.sub('', value)
 
         if parameter == 'SystemConfig' and value is not None and re.search('slc5', value):
           p = re.compile(r'\$\w+/Persistency/Compression-[A-Z]{4}-[1-9].py;?')
@@ -174,21 +188,6 @@ class ProductionRequest(object):
             stepsListDictItem['OptionFiles'] = p.sub('', stepsListDictItem['OptionFiles'])
 
         stepsListDictItem[parameter] = value  # Fixing what decided
-
-      s_in = self.bkkClient.getStepInputFiles(stepID)
-      if not s_in['OK']:
-        raise ValueError(s_in['Message'])
-      else:
-        fileTypesList = [fileType[0].strip() for fileType in s_in['Value']['Records']]
-        stepsListDictItem['fileTypesIn'] = fileTypesList
-
-      s_out = self.bkkClient.getStepOutputFiles(stepID)
-      if not s_out['OK']:
-        raise ValueError(s_out['Message'])
-      else:
-        fileTypesList = [fileType[0].strip() for fileType in s_out['Value']['Records']]
-        self.fullListOfOutputFileTypes = self.fullListOfOutputFileTypes + fileTypesList
-        stepsListDictItem['fileTypesOut'] = fileTypesList
 
       if stepsListDictItem['StepId'] in self.extraOptions:
         stepsListDictItem['ExtraOptions'] = self.extraOptions[stepsListDictItem['StepId']]
@@ -318,12 +317,10 @@ class ProductionRequest(object):
   def _getStepsInProdDAG(self, prodDict, stepsListDict, stepsOrder='sequential'):
     """ Builds the DAG of steps in a production
 
-        Args:
-          prodDict (dict): dictionary representing one production
-          stepsListDict (list): list of steps (which are dictionaries) that should be in the production
+        :params dict prodDict: dictionary representing one production
+        :params list stepsListDict: list of steps (which are dictionaries) that should be in the production
 
-        Returns:
-          stepsInProd (DAG)
+        :returns: stepsInProd (DAG)
     """
     stepsInProd = DAG()
 
@@ -376,7 +373,12 @@ class ProductionRequest(object):
     return prodID
 
   def _modifyAndLaunchMCXML(self, prod, prodDict):
-    """ needed modifications
+    """ Apply modifications to the workflow XML for MC testing case
+
+        :param Production prod: Production object
+        :param dict prodDict: dictionary with production info
+
+        :returns: res['OK'] or res['ERROR']
     """
     # set the destination and number of events for testing
     destination = self.opsH.getValue("Productions/MCTesting/MCTestingDestination", 'DIRAC.Test.ch')
