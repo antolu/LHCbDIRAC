@@ -146,7 +146,6 @@ class BookkeepingClientFake(object):
     elif stepID == {'StepId': 124620}:
       options124620 = '$APPCONFIGOPTS/Boole/Default.py;'
       options124620 += '$APPCONFIGOPTS/Boole/DataType-2012.py;'
-      options124620 += '$APPCONFIGOPTS/Boole/Boole-SiG4EnergyDeposit.py;'
       options124620 += '$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py'
       return {
           'OK': True,
@@ -185,6 +184,48 @@ class BookkeepingClientFake(object):
                       '',
                       '',
                       options124620,
+                      'N',
+                      'x86_64-slc5-gcc43-opt',
+                      '',
+                      '']]}}
+    elif stepID == {'StepId': 124621}:
+      return {
+          'OK': True,
+          'Value': {
+              'TotalRecords': 1,
+              'ParameterNames': [
+                  'StepId',
+                  'StepName',
+                  'ApplicationName',
+                  'ApplicationVersion',
+                  'ExtraPackages',
+                  'ProcessingPass',
+                  'Visible',
+                  'Usable',
+                  'DDDB',
+                  'CONDDB',
+                  'DQTag',
+                  'OptionsFormat',
+                  'OptionFiles',
+                  'isMulticore',
+                  'SystemConfig',
+                  'mcTCK',
+                  'ExtraOptions'],
+              'Records': [
+                  [
+                      124621,
+                      'Digi13',
+                      'Brunel',
+                      'v26r3',
+                      'AppConfig.v3r164',
+                      'Digi13',
+                      'N',
+                      'Yes',
+                      'Sim08-20130503-1',
+                      'Sim08-20130503-1-vc-mu100',
+                      '',
+                      '',
+                      'someBrunelOptions',
                       'N',
                       'x86_64-slc5-gcc43-opt',
                       '',
@@ -446,7 +487,7 @@ class BookkeepingClientFake(object):
               'Value': {'TotalRecords': 7,
                         'ParameterNames': ['FileType', 'Visible'],
                         'Records': [['', 'Y']]}}
-    if stepID == 124620:
+    if stepID == 124620 or stepID == 124621:
       return {'OK': True,
               'Value': {'TotalRecords': 7,
                         'ParameterNames': ['FileType', 'Visible'],
@@ -483,6 +524,11 @@ class BookkeepingClientFake(object):
               'Value': {'TotalRecords': 7,
                         'ParameterNames': ['FileType', 'Visible'],
                         'Records': [['DIGI', 'N']]}}
+    if stepID == 124621:
+      return {'OK': True,
+              'Value': {'TotalRecords': 7,
+                        'ParameterNames': ['FileType', 'Visible'],
+                        'Records': [['MDF', 'Y']]}}
     if stepID == 999 or stepID == 998 or stepID == 997 or stepID == 996 or stepID == 1098 or stepID == 1099:
       return {'OK': True,
               'Value': {'TotalRecords': 7,
@@ -553,6 +599,28 @@ step2Dict = {'StepId': 456, 'StepName': 'Merge',
                                 {'Visible': 'N', 'FileType': 'CALIBRATION.DST'}],
              'fileTypesIn': ['BHADRON.DST', 'CALIBRATION.DST'],
              'fileTypesOut': ['BHADRON.DST', 'CALIBRATION.DST']}
+
+step124620Dict = {'StepId': 124620, 'StepName': 'Digi13',
+                  'ApplicationName': 'Boole', 'ApplicationVersion': 'v26r3', 'ExtraOptions': '',
+                  'OptionFiles': 'optsFiles', 'Visible': 'N', 'ExtraPackages': 'AppConfig.v3r164',
+                  'ProcessingPass': 'Digi13', 'OptionsFormat': '',
+                  'prodStepID': "124620['SIM']", 'SystemConfig': 'x86_64-slc5-gcc43-opt',
+                  'DDDB': 'Sim08-20130503-1', 'CONDDB': 'Sim08-20130503-1-vc-mu100', 'DQTag': '', 'isMulticore': 'N',
+                  'mcTCK': '', 'Usable': 'Yes',
+                  'visibilityFlag': [{'Visible': 'N', 'FileType': 'DIGI'}],
+                  'fileTypesIn': ['SIM'],
+                  'fileTypesOut': ['DIGI']}
+
+step124621Dict = {'StepId': 124621, 'StepName': 'Digi13',
+                  'ApplicationName': 'Brunel', 'ApplicationVersion': 'v26r3', 'ExtraOptions': '',
+                  'OptionFiles': 'optsFiles', 'Visible': 'N', 'ExtraPackages': 'AppConfig.v3r164',
+                  'ProcessingPass': 'Digi13', 'OptionsFormat': '',
+                  'prodStepID': "124621['SIM']", 'SystemConfig': 'x86_64-slc5-gcc43-opt',
+                  'DDDB': 'Sim08-20130503-1', 'CONDDB': 'Sim08-20130503-1-vc-mu100', 'DQTag': '', 'isMulticore': 'N',
+                  'mcTCK': '', 'Usable': 'Yes',
+                  'visibilityFlag': [{'Visible': 'Y', 'FileType': 'MDF'}],
+                  'fileTypesIn': ['SIM'],
+                  'fileTypesOut': ['MDF']}
 
 stepStripp = {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 123, 'ApplicationVersion': 'v28r3p1',
               'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging', 'SystemConfig': '',
