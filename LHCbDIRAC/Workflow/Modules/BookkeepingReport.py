@@ -167,7 +167,8 @@ class BookkeepingReport(ModuleBase):
       try:
         self.xf_o = XMLSummary(xmlSummaryFile)
       except XMLSummaryError as e:
-        self.log.warn('No XML summary available: %s' % repr(e))
+        self.log.warn('No XML summary available',
+                      '%s' % repr(e))
         self.xf_o = None
 
     return bkLFNs, logFilePath
@@ -408,29 +409,32 @@ class BookkeepingReport(ModuleBase):
       fileStats = '0'
       if output in bkTypeDict:
         typeVersion = getOutputType(output, self.stepInputData)[output]
-        self.log.info('Setting POOL XML catalog type for %s to %s' % (output, typeVersion))
+        self.log.info('Setting POOL XML catalog type',
+                      'for %s to %s' % (output, typeVersion))
         typeName = bkTypeDict[output].upper()
-        self.log.info('Setting explicit BK type version for %s to %s and file type to %s' % (output,
-                                                                                             typeVersion,
-                                                                                             typeName))
+        self.log.info('Setting explicit BK type version',
+                      'for %s to %s and file type to %s' % (output, typeVersion, typeName))
 
         try:
           fileStats = str(self.xf_o.outputsEvents[output])
         except AttributeError as e:
           # This happens iff the XML summary can't be created (e.g. for merging MDF files)
-          self.log.warn(
-              "XML summary not created, unable to determine the output events and setting to 'Unknown': %s" % repr(e))
+          self.log.warn("XML summary not created, unable to determine the output events and setting to 'Unknown'",
+                        repr(e))
           fileStats = 'Unknown'
         except KeyError as e:
-          self.log.warn(repr(e))
+          self.log.warn("Could not find output LFN in XML summary object",
+                        repr(e))
           if ('hist' in outputtype.lower()) or ('.root' in outputtype.lower()):
-            self.log.warn("HIST file %s not found in XML summary, event stats set to 'Unknown'" % output)
+            self.log.warn("HIST file not found in XML summary, event stats set to 'Unknown'",
+                          "HIST not found = %s" % output)
             fileStats = 'Unknown'
           else:
             raise KeyError(e)
 
       if not os.path.exists(output):
-        self.log.error("Output file %s does not exist" % output)
+        self.log.error("Output file does not exist",
+                       "Output file name: %s" % output)
         continue
       # Output file size
       if 'size' not in self.step_commons or output not in self.step_commons['size']:
@@ -461,19 +465,22 @@ class BookkeepingReport(ModuleBase):
         guidResult = getGUID(output)
         guid = ''
         if not guidResult['OK']:
-          self.log.error('Could not find GUID for %s with message' % (output), guidResult['Message'])
+          self.log.error("Could not find GUID",
+                         "for %s with message %s" % (output, guidResult['Message']))
         elif guidResult['generated']:
           self.log.warn('PoolXMLFile generated GUID(s) for the following files ',
                         ', '.join(guidResult['generated']))
           guid = guidResult['Value'][output]
         else:
           guid = guidResult['Value'][output]
-          self.log.info('Setting POOL XML catalog GUID for %s to %s' % (output, guid))
+          self.log.info('Setting POOL XML catalog GUID',
+                        'for %s to %s' % (output, guid))
       else:
         guid = self.step_commons['guid'][output]
 
       if not guid:
-        raise NameError('No GUID found for %s' % output)
+        raise NameError('No GUID found',
+                        'for %s' % output)
 
       # find the constructed lfn
       lfn = ''
@@ -482,7 +489,7 @@ class BookkeepingReport(ModuleBase):
           if os.path.basename(outputLFN) == output:
             lfn = outputLFN
         if not lfn:
-          self.log.error('Could not find LFN for %s' % output)
+          self.log.error('Could not find LFN', 'for %s' % output)
           raise NameError('Could not find LFN of output file')
       else:
         lfn = '%s/%s' % (logFilePath, self.applicationLog)
