@@ -7,7 +7,7 @@ import unittest
 from mock import Mock, MagicMock
 
 from LHCbDIRAC.BookkeepingSystem.Client.test.mock_BookkeepingClient import BookkeepingClientFake, \
-    stepMC, stepMC2, stepStripp, mergeStep, mergeStepBHADRON, step1Dict, step2Dict, \
+    stepMC, stepMC2, stepStripp, mergeStep, mergeStepBHADRON, step1Dict, step2Dict, step124620Dict, step124621Dict, \
     step125080, stepHistoMergingDict, mergeStepCALIBRA, mergeStepPIDMDST
 from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import ProductionRequest, _splitIntoProductionSteps
 from LHCbDIRAC.ProductionManagementSystem.Client.Production import Production
@@ -290,6 +290,17 @@ class ProductionRequestSuccess(ClientTestCase):
     expected3['OptionFiles'] = 'optsFiles;$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py'
     pr.resolveSteps()
     self.assertEqual(pr.stepsListDict, [expected1, expected2, expected3])
+
+    pr = ProductionRequest(self.bkClientFake, self.diracProdIn)
+    pr.stepsList = ['124620', '124621']
+    pr.compressionLvl = ['LOW', 'HIGH']
+    pr.outputVisFlag = [{'1': 'N'}, {'2': 'Y'}]
+    expected1 = dict(step124620Dict)
+    expected1['OptionFiles'] = '$APPCONFIGOPTS/Boole/Default.py;$APPCONFIGOPTS/Boole/DataType-2012.py;'
+    expected2 = dict(step124621Dict)
+    expected2['OptionFiles'] = 'someBrunelOptions'
+    pr.resolveSteps()
+    self.assertEqual(pr.stepsListDict, [expected1, expected2])
 
     pr = ProductionRequest(self.bkClientFake, self.diracProdIn)
     pr.stepsList = ['123', '456', '', '']

@@ -1,3 +1,12 @@
+v9r3p3
+use DIRAC v6r21p4
+
+* Do not apply any compression for the case of MDF
+* added some docstring
+* always re-calculating outputDataName
+* BKK: accept integer as well
+* RSS:use utility function to convert size (note: this applies the 1024 to 1000 difference)
+
 v9r3p2
 use DIRAC v6r21p3
 
