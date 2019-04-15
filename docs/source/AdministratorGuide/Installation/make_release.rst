@@ -199,19 +199,22 @@ If the GitLab-CI pipelines are successful, we can check the system tests.
 At this `link <https://jenkins-dirac.web.cern.ch/view/LHCbDIRAC/>`_ you'll find some Jenkins Jobs ready to be started.
 Please start the following Jenkins jobs and verify their output.
 
-1. LHCbPilot2
+1. LHCbIntegration_SLC6
 
-This jobs will simply install the pilot. Please just check if the result does not show in an "unstable" status.
-Also, please grep its output for "ERROR:".
+This is a lengthy test of the LHCbDIRAC server installation and interaction with services.
+Please just check if the result does not show in an "unstable" status.
 
-2. LHCbPilot2_integration_user
+2. LHCbPilot3_pipeline
 
-This job will install the pilot. Then it will run a couple jobs. Verify its output for "ERROR:" as in the previous step.
+This job will run several payloads in a pipeline, using pilot 3 on CERNVM3 nodes.
+Please just check if the result does not show in an "unstable" status.
 
-3. LHCbPilot2_regression_user
+3. LHCbPilot3_CVM4_pipeline
 
-This job will install the pilot. Then it will run a couple jobs. Verify its output for "ERROR:" as in the previous step.
-
+This job will run several payloads in a pipeline, using pilot 3 on CERNVM4 nodes.
+Some of the tests run in the pipeline will, for now, fail.
+The reason is that some tests try to run SLC5 binaries on a CentOS7-based distibution,
+which will fail. Some of the tests in the pipeline will anyway suceed.
 
 
 
@@ -293,9 +296,8 @@ you login to aivoadm.cern.ch and you follow the sequence::
 new procedure for installing on cvmfs-lhcb
 ``````````````````````````````````````````
 
-You should member of the e-group lhcb-cvmfs-librarians.
-The version to be deployed is vArBpC
-you login to aivoadm.cern.ch and you follow the sequence::
+Only members of the e-group lhcb-cvmfs-librarians have the karma to make releases on CVMFS.
+The version to be deployed is vArBpC. Login on aivoadm.cern.ch and follow the sequence::
 
   ssh cvmfs-lhcb
   sudo -i -u cvlhcb
@@ -313,16 +315,15 @@ you login to aivoadm.cern.ch and you follow the sequence::
   exit
 
 
-
 Server
 ``````
 
 To install it on the VOBOXes from lxplus::
 
   lhcb-proxy-init -g lhcb_admin
-  dirac-admin-sysadmin-cli --host volhcbXX.cern.ch
-  >update LHCbDIRAC v8r3p32
-  >restart *
+  dirac-admin-sysadmin-cli --host lbvoboxXYZ.cern.ch
+  > update LHCbDIRAC v9r3p3
+  > restart *
 
 The (better) alternative is using the web portal or using the following script: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/blob/devel/dist-tools/create_vobox_update.py
 
@@ -353,18 +354,18 @@ It is normal if you see the following errors::
 In case of failure you have to update the machine by hand.
 Example of a typical failure::
 
-         --> Executing update v8r2p42
-         Software update can take a while, please wait ...
-        [ERROR] Failed to update the software
-        Timeout (240 seconds) for '['dirac-install', '-r', 'v8r2p42', '-t', 'server', '-e', 'LHCb', '-e', 'LHCb', '/opt/dirac/etc/dirac.cfg']' call
+   --> Executing update v9r3p3
+   Software update can take a while, please wait ...
+   [ERROR] Failed to update the software
+   Timeout (240 seconds) for '['dirac-install', '-r', 'v9r3p3', '-t', 'server', '-e', 'LHCb', '-e', 'LHCb', '/opt/dirac/etc/dirac.cfg']' call
 
 Login to the failing machine, become dirac, execute manually the update, and restart everything. For example::
 
-      ssh lbvobox11
-      sudo su - dirac
-      dirac-install -r v8r2p42 -t server -e LHCb -e LHCb /opt/dirac/etc/dirac.cfg
-      lhcb-restart-agent-service
-      runsvctrl t startup/Framework_SystemAdministrator/
+   ssh lbvobox11
+   sudo su - dirac
+   dirac-install -r v9r3p3 -t server -e LHCb -e LHCb /opt/dirac/etc/dirac.cfg
+   lhcb-restart-agent-service
+   runsvctrl t startup/Framework_SystemAdministrator/
 
 Specify that this error can be ignored (but should be fixed ! )::
 
@@ -383,7 +384,7 @@ When the web portal machine is updated then you have to compile the WebApp::
 
     ssh lhcb-portal-dirac.cern.ch
     sudo su - dirac
-    #  (for example: dirac-install -r v8r4p2 -t server -l LHCb -e LHCb,LHCbWeb,WebAppDIRAC /opt/dirac/etc/dirac.cfg)
+    #  (for example: dirac-install -r v9r3p3 -t server -l LHCb -e LHCb,LHCbWeb,WebAppDIRAC /opt/dirac/etc/dirac.cfg)
     dirac-install -r VERSIONTOBEINSTALLED -t server -l LHCb -e LHCb,LHCbWeb,WebAppDIRAC /opt/dirac/etc/dirac.cfg
     
 
@@ -408,7 +409,7 @@ Pilot
 
 Update the pilot version from the CS, keeping 2 pilot versions, for example:
 
-   /Operation/LHCb-Production/Pilot/Version = v8r2p42, v8r241
+   /Operation/LHCb-Production/Pilot/Version = v9r3p3, v9r3p2
 
 The newer version should be the first in the list
 
