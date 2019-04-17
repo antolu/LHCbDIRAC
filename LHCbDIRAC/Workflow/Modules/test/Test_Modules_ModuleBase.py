@@ -6,8 +6,8 @@
 __RCSID__ = "$Id$"
 
 import os
-from mock import MagicMock
 from itertools import product
+from mock import MagicMock
 
 import pytest
 
@@ -37,6 +37,19 @@ def test__checkLocalExistance(mocker):
   mb = ModuleBase(bkClientIn=bkc_mock, dm=dm_mock)
   with pytest.raises(OSError):
     mb._checkLocalExistance(['aaa', 'bbb'])
+
+  with open('testFile.txt', 'w'):
+    res = mb._checkLocalExistance(['testFile.txt'])
+    assert res == ['testFile.txt']
+
+    with open('testSecondFile.txt', 'w'):
+      res = mb._checkLocalExistance(['testFile.txt', 'testSecondFile.txt'])
+      assert sorted(res) == sorted(['testFile.txt', 'testSecondFile.txt'])
+
+      res = mb._checkLocalExistance(['TESTFILE.TXT', 'testSecondFile.txt'])
+      assert sorted(res) == sorted(['testFile.txt', 'testSecondFile.txt'])
+  os.remove('testFile.txt')
+  os.remove('testSecondFile.txt')
 
 
 candidateFiles = {'00012345_00012345_4.dst': {'lfn': '/lhcb/MC/2010/DST/123/123_45_4.dst',

@@ -569,10 +569,16 @@ class ModuleBase(object):
         self.log.verbose("Found LFN %s for file %s" % (lfn, os.path.basename(lfn).split('_')[-1]))
 
     # check local existance
-    self._checkLocalExistance(fileInfo.keys())
+    fileList = self._checkLocalExistance(list(fileInfo.keys()))
+    # really horrible stuff for updating the name with what's found on the disk (maybe the case changed)
+    newFileInfo = {}
+    for fi in fileInfo.items():
+      for li in fileList:
+        if fi[0].lower() == li.lower():
+          newFileInfo[li] = fi[1]
 
     # Select which files have to be uploaded: in principle all
-    candidateFiles = self._applyMask(fileInfo, fileMask, stepMask)
+    candidateFiles = self._applyMask(newFileInfo, fileMask, stepMask)
 
     # Sanity check all final candidate metadata keys are present
     self._checkSanity(candidateFiles)
@@ -601,13 +607,25 @@ class ModuleBase(object):
 
     notPresentFiles = []
 
-    for fileName in fileList:
-      if not os.path.exists(fileName):
-        notPresentFiles.append(fileName)
+    filesOnDisk = set(os.listdir('.'))
+    diff = set(fileList).difference(filesOnDisk)
+    if diff:
+      self.log.warn("Not all files found", "%s" % filesOnDisk)
+      self.log.warn("Looking for files with different case")
+      diffCI = set(fx.lower() for fx in fileList).difference(set(fod.lower() for fod in filesOnDisk))
+      if diffCI:
+        self.log.error("Output data not found",
+                       "File list %s does not exist locally" % notPresentFiles)
+        raise os.error("Output data not found")
 
-    if notPresentFiles:
-      self.log.error('Output data file list %s does not exist locally' % notPresentFiles)
-      raise os.error("Output data not found")
+      # now checking what's the actual filename case that's written
+      filesActuallyOnDisk = []
+      for fod in os.listdir('.'):
+        if fod.lower() in [fl.lower() for fl in fileList]:
+          filesActuallyOnDisk.append(fod)
+      return filesActuallyOnDisk
+
+    return fileList
 
   #############################################################################
 
@@ -630,7 +648,7 @@ class ModuleBase(object):
       stepMask = [stepMask]
 
     if fileMask and fileMask != ['']:
-      for fileName, metadata in candidateFiles.items():
+      for fileName, metadata in list(candidateFiles.items()):
         if metadata['type'].lower() not in [fm.lower() for fm in fileMask]:
           del candidateFiles[fileName]
           self.log.info('Output file %s was produced but will not be treated (fileMask is %s)' % (fileName,
@@ -639,7 +657,7 @@ class ModuleBase(object):
       self.log.info('No outputDataFileMask provided, the files with all the extensions will be considered')
 
     if stepMask and stepMask != ['']:
-      for fileName, metadata in candidateFiles.items():
+      for fileName, metadata in list(candidateFiles.items()):
         if fileName.lower().replace(metadata['type'].lower(), '').split('_')[-1].split('.')[0] not in stepMask:
           del candidateFiles[fileName]
           self.log.info('Output file %s was produced but will not be treated (stepMask is %s)' % (fileName,

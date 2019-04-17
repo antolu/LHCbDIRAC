@@ -1,7 +1,7 @@
 """ Test class for BookkeepingReport
 """
 
-# pylint: disable=missing-docstring, invalid-name
+# pylint: disable=missing-docstring, invalid-name, protected-access
 
 __RCSID__ = "$Id$"
 
@@ -44,9 +44,9 @@ def test_execute(wf_cs, s_cs):
 
 
 @pytest.mark.parametrize("output, outputType, xf_o_r, expected", [
-    ('/this/is/an/output.txt', 'txt', {'/this/is/an/output.txt': {}}, '{}'),
-    ('/this/is/an/output.hist', 'hist', {'/this/is/an/output.txt': {}}, 'Unknown'),
-    ('/this/is/an/output.txt', 'txt', {'/this/is/an/OutPut.txt': {}}, '{}'),
+    ('/this/is/an/output.txt', 'txt', {'/this/is/an/output.txt': {}}, ('{}', '/this/is/an/output.txt')),
+    ('/this/is/an/output.hist', 'hist', {'/this/is/an/output.txt': {}}, ('Unknown', '/this/is/an/output.hist')),
+    ('/this/is/an/output.txt', 'txt', {'/this/is/an/OutPut.txt': {}}, ('{}', '/this/is/an/OutPut.txt')),
 ])
 def test__getFileStatsFromXMLSummary(output, outputType, xf_o_r, expected):
   mock_xfo = MagicMock()
@@ -54,5 +54,4 @@ def test__getFileStatsFromXMLSummary(output, outputType, xf_o_r, expected):
   bkr.xf_o = mock_xfo
 
   res = bkr._getFileStatsFromXMLSummary(output, outputType)
-  print res
   assert res == expected
