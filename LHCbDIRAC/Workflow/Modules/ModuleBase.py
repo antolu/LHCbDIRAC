@@ -759,6 +759,7 @@ class ModuleBase(object):
          {'outputDataType': 'calibration.dst','outputDataType': 'CALIBRATION.DST',
           'outputDataName': '00012345_00012345_2.CALIBRATION.DST'}]
 
+        :params list outputs: list of dicts of step output files descriptions
     """
 
     if not outputs:
@@ -797,10 +798,13 @@ class ModuleBase(object):
           'outputDataName': '00012345_00012345_2.BHADRON.DST'},
          {'outputDataType': 'calibration.dst','outputDataType': 'CALIBRATION.DST',
           'outputDataName': '00012345_00012345_2.CALIBRATION.DST'}]
+
+        :params list stepOutput: list of dicts of step output files descriptions
+        :returns: list, list
     """
 
-    bkFileTypes = []
-    finalOutputs = []
+    bkFileTypes = []  # uppercase list of file types
+    finalOutputs = []  # list of dicts of what's found on the local disk
 
     filesFound = []
 

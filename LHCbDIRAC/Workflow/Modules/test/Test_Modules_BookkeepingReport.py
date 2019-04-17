@@ -41,3 +41,18 @@ def test_execute(wf_cs, s_cs):
                      workflowStatus, stepStatus,
                      wf_cs, s_cs,
                      step_number, step_id, False)['OK'] is True
+
+
+@pytest.mark.parametrize("output, outputType, xf_o_r, expected", [
+    ('/this/is/an/output.txt', 'txt', {'/this/is/an/output.txt': {}}, '{}'),
+    ('/this/is/an/output.hist', 'hist', {'/this/is/an/output.txt': {}}, 'Unknown'),
+    ('/this/is/an/output.txt', 'txt', {'/this/is/an/OutPut.txt': {}}, '{}'),
+])
+def test__getFileStatsFromXMLSummary(output, outputType, xf_o_r, expected):
+  mock_xfo = MagicMock()
+  mock_xfo.outputsEvents = xf_o_r
+  bkr.xf_o = mock_xfo
+
+  res = bkr._getFileStatsFromXMLSummary(output, outputType)
+  print res
+  assert res == expected

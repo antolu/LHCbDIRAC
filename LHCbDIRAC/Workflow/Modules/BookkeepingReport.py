@@ -415,22 +415,7 @@ class BookkeepingReport(ModuleBase):
         self.log.info('Setting explicit BK type version',
                       'for %s to %s and file type to %s' % (output, typeVersion, typeName))
 
-        try:
-          fileStats = str(self.xf_o.outputsEvents[output])
-        except AttributeError as e:
-          # This happens iff the XML summary can't be created (e.g. for merging MDF files)
-          self.log.warn("XML summary not created, unable to determine the output events and setting to 'Unknown'",
-                        repr(e))
-          fileStats = 'Unknown'
-        except KeyError as e:
-          self.log.warn("Could not find output LFN in XML summary object",
-                        repr(e))
-          if ('hist' in outputtype.lower()) or ('.root' in outputtype.lower()):
-            self.log.warn("HIST file not found in XML summary, event stats set to 'Unknown'",
-                          "HIST not found = %s" % output)
-            fileStats = 'Unknown'
-          else:
-            raise KeyError(e)
+        fileStats = self._getFileStatsFromXMLSummary(output, outputtype)
 
       if not os.path.exists(output):
         self.log.error("Output file does not exist",
@@ -533,6 +518,31 @@ class BookkeepingReport(ModuleBase):
     return jobNode
 
 ################################################################################
+
+  def _getFileStatsFromXMLSummary(self, output, outputtype):
+    try:
+      return str(self.xf_o.outputsEvents[output])
+    except AttributeError as e:
+      # This happens iff the XML summary can't be created (e.g. for merging MDF files)
+      self.log.warn("XML summary not created, unable to determine the output events and setting to 'Unknown'",
+                    repr(e))
+      return 'Unknown'
+    except KeyError as e:
+      self.log.warn("Could not find output LFN in XML summary object",
+                    repr(e))
+      if ('hist' in outputtype.lower()) or ('.root' in outputtype.lower()):
+        self.log.warn("HIST file not found in XML summary, event stats set to 'Unknown'",
+                      "HIST not found = %s" % output)
+        return 'Unknown'
+
+      # here starting to look if by chance the file has been produced with a different case
+      for outputFileInXML in self.xf_o.outputsEvents:
+        if output.lower() == outputFileInXML.lower():
+          self.log.info("Found output LFN in XML summary object with different case",
+                        "%s -> %s" % (output, outputFileInXML))
+          return str(self.xf_o.outputsEvents[outputFileInXML])
+
+      raise KeyError(e)
 
   def __generateSimulationCondition(self, jobNode):
     '''SimulationCondition looks like this:
