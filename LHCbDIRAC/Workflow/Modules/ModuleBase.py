@@ -561,25 +561,43 @@ class ModuleBase(object):
         self.log.error('Ignoring mal-formed output data specification', str(outputFile))
 
     for lfn in outputLFNs:
-      if os.path.basename(lfn) in fileInfo:
-        fileInfo[os.path.basename(lfn)]['lfn'] = lfn
-        self.log.verbose("Found LFN %s for file %s" % (lfn, os.path.basename(lfn)))
-      elif os.path.basename(lfn).split('_')[-1] in fileInfo:
-        fileInfo[os.path.basename(lfn).split('_')[-1]]['lfn'] = lfn
-        self.log.verbose("Found LFN %s for file %s" % (lfn, os.path.basename(lfn).split('_')[-1]))
+      if os.path.basename(lfn).lower() in list(fi.lower() for fi in fileInfo):
+        try:
+          fileInfo[os.path.basename(lfn)]['lfn'] = lfn
+          self.log.verbose("Found LFN for file",
+                           "%s -> %s" % (lfn, os.path.basename(lfn)))
+        except KeyError:
+          fileInfo[os.path.basename(lfn).lower()]['lfn'] = lfn
+          self.log.verbose("Found LFN for file",
+                           "%s -> %s" % (lfn, os.path.basename(lfn).lower()))
+      elif os.path.basename(lfn).split('_')[-1].lower() in list(fi.lower() for fi in fileInfo):
+        try:
+          fileInfo[os.path.basename(lfn).split('_')[-1]]['lfn'] = lfn
+          self.log.verbose("Found LFN for file",
+                           " %s -> %s" % (lfn, os.path.basename(lfn).split('_')[-1]))
+        except KeyError:
+          fileInfo[os.path.basename(lfn).split('_')[-1].lower()]['lfn'] = lfn
+          self.log.verbose("Found LFN for file",
+                           " %s -> %s" % (lfn, os.path.basename(lfn).split('_')[-1].lower()))
+      else:
+        self.log.warn("LFN not recognized", "for LFN %s" % lfn)
 
     # check local existance
+    self.log.verbose(fileInfo)
     fileList = self._checkLocalExistance(list(fileInfo.keys()))
-    # really horrible stuff for updating the name with what's found on the disk (maybe the case changed)
+    # really horrible stuff for updating the name with what's found on the disk
+    # (because maybe the case is not the same as the expected)
     newFileInfo = {}
     for fi in fileInfo.items():
       for li in fileList:
         if fi[0].lower() == li.lower():
           newFileInfo[li] = fi[1]
 
+    self.log.verbose(newFileInfo)
     # Select which files have to be uploaded: in principle all
     candidateFiles = self._applyMask(newFileInfo, fileMask, stepMask)
 
+    self.log.verbose(candidateFiles)
     # Sanity check all final candidate metadata keys are present
     self._checkSanity(candidateFiles)
 
@@ -610,7 +628,8 @@ class ModuleBase(object):
     filesOnDisk = set(os.listdir('.'))
     diff = set(fileList).difference(filesOnDisk)
     if diff:
-      self.log.warn("Not all files found", "%s" % filesOnDisk)
+      self.log.warn("Not all files found",
+                    "set of what's on the disk: %s" % filesOnDisk)
       self.log.warn("Looking for files with different case")
       diffCI = set(fx.lower() for fx in fileList).difference(set(fod.lower() for fod in filesOnDisk))
       if diffCI:
@@ -619,6 +638,7 @@ class ModuleBase(object):
         raise os.error("Output data not found")
 
       # now checking what's the actual filename case that's written
+      self.log.warn("Found files with filename with different case, returning those")
       filesActuallyOnDisk = []
       for fod in os.listdir('.'):
         if fod.lower() in [fl.lower() for fl in fileList]:
@@ -632,11 +652,14 @@ class ModuleBase(object):
   def _applyMask(self, candidateFilesIn, fileMask, stepMask):
     """ Select which files have to be uploaded: in principle all
 
-        :param list candidateFilesIn: list of LFNs
+        :param dict candidateFilesIn: dictionary like
+          {'00012345_00012345_4.dst': {'lfn': '/lhcb/MC/2010/DST/123/123_45_4.dst',
+                                       type': 'dst'},
+           '00012345_00012345_2.digi': {'type': 'digi'}}
         :param str fileMask: the output file extensions to restrict the outputs to. Can also be a list of strings
         :param str stepMask: the step ID to restrict the outputs to. Can also be a list of strings.
 
-        :returns: list of LFNs
+        :returns: a dict like the one in candidateFilesIn
     """
     candidateFiles = copy.deepcopy(candidateFilesIn)
 
@@ -671,6 +694,13 @@ class ModuleBase(object):
 
   def _checkSanity(self, candidateFiles):
     """ Sanity check all final candidate metadata keys are present
+
+        :param dict candidateFiles: dictionary like
+          {'00012345_00012345_4.dst': {'lfn': '/lhcb/MC/2010/DST/123/123_45_4.dst',
+                                       type': 'dst'},
+           '00012345_00012345_2.digi': {'type': 'digi'}}
+
+        :returns: None or raises ValueError
     """
 
     notPresentKeys = []

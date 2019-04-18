@@ -66,8 +66,7 @@ candidateFiles = {'00012345_00012345_4.dst': {'lfn': '/lhcb/MC/2010/DST/123/123_
 fileMasks = (['dst'], 'dst', ['sim'], ['digi'], ['digi', 'sim'], 'allstreams.dst',
              'B2_D2.strip.dst', [],
              ['B2_D2.strip.dst', 'digi'],
-             ['gausshist', 'digi'],
-             )
+             ['gausshist', 'digi'])
 stepMasks = ('', '5', '', ['2'], ['1', '3'], '',
              '', ['6'],
              [],
@@ -93,8 +92,7 @@ results = ({'00012345_00012345_4.dst': {'lfn': '/lhcb/MC/2010/DST/123/123_45_4.d
             '00012345_00012345_3.digi': {'type': 'digi'},
             '00038941_00000004_6.B2_D2.Strip.dst':
             {'lfn': '/lhcb/MC/2012/B2_D2.STRIP.DST/B2_D2.Strip.dst',
-             'type': 'B2_D2.strip.dst'}
-            },
+             'type': 'B2_D2.strip.dst'}},
            {'00012345_00012345_3.digi': {'type': 'digi'},
             'Gauss_HIST_1.root': {'type': 'GAUSSHIST'}},)
 
@@ -138,8 +136,7 @@ results = [{'foo_1.txt': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/foo_1.txt',
                          'type': outputList[1]['outputDataType']}},
            {'bar_2.py': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
                          'type': outputList[1]['outputDataType']}},
-           {}
-           ]
+           {}]
 
 allCombinations = list(zip(fileMasks, stepMasks, results))
 
