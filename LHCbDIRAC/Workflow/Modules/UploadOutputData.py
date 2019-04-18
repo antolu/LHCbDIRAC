@@ -148,7 +148,8 @@ class UploadOutputData(ModuleBase):
 
       if not self._enableModule():
         # At this point can exit and see exactly what the module would have uploaded
-        self.log.info("Module disabled, would have attempted to upload the files %s" % ', '.join(final.keys()))
+        self.log.info("Module disabled",
+                      "would have attempted to upload the files %s" % ', '.join(final.keys()))
 
       # ## 2. Prior to uploading any files must check (for productions with input data) that no descendant files
       # ##    already exist with replica flag in the BK.
@@ -159,7 +160,8 @@ class UploadOutputData(ModuleBase):
           lfnsWithDescendants = fileDescendants
         else:
           if not self._enableModule():
-            self.log.info("Module disabled, would have attempted to check the files %s" % ', '.join(self.inputDataList))
+            self.log.info("Module disabled",
+                          "would have attempted to check the files %s" % ', '.join(self.inputDataList))
             lfnsWithDescendants = []
           else:
             lfnsWithDescendants = getFileDescendants(self.production_id, self.inputDataList,
@@ -240,7 +242,8 @@ class UploadOutputData(ModuleBase):
 
         if not self._enableModule():
           # At this point can exit and see exactly what the module would have uploaded
-          self.log.info("Module disabled, would have attempted to upload file %s" % fileName)
+          self.log.info("Module disabled",
+                        "would have attempted to upload file %s" % fileName)
           continue
 
         result = self.failoverTransfer.transferAndRegisterFile(fileName=fileName,
@@ -250,7 +253,8 @@ class UploadOutputData(ModuleBase):
                                                                fileMetaDict=fileMetaDict,
                                                                masterCatalogOnly=True)
         if not result['OK']:
-          self.log.error("Could not transfer and register %s with metadata:\n %s" % (fileName, metadata))
+          self.log.error("Could not transfer and register",
+                         " %s with metadata:\n %s" % (fileName, metadata))
           failover[fileName] = metadata
         else:
           self.log.info("%s uploaded, will be registered in BK if all files uploaded for job" % fileName)
@@ -274,7 +278,8 @@ class UploadOutputData(ModuleBase):
 
         if not self._enableModule():
           # At this point can exit and see exactly what the module would have uploaded
-          self.log.info("Module disabled, would have attempted to upload with failover file %s" % fileName)
+          self.log.info("Module disabled",
+                        "would have attempted to upload with failover file %s" % fileName)
           continue
 
         result = self.failoverTransfer.transferAndRegisterFileFailover(fileName=fileName,
@@ -285,8 +290,8 @@ class UploadOutputData(ModuleBase):
                                                                        fileMetaDict=fileMetaDict,
                                                                        masterCatalogOnly=True)
         if not result['OK']:
-          self.log.error("Could not transfer and register %s in failover with metadata:\n %s" % (fileName,
-                                                                                                 metadata))
+          self.log.error("Could not transfer and register",
+                         "%s in failover with metadata:\n %s" % (fileName, metadata))
           cleanUp = True
           break  # no point continuing if one completely fails
 

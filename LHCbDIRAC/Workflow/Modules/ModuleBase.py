@@ -583,7 +583,6 @@ class ModuleBase(object):
         self.log.warn("LFN not recognized", "for LFN %s" % lfn)
 
     # check local existance
-    self.log.verbose(fileInfo)
     fileList = self._checkLocalExistance(list(fileInfo.keys()))
     # really horrible stuff for updating the name with what's found on the disk
     # (because maybe the case is not the same as the expected)
@@ -593,11 +592,9 @@ class ModuleBase(object):
         if fi[0].lower() == li.lower():
           newFileInfo[li] = fi[1]
 
-    self.log.verbose(newFileInfo)
     # Select which files have to be uploaded: in principle all
     candidateFiles = self._applyMask(newFileInfo, fileMask, stepMask)
 
-    self.log.verbose(candidateFiles)
     # Sanity check all final candidate metadata keys are present
     self._checkSanity(candidateFiles)
 
