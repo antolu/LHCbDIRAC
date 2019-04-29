@@ -587,7 +587,7 @@ class ModuleBase(object):
     # really horrible stuff for updating the name with what's found on the disk
     # (because maybe the case is not the same as the expected)
     newFileInfo = {}
-    for fi in fileInfo.items():
+    for fi in fileInfo.iteritems():
       for li in fileList:
         if fi[0].lower() == li.lower():
           newFileInfo[li] = fi[1]
@@ -668,7 +668,7 @@ class ModuleBase(object):
       stepMask = [stepMask]
 
     if fileMask and fileMask != ['']:
-      for fileName, metadata in list(candidateFiles.items()):
+      for fileName, metadata in list(candidateFiles.iteritems()):
         if metadata['type'].lower() not in [fm.lower() for fm in fileMask]:
           del candidateFiles[fileName]
           self.log.info('Output file %s was produced but will not be treated (fileMask is %s)' % (fileName,
@@ -677,7 +677,7 @@ class ModuleBase(object):
       self.log.info('No outputDataFileMask provided, the files with all the extensions will be considered')
 
     if stepMask and stepMask != ['']:
-      for fileName, metadata in list(candidateFiles.items()):
+      for fileName, metadata in list(candidateFiles.iteritems()):
         if fileName.lower().replace(metadata['type'].lower(), '').split('_')[-1].split('.')[0] not in stepMask:
           del candidateFiles[fileName]
           self.log.info('Output file %s was produced but will not be treated (stepMask is %s)' % (fileName,
@@ -703,7 +703,7 @@ class ModuleBase(object):
     notPresentKeys = []
 
     mandatoryKeys = ['type', 'lfn']  # filedict is used for requests
-    for fileName, metadata in candidateFiles.items():
+    for fileName, metadata in candidateFiles.iteritems():
       for key in mandatoryKeys:
         if key not in metadata:
           notPresentKeys.append((fileName, key))
@@ -742,12 +742,12 @@ class ModuleBase(object):
     else:
       self.log.info('GUIDs found for all specified POOL files: %s' % (', '.join(candidateFiles.keys())))
 
-    for pfn, guid in pfnGUID['Value'].items():
+    for pfn, guid in pfnGUID['Value'].iteritems():
       candidateFiles[pfn]['guid'] = guid
 
     # Get all additional metadata about the file necessary for requests
     final = {}
-    for fileName, metadata in candidateFiles.items():
+    for fileName, metadata in candidateFiles.iteritems():
       fileDict = {}
       fileDict['LFN'] = metadata['lfn']
       fileDict['Size'] = os.path.getsize(fileName)
@@ -762,7 +762,7 @@ class ModuleBase(object):
 
     # Sanity check all final candidate metadata keys are present (return S_ERROR if not)
     mandatoryKeys = ['guid', 'filedict']  # filedict is used for requests (this method adds guid and filedict)
-    for fileName, metadata in final.items():
+    for fileName, metadata in final.iteritems():
       for key in mandatoryKeys:
         if key not in metadata:
           raise RuntimeError("File %s has missing %s" % (fileName, key))
@@ -864,12 +864,12 @@ class ModuleBase(object):
           break
 
       if found and fileOnDisk:
-        self.log.info('Found output file %s matching %s (case is not considered)' % (fileOnDisk,
-                                                                                     output['outputDataName']))
+        self.log.info('Found output file (case is not considered)',
+                      '%s matching %s ' % (fileOnDisk, output['outputDataName']))
         output['outputDataName'] = fileOnDisk
         filesFound.append(output)
       else:
-        self.log.error('%s not found' % output['outputDataName'])
+        self.log.error('Output not found', output['outputDataName'])
         raise IOError("OutputData not found")
 
     for fileFound in filesFound:
@@ -896,7 +896,7 @@ class ModuleBase(object):
     if not self._WMSJob():
       self.log.info('No WMS JobID found, disabling module via control flag')
       return False
-    self.log.verbose('Found WMS JobID = %d' % self.jobID)
+    self.log.verbose('Found WMS JobID', self.jobID)
     return True
 
   #############################################################################
@@ -906,9 +906,9 @@ class ModuleBase(object):
     """
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
       if not noPrint:
-        self.log.info('Skip this module, failure detected in a previous step :')
-        self.log.info('Workflow status : %s' % (self.workflowStatus))
-        self.log.info('Step Status : %s' % (self.stepStatus))
+        self.log.info('Skip this module, failure detected in a previous step')
+        self.log.info('Workflow status', self.workflowStatus)
+        self.log.info('Step Status', self.stepStatus)
       return False
     else:
       return True
@@ -930,7 +930,8 @@ class ModuleBase(object):
     reportRequest = None
     result = self.jobReport.generateForwardDISET()
     if not result['OK']:
-      self.log.warn("Could not generate Operation for job report with result:\n%s" % (result))
+      self.log.warn("Could not generate Operation for job report",
+                    "with result:\n%s" % (result))
     else:
       reportRequest = result['Value']
     if reportRequest:
@@ -943,7 +944,7 @@ class ModuleBase(object):
       except AttributeError:
         optimized = {'OK': True}
       if not optimized['OK']:
-        self.log.error("Could not optimize: %s" % optimized['Message'])
+        self.log.error("Could not optimize", optimized['Message'])
         self.log.error("Not failing the job because of that, keep going")
       isValid = self.requestValidator.validate(self.request)
       if not isValid['OK']:
@@ -951,19 +952,21 @@ class ModuleBase(object):
       else:
         requestJSON = self.request.toJSON()
         if requestJSON['OK']:
-          self.log.info("Creating failover request for deferred operations for job %d" % self.jobID)
+          self.log.info("Creating failover request for deferred operations",
+                        "for job %d" % self.jobID)
           request_string = str(requestJSON['Value'])
           self.log.debug(request_string)
           # Write out the request string
           fname = '%s_%s_request.json' % (self.production_id, self.prod_job_id)
           with open(fname, 'w') as jsonFile:
             jsonFile.write(request_string)
-          self.log.info("Created file containing failover request %s" % fname)
+          self.log.info("Created file containing failover request", fname)
           result = self.request.getDigest()
           if result['OK']:
-            self.log.info("Digest of the request: %s" % result['Value'])
+            self.log.info("Digest of the request", result['Value'])
           else:
-            self.log.warn("No digest? That's not sooo important, anyway: %s" % result['Message'])
+            self.log.warn("No digest? That's not sooo important",
+                          "anyway: %s" % result['Message'])
         else:
           raise RuntimeError(requestJSON['Message'])
 

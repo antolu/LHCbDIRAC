@@ -140,7 +140,7 @@ class UploadOutputData(ModuleBase):
         final[fileName] = metadata
         final[fileName]['resolvedSE'] = resolvedSE
 
-      self.log.info("The following files will be uploaded: %s" % (', '.join(final.keys())))
+      self.log.info("The following files will be uploaded", ": %s" % (', '.join(final.keys())))
       for fileName, metadata in final.items():
         self.log.info('--------%s--------' % fileName)
         for name, val in metadata.iteritems():
@@ -170,7 +170,7 @@ class UploadOutputData(ModuleBase):
           self.log.info("No descendants found, outputs can be uploaded")
         else:
           self.log.error("Found descendants!!! Outputs won't be uploaded")
-          self.log.info("Files with descendants: %s" ' % '.join(lfnsWithDescendants))
+          self.log.info("Files with descendants", ": %s" ' % '.join(lfnsWithDescendants))
           self.log.info("The files above will be set as 'Processed', other lfns in input will be later reset as Unused")
           self.fileReport.setFileStatus(int(self.production_id), lfnsWithDescendants, 'Processed')
           return S_ERROR("Input Data Already Processed")
@@ -185,7 +185,7 @@ class UploadOutputData(ModuleBase):
         globList = glob.glob(ext)
         for check in globList:
           if os.path.isfile(check):
-            self.log.verbose("Found locally existing BK file record: %s" % check)
+            self.log.verbose("Found locally existing BK file record", ": %s" % check)
             bkFiles.append(check)
 
       # Unfortunately we depend on the file names to order the BK records
@@ -194,19 +194,20 @@ class UploadOutputData(ModuleBase):
         bkFilesListTuples.append((bk, int(bk.split('_')[-1].split('.')[0])))
       bkFiles = [bk[0] for bk in sorted(bkFilesListTuples, key=itemgetter(1))]
 
-      self.log.info("The following BK records will be sent: %s" % (', '.join(bkFiles)))
+      self.log.info("The following BK records will be sent", ": %s" % (', '.join(bkFiles)))
       if self._enableModule():
         for bkFile in bkFiles:
           with open(bkFile, 'r') as fd:
             bkXML = fd.read()
-          self.log.info("Sending BK record:\n%s" % (bkXML))
+          self.log.info("Sending BK record", ":\n%s" % (bkXML))
           result = self.bkClient.sendXMLBookkeepingReport(bkXML)
           self.log.verbose(result)
           if result['OK']:
-            self.log.info("Bookkeeping report sent for %s" % bkFile)
+            self.log.info("Bookkeeping report sent", "for %s" % bkFile)
           else:
-            self.log.error("Could not send Bookkeeping XML file to server: %s" % result['Message'])
-            self.log.info("Preparing DISET request for", bkFile)
+            self.log.error("Could not send Bookkeeping XML file to server",
+                           ": %s" % result['Message'])
+            self.log.info("Preparing DISET request", "for %s" % bkFile)
             bkDISETReq = Operation()
             bkDISETReq.Type = 'ForwardDISET'
             bkDISETReq.Arguments = DEncode.encode(result['rpcStub'])
@@ -232,8 +233,8 @@ class UploadOutputData(ModuleBase):
       failover = {}
       for fileName, metadata in final.items():
         targetSE = metadata['resolvedSE']
-        self.log.info("Attempting to store file %s to the following SE(s):\n%s" % (fileName,
-                                                                                   ', '.join(targetSE)))
+        self.log.info("Attempting to store file to SE",
+                      "%s to the following SE(s):\n%s" % (fileName, ', '.join(targetSE)))
         fileMetaDict = {'Size': metadata['filedict']['Size'],
                         'LFN': metadata['filedict']['LFN'],
                         'GUID': metadata['filedict']['GUID'],
@@ -257,7 +258,8 @@ class UploadOutputData(ModuleBase):
                          " %s with metadata:\n %s" % (fileName, metadata))
           failover[fileName] = metadata
         else:
-          self.log.info("%s uploaded, will be registered in BK if all files uploaded for job" % fileName)
+          self.log.info("File uploaded, will be registered in BK if all files uploaded for job",
+                        "(%s)" % fileName)
 
           # if the files are uploaded in the SE, independently if the registration in the FC is done,
           # then we have to register all of them in the BKK

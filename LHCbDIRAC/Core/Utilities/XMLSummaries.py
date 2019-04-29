@@ -192,15 +192,15 @@ class XMLSummary(object):
     for fileIn, status in self.inputStatus:
 
       if status == 'fail':
-        self.log.warn('Input File %s is on status %s.' % (fileIn, status))
+        self.log.warn('Input File on status', '%s: %s' % (fileIn, status))
         fileCounter['fail'] += 1
 
       elif status == 'mult':
-        self.log.warn('Input File %s is on status %s.' % (fileIn, status))
+        self.log.warn('Input File on status', '%s: %s' % (fileIn, status))
         fileCounter['mult'] += 1
 
       elif status == 'part':
-        self.log.warn('Input File %s is on status %s.' % (fileIn, status))
+        self.log.warn('Input File on status', '%s: %s' % (fileIn, status))
         fileCounter['part'] += 1
 
       elif status == 'full':
@@ -210,12 +210,12 @@ class XMLSummary(object):
 
       # This should never happen, but just in case
       else:
-        self.log.warn('Input File %s is on unknown status: %s' % (fileIn, status))
+        self.log.warn('Input File on unknown status', '%s: %s' % (fileIn, status))
         fileCounter['other'] += 1
 
-    files = ['%d input file(s) on %s status' % (v, k) for k, v in fileCounter.items() if v > 0]
+    files = ['%d input file(s) on %s status' % (v, k) for k, v in fileCounter.iteritems() if v > 0]
     filesMsg = ', '.join(files)
-    self.log.info(filesMsg)
+    self.log.info('Inputs on status', filesMsg)
 
     return fileCounter
 
@@ -317,15 +317,15 @@ class XMLSummary(object):
     for filename, status in res:
 
       if status == 'fail':
-        self.log.warn('Output File %s is on status %s.' % (filename, status))
+        self.log.warn('Output File on status', '%s: %s.' % (filename, status))
         fileCounter['fail'] += 1
 
       elif status == 'mult':
-        self.log.warn('Output File %s is on status %s.' % (filename, status))
+        self.log.warn('Output File on status', '%s: %s.' % (filename, status))
         fileCounter['mult'] += 1
 
       elif status == 'part':
-        self.log.warn('Output File %s is on status %s.' % (filename, status))
+        self.log.warn('Output File on status', '%s: %s.' % (filename, status))
         fileCounter['part'] += 1
 
       elif status == 'full':
@@ -335,12 +335,12 @@ class XMLSummary(object):
 
       # This should never happen, but just in case
       else:
-        self.log.error('Output File %s is on unknown status: %s' % (filename, status))
+        self.log.warn('Output File on unknown status', '%s: %s.' % (filename, status))
         fileCounter['other'] += 1
 
-    files = ['%d output file(s) on %s status' % (v, k) for k, v in fileCounter.items() if v > 0]
+    files = ['%d output file(s) on %s status' % (v, k) for k, v in fileCounter.iteritems() if v > 0]
     filesMsg = ', '.join(files)
-    self.log.info(filesMsg)
+    self.log.info('Outputs on status', filesMsg)
 
     return fileCounter
 
