@@ -1054,8 +1054,8 @@ class ModuleBase(object):
           optionsDict['DDDBTag'] = self.onlineDDDBTag
           self.log.debug('Set the online DDDB tag')
         except NameError as e:
-          self.log.error('Could not find an online DDDb Tag: ', e)
-          raise RuntimeError("Could not find an online DDDb Tag")
+          self.log.error('Could not find online DDDb Tag', e)
+          raise RuntimeError("Could not find online DDDb Tag")
       else:
         optionsDict['DDDBTag'] = self.DDDBTag
 

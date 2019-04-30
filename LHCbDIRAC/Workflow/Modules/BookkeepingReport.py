@@ -128,7 +128,7 @@ class BookkeepingReport(ModuleBase):
       result = constructProductionLFNs(self.workflow_commons, self.bkClient)
       if not result['OK']:
         self.log.error('Could not create production LFNs', result['Message'])
-        raise ValueError(result['Message'])
+        raise ValueError('Could not create production LFNs')
 
       bkLFNs = result['Value']['BookkeepingLFNs']
       logFilePath = result['Value']['LogFilePath'][0]
@@ -464,8 +464,8 @@ class BookkeepingReport(ModuleBase):
         guid = self.step_commons['guid'][output]
 
       if not guid:
-        raise NameError('No GUID found',
-                        'for %s' % output)
+        self.log.error('No GUID found', 'for %s' % output)
+        raise NameError('No GUID found')
 
       # find the constructed lfn
       lfn = ''
@@ -549,7 +549,7 @@ class BookkeepingReport(ModuleBase):
                         "%s -> %s" % (output, outputFileInXML))
           return str(self.xf_o.outputsEvents[outputFileInXML]), outputFileInXML
 
-      raise KeyError(e)
+      raise KeyError("Could not find output LFN in XML summary object")
 
   def __generateSimulationCondition(self, jobNode):
     '''SimulationCondition looks like this:
