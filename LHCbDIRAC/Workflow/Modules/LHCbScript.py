@@ -14,7 +14,6 @@ class LHCbScript(Script):
   """ A simple extension to the DIRAC script module
   """
 
-  #############################################################################
   def __init__(self):
     """ c'tor
     """
@@ -48,7 +47,7 @@ class LHCbScript(Script):
     """
     # this is an lb-run specific error
     if status & 0x40 and not status & 0x80:
-      self.log.error("Status %d is an lb-run specific error" % status)
+      self.log.error("Exit status is an lb-run specific error", '(%s)' % status)
       raise LbRunError("Problem setting the environment: lb-run exited with status %d" % status,
                        DErrno.EWMSRESC)
     else:

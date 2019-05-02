@@ -1,3 +1,16 @@
+v9r3p4
+use DIRAC v6r21p5
+
+* better logging and better application status
+* better logging
+* CI: tag the docker image as devel if it is a pre release
+* better logging
+* ignoring case
+* fixes for files with different case written on disk
+* ignoring case in BookkeepingReport
+* better logging in BookkepingReport module
+* update the release doc
+
 v9r3p3
 use DIRAC v6r21p4
 

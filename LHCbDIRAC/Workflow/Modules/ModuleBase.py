@@ -561,18 +561,39 @@ class ModuleBase(object):
         self.log.error('Ignoring mal-formed output data specification', str(outputFile))
 
     for lfn in outputLFNs:
-      if os.path.basename(lfn) in fileInfo:
-        fileInfo[os.path.basename(lfn)]['lfn'] = lfn
-        self.log.verbose("Found LFN %s for file %s" % (lfn, os.path.basename(lfn)))
-      elif os.path.basename(lfn).split('_')[-1] in fileInfo:
-        fileInfo[os.path.basename(lfn).split('_')[-1]]['lfn'] = lfn
-        self.log.verbose("Found LFN %s for file %s" % (lfn, os.path.basename(lfn).split('_')[-1]))
+      if os.path.basename(lfn).lower() in list(fi.lower() for fi in fileInfo):
+        try:
+          fileInfo[os.path.basename(lfn)]['lfn'] = lfn
+          self.log.verbose("Found LFN for file",
+                           "%s -> %s" % (lfn, os.path.basename(lfn)))
+        except KeyError:
+          fileInfo[os.path.basename(lfn).lower()]['lfn'] = lfn
+          self.log.verbose("Found LFN for file",
+                           "%s -> %s" % (lfn, os.path.basename(lfn).lower()))
+      elif os.path.basename(lfn).split('_')[-1].lower() in list(fi.lower() for fi in fileInfo):
+        try:
+          fileInfo[os.path.basename(lfn).split('_')[-1]]['lfn'] = lfn
+          self.log.verbose("Found LFN for file",
+                           " %s -> %s" % (lfn, os.path.basename(lfn).split('_')[-1]))
+        except KeyError:
+          fileInfo[os.path.basename(lfn).split('_')[-1].lower()]['lfn'] = lfn
+          self.log.verbose("Found LFN for file",
+                           " %s -> %s" % (lfn, os.path.basename(lfn).split('_')[-1].lower()))
+      else:
+        self.log.warn("LFN not recognized", "for LFN %s" % lfn)
 
     # check local existance
-    self._checkLocalExistance(fileInfo.keys())
+    fileList = self._checkLocalExistance(list(fileInfo.keys()))
+    # really horrible stuff for updating the name with what's found on the disk
+    # (because maybe the case is not the same as the expected)
+    newFileInfo = {}
+    for fi in fileInfo.iteritems():
+      for li in fileList:
+        if fi[0].lower() == li.lower():
+          newFileInfo[li] = fi[1]
 
     # Select which files have to be uploaded: in principle all
-    candidateFiles = self._applyMask(fileInfo, fileMask, stepMask)
+    candidateFiles = self._applyMask(newFileInfo, fileMask, stepMask)
 
     # Sanity check all final candidate metadata keys are present
     self._checkSanity(candidateFiles)
@@ -601,24 +622,41 @@ class ModuleBase(object):
 
     notPresentFiles = []
 
-    for fileName in fileList:
-      if not os.path.exists(fileName):
-        notPresentFiles.append(fileName)
+    filesOnDisk = set(os.listdir('.'))
+    diff = set(fileList).difference(filesOnDisk)
+    if diff:
+      self.log.warn("Not all files found",
+                    "set of what's on the disk: %s" % filesOnDisk)
+      self.log.warn("Looking for files with different case")
+      diffCI = set(fx.lower() for fx in fileList).difference(set(fod.lower() for fod in filesOnDisk))
+      if diffCI:
+        self.log.error("Output data not found",
+                       "File list %s does not exist locally" % notPresentFiles)
+        raise os.error("Output data not found")
 
-    if notPresentFiles:
-      self.log.error('Output data file list %s does not exist locally' % notPresentFiles)
-      raise os.error("Output data not found")
+      # now checking what's the actual filename case that's written
+      self.log.warn("Found files with filename with different case, returning those")
+      filesActuallyOnDisk = []
+      for fod in os.listdir('.'):
+        if fod.lower() in [fl.lower() for fl in fileList]:
+          filesActuallyOnDisk.append(fod)
+      return filesActuallyOnDisk
+
+    return fileList
 
   #############################################################################
 
   def _applyMask(self, candidateFilesIn, fileMask, stepMask):
     """ Select which files have to be uploaded: in principle all
 
-        :param list candidateFilesIn: list of LFNs
+        :param dict candidateFilesIn: dictionary like
+          {'00012345_00012345_4.dst': {'lfn': '/lhcb/MC/2010/DST/123/123_45_4.dst',
+                                       type': 'dst'},
+           '00012345_00012345_2.digi': {'type': 'digi'}}
         :param str fileMask: the output file extensions to restrict the outputs to. Can also be a list of strings
         :param str stepMask: the step ID to restrict the outputs to. Can also be a list of strings.
 
-        :returns: list of LFNs
+        :returns: a dict like the one in candidateFilesIn
     """
     candidateFiles = copy.deepcopy(candidateFilesIn)
 
@@ -630,7 +668,7 @@ class ModuleBase(object):
       stepMask = [stepMask]
 
     if fileMask and fileMask != ['']:
-      for fileName, metadata in candidateFiles.items():
+      for fileName, metadata in list(candidateFiles.iteritems()):
         if metadata['type'].lower() not in [fm.lower() for fm in fileMask]:
           del candidateFiles[fileName]
           self.log.info('Output file %s was produced but will not be treated (fileMask is %s)' % (fileName,
@@ -639,7 +677,7 @@ class ModuleBase(object):
       self.log.info('No outputDataFileMask provided, the files with all the extensions will be considered')
 
     if stepMask and stepMask != ['']:
-      for fileName, metadata in candidateFiles.items():
+      for fileName, metadata in list(candidateFiles.iteritems()):
         if fileName.lower().replace(metadata['type'].lower(), '').split('_')[-1].split('.')[0] not in stepMask:
           del candidateFiles[fileName]
           self.log.info('Output file %s was produced but will not be treated (stepMask is %s)' % (fileName,
@@ -653,12 +691,19 @@ class ModuleBase(object):
 
   def _checkSanity(self, candidateFiles):
     """ Sanity check all final candidate metadata keys are present
+
+        :param dict candidateFiles: dictionary like
+          {'00012345_00012345_4.dst': {'lfn': '/lhcb/MC/2010/DST/123/123_45_4.dst',
+                                       type': 'dst'},
+           '00012345_00012345_2.digi': {'type': 'digi'}}
+
+        :returns: None or raises ValueError
     """
 
     notPresentKeys = []
 
     mandatoryKeys = ['type', 'lfn']  # filedict is used for requests
-    for fileName, metadata in candidateFiles.items():
+    for fileName, metadata in candidateFiles.iteritems():
       for key in mandatoryKeys:
         if key not in metadata:
           notPresentKeys.append((fileName, key))
@@ -697,12 +742,12 @@ class ModuleBase(object):
     else:
       self.log.info('GUIDs found for all specified POOL files: %s' % (', '.join(candidateFiles.keys())))
 
-    for pfn, guid in pfnGUID['Value'].items():
+    for pfn, guid in pfnGUID['Value'].iteritems():
       candidateFiles[pfn]['guid'] = guid
 
     # Get all additional metadata about the file necessary for requests
     final = {}
-    for fileName, metadata in candidateFiles.items():
+    for fileName, metadata in candidateFiles.iteritems():
       fileDict = {}
       fileDict['LFN'] = metadata['lfn']
       fileDict['Size'] = os.path.getsize(fileName)
@@ -717,7 +762,7 @@ class ModuleBase(object):
 
     # Sanity check all final candidate metadata keys are present (return S_ERROR if not)
     mandatoryKeys = ['guid', 'filedict']  # filedict is used for requests (this method adds guid and filedict)
-    for fileName, metadata in final.items():
+    for fileName, metadata in final.iteritems():
       for key in mandatoryKeys:
         if key not in metadata:
           raise RuntimeError("File %s has missing %s" % (fileName, key))
@@ -759,6 +804,7 @@ class ModuleBase(object):
          {'outputDataType': 'calibration.dst','outputDataType': 'CALIBRATION.DST',
           'outputDataName': '00012345_00012345_2.CALIBRATION.DST'}]
 
+        :params list outputs: list of dicts of step output files descriptions
     """
 
     if not outputs:
@@ -797,10 +843,13 @@ class ModuleBase(object):
           'outputDataName': '00012345_00012345_2.BHADRON.DST'},
          {'outputDataType': 'calibration.dst','outputDataType': 'CALIBRATION.DST',
           'outputDataName': '00012345_00012345_2.CALIBRATION.DST'}]
+
+        :params list stepOutput: list of dicts of step output files descriptions
+        :returns: list, list
     """
 
-    bkFileTypes = []
-    finalOutputs = []
+    bkFileTypes = []  # uppercase list of file types
+    finalOutputs = []  # list of dicts of what's found on the local disk
 
     filesFound = []
 
@@ -815,12 +864,12 @@ class ModuleBase(object):
           break
 
       if found and fileOnDisk:
-        self.log.info('Found output file %s matching %s (case is not considered)' % (fileOnDisk,
-                                                                                     output['outputDataName']))
+        self.log.info('Found output file (case is not considered)',
+                      '%s matching %s ' % (fileOnDisk, output['outputDataName']))
         output['outputDataName'] = fileOnDisk
         filesFound.append(output)
       else:
-        self.log.error('%s not found' % output['outputDataName'])
+        self.log.error('Output not found', output['outputDataName'])
         raise IOError("OutputData not found")
 
     for fileFound in filesFound:
@@ -847,7 +896,7 @@ class ModuleBase(object):
     if not self._WMSJob():
       self.log.info('No WMS JobID found, disabling module via control flag')
       return False
-    self.log.verbose('Found WMS JobID = %d' % self.jobID)
+    self.log.verbose('Found WMS JobID', self.jobID)
     return True
 
   #############################################################################
@@ -857,9 +906,9 @@ class ModuleBase(object):
     """
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
       if not noPrint:
-        self.log.info('Skip this module, failure detected in a previous step :')
-        self.log.info('Workflow status : %s' % (self.workflowStatus))
-        self.log.info('Step Status : %s' % (self.stepStatus))
+        self.log.info('Skip this module, failure detected in a previous step')
+        self.log.info('Workflow status', self.workflowStatus)
+        self.log.info('Step Status', self.stepStatus)
       return False
     else:
       return True
@@ -881,7 +930,8 @@ class ModuleBase(object):
     reportRequest = None
     result = self.jobReport.generateForwardDISET()
     if not result['OK']:
-      self.log.warn("Could not generate Operation for job report with result:\n%s" % (result))
+      self.log.warn("Could not generate Operation for job report",
+                    "with result:\n%s" % (result))
     else:
       reportRequest = result['Value']
     if reportRequest:
@@ -894,7 +944,7 @@ class ModuleBase(object):
       except AttributeError:
         optimized = {'OK': True}
       if not optimized['OK']:
-        self.log.error("Could not optimize: %s" % optimized['Message'])
+        self.log.error("Could not optimize", optimized['Message'])
         self.log.error("Not failing the job because of that, keep going")
       isValid = self.requestValidator.validate(self.request)
       if not isValid['OK']:
@@ -902,19 +952,21 @@ class ModuleBase(object):
       else:
         requestJSON = self.request.toJSON()
         if requestJSON['OK']:
-          self.log.info("Creating failover request for deferred operations for job %d" % self.jobID)
+          self.log.info("Creating failover request for deferred operations",
+                        "for job %d" % self.jobID)
           request_string = str(requestJSON['Value'])
           self.log.debug(request_string)
           # Write out the request string
           fname = '%s_%s_request.json' % (self.production_id, self.prod_job_id)
           with open(fname, 'w') as jsonFile:
             jsonFile.write(request_string)
-          self.log.info("Created file containing failover request %s" % fname)
+          self.log.info("Created file containing failover request", fname)
           result = self.request.getDigest()
           if result['OK']:
-            self.log.info("Digest of the request: %s" % result['Value'])
+            self.log.info("Digest of the request", result['Value'])
           else:
-            self.log.warn("No digest? That's not sooo important, anyway: %s" % result['Message'])
+            self.log.warn("No digest? That's not sooo important",
+                          "anyway: %s" % result['Message'])
         else:
           raise RuntimeError(requestJSON['Message'])
 
@@ -1002,8 +1054,8 @@ class ModuleBase(object):
           optionsDict['DDDBTag'] = self.onlineDDDBTag
           self.log.debug('Set the online DDDB tag')
         except NameError as e:
-          self.log.error('Could not find an online DDDb Tag: ', e)
-          raise RuntimeError("Could not find an online DDDb Tag")
+          self.log.error('Could not find online DDDb Tag', e)
+          raise RuntimeError("Could not find online DDDb Tag")
       else:
         optionsDict['DDDBTag'] = self.DDDBTag
 
