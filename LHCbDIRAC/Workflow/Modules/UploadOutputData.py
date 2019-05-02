@@ -140,7 +140,7 @@ class UploadOutputData(ModuleBase):
         final[fileName] = metadata
         final[fileName]['resolvedSE'] = resolvedSE
 
-      self.log.info("The following files will be uploaded: %s" % (', '.join(final.keys())))
+      self.log.info("The following files will be uploaded", ": %s" % (', '.join(final.keys())))
       for fileName, metadata in final.items():
         self.log.info('--------%s--------' % fileName)
         for name, val in metadata.iteritems():
@@ -148,8 +148,8 @@ class UploadOutputData(ModuleBase):
 
       if not self._enableModule():
         # At this point can exit and see exactly what the module would have uploaded
-        self.log.info("Would have attempted to upload the following files %s" % ', '.join(final.keys()))
-        return S_OK()
+        self.log.info("Module disabled",
+                      "would have attempted to upload the files %s" % ', '.join(final.keys()))
 
       # ## 2. Prior to uploading any files must check (for productions with input data) that no descendant files
       # ##    already exist with replica flag in the BK.
@@ -159,13 +159,18 @@ class UploadOutputData(ModuleBase):
         if fileDescendants is not None:
           lfnsWithDescendants = fileDescendants
         else:
-          lfnsWithDescendants = getFileDescendants(self.production_id, self.inputDataList,
-                                                   dm=self.dataManager, bkClient=self.bkClient)
+          if not self._enableModule():
+            self.log.info("Module disabled",
+                          "would have attempted to check the files %s" % ', '.join(self.inputDataList))
+            lfnsWithDescendants = []
+          else:
+            lfnsWithDescendants = getFileDescendants(self.production_id, self.inputDataList,
+                                                     dm=self.dataManager, bkClient=self.bkClient)
         if not lfnsWithDescendants:
           self.log.info("No descendants found, outputs can be uploaded")
         else:
           self.log.error("Found descendants!!! Outputs won't be uploaded")
-          self.log.info("Files with descendants: %s" ' % '.join(lfnsWithDescendants))
+          self.log.info("Files with descendants", ": %s" ' % '.join(lfnsWithDescendants))
           self.log.info("The files above will be set as 'Processed', other lfns in input will be later reset as Unused")
           self.fileReport.setFileStatus(int(self.production_id), lfnsWithDescendants, 'Processed')
           return S_ERROR("Input Data Already Processed")
@@ -180,7 +185,7 @@ class UploadOutputData(ModuleBase):
         globList = glob.glob(ext)
         for check in globList:
           if os.path.isfile(check):
-            self.log.verbose("Found locally existing BK file record: %s" % check)
+            self.log.verbose("Found locally existing BK file record", ": %s" % check)
             bkFiles.append(check)
 
       # Unfortunately we depend on the file names to order the BK records
@@ -189,19 +194,20 @@ class UploadOutputData(ModuleBase):
         bkFilesListTuples.append((bk, int(bk.split('_')[-1].split('.')[0])))
       bkFiles = [bk[0] for bk in sorted(bkFilesListTuples, key=itemgetter(1))]
 
-      self.log.info("The following BK records will be sent: %s" % (', '.join(bkFiles)))
+      self.log.info("The following BK records will be sent", ": %s" % (', '.join(bkFiles)))
       if self._enableModule():
         for bkFile in bkFiles:
           with open(bkFile, 'r') as fd:
             bkXML = fd.read()
-          self.log.info("Sending BK record:\n%s" % (bkXML))
+          self.log.info("Sending BK record", ":\n%s" % (bkXML))
           result = self.bkClient.sendXMLBookkeepingReport(bkXML)
           self.log.verbose(result)
           if result['OK']:
-            self.log.info("Bookkeeping report sent for %s" % bkFile)
+            self.log.info("Bookkeeping report sent", "for %s" % bkFile)
           else:
-            self.log.error("Could not send Bookkeeping XML file to server: %s" % result['Message'])
-            self.log.info("Preparing DISET request for", bkFile)
+            self.log.error("Could not send Bookkeeping XML file to server",
+                           ": %s" % result['Message'])
+            self.log.info("Preparing DISET request", "for %s" % bkFile)
             bkDISETReq = Operation()
             bkDISETReq.Type = 'ForwardDISET'
             bkDISETReq.Arguments = DEncode.encode(result['rpcStub'])
@@ -227,13 +233,19 @@ class UploadOutputData(ModuleBase):
       failover = {}
       for fileName, metadata in final.items():
         targetSE = metadata['resolvedSE']
-        self.log.info("Attempting to store file %s to the following SE(s):\n%s" % (fileName,
-                                                                                   ', '.join(targetSE)))
+        self.log.info("Attempting to store file to SE",
+                      "%s to the following SE(s):\n%s" % (fileName, ', '.join(targetSE)))
         fileMetaDict = {'Size': metadata['filedict']['Size'],
                         'LFN': metadata['filedict']['LFN'],
                         'GUID': metadata['filedict']['GUID'],
                         'Checksum': metadata['filedict']['Checksum'],
                         'ChecksumType': metadata['filedict']['ChecksumType']}
+
+        if not self._enableModule():
+          # At this point can exit and see exactly what the module would have uploaded
+          self.log.info("Module disabled",
+                        "would have attempted to upload file %s" % fileName)
+          continue
 
         result = self.failoverTransfer.transferAndRegisterFile(fileName=fileName,
                                                                localPath=metadata['localpath'],
@@ -242,10 +254,12 @@ class UploadOutputData(ModuleBase):
                                                                fileMetaDict=fileMetaDict,
                                                                masterCatalogOnly=True)
         if not result['OK']:
-          self.log.error("Could not transfer and register %s with metadata:\n %s" % (fileName, metadata))
+          self.log.error("Could not transfer and register",
+                         " %s with metadata:\n %s" % (fileName, metadata))
           failover[fileName] = metadata
         else:
-          self.log.info("%s uploaded, will be registered in BK if all files uploaded for job" % fileName)
+          self.log.info("File uploaded, will be registered in BK if all files uploaded for job",
+                        "(%s)" % fileName)
 
           # if the files are uploaded in the SE, independently if the registration in the FC is done,
           # then we have to register all of them in the BKK
@@ -264,6 +278,12 @@ class UploadOutputData(ModuleBase):
                         'Checksum': metadata['filedict']['Checksum'],
                         'ChecksumType': metadata['filedict']['ChecksumType']}
 
+        if not self._enableModule():
+          # At this point can exit and see exactly what the module would have uploaded
+          self.log.info("Module disabled",
+                        "would have attempted to upload with failover file %s" % fileName)
+          continue
+
         result = self.failoverTransfer.transferAndRegisterFileFailover(fileName=fileName,
                                                                        localPath=metadata['localpath'],
                                                                        lfn=metadata['filedict']['LFN'],
@@ -272,8 +292,8 @@ class UploadOutputData(ModuleBase):
                                                                        fileMetaDict=fileMetaDict,
                                                                        masterCatalogOnly=True)
         if not result['OK']:
-          self.log.error("Could not transfer and register %s in failover with metadata:\n %s" % (fileName,
-                                                                                                 metadata))
+          self.log.error("Could not transfer and register",
+                         "%s in failover with metadata:\n %s" % (fileName, metadata))
           cleanUp = True
           break  # no point continuing if one completely fails
 
@@ -281,13 +301,13 @@ class UploadOutputData(ModuleBase):
       self.request = self.failoverTransfer.request
 
       # If some or all of the files failed to be saved even to failover
-      if cleanUp:
+      if cleanUp and self._enableModule():
         self._cleanUp(final)
         self.workflow_commons['Request'] = self.request
         return S_ERROR('Failed to upload output data')
 
       # For files correctly uploaded must report LFNs to job parameters
-      if final:
+      if final and self._enableModule():
         report = ', '.join(final.keys())
         self.setJobParameter('UploadedOutputData', report)
 
@@ -296,7 +316,7 @@ class UploadOutputData(ModuleBase):
 
       if not performBKRegistration:
         self.log.info("There are no files to perform the BK registration for, all are in failover")
-      else:
+      elif self._enableModule():
         # performing BK registration
 
         # Getting what should be registered immediately, and what later
