@@ -16,6 +16,8 @@ stages:
   - release
   # Build the docker
   - release_docker
+  # Tag the devel container if needed
+  - tag_container
 
 # Common configuration between pytest and pylint
 .test_setup: &test_setup
@@ -176,3 +178,22 @@ build_docker_image:
   variables:
     TO: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}
     CONTEXT_DIR: container/lhcbdirac/
+
+
+# If we are triggering on a pre release,
+# tag the docker image we just built as 'devel'
+# check https://gitlab.cern.ch/ci-tools/docker-image-tools for the image doc
+add_devel_tag:
+  image: gitlab-registry.cern.ch/ci-tools/docker-image-tools:add-tag
+  stage: tag_container
+  script:
+  - 'Adding tag...'
+  only:
+    refs:
+      - tags
+    variables:
+      - $CI_COMMIT_TAG =~ /.*-pre.*/
+  variables:
+    DOCKER_IMAGE_PATH: $CI_REGISTRY_IMAGE
+    OLDTAG: ${CI_COMMIT_TAG}
+    NEWTAG: devel
