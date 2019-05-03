@@ -3,7 +3,6 @@ Set of functions used by the DMS scripts
 '''
 import os
 import datetime
-import time
 
 from DIRAC import gLogger, S_OK, exit as diracExit
 from DIRAC.Core.Utilities.List import breakListIntoChunks
