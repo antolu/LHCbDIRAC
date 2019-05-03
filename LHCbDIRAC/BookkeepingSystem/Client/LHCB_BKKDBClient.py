@@ -14,9 +14,9 @@ class LHCB_BKKDBClient(BaseESClient):
   """Client which used to browse the Entities"""
   #############################################################################
 
-  def __init__(self, url=None, web=False):
+  def __init__(self, url=None, web=False, welcome=True):
     """Initialize the basic class"""
-    BaseESClient.__init__(self, LHCbBookkeepingManager(url, web), '/')
+    BaseESClient.__init__(self, LHCbBookkeepingManager(url=url, web=web, welcome=welcome), '/')
   #############################################################################
 
   def get(self, path=""):
