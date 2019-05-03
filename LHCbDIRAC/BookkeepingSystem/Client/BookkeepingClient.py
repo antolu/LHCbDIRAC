@@ -210,6 +210,20 @@ class BookkeepingClient(Client):
     return self._getRPC().getRunInformation(in_dict)
 
   #############################################################################
+  def getRunInformations(self, runnb):
+    """
+    It returns run information and statistics.
+
+    :param (int, long, str) runnb: run number
+    :return: run statistics
+    """
+    # The service expects a long
+    try:
+      return self._getRPC().getRunInformations(long(runnb))
+    except (ValueError, TypeError) as e:
+      return S_ERROR("Invalid run number: %s" % repr(e))
+
+#############################################################################
   def getRunFilesDataQuality(self, runs):
     """
     For retrieve the data quality for runs or files.
@@ -289,7 +303,7 @@ class BookkeepingClient(Client):
     """
     try:
       fill = long(fillid)
-    except ValueError, ex:
+    except ValueError as ex:
       return S_ERROR(ex)
     return self._getRPC().getRunsForFill(fill)
 
@@ -301,7 +315,7 @@ class BookkeepingClient(Client):
     """
     try:
       simid = long(simid)
-    except ValueError, ex:
+    except ValueError as ex:
       return S_ERROR(ex)
     return self._getRPC().deleteSimulationConditions(simid)
 
