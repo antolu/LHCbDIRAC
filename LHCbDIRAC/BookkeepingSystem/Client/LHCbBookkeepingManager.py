@@ -70,7 +70,7 @@ class LHCbBookkeepingManager(BaseESManager):
   __bookkeepingQueryTypes = ['adv', 'std']
 
   #############################################################################
-  def __init__(self, url=None, web=False):
+  def __init__(self, url=None, web=False, welcome=True):
     """initialize the values"""
     BaseESManager.__init__(self)
     self._BaseESManager___fileSeparator = INTERNAL_PATH_SEPARATOR
@@ -87,8 +87,9 @@ class LHCbBookkeepingManager(BaseESManager):
 
     self.treeLevels_ = -1
     self.advancedQuery_ = False
-    print 'WELCOME'
-    print "For more information use the 'help' command! "
+    if welcome:
+      print 'WELCOME'
+      print "For more information use the 'help' command! "
     self.dataQualities_ = {}
 
     retVal = self.db_.getAvailableFileTypes()
@@ -244,7 +245,7 @@ class LHCbBookkeepingManager(BaseESManager):
           result = isinstance(long(i), long)
           if start and result:
             end = True
-        except ValueError, ex:
+        except ValueError as ex:
           gLogger.debug(str(self.__class__) + "__getLevel" + str(ex))
         if start and not end:
           level = startlevel
@@ -273,7 +274,7 @@ class LHCbBookkeepingManager(BaseESManager):
           result = isinstance(long(i), long)
           if start and result:
             end = True
-        except ValueError, ex:
+        except ValueError as ex:
           gLogger.warn(str(self.__class__) + "__getRunLevel" + str(ex))
         if start and not end:
           level = startlevel
@@ -300,7 +301,7 @@ class LHCbBookkeepingManager(BaseESManager):
         level += 1
         try:
           result = isinstance(long(i), long)
-        except ValueError, ex:
+        except ValueError as ex:
           gLogger.warn(str(self.__class__) + "__getEvtLevel" + str(ex))
           result = i in self.__filetypes
         if start and result:
@@ -1347,7 +1348,7 @@ class LHCbBookkeepingManager(BaseESManager):
       try:
         if 'fullpath' in entity:
           self.__entityCache.update({entity['fullpath']: (entity, 0)})
-      except ValueError, ex:
+      except ValueError as ex:
         gLogger.warn("couldn't cache entity(?) " + str(entity) + "  " + str(ex))
         return S_ERROR('couldnt cache entity!')
 
@@ -1384,7 +1385,7 @@ class LHCbBookkeepingManager(BaseESManager):
       entity = self.__entityCache[path][0]
       gLogger.debug("getting " + str(path) + " from the cache")
       return entity
-    except ValueError, ex:
+    except ValueError as ex:
       # not cached so far
       gLogger.debug(str(path) + " not in cache. Fetching..." + ex)
 
@@ -1394,7 +1395,7 @@ class LHCbBookkeepingManager(BaseESManager):
       gLogger.debug("getting " + str(path) + " eventually from the cache")
       entity = self.__entityCache[path][0]
       return entity
-    except ValueError, ex:
+    except ValueError as ex:
       # still not in the cache... wrong path
       gLogger.warn(str(path) + " seems to be a wrong path" + ex)
       return None
@@ -1638,7 +1639,7 @@ class LHCbBookkeepingManager(BaseESManager):
                                   savedType=savetype, catalog=None,
                                   savePfn=None, dataset=dataset)
     else:
-      return S_ERROR("Error discoverd during the option file creation!")
+      return S_ERROR("Error discovered during the option file creation!")
 
   #############################################################################
   def getLimitedInformations(self, startItem, maxitems, path):
@@ -1669,32 +1670,18 @@ class LHCbBookkeepingManager(BaseESManager):
       return S_ERROR("Error discoverd during the option file creation!")
 
   #############################################################################
-  def writeJobOptions(self, files, optionsFile='', savedType=None, catalog=None, savePfn=None, dataset=None):
-    """crate option"""
-    fd = None
-    if optionsFile == '':
-      if savedType == 'txt':
-        result = ''
-        for lfn in files:
-          result += str(lfn) + '\n'
-        return result
+  def writeJobOptions(self, files, optionsFile=None, savedType=None, catalog=None, savePfn=None, dataset=None):
+    """create options file"""
+    if optionsFile is None and savedType == 'txt':
+      # Only return the list of LFNs
+      return '\n'.join(str(lfn) for lfn in files) + '\n'
 
-    # get lst of event types
+    # get list of event types
     evtTypes = self.__createEventtypelist(files)
 
-    pythonOpts = None
-    if savedType is not None:
-      pythonOpts = savedType == 'py'
-    else:
-      fd = open(optionsFile, 'w')
-      ext = os.path.splitext(optionsFile)
-      try:
-        pythonOpts = ext[1] == '.py'
-      except IndexError, ex:
-        gLogger.warn(ex)
-        pythonOpts = True
+    fd = open(optionsFile, 'w') if optionsFile else None
 
-    string, comment = self.__addGaudiheader(pythonOpts, evtTypes)
+    string, comment = self.__addGaudiheader(evtTypes)
 
     string = self.__addDatasetcreationmetadata(string, dataset, comment)
 
@@ -1705,19 +1692,19 @@ class LHCbBookkeepingManager(BaseESManager):
     else:
       fileType = self.__getFileType(files)
 
-      string = self.__addEventselector(string, pythonOpts)
+      string = self.__addEventselector(string)
 
       fileType = fileType.split()[0]
 
       # Allow fileType to be of the form XfileType
       try:
         fileType = fileType.split(".")[1]
-      except IndexError, ex:
+      except IndexError as ex:
         gLogger.warn(str(self.__class__) + "writeJobOptions" + str(ex))
 
       string = self.__generatePoolBody(string, files, fileType, savePfn)
 
-      string = self.__addEndcatalog(string, pythonOpts)
+      string = self.__addEndcatalog(string)
 
     if catalog is not None:
       string += "FileCatalog().Catalogs += [ 'xmlcatalog_file:" + catalog + "' ]\n"
@@ -1733,7 +1720,7 @@ class LHCbBookkeepingManager(BaseESManager):
   def __getFileType(files):
     """it returns the file type. We assume we did not miss the file types.
     """
-    allfiletypes = [i['FileType'] for i in files.values()]
+    allfiletypes = [i['FileType'] for i in files.itervalues()]
     result = allfiletypes.pop() if len(allfiletypes) > 0 else ''
     return result
 
@@ -1753,26 +1740,20 @@ class LHCbBookkeepingManager(BaseESManager):
 
   #############################################################################
   @staticmethod
-  def __addEventselector(string, pythonOpts):
+  def __addEventselector(string):
     """It adds the first line of the catalog
     """
     # Now write the event selector option
-    if pythonOpts:
-      string += "\nfrom Gaudi.Configuration import * \n"
-      string += "\nEventSelector().Input   = [\n"
-    else:
-      string += "\nEventSelector.Input   = {\n"
+    string += "\nfrom Gaudi.Configuration import * \n"
+    string += "\nEventSelector().Input   = [\n"
     return string
 
   #############################################################################
   @staticmethod
-  def __addEndcatalog(string, pythonOpts):
+  def __addEndcatalog(string):
     """it adds the end of the catalog
     """
-    if pythonOpts:
-      string += "]\n"
-    else:
-      string += "\n};\n"
+    string += "]\n"
     return string
 
   #############################################################################
@@ -1817,8 +1798,7 @@ class LHCbBookkeepingManager(BaseESManager):
     """
     mdfTypes = ["RAW", "MDF"]
     etcTypes = ["SETC", "FETC", "ETC"]
-    keys = files.keys()
-    keys.sort()
+    keys = sorted(files)
     first = True
     for lfn in keys:
       filename = files[lfn]
@@ -1843,20 +1823,16 @@ class LHCbBookkeepingManager(BaseESManager):
 
   #############################################################################
   @staticmethod
-  def __addGaudiheader(pythonOpts, evtTypes):
+  def __addGaudiheader(evtTypes):
     """it creates the header of the job option
     """
 
     string = ''
-    if pythonOpts:
-      comment = "#-- "
-    else:
-      comment = "//-- "
+    comment = "#-- "
 
     string += comment + "GAUDI jobOptions generated on " + time.asctime() + "\n"
     string += comment + "Contains event types : \n"
-    fileTypes = evtTypes.keys()
-    fileTypes.sort()
+    fileTypes = sorted(evtTypes)
     for filetype in fileTypes:
       string += comment + "  %8d - %d files - %d events - %.2f GBytes\n" % (filetype,
                                                                             evtTypes[filetype][0],
@@ -1890,7 +1866,7 @@ class LHCbBookkeepingManager(BaseESManager):
         records = retVal['Value']
         for i in records:
           filesandformats[i] = records[i]
-        if 'ROOT_All' in filesandformats.values():
+        if 'ROOT_All' in filesandformats.itervalues():
           rootFormat = False
       else:
         return retVal
@@ -1906,14 +1882,14 @@ class LHCbBookkeepingManager(BaseESManager):
       lfn = files[i]
       filetype = int(lfn['EventType'])
       stat = 0
-      if lfn['EventStat'] != None:
+      if lfn['EventStat'] is not None:
         stat = int(lfn['EventStat'])
 
       if filetype not in evtTypes:
         evtTypes[filetype] = [0, 0, 0.]
       evtTypes[filetype][0] += 1
       evtTypes[filetype][1] += stat
-      if files[i]['FileSize'] == None:
+      if files[i]['FileSize'] is None:
         evtTypes[filetype][2] += 0
       else:
         evtTypes[filetype][2] += int(lfn['FileSize']) / 1000000000.
