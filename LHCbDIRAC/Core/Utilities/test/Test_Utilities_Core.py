@@ -267,7 +267,7 @@ class GangaDataFileSuccess(UtilitiesTestCase):
 
     gdf = GangaDataFile()
 
-    res = gdf.generateDataFile(['foo', 'bar'], 'ROOT')
+    res = gdf.generateDataFile(['foo', 'bar'], persistency='ROOT')
     # Remove first line as it contains the date and time
     res = '\n'.join(res.split('\n')[1:])
     root = '\n' + \
@@ -279,7 +279,7 @@ class GangaDataFileSuccess(UtilitiesTestCase):
 
     gdf = GangaDataFile(xmlcatalog_file='')
 
-    res = gdf.generateDataFile(['foo', 'bar'], 'MDF')
+    res = gdf.generateDataFile(['foo', 'bar'], persistency='MDF')
     # Remove first line as it contains the date and time
     res = '\n'.join(res.split('\n')[1:])
     root = '\n' + \
@@ -287,6 +287,16 @@ class GangaDataFileSuccess(UtilitiesTestCase):
         "from GaudiConf import IOHelper\nIOHelper('MDF').inputFiles([\n" + \
         "'LFN:foo',\n'LFN:bar',\n], clear=True)\n"
     self.assertEqual(res, root)
+
+    res = gdf.generateDataFile('foo', persistency='ROOT')
+    # Remove first line as it contains the date and time
+    res = '\n'.join(res.split('\n')[1:])
+    root = '\n' + \
+        'from Gaudi.Configuration import * \n' + \
+        "from GaudiConf import IOHelper\nIOHelper('ROOT').inputFiles([\n" + \
+        "'LFN:foo',\n], clear=True)\n"
+    self.assertEqual(res, root)
+
 #################################################
 
 

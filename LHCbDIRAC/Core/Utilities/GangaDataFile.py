@@ -45,9 +45,7 @@ class GangaDataFile(object):
 
   ################################################################################
 
-  def generateDataFile(self, lfns, persistency=None,
-                       TSDefaultStr=None,
-                       TSLookupMap=None):
+  def generateDataFile(self, lfns, persistency=None):
     """ generate the data file
     """
     if isinstance(lfns, basestring) and lfns:
