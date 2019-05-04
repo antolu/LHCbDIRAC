@@ -1,17 +1,17 @@
 """
 LHCb Bookkeeping database manager
 """
+import os
+import types
+import time
 
 from DIRAC import gLogger, S_OK, S_ERROR
+from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
+
 from LHCbDIRAC.BookkeepingSystem.Client.BaseESManager import BaseESManager
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.BookkeepingSystem.Client import objects
 from LHCbDIRAC.BookkeepingSystem.Client.Help import Help
-from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
-import os
-import types
-import time
-from DIRAC.tests.Performance.DFCPerformance.writePerf import lfn
 
 __RCSID__ = "$Id$"
 
@@ -78,7 +78,7 @@ class LHCbBookkeepingManager(BaseESManager):
     # self.__pathSeparator = INTERNAL_PATH_SEPARATOR
     self.db_ = BookkeepingClient(url)
     if not web:
-      self.fc = FileCatalog()
+      self.fileCatalog = FileCatalog()
     self.helper_ = Help()
 
     self.__entityCache = {'/': (objects.Entity({'name': '/', 'fullpath': '/', 'expandable': True}), 0)}
@@ -187,7 +187,7 @@ class LHCbBookkeepingManager(BaseESManager):
   def getFilesPFN(self):
     """pfn"""
     lfns = self.files_
-    res = self.fc.getReplicas(lfns)
+    res = self.fileCatalog.getReplicas(lfns)
     return res
 
   #############################################################################
