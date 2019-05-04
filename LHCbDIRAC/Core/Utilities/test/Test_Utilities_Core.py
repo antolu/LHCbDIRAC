@@ -268,64 +268,25 @@ class GangaDataFileSuccess(UtilitiesTestCase):
     gdf = GangaDataFile()
 
     res = gdf.generateDataFile(['foo', 'bar'], 'ROOT')
-    root = '\
-\n#new method\
-\nfrom GaudiConf import IOExtension\
-\nIOExtension("ROOT").inputFiles([\
-\n    "LFN:foo",\
-\n    "LFN:bar"\
-\n], clear=True)\
-\n\
-\nfrom Gaudi.Configuration import FileCatalog\
-\nFileCatalog().Catalogs = ["xmlcatalog_file:pool_xml_catalog.xml"]\
-'
+    # Remove first line as it contains the date and time
+    res = '\n'.join(res.split('\n')[1:])
+    root = '\n' + \
+        'from Gaudi.Configuration import * \n' + \
+        "from GaudiConf import IOHelper\nIOHelper('ROOT').inputFiles([\n" + \
+        "'LFN:foo',\n'LFN:bar',\n], clear=True)\n" + \
+        "FileCatalog().Catalogs += [ 'xmlcatalog_file:pool_xml_catalog.xml' ]\n"
     self.assertEqual(res, root)
 
-    res = gdf.generateDataFile(['foo', 'bar'], 'Pool')
-    pool = '\
-\ntry:\
-\n    #new method\
-\n    from GaudiConf import IOExtension\
-\n    IOExtension("POOL").inputFiles([\
-\n        "LFN:foo",\
-\n        "LFN:bar"\
-\n    ], clear=True)\
-\nexcept ImportError:\
-\n    #Use previous method\
-\n    from Gaudi.Configuration import EventSelector\
-\n    EventSelector().Input=[\
-\n        "DATAFILE=\'LFN:foo\' TYP=\'POOL_ROOTTREE\' OPT=\'READ\'",\
-\n        "DATAFILE=\'LFN:bar\' TYP=\'POOL_ROOTTREE\' OPT=\'READ\'"\
-\n    ]\
-\n\
-\nfrom Gaudi.Configuration import FileCatalog\
-\nFileCatalog().Catalogs = ["xmlcatalog_file:pool_xml_catalog.xml"]\
-'
+    gdf = GangaDataFile(xmlcatalog_file='')
 
-    self.assertEqual(res, pool)
-
-    res = gdf.generateDataFile(['foo', 'bar'])
-    nothing = '\
-\ntry:\
-\n    #new method\
-\n    from GaudiConf import IOExtension\
-\n    IOExtension().inputFiles([\
-\n        "LFN:foo",\
-\n        "LFN:bar"\
-\n    ], clear=True)\
-\nexcept ImportError:\
-\n    #Use previous method\
-\n    from Gaudi.Configuration import EventSelector\
-\n    EventSelector().Input=[\
-\n        "DATAFILE=\'LFN:foo\' TYP=\'POOL_ROOTTREE\' OPT=\'READ\'",\
-\n        "DATAFILE=\'LFN:bar\' TYP=\'POOL_ROOTTREE\' OPT=\'READ\'"\
-\n    ]\
-\n\
-\nfrom Gaudi.Configuration import FileCatalog\
-\nFileCatalog().Catalogs = ["xmlcatalog_file:pool_xml_catalog.xml"]\
-'
-    self.assertEqual(res, nothing)
-
+    res = gdf.generateDataFile(['foo', 'bar'], 'MDF')
+    # Remove first line as it contains the date and time
+    res = '\n'.join(res.split('\n')[1:])
+    root = '\n' + \
+        'from Gaudi.Configuration import * \n' + \
+        "from GaudiConf import IOHelper\nIOHelper('MDF').inputFiles([\n" + \
+        "'LFN:foo',\n'LFN:bar',\n], clear=True)\n"
+    self.assertEqual(res, root)
 #################################################
 
 

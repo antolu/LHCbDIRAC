@@ -50,7 +50,7 @@ class GangaDataFile(object):
                        TSLookupMap=None):
     """ generate the data file
     """
-    if isinstance(lfns, basestring):
+    if isinstance(lfns, basestring) and lfns:
       lfns = [lfns]
     elif not isinstance(lfns, list):
       self.log.error('Was expecting a list')
