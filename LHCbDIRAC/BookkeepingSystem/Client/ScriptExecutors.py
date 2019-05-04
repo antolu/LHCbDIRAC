@@ -707,7 +707,15 @@ def executeGetFiles(dmScript, maxFiles=20):
 
   if optionsFile:
     # Use BK client method to write options file
-    LHCB_BKKDBClient(welcome=False).writeJobOptions(fileDict, optionsFile=optionsFile)
+    if len(bkQueries) == 1:
+      dataset = bkQueries[0].getQueryDict()
+      # RunNumber screws up step info
+      for item in ('RunNumber', 'RunStart', 'RunEnd'):
+        dataset.pop(item, None)
+      dataset['fullpath'] = bkQueries[0].getPath()
+    else:
+      dataset = None
+    LHCB_BKKDBClient(welcome=False).writeJobOptions(fileDict, optionsFile=optionsFile, dataset=dataset)
     gLogger.notice('\n%d files in options file %s' % (len(fileDict), optionsFile))
 
 #==================================================================================
