@@ -39,11 +39,10 @@ pip-log.txt
 .settings
 .metadata
 
-
 #VSCode
 .vscode
 
-# Vim 
+# Vim
 .*.sw[a-z]
 *.un~
 Session.vim
@@ -66,9 +65,10 @@ coverage.xml
 Local_*
 .hypothesis
 *.gz
+htmlcov/
 
 #remove in case we want a specific LHCb one
-.pylintrc 
+.pylintrc
 
 # docs
 # this is auto generated
