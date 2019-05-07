@@ -582,12 +582,8 @@ class BookkeepingReport(ModuleBase):
       else:
         self.__getNodeInformationLinux(result)
     except Exception as x:
-      self.log.fatal('BookkeepingReport failed to obtain node information with Exception:')
-      self.log.fatal(str(x))
-      result = S_ERROR()
-      result['Message'] = 'Failed to obtain system information'
-      raise
-      return result
+      self.log.exception("BookkeepingReport failed to obtain node information", lException=x)
+      return S_ERROR("Failed to obtain system information")
 
     return result
 
@@ -598,8 +594,8 @@ class BookkeepingReport(ModuleBase):
       l3CacheSize = subprocess.check_output('sysctl -n hw.l3cachesize'.split(' ')).strip()
       result["CacheSize(kB)"] = str(int(cpuFrequency) / 1024)
 
-      # FIXME: What should be reported here?
-      result["Memory(kB)"] = '16128kB'
+      memSize = subprocess.check_output('sysctl -n hw.memsize'.split(' ')).strip()
+      result["Memory(kB)"] = str(int(memSize) / 1024) + 'kB'
       return result
 
   def __getNodeInformationLinux(self, result):
