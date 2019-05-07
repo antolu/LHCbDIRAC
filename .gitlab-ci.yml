@@ -91,8 +91,8 @@ pages:
       - public
     expire_in: 30 days
   only:
-    - master
-    - devel
+    - master@lhcb-dirac/LHCbDIRAC
+    - devel@lhcb-dirac/LHCbDIRAC
 
 # Deploy the pages generated to DFS
 dfsdeploy:
@@ -137,7 +137,7 @@ create_tarball:
     # We need a runner with CVMFS
     - cvmfs
   only:
-    - tags
+    - tags@lhcb-dirac/LHCbDIRAC
   script:
 
     # Choose from which branch we should get the releases.cfg file
