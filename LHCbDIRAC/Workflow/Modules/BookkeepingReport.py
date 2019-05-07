@@ -5,10 +5,12 @@
 __RCSID__ = "$Id$"
 
 import os
-import time
+import platform
 import re
-import socket
 import shlex
+import socket
+import subprocess
+import time
 from xml.dom.minidom import Document, DocumentType
 
 from DIRAC import gLogger, S_OK, S_ERROR, gConfig
@@ -574,6 +576,33 @@ class BookkeepingReport(ModuleBase):
     try:
       result["HostName"] = socket.gethostname()
 
+      system = platform.system()
+      if system == 'Darwin':
+        self.__getNodeInformationDarwin(result)
+      else:
+        self.__getNodeInformationLinux(result)
+    except Exception as x:
+      self.log.fatal('BookkeepingReport failed to obtain node information with Exception:')
+      self.log.fatal(str(x))
+      result = S_ERROR()
+      result['Message'] = 'Failed to obtain system information'
+      raise
+      return result
+
+    return result
+
+  def __getNodeInformationDarwin(self, result):
+      cpuFrequency = subprocess.check_output('sysctl -n hw.cpufrequency'.split(' ')).strip()
+      result["CPU(MHz)"] = str(int(cpuFrequency) / 1000000)
+      result["ModelName"] = subprocess.check_output('sysctl -n machdep.cpu.brand_string'.split(' ')).strip()
+      l3CacheSize = subprocess.check_output('sysctl -n hw.l3cachesize'.split(' ')).strip()
+      result["CacheSize(kB)"] = str(int(cpuFrequency) / 1024)
+
+      # FIXME: What should be reported here?
+      result["Memory(kB)"] = '16128kB'
+      return result
+
+  def __getNodeInformationLinux(self, result):
       with open("/proc/cpuinfo", "r") as cpuInfo:
         info = cpuInfo.readlines()
       result["CPU(MHz)"] = info[6].split(":")[1].replace(" ", "").replace("\n", "")
@@ -583,14 +612,7 @@ class BookkeepingReport(ModuleBase):
       with open("/proc/meminfo", "r") as memInfo:
         info = memInfo.readlines()
       result["Memory(kB)"] = info[3].split(":")[1].replace(" ", "").replace("\n", "")
-    except Exception as x:
-      self.log.fatal('BookkeepingReport failed to obtain node information with Exception:')
-      self.log.fatal(str(x))
-      result = S_ERROR()
-      result['Message'] = 'Failed to obtain system information'
       return result
-
-    return result
 
 ################################################################################
 # END AUXILIAR FUNCTIONS
