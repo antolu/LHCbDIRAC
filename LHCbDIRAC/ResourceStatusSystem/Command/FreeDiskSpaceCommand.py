@@ -25,6 +25,9 @@ class FreeDiskSpaceCommand(FDSC):
   Extension of DIRAC.ResourceStatusSystem.Command.FreeDiskSpaceCommand
   to add entries to accounting. To be considered to move up to DIRAC repository.
 
+  Originally, this was working for SRM only storages. It is now working with all protocols,
+  but we abuse the 'SpaceToken' field to store 'SpaceReservation'
+
   """
 
   def _storeCommand(self, results):
@@ -35,7 +38,8 @@ class FreeDiskSpaceCommand(FDSC):
     :param dict results: something like {'ElementName': 'CERN-HIST-EOS',
                                          'Endpoint': 'httpg://srm-eoslhcb-bis.cern.ch:8443/srm/v2/server',
                                          'Free': 3264963586.10073,
-                                         'Total': 8000000000.0}
+                                         'Total': 8000000000.0,
+                                         'SpaceReservation': 'LHCb-Disk'}
     :returns: S_OK/S_ERROR dict
     """
 
@@ -50,13 +54,10 @@ class FreeDiskSpaceCommand(FDSC):
     if not siteRes['Value']:
       return S_OK()
 
-    se = StorageElement(results['ElementName'])
-    tokenRes = se.getStorageParameters(protocol='srm')  # token only makes sense for SRM
-    if not tokenRes['OK']:
-      return tokenRes
+    spaceReservation = results.get('SpaceReservation')
 
     accountingDict = {
-        'SpaceToken': tokenRes['Value']['SpaceToken'],
+        'SpaceToken': spaceReservation,
         'Endpoint': results['Endpoint'],
         'Site': siteRes['Value']
     }
