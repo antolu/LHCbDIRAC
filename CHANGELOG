@@ -1,3 +1,20 @@
+v9r3p5
+use DIRAC v6r21p6
+
+* RSS: FreeDiskSpaceCommand accounting compatible with non SRM storage
+* add test
+* fix tests
+* Use LHCBBKKClient to construct the options file
+* fix imports
+* get rid of legacy options files and streamline
+* add dataset information
+* remove unused import
+* Add option to write options file from bookkeeping-get-files
+* fix PFN extraction due to multiple replicas
+* add method getRunInformations to allow run number as string
+* add suppression of welcome
+* Remove non-python options files
+
 v9r3p4
 use DIRAC v6r21p5
 

@@ -94,7 +94,7 @@ def execute():
     elif o in ("Depth"):
       try:
         depth = int(a)
-      except:
+      except Exception:
         gLogger.fatal("Invalid depth, must be integer")
         DIRAC.exit(1)
     elif o in ("v", 'Verbose'):
@@ -152,6 +152,7 @@ def execute():
     DIRAC.exit(1)
 
   rc = 0
+  savedLevel = gLogger.getLevel()
   try:
       # Verify the user has a valid proxy
     done = 1
@@ -166,11 +167,12 @@ def execute():
       if not result['OK']:
         gLogger.fatal("Error getting ancestor files...")
         DIRAC.exit(1)
-      lfnList = [anc['FileName'] for ancestors in result['Value']['Successful'].values() for anc in ancestors] + result['Value']['Successful'].keys()
+      lfnList = [anc['FileName'] for ancestors in result['Value']['Successful'].values()
+                 for anc in ancestors] + result['Value']['Successful'].keys()
 
     from DIRAC.Interfaces.API.Dirac import Dirac
     if not verbose:
-      gLogger.setLevel("Always")
+      gLogger.setLevel("Exception")
     if newOptFile:
       catalog = "/dev/null"
     gLogger.info("List of LFNs:", lfnList)
@@ -180,7 +182,8 @@ def execute():
     if result["OK"]:
       result = result['Value']
       if result['Failed']:
-        gLogger.always('Only a fraction of the input files are present and available at %s (%d missing)' % (site, len(result['Failed'])))
+        gLogger.always('Only a fraction of the input files are present and available at %s (%d missing)' %
+                       (site, len(result['Failed'])))
       if not result['Successful']:
         gLogger.fatal('... and none was actually available!')
         DIRAC.exit(1)
@@ -193,7 +196,7 @@ def execute():
             if lfn in opt:
               # get the tURL for this lfn
               if lfn in lfnToPfn:
-                pfn = lfnToPfn[lfn]['turl']
+                pfn = lfnToPfn[lfn][0]['turl']
                 opt = opt.replace("LFN:", '').replace(lfn, pfn)
               else:
                 gLogger.error("No tURL found for ", lfn)
@@ -214,10 +217,11 @@ def execute():
           gLogger.always("==> You must add %s to your list of options file" % catOption)
     else:
       gLogger.always("Error getting the list of PFNs:", result['Message'])
-  except Exception, e:
+  except Exception as e:
     gLogger.exception("Exception caught while creating catalog or option file:", '', e)
     rc = 1
 
+  gLogger.setLevel(savedLevel)
   gLogger.info("Total execution time for %d files: %5.2f seconds" % (len(lfnList), time.time() - t0))
   DIRAC.exit(rc)
 
