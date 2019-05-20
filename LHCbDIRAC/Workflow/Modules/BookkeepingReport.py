@@ -1,6 +1,8 @@
 """  Bookkeeping Reporting module (just prepare the files, do not send them
     (which is done in the uploadOutput)
 """
+from __future__ import absolute_import
+from __future__ import print_function
 
 __RCSID__ = "$Id$"
 
@@ -80,9 +82,9 @@ class BookkeepingReport(ModuleBase):
       if saveOnFile:
         bfilename = 'bookkeeping_' + self.step_id + '.xml'
         with open(bfilename, 'w') as bfile:
-          print >> bfile, doc
+          bfile.write(doc)
       else:
-        print doc
+        print(doc)
 
       return S_OK()
 
