@@ -1,16 +1,17 @@
 """
 LHCb Bookkeeping database manager
 """
+import os
+import types
+import time
 
 from DIRAC import gLogger, S_OK, S_ERROR
+from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
+
 from LHCbDIRAC.BookkeepingSystem.Client.BaseESManager import BaseESManager
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.BookkeepingSystem.Client import objects
 from LHCbDIRAC.BookkeepingSystem.Client.Help import Help
-from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
-import os
-import types
-import time
 
 __RCSID__ = "$Id$"
 
@@ -70,25 +71,27 @@ class LHCbBookkeepingManager(BaseESManager):
   __bookkeepingQueryTypes = ['adv', 'std']
 
   #############################################################################
-  def __init__(self, url=None, web=False):
+  def __init__(self, url=None, web=False, welcome=True):
     """initialize the values"""
     BaseESManager.__init__(self)
     self._BaseESManager___fileSeparator = INTERNAL_PATH_SEPARATOR
     # self.__pathSeparator = INTERNAL_PATH_SEPARATOR
     self.db_ = BookkeepingClient(url)
     if not web:
-      self.fc = FileCatalog()
+      self.fileCatalog = FileCatalog()
     self.helper_ = Help()
 
     self.__entityCache = {'/': (objects.Entity({'name': '/', 'fullpath': '/', 'expandable': True}), 0)}
     self.parameter_ = self.__bookkeepingParameters[0]
     self.files_ = []
     self.__filetypes = []
+    self.comment = '#-- '
 
     self.treeLevels_ = -1
     self.advancedQuery_ = False
-    print 'WELCOME'
-    print "For more information use the 'help' command! "
+    if welcome:
+      print 'WELCOME'
+      print "For more information use the 'help' command! "
     self.dataQualities_ = {}
 
     retVal = self.db_.getAvailableFileTypes()
@@ -184,7 +187,7 @@ class LHCbBookkeepingManager(BaseESManager):
   def getFilesPFN(self):
     """pfn"""
     lfns = self.files_
-    res = self.fc.getReplicas(lfns)
+    res = self.fileCatalog.getReplicas(lfns)
     return res
 
   #############################################################################
@@ -244,7 +247,7 @@ class LHCbBookkeepingManager(BaseESManager):
           result = isinstance(long(i), long)
           if start and result:
             end = True
-        except ValueError, ex:
+        except ValueError as ex:
           gLogger.debug(str(self.__class__) + "__getLevel" + str(ex))
         if start and not end:
           level = startlevel
@@ -273,7 +276,7 @@ class LHCbBookkeepingManager(BaseESManager):
           result = isinstance(long(i), long)
           if start and result:
             end = True
-        except ValueError, ex:
+        except ValueError as ex:
           gLogger.warn(str(self.__class__) + "__getRunLevel" + str(ex))
         if start and not end:
           level = startlevel
@@ -300,7 +303,7 @@ class LHCbBookkeepingManager(BaseESManager):
         level += 1
         try:
           result = isinstance(long(i), long)
-        except ValueError, ex:
+        except ValueError as ex:
           gLogger.warn(str(self.__class__) + "__getEvtLevel" + str(ex))
           result = i in self.__filetypes
         if start and result:
@@ -1347,7 +1350,7 @@ class LHCbBookkeepingManager(BaseESManager):
       try:
         if 'fullpath' in entity:
           self.__entityCache.update({entity['fullpath']: (entity, 0)})
-      except ValueError, ex:
+      except ValueError as ex:
         gLogger.warn("couldn't cache entity(?) " + str(entity) + "  " + str(ex))
         return S_ERROR('couldnt cache entity!')
 
@@ -1384,7 +1387,7 @@ class LHCbBookkeepingManager(BaseESManager):
       entity = self.__entityCache[path][0]
       gLogger.debug("getting " + str(path) + " from the cache")
       return entity
-    except ValueError, ex:
+    except ValueError as ex:
       # not cached so far
       gLogger.debug(str(path) + " not in cache. Fetching..." + ex)
 
@@ -1394,7 +1397,7 @@ class LHCbBookkeepingManager(BaseESManager):
       gLogger.debug("getting " + str(path) + " eventually from the cache")
       entity = self.__entityCache[path][0]
       return entity
-    except ValueError, ex:
+    except ValueError as ex:
       # still not in the cache... wrong path
       gLogger.warn(str(path) + " seems to be a wrong path" + ex)
       return None
@@ -1624,21 +1627,19 @@ class LHCbBookkeepingManager(BaseESManager):
       dataset = self._getDataSetTree4({'fullpath': path})
 
     if 'TotalRecords' in result and result['TotalRecords'] > 0:
-      values = result['Records']
+      records = result['Records']
       params = result['ParameterNames']
+      # The list has to be converted to dictionary
+      nameIndex = params.index('Name')
       files = {}
-      # The list has to be convert to dictionary
-      for i in values:
-        files[i[0]] = {'FileName': i[params.index('Name')],
-                       'EventStat': i[params.index('EventStat')],
-                       'FileSize': i[params.index('FileSize')],
-                       'FileType': i[params.index('FileType')],
-                       'EventType': i[params.index('EventType')]}
+      for rec in records:
+        lfn = rec[nameIndex]
+        files[lfn] = dict(zip(params, rec))
       return self.writeJobOptions(files, optionsFile='',
                                   savedType=savetype, catalog=None,
                                   savePfn=None, dataset=dataset)
     else:
-      return S_ERROR("Error discoverd during the option file creation!")
+      return S_ERROR("Error discovered during the option file creation!")
 
   #############################################################################
   def getLimitedInformations(self, startItem, maxitems, path):
@@ -1669,254 +1670,130 @@ class LHCbBookkeepingManager(BaseESManager):
       return S_ERROR("Error discoverd during the option file creation!")
 
   #############################################################################
-  def writeJobOptions(self, files, optionsFile='', savedType=None, catalog=None, savePfn=None, dataset=None):
-    """crate option"""
-    fd = None
-    if optionsFile == '':
-      if savedType == 'txt':
-        result = ''
-        for lfn in files:
-          result += str(lfn) + '\n'
-        return result
+  def writeJobOptions(self, files, optionsFile=None, savedType=None, catalog=None, savePfn=None, dataset=None):
+    """create options file"""
+    if optionsFile is None and savedType == 'txt':
+      # Only return the list of LFNs
+      return '\n'.join(str(lfn) for lfn in files) + '\n'
 
-    # get lst of event types
-    evtTypes = self.__createEventtypelist(files)
+    # get list of event types
+    evtTypes = self.__createEventTypeList(files)
 
-    pythonOpts = None
-    if savedType is not None:
-      pythonOpts = savedType == 'py'
-    else:
-      fd = open(optionsFile, 'w')
-      ext = os.path.splitext(optionsFile)
-      try:
-        pythonOpts = ext[1] == '.py'
-      except IndexError, ex:
-        gLogger.warn(ex)
-        pythonOpts = True
+    string = self.__addGaudiheader(evtTypes)
+    string += self.__addDatasetCreationMetadata(dataset)
 
-    string, comment = self.__addGaudiheader(pythonOpts, evtTypes)
+    filesandformats = self.__getFilesandFormats(savePfn, files)
+    string += self.__createFormatString(filesandformats)
 
-    string = self.__addDatasetcreationmetadata(string, dataset, comment)
-
-    filesandformats, rootFormat = self.__getFilesandFormats(savePfn, files)
-
-    if rootFormat:
-      string = self.__createRootformatstring(string, filesandformats)
-    else:
-      fileType = self.__getFileType(files)
-
-      string = self.__addEventselector(string, pythonOpts)
-
-      fileType = fileType.split()[0]
-
-      # Allow fileType to be of the form XfileType
-      try:
-        fileType = fileType.split(".")[1]
-      except IndexError, ex:
-        gLogger.warn(str(self.__class__) + "writeJobOptions" + str(ex))
-
-      string = self.__generatePoolBody(string, files, fileType, savePfn)
-
-      string = self.__addEndcatalog(string, pythonOpts)
-
-    if catalog is not None:
+    if catalog:
       string += "FileCatalog().Catalogs += [ 'xmlcatalog_file:" + catalog + "' ]\n"
 
-    if fd:
-      fd.write(string)
-      fd.close()
-    else:
-      return string
+    if optionsFile:
+      # Write options file if requested
+      with open(optionsFile, 'w') as fd:
+        fd.write(string)
+    # Always return the string
+    return string
 
   #############################################################################
-  @staticmethod
-  def __getFileType(files):
-    """it returns the file type. We assume we did not miss the file types.
-    """
-    allfiletypes = [i['FileType'] for i in files.values()]
-    result = allfiletypes.pop() if len(allfiletypes) > 0 else ''
-    return result
-
-  #############################################################################
-  def __addDatasetcreationmetadata(self, string, dataset, comment):
+  def __addDatasetCreationMetadata(self, dataset):
     """it adds the metadata information about the dataset creation.
     """
+    string = ''
     if dataset:
-      string += "\n\n%s Extra information about the data processing phases:\n" % (comment)
+      string += "\n%s Extra information about the data processing phases:\n" % (self.comment)
       retVal = self.db_.getStepsMetadata(dataset)
       if retVal['OK']:
-        for record in retVal['Value']['Records']:
-          string += "\n\n%s Processing Pass %s \n\n" % (comment, record)
-          for i in retVal['Value']['Records'][record]:
-            string += "%s %s : %s \n" % (comment, i[0], i[1])
+        for ppass, record in retVal['Value']['Records'].iteritems():
+          ppass = dataset.get('ProcessingPass', ppass)
+          string += "\n%s Processing Pass: '%s' \n\n" % (self.comment, ppass)
+          for i in record:
+            string += "%s %s : %s \n" % (self.comment, i[0], i[1])
     return string
 
   #############################################################################
   @staticmethod
-  def __addEventselector(string, pythonOpts):
-    """It adds the first line of the catalog
-    """
-    # Now write the event selector option
-    if pythonOpts:
-      string += "\nfrom Gaudi.Configuration import * \n"
-      string += "\nEventSelector().Input   = [\n"
-    else:
-      string += "\nEventSelector.Input   = {\n"
-    return string
-
-  #############################################################################
-  @staticmethod
-  def __addEndcatalog(string, pythonOpts):
-    """it adds the end of the catalog
-    """
-    if pythonOpts:
-      string += "]\n"
-    else:
-      string += "\n};\n"
-    return string
-
-  #############################################################################
-  @staticmethod
-  def __createRootformatstring(string, filesandformats):
+  def __createFormatString(filesandformats):
     """It generates the Root format option file.
     """
-    string += "\nfrom Gaudi.Configuration import * "
+    string = "\nfrom Gaudi.Configuration import * "
     string += "\nfrom GaudiConf import IOHelper"
-    ioCounter = 0
-    fileformat = None
-    for i in sorted(filesandformats.items()):
-      if ioCounter == 0:
-        fileformat = i[1]
-        string += "\nIOHelper('%s').inputFiles([" % (fileformat)
-        string += "'LFN:%s',\n" % (i[0])
-        ioCounter += 1
-      elif ioCounter > 0 and fileformat == i[1]:
-        string += "'LFN:%s',\n" % (i[0])
-      elif ioCounter > 0 and fileformat != i[1]:
-        fileformat = i[1]
-        string = string[:-2]
-        if ioCounter == 1:
-          string += '\n], clear=True)\n'
-          ioCounter += 1
-        else:
-          string += '\n])\n'
-        string += "\nIOHelper('%s').inputFiles([" % (fileformat)
-        string += "'LFN:%s',\n" % (i[0])
-
-    string = string[:-2]
-    if ioCounter == 1:
-      string += '\n], clear=True)\n'
-    else:
-      string += '\n])\n'
-    return string
-
-  #############################################################################
-  @staticmethod
-  def __generatePoolBody(string, files, fileType, savePfn):
-    """it adds the lfns to the pool catalog
-    """
-    mdfTypes = ["RAW", "MDF"]
-    etcTypes = ["SETC", "FETC", "ETC"]
-    keys = files.keys()
-    keys.sort()
-    first = True
-    for lfn in keys:
-      filename = files[lfn]
-      if not first:
-        string += ",\n"
-      first = False
-      if savePfn:
-        if fileType in mdfTypes:
-          string += "\"   DATAFILE=\'" + savePfn[lfn]['turl'] + "' SVC='LHCb::MDFSelector'\""
-        elif fileType in etcTypes:
-          string += "\"   COLLECTION='TagCreator/1' DATAFILE=\'" + savePfn[lfn]['turl'] + "' TYP='POOL_ROOT'\""
-        else:
-          string += "\"   DATAFILE=\'" + savePfn[lfn]['turl'] + "' TYP='POOL_ROOTTREE' OPT='READ'\""
+    for fileFormat, lfns in filesandformats.iteritems():
+      if fileFormat:
+        string += "\nIOHelper('%s').inputFiles([\n" % fileFormat
       else:
-        if fileType in mdfTypes:
-          string += "\"   DATAFILE='LFN:" + filename['FileName'] + "' SVC='LHCb::MDFSelector'\""
-        elif fileType in etcTypes:
-          string += "\"   COLLECTION='TagCreator/1' DATAFILE='LFN:" + filename['FileName'] + "' TYP='POOL_ROOT'\""
-        else:
-          string += "\"   DATAFILE='LFN:" + filename['FileName'] + "' TYP='POOL_ROOTTREE' OPT='READ'\""
+        string += "\nIOHelper().inputFiles([\n"
+      string += '\n'.join("'LFN:%s'," % lfn for lfn in lfns)
+      string += '\n], clear=True)\n'
+
     return string
 
   #############################################################################
-  @staticmethod
-  def __addGaudiheader(pythonOpts, evtTypes):
+  def __addGaudiheader(self, evtTypes):
     """it creates the header of the job option
     """
-
-    string = ''
-    if pythonOpts:
-      comment = "#-- "
-    else:
-      comment = "//-- "
-
-    string += comment + "GAUDI jobOptions generated on " + time.asctime() + "\n"
-    string += comment + "Contains event types : \n"
-    fileTypes = evtTypes.keys()
-    fileTypes.sort()
-    for filetype in fileTypes:
-      string += comment + "  %8d - %d files - %d events - %.2f GBytes\n" % (filetype,
-                                                                            evtTypes[filetype][0],
-                                                                            evtTypes[filetype][1],
-                                                                            evtTypes[filetype][2])
-    return string, comment
+    string = self.comment + "GAUDI jobOptions generated on " + time.asctime() + "\n"
+    if evtTypes:
+      string += self.comment + "Contains event types : \n"
+    for evtType in sorted(evtTypes):
+      string += self.comment + "  %8d - %d files - %d events - %.2f GBytes\n" % (evtType,
+                                                                                 evtTypes[evtType][0],
+                                                                                 evtTypes[evtType][1],
+                                                                                 evtTypes[evtType][2])
+    return string
 
   #############################################################################
   def __getFilesandFormats(self, savePfn, files):
-    """It returns the format of the lfns and false if the file format is not ROOT type.
+    """It returns a list of lfns for each file format (as a dictionary)
     """
     filesandformats = {}
-    rootFormat = True
-
-    if savePfn:  # we have to decide the file type version.
+    if savePfn:
+      # we have to decide the file type version.
       # This variable contains the file type version, if it is empty I check in the bkk
-
-      for lfns in savePfn:
-        if isinstance(savePfn[lfns], list):
-          for lfn in savePfn[lfns]:
-            if lfn['pfntype'].upper() == 'ROOT_ALL':
-              rootFormat = False
-            filesandformats[lfns] = lfn['pfntype']
-        elif savePfn[lfns]['pfntype'].upper() == 'ROOT_ALL':
-          rootFormat = False
-          filesandformats[lfns] = savePfn[lfns]['pfntype']
+      lfns = []
+      for lfn in files:
+        if lfn not in savePfn:
+          lfns.append(lfn)
+          continue
+        if isinstance(savePfn[lfn], list):
+          fileFormat = savePfn[lfn][0]['pfntype']
+        else:
+          fileFormat = savePfn[lfn]['pfntype']
+        filesandformats.setdefault(fileFormat, []).append(lfn)
 
     else:
-      retVal = self.db_.getFileTypeVersion(files.keys())
+      lfns = list(files)
+
+    if lfns:
+      # Get file type version from BK
+      retVal = self.db_.getFileTypeVersion(list(files))
       if retVal['OK']:
-        records = retVal['Value']
-        for i in records:
-          filesandformats[i] = records[i]
-        if 'ROOT_All' in filesandformats.values():
-          rootFormat = False
-      else:
-        return retVal
-    return filesandformats, rootFormat
+        for lfn, fileFormat in retVal['Value'].iteritems():
+          filesandformats.setdefault(fileFormat, []).append(lfn)
+    return filesandformats
 
   #############################################################################
   @staticmethod
-  def __createEventtypelist(files):
+  def __createEventTypeList(files):
     """It creates a dictionary which contains the event types and the size of the data set.
     """
     evtTypes = {}
-    for i in files:
-      lfn = files[i]
-      filetype = int(lfn['EventType'])
-      stat = 0
-      if lfn['EventStat'] != None:
-        stat = int(lfn['EventStat'])
+    if not isinstance(files, dict):
+      return evtTypes
+    for metadata in files.itervalues():
+      evtType = metadata.get('EventType')
+      if evtType:
+        try:
+          stat = int(metadata['EventStat'])
+        except (KeyError, ValueError):
+          stat = 0
 
-      if filetype not in evtTypes:
-        evtTypes[filetype] = [0, 0, 0.]
-      evtTypes[filetype][0] += 1
-      evtTypes[filetype][1] += stat
-      if files[i]['FileSize'] == None:
-        evtTypes[filetype][2] += 0
-      else:
-        evtTypes[filetype][2] += int(lfn['FileSize']) / 1000000000.
+        info = evtTypes.setdefault(int(evtType), [0, 0, 0.])
+        info[0] += 1
+        info[1] += stat
+        size = metadata.get('FileSize')
+        if size is not None:
+          info[2] += int(size) / 1000000000.
     return evtTypes
 
   #############################################################################
@@ -1956,11 +1833,7 @@ class LHCbBookkeepingManager(BaseESManager):
 
   def __getSelectedQualities(self):
     """data quality"""
-    res = []
-    for i in self.dataQualities_:
-      if self.dataQualities_[i] == True:
-        res += [i]
-    return res
+    return [flag for flag, val in self.dataQualities_.iteritems() if val is True]
 
   #############################################################################
   def getStepsMetadata(self, bkDict):

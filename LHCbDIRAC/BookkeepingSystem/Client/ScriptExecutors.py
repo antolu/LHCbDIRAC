@@ -11,6 +11,7 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClie
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import printDMResult, ProgressBar
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery, parseRuns, BadRunRange, getProcessingPasses
+from LHCbDIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient import LHCB_BKKDBClient
 
 bkClient = BookkeepingClient()
 jobEventInputStat = {}
@@ -609,11 +610,14 @@ def executeGetFiles(dmScript, maxFiles=20):
   output = None
   nMax = None
   bkFile = None
+  optionsFile = None
   for switch, val in Script.getUnprocessedSwitches():
     if switch == 'Output':
       output = val
     elif switch == 'File':
       bkFile = val
+    elif switch == 'OptionsFile':
+      optionsFile = val
     elif switch == 'Term':
       bkFile = '/dev/stdin'
     elif switch == 'MaxFiles':
@@ -700,6 +704,19 @@ def executeGetFiles(dmScript, maxFiles=20):
   if output:
     fd.close()
     gLogger.notice('\nList of %d files saved in' % len(fileDict), output)
+
+  if optionsFile:
+    # Use BK client method to write options file
+    if len(bkQueries) == 1:
+      dataset = bkQueries[0].getQueryDict()
+      # RunNumber screws up step info
+      for item in ('RunNumber', 'RunStart', 'RunEnd'):
+        dataset.pop(item, None)
+      dataset['fullpath'] = bkQueries[0].getPath()
+    else:
+      dataset = None
+    LHCB_BKKDBClient(welcome=False).writeJobOptions(fileDict, optionsFile=optionsFile, dataset=dataset)
+    gLogger.notice('\n%d files in options file %s' % (len(fileDict), optionsFile))
 
 #==================================================================================
 

@@ -2,22 +2,23 @@
 
     Given input files, it will create something like:
 
-    from GaudiConf import IOExtension
-    IOExtension("ROOT").inputFiles([
+    from Gaudi.Configuration import *
+    from GaudiConf import IOHelper
+    IOHelper("ROOT").inputFiles([
         "LFN:foo",
         "LFN:bar"
     ], clear=True)
 
-    from Gaudi.Configuration import FileCatalog
     FileCatalog().Catalogs = ["xmlcatalog_file:pool_xml_catalog.xml"]
 """
 
 __RCSID__ = "$Id$"
 
 import os
-import fnmatch
 
 from DIRAC import gLogger
+
+from LHCbDIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient import LHCB_BKKDBClient
 
 
 class GangaDataFile(object):
@@ -44,119 +45,32 @@ class GangaDataFile(object):
 
   ################################################################################
 
-  def generateDataFile(self, lfns, persistency=None,
-                       TSDefaultStr="TYP='POOL_ROOTTREE' OPT='READ'",
-                       TSLookupMap={'*.raw': "SVC='LHCb::MDFSelector'",
-                                    '*.RAW': "SVC='LHCb::MDFSelector'",
-                                    '*.mdf': "SVC='LHCb::MDFSelector'",
-                                    '*.MDF': "SVC='LHCb::MDFSelector'"}):
+  def generateDataFile(self, lfns, persistency=None):
     """ generate the data file
     """
-
-    if (not isinstance(lfns, type([]))):
+    if isinstance(lfns, basestring) and lfns:
+      lfns = [lfns]
+    elif not isinstance(lfns, list):
       self.log.error('Was expecting a list')
       raise TypeError('Expected List')
     if not len(lfns):
       self.log.warn('No file generated: was expecting a non-empty list')
       raise ValueError('list empty')
 
-    script = ''
     try:
       persistency = persistency.upper()
     except AttributeError:
       pass
 
-    if persistency == 'ROOT':
-      script = self.__inputFileStringBuilder(len(lfns)) % tuple(lfns)
-    elif persistency == 'POOL':
-      script = self.__legacyInputFileStringBuilder(len(lfns), persistency) % (
-          tuple(lfns) + self.__buildTypeSelectorTuple(lfns, TSDefaultStr, TSLookupMap))
+    # Create a fake LFN->PFN dictionary to give the persistency
+    if persistency:
+      fakePfns = dict.fromkeys(lfns, {'pfntype': persistency})
     else:
-      script = self.__legacyInputFileStringBuilder(len(lfns),
-                                                   None) % (tuple(lfns) + self.__buildTypeSelectorTuple(lfns,
-                                                                                                        TSDefaultStr,
-                                                                                                        TSLookupMap))
-
-    with open(self.fileName, 'w') as f:
-      f.write(script)
-
+      fakePfns = None
+    script = LHCB_BKKDBClient(welcome=False).writeJobOptions(lfns,
+                                                             optionsFile=self.fileName,
+                                                             catalog=self.xmlcatalog_file,
+                                                             savePfn=fakePfns)
     self.log.info('Created Ganga data file %s' % self.fileName)
 
     return script
-
-  ################################################################################
-
-  def __inputFileStringBuilder(self, entries):
-    """ ROOT extension
-    """
-
-    script = '\n#new method'
-    script += '\nfrom GaudiConf import IOExtension'
-    script += '\nIOExtension("ROOT").inputFiles(['
-    script += ('\n    "LFN:%s",' * entries)[:-1]
-    script += '\n], clear=True)'
-    script += '\n'
-    script += '\nfrom Gaudi.Configuration import FileCatalog'
-    script += '\nFileCatalog().Catalogs = ["xmlcatalog_file:%s"]' % self.xmlcatalog_file
-    return script
-
-  ################################################################################
-
-  def __legacyInputFileStringBuilder(self, entries, persistency=None):
-    """ POOL extension
-    """
-
-    script = '\ntry:'
-    script += '\n    #new method'
-    script += '\n    from GaudiConf import IOExtension'
-    if persistency:
-      script += '\n    IOExtension("%s").inputFiles([' % persistency
-    else:
-      script += '\n    IOExtension().inputFiles(['
-    script += ('\n        \"LFN:%s\",' * entries)[:-1]
-    script += '\n    ], clear=True)'
-    script += '\nexcept ImportError:'
-    script += '\n    #Use previous method'
-    script += '\n    from Gaudi.Configuration import EventSelector'
-    script += '\n    EventSelector().Input=['
-    script += ('\n        "DATAFILE=\'LFN:%s\' %s",' * entries)[:-1]
-    script += '\n    ]'
-
-    script += '\n'
-    script += '\nfrom Gaudi.Configuration import FileCatalog'
-    script += '\nFileCatalog().Catalogs = ["xmlcatalog_file:%s"]' % self.xmlcatalog_file
-
-    return script
-
-  ################################################################################
-
-  def __typeSelectorString(self, filename, defaultStr="TYP='POOL_ROOTTREE' OPT='READ'",
-                           lookupMap={'*.raw': "SVC='LHCb::MDFSelector'",
-                                      '*.RAW': "SVC='LHCb::MDFSelector'",
-                                      '*.mdf': "SVC='LHCb::MDFSelector'",
-                                      '*.MDF': "SVC='LHCb::MDFSelector'"}):
-    """ helper function
-    """
-
-    for key, val in lookupMap.iteritems():
-      if fnmatch.fnmatch(filename, key):
-        return val
-
-    return defaultStr
-
-  ################################################################################
-
-  def __buildTypeSelectorTuple(self, lfns, TSDefaultStr="TYP='POOL_ROOTTREE' OPT='READ'",
-                               TSLookupMap={'*.raw': "SVC='LHCb::MDFSelector'",
-                                            '*.RAW': "SVC='LHCb::MDFSelector'",
-                                            '*.mdf': "SVC='LHCb::MDFSelector'",
-                                            '*.MDF': "SVC='LHCb::MDFSelector'"}):
-    """ helper function
-    """
-
-    r = []
-    for i in xrange(len(lfns)):
-      r.extend([lfns[i], self.__typeSelectorString(lfns[i], TSDefaultStr, TSLookupMap)])
-    return tuple(r)
-
-################################################################################
