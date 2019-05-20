@@ -594,11 +594,10 @@ class BookkeepingReport(ModuleBase):
       result["CPU(MHz)"] = str(int(cpuFrequency) / 1000000)
       result["ModelName"] = subprocess.check_output('sysctl -n machdep.cpu.brand_string'.split(' ')).strip()
       l3CacheSize = subprocess.check_output('sysctl -n hw.l3cachesize'.split(' ')).strip()
-      result["CacheSize(kB)"] = str(int(cpuFrequency) / 1024)
+      result["CacheSize(kB)"] = str(int(l3CacheSize) / 1024)
 
       memSize = subprocess.check_output('sysctl -n hw.memsize'.split(' ')).strip()
       result["Memory(kB)"] = str(int(memSize) / 1024) + 'kB'
-      return result
 
   def __getNodeInformationLinux(self, result):
       with open("/proc/cpuinfo", "r") as cpuInfo:
@@ -610,7 +609,6 @@ class BookkeepingReport(ModuleBase):
       with open("/proc/meminfo", "r") as memInfo:
         info = memInfo.readlines()
       result["Memory(kB)"] = info[3].split(":")[1].replace(" ", "").replace("\n", "")
-      return result
 
 ################################################################################
 # END AUXILIAR FUNCTIONS
