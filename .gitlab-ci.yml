@@ -15,7 +15,7 @@ variables:
     SANCHA_PATH_DEVEL: "/cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/Sencha/ext-4.2.1.883/"
     SANCHA_PATH_PROD: "/cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/Sencha/ext-4.2.1.883/"
     LBENV_RELEASE: "0.3.7"
-    LBPLATFORMUTILS_RELEASE: "3.1"
+    LBPLATFORMUTILS_RELEASE: "4.0"
 stages:
    # Run all the tests
   - test
