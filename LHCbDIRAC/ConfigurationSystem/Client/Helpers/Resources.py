@@ -31,43 +31,7 @@ def getDIRACPlatform(platform):
   if not platform or platform.lower() == 'any':
     return S_OK([])
 
-  # understanding what's what
-  try:
-    microarch = platform.split('.')[1]
-  except IndexError:  # this is the case when there's no microarchitecture in platform
-    microarch = None
-  finally:
-    archV = platform.split('-')[0]
-
-  osV = platform.split('.')[0].split('-')[1]
-
-  # find the other arch that can run os
-  compatibleArchList = [archV]
-  for canRun, archComp in LbPlatformUtils.ARCH_COMPATIBILITY.iteritems():
-    if archV in archComp:
-      compatibleArchList.append(canRun)
-
-  # find the microarchitecture that can run the microarchitecture presented in platform
-  if microarch:
-    compatibleMicroArchsList = LbPlatformUtils.MICROARCH_LEVELS[0:LbPlatformUtils.MICROARCH_LEVELS.index(microarch) + 1]
-  else:
-    compatibleMicroArchsList = LbPlatformUtils.MICROARCH_LEVELS
-
-  # find the other OS that can run os
-  compatibleOSList = [osV]
-  for canRun, osComp in LbPlatformUtils.OS_COMPATIBILITY.iteritems():
-    if osV in osComp:
-      compatibleOSList.append(canRun)
-
-  compatiblePlatforms = {platform}
-  for ar in compatibleArchList:
-    for co in compatibleOSList:
-      if len(compatibleOSList) > 1 and compatibleOSList.index(co) != 0 and not microarch:
-        compatiblePlatforms.add(ar + '-' + co)
-      for cm in compatibleMicroArchsList:
-        compatiblePlatforms.add(ar + '-' + co + '.' + cm)
-
-  return S_OK(list(compatiblePlatforms))
+  return S_OK(LbPlatformUtils.compatible_platforms(platform))
 
 
 def getPlatformForJob(workflow):
@@ -95,79 +59,12 @@ def getPlatformForJob(workflow):
   osVersionSet = set()
   gccVersionSet = set()
   binaryTags = _findBinaryTags(workflow)
+
   if not binaryTags:
     gLogger.debug("Resources.getPlatformForJob: this job has no specific binary tag requested in any of its steps")
     return None
-  for bt in binaryTags:
-    # arch+microarch-osversion-gccversion-opt
-    fulllarch, osversion, gccversion = bt.split('-')[0:3]
-    try:
-      arch, microarch = fulllarch.split('+', 1)
-      archSet.add(arch)
-      microarchSet.add(microarch)
-    except ValueError:
-      archSet.add(fulllarch)
-    osVersionSet.add(osversion)
-    gccVersionSet.add(gccversion)
 
-  archCompatibilitiesInAList = []
-  archCompatibilities = dict(LbPlatformUtils.ARCH_COMPATIBILITY)
-  while True:
-    archsCompatible = set()
-    for archCompatibleList in archCompatibilities.itervalues():
-      for archCompatible in archCompatibleList:
-        archsCompatible.add(archCompatible)
-    for o in archCompatibilities.iterkeys():
-      if o not in archsCompatible:
-        highestArch = o
-    try:
-      archCompatibilities.pop(highestArch)
-    except KeyError:
-      break
-    archCompatibilitiesInAList.append(highestArch)
-
-  for ar in archCompatibilitiesInAList:
-    if ar in archSet:
-      break
-
-  ma = ''
-  for mal in LbPlatformUtils.MICROARCH_LEVELS:
-    if mal in microarchSet:
-      ma = '+' + mal
-      break
-
-  osCompatibilityInAList = []
-  osCompatibilities = dict(LbPlatformUtils.OS_COMPATIBILITY)
-  while True:
-    ossCompatible = set()
-    for osCompatibleList in osCompatibilities.itervalues():
-      for osCompatible in osCompatibleList:
-        ossCompatible.add(osCompatible)
-    for o in osCompatibilities.iterkeys():
-      if o not in ossCompatible:
-        highestOS = o
-    try:
-      osCompatibilities.pop(highestOS)
-    except KeyError:
-      break
-    osCompatibilityInAList.append(highestOS)
-
-  for osV in osCompatibilityInAList:
-    if osV in osVersionSet:
-      break
-
-  gccV = sorted(list(gccVersionSet))[-1]
-
-  # Now, we compose the binary tag
-  composedBinaryTag = ar + ma + '-' + osV + '-' + gccV + '-opt'
-  gLogger.verbose("Resources.getPlatformForJob: binary tag composed: %s" % composedBinaryTag)
-
-  try:
-    platform = LbPlatformUtils.requires(composedBinaryTag)
-  except BaseException as error:
-    gLogger.exception("Exception while getting platform, don't set it", lException=error)
-    return None
-  return platform
+  return LbPlatformUtils.lowest_common_requirement(binaryTags)
 
 
 def _findBinaryTags(wf):
