@@ -4,6 +4,7 @@
 
 __RCSID__ = "$Id$"
 
+from collections import defaultdict
 import os
 import platform
 import re
@@ -283,18 +284,17 @@ class BookkeepingReport(ModuleBase):
     typedParams.append(("CPUTIME", cputime))
     typedParams.append(("ExecTime", exectime))
 
-    nodeInfo = self.__getNodeInformation()
-    if nodeInfo['OK']:
+    res = self.__getNodeInformation()
+    nodeInfo = defaultdict(lambda: 'unknown')
+    if res['OK']:
+      nodeInfo.update(res['Value'])
 
-      typedParams.append(("WNMODEL", nodeInfo["ModelName"]))
-      typedParams.append(("WNCPUPOWER", nodeInfo["CPU(MHz)"]))
-      typedParams.append(("WNCACHE", nodeInfo["CacheSize(kB)"]))
-      # THIS OR THE NEXT
-      # typedParams.append( ( "WorkerNode", nodeInfo['HostName'] ) )
+    typedParams.append(("WNMODEL", nodeInfo["ModelName"]))
+    typedParams.append(("WNCPUPOWER", nodeInfo["CPU(MHz)"]))
+    typedParams.append(("WNCACHE", nodeInfo["CacheSize(kB)"]))
 
     host = os.environ.get("HOSTNAME", os.environ.get("HOST"))
-    if host is not None:
-      typedParams.append(("WorkerNode", host))
+    typedParams.append(("WorkerNode", host or nodeInfo['HostName']))
 
     try:
       memory = self.xf_o.memory
@@ -572,7 +572,7 @@ class BookkeepingReport(ModuleBase):
        is not essential to the running of the jobs but will be reported if
        available.
     """
-    result = S_OK()
+    result = {}
     try:
       result["HostName"] = socket.gethostname()
 
@@ -585,7 +585,7 @@ class BookkeepingReport(ModuleBase):
       self.log.exception("BookkeepingReport failed to obtain node information", lException=x)
       return S_ERROR("Failed to obtain system information")
 
-    return result
+    return S_OK(result)
 
   def __getNodeInformationDarwin(self, result):
       cpuFrequency = subprocess.check_output('sysctl -n hw.cpufrequency'.split(' ')).strip()
