@@ -1,14 +1,19 @@
 """  Bookkeeping Reporting module (just prepare the files, do not send them
     (which is done in the uploadOutput)
 """
+from __future__ import absolute_import
+from __future__ import print_function
 
 __RCSID__ = "$Id$"
 
+from collections import defaultdict
 import os
-import time
+import platform
 import re
-import socket
 import shlex
+import socket
+import subprocess
+import time
 from xml.dom.minidom import Document, DocumentType
 
 from DIRAC import gLogger, S_OK, S_ERROR, gConfig
@@ -77,9 +82,9 @@ class BookkeepingReport(ModuleBase):
       if saveOnFile:
         bfilename = 'bookkeeping_' + self.step_id + '.xml'
         with open(bfilename, 'w') as bfile:
-          print >> bfile, doc
+          bfile.write(doc)
       else:
-        print doc
+        print(doc)
 
       return S_OK()
 
@@ -281,18 +286,17 @@ class BookkeepingReport(ModuleBase):
     typedParams.append(("CPUTIME", cputime))
     typedParams.append(("ExecTime", exectime))
 
-    nodeInfo = self.__getNodeInformation()
-    if nodeInfo['OK']:
+    res = self.__getNodeInformation()
+    nodeInfo = defaultdict(lambda: 'unknown')
+    if res['OK']:
+      nodeInfo.update(res['Value'])
 
-      typedParams.append(("WNMODEL", nodeInfo["ModelName"]))
-      typedParams.append(("WNCPUPOWER", nodeInfo["CPU(MHz)"]))
-      typedParams.append(("WNCACHE", nodeInfo["CacheSize(kB)"]))
-      # THIS OR THE NEXT
-      # typedParams.append( ( "WorkerNode", nodeInfo['HostName'] ) )
+    typedParams.append(("WNMODEL", nodeInfo["ModelName"]))
+    typedParams.append(("WNCPUPOWER", nodeInfo["CPU(MHz)"]))
+    typedParams.append(("WNCACHE", nodeInfo["CacheSize(kB)"]))
 
     host = os.environ.get("HOSTNAME", os.environ.get("HOST"))
-    if host is not None:
-      typedParams.append(("WorkerNode", host))
+    typedParams.append(("WorkerNode", host or nodeInfo['HostName']))
 
     try:
       memory = self.xf_o.memory
@@ -570,10 +574,32 @@ class BookkeepingReport(ModuleBase):
        is not essential to the running of the jobs but will be reported if
        available.
     """
-    result = S_OK()
+    result = {}
     try:
       result["HostName"] = socket.gethostname()
 
+      system = platform.system()
+      if system == 'Darwin':
+        self.__getNodeInformationDarwin(result)
+      else:
+        self.__getNodeInformationLinux(result)
+    except Exception as x:
+      self.log.exception("BookkeepingReport failed to obtain node information", lException=x)
+      return S_ERROR("Failed to obtain system information")
+
+    return S_OK(result)
+
+  def __getNodeInformationDarwin(self, result):
+      cpuFrequency = subprocess.check_output('sysctl -n hw.cpufrequency'.split(' ')).strip()
+      result["CPU(MHz)"] = str(int(cpuFrequency) / 1000000)
+      result["ModelName"] = subprocess.check_output('sysctl -n machdep.cpu.brand_string'.split(' ')).strip()
+      l3CacheSize = subprocess.check_output('sysctl -n hw.l3cachesize'.split(' ')).strip()
+      result["CacheSize(kB)"] = str(int(l3CacheSize) / 1024)
+
+      memSize = subprocess.check_output('sysctl -n hw.memsize'.split(' ')).strip()
+      result["Memory(kB)"] = str(int(memSize) / 1024) + 'kB'
+
+  def __getNodeInformationLinux(self, result):
       with open("/proc/cpuinfo", "r") as cpuInfo:
         info = cpuInfo.readlines()
       result["CPU(MHz)"] = info[6].split(":")[1].replace(" ", "").replace("\n", "")
@@ -583,14 +609,6 @@ class BookkeepingReport(ModuleBase):
       with open("/proc/meminfo", "r") as memInfo:
         info = memInfo.readlines()
       result["Memory(kB)"] = info[3].split(":")[1].replace(" ", "").replace("\n", "")
-    except Exception as x:
-      self.log.fatal('BookkeepingReport failed to obtain node information with Exception:')
-      self.log.fatal(str(x))
-      result = S_ERROR()
-      result['Message'] = 'Failed to obtain system information'
-      return result
-
-    return result
 
 ################################################################################
 # END AUXILIAR FUNCTIONS

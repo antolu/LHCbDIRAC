@@ -74,7 +74,7 @@ run_pycodestyle:
     - git remote add GL https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC.git
     - git fetch --no-tags GL
     - git branch -avv
-    - git diff -U0 GL/${lhcbDiracBranch} | pycodestyle --diff
+    - git diff -U0 GL/${lhcbDiracBranch}...HEAD | pycodestyle --diff
 
 # This job MUST be call pages as per https://docs.gitlab.com/ce/ci/yaml/README.html#pages
 pages:
