@@ -27,7 +27,7 @@ datasets = [{'ConfigName': 'LHCb',
              'Visible': 'Y', 'fullpath':
              '/LHCb/Collision15/Beam6500GeV-VeloClosed-MagDown/Real Data/Reco15a/Stripping24/90000000/BHADRON.MDST',
              'ConfigVersion': 'Collision15',
-             'Quality': ['OK']}]
+             'DataQuality': ['OK']}]
 
 evt1 = [90000000, 91000000, 94000000, 95100000]
 c = 0
@@ -60,7 +60,7 @@ datasets.extend([{'ConfigName': 'LHCb',
                   'Visible': 'Y',
                   'fullpath': '/LHCb/Collision15/Beam6500GeV-VeloClosed-MagDown/Real Data/Reco15/90000000/RDST',
                   'ConfigVersion': 'Collision15',
-                  'Quality': [u'OK', u'UNCHECKED']}])
+                  'DataQuality': [u'OK', u'UNCHECKED']}])
 
 datasets.extend([{'ConfigName': 'LHCb',
                   'ConditionDescription': 'Beam6500GeV-VeloClosed-MagDown',
@@ -70,7 +70,7 @@ datasets.extend([{'ConfigName': 'LHCb',
                   'Visible': 'Y',
                   'fullpath': '/LHCb/Collision15/Beam6500GeV-VeloClosed-MagDown/Real Data/Reco15/90000000/RDST',
                   'ConfigVersion': 'Collision15em',
-                  'Quality': [u'OK', u'UNCHECKED']}])
+                  'DataQuality': [u'OK', u'UNCHECKED']}])
 
 datasets.extend([{'ConfigName': 'LHCb',
                   'ConditionDescription': 'Beam6500GeV-VeloClosed-MagDown',
@@ -81,7 +81,7 @@ datasets.extend([{'ConfigName': 'LHCb',
                   'fullpath': '/LHCb/Collision15/Beam6500GeV-VeloClosed-MagDown/\
                   Real Data/Reco15/Turbo01/95100000/FULLTURBO.DST',
                   'ConfigVersion': 'Collision15',
-                  'Quality': [u'OK', u'UNCHECKED']}])
+                  'DataQuality': [u'OK', u'UNCHECKED']}])
 
 datasets.extend([{'ConfigName': 'LHCb',
                   'ConditionDescription': 'Beam6500GeV-VeloClosed-MagDown',
@@ -92,7 +92,7 @@ datasets.extend([{'ConfigName': 'LHCb',
                   'fullpath': '/LHCb/Collision15/Beam6500GeV-VeloClosed-MagDown/Real Data/\
                   Reco15/Turbo01/95100000/FULLTURBO.DST',
                   'ConfigVersion': 'Collision15em',
-                  'Quality': [u'OK', u'UNCHECKED']}])
+                  'DataQuality': [u'OK', u'UNCHECKED']}])
 
 
 for i in ['RADIATIVE.DST', 'MDST.DST', 'BHADRON.MDST', 'MINIBIAS.DST', 'PID.MDST',
@@ -106,7 +106,7 @@ for i in ['RADIATIVE.DST', 'MDST.DST', 'BHADRON.MDST', 'MINIBIAS.DST', 'PID.MDST
                     'Visible': 'Y',
                     'fullpath': c,
                     'ConfigVersion': 'Collision15',
-                    'Quality': [u'OK', u'UNCHECKED']}])
+                    'DataQuality': [u'OK', u'UNCHECKED']}])
   c += 1
 
 datasets += [{'ConfigName': 'LHCb',
@@ -117,7 +117,7 @@ datasets += [{'ConfigName': 'LHCb',
               'Visible': 'Y',
               'fullpath': '/LHCb/Collision15/Beam6500GeV-VeloClosed-MagDown/Real Data/Turbo01/94000000/TURBO.MDST',
               'ConfigVersion': 'Collision15',
-              'Quality': [u'OK', u'UNCHECKED']}]
+              'DataQuality': [u'OK', u'UNCHECKED']}]
 
 for i in ['RADIATIVE.DST', 'MDST.DST', 'BHADRON.MDST', 'MINIBIAS.DST', 'PID.MDST', 'BHADRONCOMPLETEEVENT.DST',
           'EW.DST', 'LEPTONIC.MDST', 'CHARMTOBESWUM.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST',
@@ -131,7 +131,7 @@ for i in ['RADIATIVE.DST', 'MDST.DST', 'BHADRON.MDST', 'MINIBIAS.DST', 'PID.MDST
                'fullpath': '/LHCb/Collision12/Beam4000GeV-VeloClosed-MagDown/\
                Real Data/Reco14/Stripping21/90000000/EW.DST',
                'ConfigVersion': 'Collision12',
-               'Quality': [u'OK', u'UNCHECKED']}]
+               'DataQuality': [u'OK', u'UNCHECKED']}]
 for i in ['RADIATIVE.DST', 'MDST.DST', 'BHADRON.MDST', 'MINIBIAS.DST', 'PID.MDST', 'BHADRONCOMPLETEEVENT.DST', 'EW.DST',
           'LEPTONIC.MDST', 'CHARMTOBESWUM.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST',
           'DIMUON.DST', 'SEMILEPTONIC.DST']:
@@ -144,7 +144,7 @@ for i in ['RADIATIVE.DST', 'MDST.DST', 'BHADRON.MDST', 'MINIBIAS.DST', 'PID.MDST
                 'fullpath': '/LHCb/Collision12/Beam4000GeV-VeloClosed-MagDown\
                 /Real Data/Reco14/Stripping21/90000000/EW.DST',
                 'ConfigVersion': 'Collision12',
-                'Quality': [u'OK', u'UNCHECKED']}]
+                'DataQuality': [u'OK', u'UNCHECKED']}]
 
 for i in ['RADIATIVE.DST', 'MDST.DST', 'BHADRON.MDST', 'MINIBIAS.DST', 'PID.MDST', 'BHADRONCOMPLETEEVENT.DST',
           'EW.DST', 'LEPTONIC.MDST', 'CHARMTOBESWUM.DST', 'CALIBRATION.DST', 'CHARM.MDST',
@@ -158,7 +158,7 @@ for i in ['RADIATIVE.DST', 'MDST.DST', 'BHADRON.MDST', 'MINIBIAS.DST', 'PID.MDST
                 'fullpath': '/LHCb/Collision12/Beam4000GeV-VeloClosed-MagDown\
                 /Real Data/Reco14/Stripping21/90000000/EW.DST',
                 'ConfigVersion': 'Collision12',
-                'Quality': [u'OK', u'UNCHECKED']}]
+                'DataQuality': [u'OK', u'UNCHECKED']}]
 
 for i in ['RADIATIVE.DST', 'MDST.DST', 'BHADRON.MDST', 'MINIBIAS.DST', 'PID.MDST', 'BHADRONCOMPLETEEVENT.DST', 'EW.DST',
           'LEPTONIC.MDST', 'CHARMTOBESWUM.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST',
@@ -172,7 +172,7 @@ for i in ['RADIATIVE.DST', 'MDST.DST', 'BHADRON.MDST', 'MINIBIAS.DST', 'PID.MDST
                 'fullpath': '/LHCb/Collision12/Beam4000GeV-VeloClosed-MagDown\
                 /Real Data/Reco14/Stripping21/90000000/EW.DST',
                 'ConfigVersion': 'Collision12',
-                'Quality': [u'OK', u'UNCHECKED']}]
+                'DataQuality': [u'OK', u'UNCHECKED']}]
 
 for i in ['RADIATIVE.DST', 'MDST.DST', 'BHADRON.MDST', 'MINIBIAS.DST', 'PID.MDST', 'BHADRONCOMPLETEEVENT.DST',
           'EW.DST', 'LEPTONIC.MDST', 'CHARMTOBESWUM.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST',
@@ -186,7 +186,7 @@ for i in ['RADIATIVE.DST', 'MDST.DST', 'BHADRON.MDST', 'MINIBIAS.DST', 'PID.MDST
                 'fullpath': '/LHCb/Collision12/Beam4000GeV-VeloClosed-MagDown\
                 /Real Data/Reco14/Stripping21/90000000/EW.DST',
                 'ConfigVersion': 'Collision12',
-                'Quality': [u'OK', u'UNCHECKED']}]
+                'DataQuality': [u'OK', u'UNCHECKED']}]
 
 # 2015
 evts = [18112001, 28142001, 18112021, 27462411, 12875401, 11874401, 12873441, 12143010, 13774003, 18112011, 11874091]
@@ -200,7 +200,7 @@ for i in evts:
                 'fullpath': '/MC/2015/Beam6500GeV-Jun2015-MagDown-Nu1.6-Pythia6\
                 /Sim08h/Trig0x40f9014e/Reco15em/Turbo01em/11874091/DST',
                 'ConfigVersion': '2015',
-                'Quality': [u'OK', u'UNCHECKED']}]
+                'DataQuality': [u'OK', u'UNCHECKED']}]
 
 evts = [23103020, 11442012, 21103010, 21263002, 23263011, 27165006, 12875401, 21103003, 11874401,
         12873441, 27163003, 12143010, 21263010, 13774003, 23103011, 27265002, 27163071, 23263020, 11874091]
@@ -214,7 +214,7 @@ for i in evts:
                 'fullpath': '/MC/2015/Beam6500GeV-Jun2015-MagDown-Nu1.6-Pythia8\
                 /Sim08h/Trig0x40f9014e/Reco15em/Turbo01em/12873441/DST',
                 'ConfigVersion': '2015',
-                'Quality': [u'OK', u'UNCHECKED']}]
+                'DataQuality': [u'OK', u'UNCHECKED']}]
 
 evts = [24142001, 18112001, 28142001, 18112021, 27462411, 12875401,
         11874401, 12873441, 12143010, 13774003, 18112011, 11874091]
@@ -228,7 +228,7 @@ for i in evts:
                 'fullpath': '/MC/2015/Beam6500GeV-Jun2015-MagUp-Nu1.6-Pythia6\
                 /Sim08h/Trig0x40f9014e/Reco15em/Turbo01em/11874091/DST',
                 'ConfigVersion': '2015',
-                'Quality': [u'OK', u'UNCHECKED']}]
+                'DataQuality': [u'OK', u'UNCHECKED']}]
 
 evts = [11442012, 21263002, 23263011, 12875401, 11874401, 12873441,
         27163003, 12143010, 21263010, 13774003, 27265002, 23263020, 11874091]
@@ -242,7 +242,7 @@ for i in evts:
                 'fullpath': '/MC/2015/Beam6500GeV-Jun2015-MagUp-Nu1.6-Pythia8\
                 /Sim08h/Trig0x40f9014e/Reco15em/Turbo01em/12143010/DST',
                 'ConfigVersion': '2015',
-                'Quality': [u'OK', u'UNCHECKED']}]
+                'DataQuality': [u'OK', u'UNCHECKED']}]
 
 # Upgrade
 evts = [11114001, 30000000, 13104011]
@@ -256,7 +256,7 @@ for i in evts:
                 'fullpath': '/MC/Upgrade/Beam7000GeV-Upgrade-MagDown-Nu3.8-25ns-Pythia6\
                 /Sim08c/Digi13/Reco14U4/11114001/XDST',
                 'ConfigVersion': 'Upgrade',
-                'Quality': [u'OK', u'UNCHECKED']}]
+                'DataQuality': [u'OK', u'UNCHECKED']}]
 evts = [27165103, 30000000, 13102201, 13104013, 13104011, 13104012, 27165175, 13104015, 27165100]
 for i in evts:
   datasets += [{'ConfigName': 'MC',
@@ -268,7 +268,7 @@ for i in evts:
                 'fullpath': '/MC/Upgrade/Beam7000GeV-Upgrade-MagDown-Nu3.8-25ns-Pythia8\
                 /Sim08c/Digi13/Reco14U4/13102201/XDST',
                 'ConfigVersion': 'Upgrade',
-                'Quality': [u'OK', u'UNCHECKED']}]
+                'DataQuality': [u'OK', u'UNCHECKED']}]
 
 datasets += [{'ConfigName': 'MC',
               'ConditionDescription': 'Beam7000GeV-Upgrade-MagDown-Nu3.8-25ns-Pythia8',
@@ -279,7 +279,7 @@ datasets += [{'ConfigName': 'MC',
               'fullpath': '/MC/Upgrade/Beam7000GeV-Upgrade-MagDown-Nu3.8-25ns-Pythia8\
               /Sim08c/Digi13/Reco14U4/Digi13-R/13104012/XDIGI',
               'ConfigVersion': 'Upgrade',
-              'Quality': [u'OK', u'UNCHECKED']}]
+              'DataQuality': [u'OK', u'UNCHECKED']}]
 
 evts = [30000000, 13102201, 13104013]
 for i in evts:
@@ -292,7 +292,7 @@ for i in evts:
                 'fullpath': '/MC/Upgrade/Beam7000GeV-Upgrade-MagDown-Nu3.8-Pythia8\
                 /Sim08c/Digi13/Reco14U4/13102201/XDST',
                 'ConfigVersion': 'Upgrade',
-                'Quality': [u'OK', u'UNCHECKED']}]
+                'DataQuality': [u'OK', u'UNCHECKED']}]
 
 evts = [13784200, 11124001]
 for i in evts:
@@ -305,7 +305,7 @@ for i in evts:
                 'fullpath': '/MC/Upgrade/Beam7000GeV-Upgrade-MagUp-Nu3.8-25ns-Pythia8\
                 /Sim08c-NoRichSpill/Digi13/Reco14U5/11124001/XDST',
                 'ConfigVersion': 'Upgrade',
-                'Quality': [u'OK', u'UNCHECKED']}]
+                'DataQuality': [u'OK', u'UNCHECKED']}]
 
 # 2010
 datasets += [{'ConfigName': 'MC',
@@ -317,7 +317,7 @@ datasets += [{'ConfigName': 'MC',
               'fullpath': '/MC/2010/Beam3500GeV-May2010-MagDown-Fix1\
               /Sim01/Trig0x002e002aFlagged/Reco08-MINBIAS/30000000/DST',
               'ConfigVersion': '2010',
-              'Quality': [u'OK', u'UNCHECKED']}]
+              'DataQuality': [u'OK', u'UNCHECKED']}]
 evts = [60001008, 60002008, 60001001, 60002001]
 for i in evts:
   datasets += [{'ConfigName': 'MC',
@@ -328,7 +328,7 @@ for i in evts:
                 'Visible': 'Y',
                 'fullpath': '/MC/2010/Beam3500GeV-May2010-MagDown-Fix1-Hijing/Sim01/Reco08/60001001/DST',
                 'ConfigVersion': '2010',
-                'Quality': [u'OK', u'UNCHECKED']}]
+                'DataQuality': [u'OK', u'UNCHECKED']}]
 
 datasets += [{'ConfigName': 'MC',
               'ConditionDescription': 'Beam3500GeV-May2010-MagOff-Fix1',
@@ -338,7 +338,7 @@ datasets += [{'ConfigName': 'MC',
               'Visible': 'Y',
               'fullpath': '/MC/2010/Beam3500GeV-May2010-MagOff-Fix1/Sim01/Reco08/30000000/DST',
               'ConfigVersion': '2010',
-              'Quality': [u'OK', u'UNCHECKED']}]
+              'DataQuality': [u'OK', u'UNCHECKED']}]
 
 evts = [60001001, 60001008, 60002008, 60002001]
 for i in evts:
@@ -350,7 +350,7 @@ for i in evts:
                 'Visible': 'Y',
                 'fullpath': '/MC/2010/Beam3500GeV-May2010-MagUp-Fix1-Hijing/Sim01/Reco08/60001001/DST',
                 'ConfigVersion': '2010',
-                'Quality': [u'OK', u'UNCHECKED']}]
+                'DataQuality': [u'OK', u'UNCHECKED']}]
 
 evts += [12165122, 15144100, 13102002, 10012004, 24142001, 42122001, 30000000, 11144103, 10000000, 23573003,
          11166141, 42100001, 12365521, 27183000, 12165102, 11144001, 20000000, 11166131, 12365501, 13112001,
@@ -367,7 +367,7 @@ for i in evts:
                 'fullpath': '/MC/2010/Beam3500GeV-Oct2010-MagDown-Nu2.5\
                 /Sim01/Trig0x002e002aFlagged/Reco08/Stripping12Flagged/11166121/ALLSTREAMS.DST',
                 'ConfigVersion': '2010',
-                'Quality': [u'OK', u'UNCHECKED']}]
+                'DataQuality': [u'OK', u'UNCHECKED']}]
 
 evts = [12165021, 12165011, 10000020]
 for i in evts:
@@ -380,7 +380,7 @@ for i in evts:
                 'fullpath': '/MC/2010/Beam3500GeV-Oct2010-MagDown-Nu2.5\
                 /Sim01a/Trig0x002e002aFlagged/Reco08/Stripping12Flagged/10000020/ALLSTREAMS.DST',
                 'ConfigVersion': '2010',
-                'Quality': [u'OK', u'UNCHECKED']}]
+                'DataQuality': [u'OK', u'UNCHECKED']}]
 
 evts += [12165122, 15144100, 13102002, 10012004, 24142001, 42122001, 30000000, 11144103, 10000000, 23573003, 11166141,
          42100001, 12365521, 27183000, 12165102, 11144001, 20000000, 11166131, 12365501, 13112001, 20072000, 11960000,
@@ -397,7 +397,7 @@ for i in evts:
                 'fullpath': '/MC/2010/Beam3500GeV-Oct2010-MagUp-Nu2.5\
                 /Sim01/Trig0x002e002aFlagged/Reco08/Stripping12Flagged/10000000/ALLSTREAMS.DST',
                 'ConfigVersion': '2010',
-                'Quality': [u'OK', u'UNCHECKED']}]
+                'DataQuality': [u'OK', u'UNCHECKED']}]
 
 datasets.extend([{'ConfigName': 'LHCb',
                   'ConditionDescription': 'Beam6500GeV-VeloClosed-MagDown',

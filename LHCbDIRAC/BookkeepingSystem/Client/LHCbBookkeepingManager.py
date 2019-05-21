@@ -655,7 +655,7 @@ class LHCbBookkeepingManager(BaseESManager):
   def clevelBody_6(self, path, levels, in_dict):
     """build the 7th tree"""
     entityList = list()
-    in_dict['Quality'] = self.__getSelectedQualities()
+    in_dict['DataQuality'] = self.__getSelectedQualities()
     in_dict['Visible'] = 'Y'
     result = self.db_.getFilesWithMetadata(in_dict)
     if result['OK']:
@@ -678,7 +678,7 @@ class LHCbBookkeepingManager(BaseESManager):
   def clevelBodyLimited_6(self, path, levels, in_dict, sortDict, startItem, maxitems):
     """7th tree node for web"""
     entityList = list()
-    in_dict['Quality'] = self.__getSelectedQualities()
+    in_dict['DataQuality'] = self.__getSelectedQualities()
     result = self.__getFiles(in_dict, sortDict, startItem, maxitems)
     for record in result['Records']:
       value = {'name': record[0], 'EventStat': record[1], 'FileSize': record[2], 'CreationDate': record[3],
@@ -1098,7 +1098,7 @@ class LHCbBookkeepingManager(BaseESManager):
   def plevelBody_4(self, path, levels, in_dict):
     """make the tree node"""
     entityList = list()
-    in_dict['Quality'] = self.__getSelectedQualities()
+    in_dict['DataQuality'] = self.__getSelectedQualities()
     in_dict['Visible'] = 'Y'
     result = self.db_.getFilesWithMetadata(in_dict)
     if result['OK']:
@@ -1563,7 +1563,7 @@ class LHCbBookkeepingManager(BaseESManager):
     selection = in_dict
     in_dict['Visible'] = 'Y'
     if len(sortDict) > 0:
-      in_dict['Quality'] = self.__getSelectedQualities()
+      in_dict['DataQuality'] = self.__getSelectedQualities()
       res = self.db_.getFilesSummary(in_dict)
       if not res['OK']:
         gLogger.error(res['Message'])
@@ -1578,7 +1578,7 @@ class LHCbBookkeepingManager(BaseESManager):
     if startItem > -1 and maxitems != 0:
       in_dict['StartItem'] = startItem
       in_dict['MaxItem'] = maxitems
-      in_dict['Quality'] = self.__getSelectedQualities()
+      in_dict['DataQuality'] = self.__getSelectedQualities()
       result = self.db_.getLimitedFiles(in_dict)
 
       if result['OK']:

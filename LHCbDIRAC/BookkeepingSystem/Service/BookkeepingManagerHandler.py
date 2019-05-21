@@ -2448,9 +2448,19 @@ class BookkeepingManagerHandler(RequestHandler):
 
   types_deleteCertificationData = []
 
-  def export_deleteCertificationData(self):
+  @staticmethod
+  def export_deleteCertificationData():
     """It destroy the data used by the integration test"""
     return dataMGMT_.deleteCertificationData()
+
+  types_updateProductionOutputfiles = []
+
+  @staticmethod
+  def export_updateProductionOutputfiles():
+    """
+    It is used to trigger an update of the productionoutputfiles table
+    """
+    return dataMGMT_.updateProductionOutputfiles()
 
   #############################################################################
   types_getAvailableTagsFromSteps = []

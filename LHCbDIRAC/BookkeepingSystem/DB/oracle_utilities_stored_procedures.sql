@@ -15,6 +15,7 @@ procedure updateJobNbofevt(v_jobid number);
 procedure updateEventInputStat(v_production number, fixstripping BOOLEAN);
 procedure updateJobEvtinpStat(v_jobid number, fixstripping BOOLEAN);
 PROCEDURE destroyDatasets;
+PROCEDURE updateProdOutputFiles;
 
 end;
 /
@@ -145,6 +146,30 @@ BEGIN
 		DELETE steps WHERE stepid=productionsteps(i);
 	END LOOP;
 	COMMIT;
+END;
+PROCEDURE updateProdOutputFiles IS
+exits number;
+BEGIN 
+	FOR c IN (select j.production from jobs j, files f WHERE 
+		f.inserttimestamp >= SYSTIMESTAMP - 1 AND 
+		j.jobid = f.jobid AND 
+		f.gotreplica IS NOT NULL and
+		f.filetypeid NOT IN(9,17) group by j.production) LOOP
+		FOR prod IN(SELECT j.production,J.STEPID, f.eventtypeid, f.filetypeid, f.gotreplica, f.visibilityflag 
+		FROM jobs j, files f WHERE 
+			j.jobid = f.jobid AND 
+			j.production=c.production and
+			f.gotreplica IS NOT NULL and
+			f.filetypeid NOT IN(9,17) GROUP BY j.production, J.STEPID, f.eventtypeid, f.filetypeid, f.gotreplica, f.visibilityflag Order by f.gotreplica,f.visibilityflag asc) LOOP
+			SELECT count(*) INTO exits FROM  productionoutputfiles WHERE production=prod.production AND eventtypeid=prod.eventtypeid AND filetypeid=prod.filetypeid AND stepid=prod.stepid;
+			IF exits>0 then
+				UPDATE productionoutputfiles SET visible=prod.visibilityflag, gotreplica=prod.gotreplica WHERE production=prod.production AND eventtypeid=prod.eventtypeid AND filetypeid=prod.filetypeid AND stepid=prod.stepid;
+			ELSE
+				INSERT INTO productionoutputfiles(production, stepid, filetypeid, visible, eventtypeid,gotreplica)VALUES(prod.production,prod.stepid, prod.filetypeid, prod.visibilityflag,prod.eventtypeid, prod.gotreplica);
+			END IF;
+		END LOOP;
+		COMMIT;
+	END LOOP;
 END;
 END;
 /

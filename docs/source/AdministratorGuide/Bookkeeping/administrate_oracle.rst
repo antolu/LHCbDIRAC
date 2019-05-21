@@ -250,9 +250,9 @@ If we know the processing id, we can use the following query to found out the pr
       WHERE LEVEL > 0 and id=1915
       CONNECT BY PRIOR id=parentid order by Pathlen desc) v where rownum<=1;
 
-================================
+=====================
 Bookkeeping down time
-================================
+=====================
 The following services/agent needs to be stopped before the deep down time (SystemAdministrator can be used in order to manage the services)::
 
 	RMS:
@@ -297,6 +297,7 @@ For monitoring:
 .. code-block:: sql
 
     select JOB_NAME, STATE, LAST_START_DATE, LAST_RUN_DURATION, NEXT_RUN_DATE, RUN_COUNT, FAILURE_COUNT from USER_SCHEDULER_JOBS;
+
 
 ====================
 Managing partitions
@@ -352,3 +353,10 @@ In order to fix the issue a new partition has to be created:
 .. code-block:: sql
 
 	alter table files add PARTITION SECT_0620M  VALUES LESS THAN (620000000);
+
+===================
+Database monitoring
+===================
+
+Various queries are available in the BookkeepingSystem/DB/monitoring.sql file. They can be used for discovering problems such as database locks, broken oracle jobs, sessions, used indexes, etc.
+

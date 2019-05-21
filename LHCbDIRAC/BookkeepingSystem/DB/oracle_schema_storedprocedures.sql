@@ -1563,12 +1563,9 @@ procedure getConfigsAndEvtType(
   )is
   begin
     open a_Cursor for
-      /*select distinct configName, ConfigVersion, eventtypeid from prodview where production=prodId;*/
-    
-     select distinct configurations.configName,configurations.ConfigVersion,files.eventtypeid from jobs,files,configurations where
-       jobs.jobid=files.jobid and
-       jobs.production=prodId and
-       configurations.configurationid=jobs.configurationid;
+    SELECT c.configName,c.ConfigVersion,prod.eventtypeid from productionoutputfiles prod, configurations c,
+    productionscontainer cont WHERE prod.production=prodID AND cont.production=prod.production AND cont.configurationid=c.configurationid
+    GROUP BY c.configName,c.ConfigVersion,prod.eventtypeid;
   end;
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure getJobsbySites(
@@ -1728,7 +1725,12 @@ end;
    ) is
 begin
   open a_Cursor for
-    select distinct EVENTTYPEID, DESCRIPTION from prodview where CONFIGNAME=cName and CONFIGVERSION=cVersion ORDER By EVENTTYPEID DESC;
+    select distinct e.EVENTTYPEID, e.DESCRIPTION from productionoutputfiles prod, eventtypes e, productionscontainer cont,
+    configurations c where 
+    c.CONFIGNAME=cName and c.CONFIGVERSION=cVersion AND
+    c.configurationid=cont.configurationid AND cont.production=prod.production AND
+    prod.eventtypeid=e.eventtypeid
+    ORDER By e.EVENTTYPEID DESC;
    end;
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 function  getRunNumber(lfn varchar2) return number is
@@ -1760,7 +1762,9 @@ end;
 procedure getRuns(c_name varchar2, c_version varchar2,  a_Cursor out udt_RefCursor) is
 begin
 open a_Cursor for
-  select distinct prodrunview.runnumber from prodview, prodrunview where prodview.production=prodrunview.production and configname=c_name and configversion=c_version;
+  select distinct run.runnumber from productionoutputfiles prod, prodrunview run, configurations c, productionscontainer cont where 
+  prod.production=run.production and c.configname=c_name and c.configversion=c_version AND
+  cont.configurationid=c.configurationid AND cont.production=prod.production;
 end;
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 function getRunProcPass(v_runNumber number) return run_proc_table

@@ -133,6 +133,9 @@ class TestMethods(DataInsertTestCase):
     self.assertEqual(retVal['Value']['Successful'], [])
     self.assertEqual(retVal['Value']['Failed'], ['test.txt'])
 
+    self.bk.updateProductionOutputfiles()
+    self.assertTrue(retVal['OK'])
+
   def test_fileMetadata(self):
     """
     test the file metadata method
@@ -510,7 +513,7 @@ class TestMethods(DataInsertTestCase):
                'ProcessingPass': '/Sim01/Reco08',
                'Visible': 'Y',
                'ConfigVersion': 'MC10',
-               'Quality': []}
+               'DataQuality': 'ALL'}
 
     retVal = self.bk.getFiles(bkQuery)
     self.assertTrue(retVal['OK'])
@@ -523,7 +526,7 @@ class TestMethods(DataInsertTestCase):
                'ProcessingPass': '/Sim01/Reco08',
                'Visible': 'Y',
                'ConfigVersion': 'MC10',
-               'Quality': "ALL"}
+               'DataQuality': "ALL"}
 
     retVal = self.bk.getFiles(bkQuery)
     self.assertTrue(retVal['OK'])
@@ -537,7 +540,7 @@ class TestMethods(DataInsertTestCase):
                'EventType': '30000000',
                'FileType': 'DST',
                'Visible': 'Y',
-               'Quality': 'OK'}
+               'DataQuality': 'OK'}
 
     retVal = self.bk.getFiles(bkQuery)
     self.assertTrue(retVal['OK'])
@@ -559,7 +562,7 @@ class TestMethods(DataInsertTestCase):
                'ProcessingPass': '/MC10Gen01',
                'Visible': 'Y',
                'ConfigVersion': 'MC10',
-               'Quality': []}
+               'DataQuality': 'ALL'}
     retVal = self.bk.getFiles(bkQuery)
     self.assertTrue(retVal['OK'])
     self.assertEqual(len(retVal['Value']), 200)
@@ -609,7 +612,7 @@ class TestMethods(DataInsertTestCase):
                'ProcessingPass': '/MC10Gen01',
                'Visible': 'Y',
                'ConfigVersion': 'MC10',
-               'Quality': []}
+               'DataQuality': 'ALL'}
 
     retVal = self.bk.getFiles(bkQuery)
     self.assertTrue(retVal['OK'])
@@ -626,7 +629,7 @@ class TestMethods(DataInsertTestCase):
                'ProcessingPass': '/Sim01/Reco08',
                'Visible': 'Y',
                'ConfigVersion': 'MC10',
-               'Quality': []}
+               'DataQuality': 'ALL'}
 
     retVal = self.bk.getProductions(bkQuery)
     self.assertTrue(retVal['OK'])
@@ -713,7 +716,7 @@ class TestMethods(DataInsertTestCase):
                'ProcessingPass': '/Real Data/Reco10/Stripping13b',
                'Visible': 'Y',
                'ConfigVersion': 'Collision11',
-               'Quality': ['OK']}
+               'DataQuality': 'ALL'}
 
     summary = {'TotalLuminosity': 0,
                'Number Of Files': 2316,
@@ -741,6 +744,23 @@ class TestMethods(DataInsertTestCase):
 
     self.assertEqual(retVal['Value']['Summary'], summary)
     self.assertEqual(len(retVal['Value']['LFNs']), 2316)
+    self.assertEqual(retVal['Value']['LFNs'][retVal['Value']['LFNs'].keys()[0]].keys(), paramNames)
+
+    bkQuery['DataQuality'] = 'OK'
+    summary = {'EventInputStat': 2177397109,
+               'FileSize': 6315.18232392,
+               'InstLuminosity': 0,
+               'Luminosity': 174996481.488,
+               'Number Of Files': 2314,
+               'Number of Events': 69542587,
+               'TotalLuminosity': 0}
+    retVal = self.bk.getVisibleFilesWithMetadata(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['Summary'])
+    self.assertTrue(retVal['Value']['LFNs'])
+
+    self.assertEqual(retVal['Value']['Summary'], summary)
+    self.assertEqual(len(retVal['Value']['LFNs']), 2314)
     self.assertEqual(retVal['Value']['LFNs'][retVal['Value']['LFNs'].keys()[0]].keys(), paramNames)
 
     bkQuery['RunNumber'] = [90104, 92048, 87851]
@@ -781,20 +801,20 @@ class TestMethods(DataInsertTestCase):
     bkQuery.pop('StartRun')
     bkQuery.pop('EndRun')
     bkQuery['StartDate'] = "2011-06-15 19:15:25"
-    summary = {'TotalLuminosity': 0,
-               'Number Of Files': 127,
-               'Luminosity': 11841384.7998,
-               'Number of Events': 5229684,
-               'EventInputStat': 135822190,
-               'FileSize': 449.842646079,
-               'InstLuminosity': 0}
+    summary = {'EventInputStat': 135629659,
+               'FileSize': 449.439082551,
+               'InstLuminosity': 0,
+               'Luminosity': 11832088.6133,
+               'Number Of Files': 125,
+               'Number of Events': 5226863,
+               'TotalLuminosity': 0}
 
     retVal = self.bk.getVisibleFilesWithMetadata(bkQuery)
     self.assertTrue(retVal['OK'])
     self.assertTrue(retVal['Value']['Summary'])
     self.assertTrue(retVal['Value']['LFNs'])
     self.assertEqual(retVal['Value']['Summary'], summary)
-    self.assertEqual(len(retVal['Value']['LFNs']), 127)
+    self.assertEqual(len(retVal['Value']['LFNs']), 125)
 
     bkQuery['EndDate'] = "2011-06-16 19:15:25"
     summary = {'TotalLuminosity': 0,
@@ -823,7 +843,7 @@ class TestMethods(DataInsertTestCase):
                'ProcessingPass': '/Sim01/Reco08',
                'Visible': 'Y',
                'ConfigVersion': 'MC10',
-               'Quality': ['OK']}
+               'DataQuality': ['OK']}
 
     summary = {'EventInputStat': 6020000,
                'FileSize': 468.227136723,
@@ -877,7 +897,6 @@ class TestMethods(DataInsertTestCase):
     This si used to test the ganga queries
     Now test the run numbers
     """
-
     bkQuery = {'ConfigName': 'LHCb',
                'ConditionDescription': 'Beam3500GeV-VeloClosed-MagDown',
                'EventType': 90000000,
@@ -885,8 +904,12 @@ class TestMethods(DataInsertTestCase):
                'ProcessingPass': '/Real Data/Reco10/Stripping13b',
                'Visible': 'Y',
                'ConfigVersion': 'Collision11',
-               'Quality': ['OK']}
+               'DataQuality': ['OK']}
 
+    retVal = self.bk.getFiles(bkQuery)
+    self.assertEqual(len(retVal['Value']), 3221)
+
+    bkQuery['DataQuality'] = 'ALL'
     retVal = self.bk.getFiles(bkQuery)
     self.assertEqual(len(retVal['Value']), 3223)
 
@@ -927,7 +950,7 @@ class TestMethods(DataInsertTestCase):
                'ProcessingPass': '/Sim01/Reco08',
                'Visible': 'Y',
                'ConfigVersion': 'MC10',
-               'Quality': ['OK']}
+               'DataQuality': ['OK']}
 
     retVal = self.bk.getFiles(bkQuery)
     self.assertTrue(retVal['OK'])
@@ -1017,7 +1040,7 @@ class TestMethods(DataInsertTestCase):
                'ProcessingPass': '/Real Data/Reco10/Stripping13b',
                'Visible': 'Y',
                'ConfigVersion': 'Collision11',
-               'Quality': ['OK']}
+               'DataQuality': ['OK']}
 
     paramNames = [
         'FileName',
@@ -1099,7 +1122,7 @@ class TestMethods(DataInsertTestCase):
                'ProcessingPass': '/Sim01/Reco08',
                'Visible': 'Y',
                'ConfigVersion': 'MC10',
-               'Quality': ['OK']}
+               'DataQuality': ['OK']}
 
     paramNames = [
         'FileName',
@@ -1216,14 +1239,14 @@ class MCInsertTestCase(unittest.TestCase):
                         "G4settings": "specified in sim step",
                         "Visible": 'Y'}
     self.productionSteps = {"SimulationConditions": "Beam4000GeV-2012-MagUp-Nu2.5-Pythia8",
-                            "ConfigName": "MC",
-                            "ConfigVersion": "2012",
+                            "ConfigName": "test",
+                            "ConfigVersion": "Jenkins",
                             "Production": self.production,
                             "Steps": []}
 
     self.xmlStep1 = """<?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE Job SYSTEM "book.dtd">
-  <Job ConfigName="MC" ConfigVersion="2012" Date="%jDate%" Time="%jTime%">
+  <Job ConfigName="test" ConfigVersion="Jenkins" Date="%jDate%" Time="%jTime%">
   <TypedParameter Name="CPUTIME" Type="Info" Value="36196.1"/>
   <TypedParameter Name="ExecTime" Type="Info" Value="36571.0480781"/>
   <TypedParameter Name="WNMODEL" Type="Info" Value="Intel(R)Xeon(R)CPUE5-2650v2@2.60GHz"/>
@@ -1269,7 +1292,7 @@ class MCInsertTestCase(unittest.TestCase):
 
     self.xmlStep2 = """<?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE Job SYSTEM "book.dtd">
-<Job ConfigName="MC" ConfigVersion="2012" Date="%jDate%" Time="%jTime%">
+<Job ConfigName="test" ConfigVersion="Jenkins" Date="%jDate%" Time="%jTime%">
 <TypedParameter Name="CPUTIME" Type="Info" Value="234.52"/>
 <TypedParameter Name="ExecTime" Type="Info" Value="342.997269869"/>
 <TypedParameter Name="WNMODEL" Type="Info" Value="Intel(R)Xeon(R)CPUE5-2650v2@2.60GHz"/>
@@ -1313,7 +1336,7 @@ class MCInsertTestCase(unittest.TestCase):
 
     self.xmlStep3 = """<?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE Job SYSTEM "book.dtd">
-<Job ConfigName="MC" ConfigVersion="2012" Date="%jDate%" Time="%jTime%">
+<Job ConfigName="test" ConfigVersion="Jenkins" Date="%jDate%" Time="%jTime%">
 <TypedParameter Name="CPUTIME" Type="Info" Value="521.94"/>
 <TypedParameter Name="ExecTime" Type="Info" Value="576.953828096"/>
 <TypedParameter Name="WNMODEL" Type="Info" Value="Intel(R)Xeon(R)CPUE5-2650v2@2.60GHz"/>
@@ -1357,7 +1380,7 @@ class MCInsertTestCase(unittest.TestCase):
 
     self.xmlStep4 = """<?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE Job SYSTEM "book.dtd">
-<Job ConfigName="MC" ConfigVersion="2012" Date="%jDate%" Time="%jTime%">
+<Job ConfigName="test" ConfigVersion="Jenkins" Date="%jDate%" Time="%jTime%">
 <TypedParameter Name="CPUTIME" Type="Info" Value="677.39"/>
 <TypedParameter Name="ExecTime" Type="Info" Value="836.60585618"/>
 <TypedParameter Name="WNMODEL" Type="Info" Value="Intel(R)Xeon(R)CPUE5-2650v2@2.60GHz"/>
@@ -1401,7 +1424,7 @@ class MCInsertTestCase(unittest.TestCase):
 
     self.xmlStep5 = """<?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE Job SYSTEM "book.dtd">
-<Job ConfigName="MC" ConfigVersion="2012" Date="%jDate%" Time="%jTime%">
+<Job ConfigName="test" ConfigVersion="Jenkins" Date="%jDate%" Time="%jTime%">
 <TypedParameter Name="CPUTIME" Type="Info" Value="494.27"/>
 <TypedParameter Name="ExecTime" Type="Info" Value="617.996832132"/>
 <TypedParameter Name="WNMODEL" Type="Info" Value="Intel(R)Xeon(R)CPUE5-2650v2@2.60GHz"/>
@@ -1445,7 +1468,7 @@ class MCInsertTestCase(unittest.TestCase):
 
     self.xmlStep6 = """<?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE Job SYSTEM "book.dtd">
-<Job ConfigName="MC" ConfigVersion="2012" Date="%jDate%" Time="%jTime%">
+<Job ConfigName="test" ConfigVersion="Jenkins" Date="%jDate%" Time="%jTime%">
 <TypedParameter Name="CPUTIME" Type="Info" Value="518.02"/>
 <TypedParameter Name="ExecTime" Type="Info" Value="585.730292082"/>
 <TypedParameter Name="WNMODEL" Type="Info" Value="Intel(R)Xeon(R)CPUE5-2650v2@2.60GHz"/>
@@ -1489,7 +1512,7 @@ class MCInsertTestCase(unittest.TestCase):
 
     self.xmlStep7 = """<?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE Job SYSTEM "book.dtd">
-<Job ConfigName="MC" ConfigVersion="2012" Date="%jDate%" Time="%jTime%">
+<Job ConfigName="test" ConfigVersion="Jenkins" Date="%jDate%" Time="%jTime%">
 <TypedParameter Name="CPUTIME" Type="Info" Value="641.7"/>
 <TypedParameter Name="ExecTime" Type="Info" Value="709.81375289"/>
 <TypedParameter Name="WNMODEL" Type="Info" Value="Intel(R)Xeon(R)CPUE5-2650v2@2.60GHz"/>
@@ -1533,7 +1556,7 @@ class MCInsertTestCase(unittest.TestCase):
 
     self.xmlStep8 = """<?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE Job SYSTEM "book.dtd">
-<Job ConfigName="MC" ConfigVersion="2012" Date="%jDate%" Time="%jTime%">
+<Job ConfigName="test" ConfigVersion="Jenkins" Date="%jDate%" Time="%jTime%">
 <TypedParameter Name="CPUTIME" Type="Info" Value="472.93"/>
 <TypedParameter Name="ExecTime" Type="Info" Value="493.59373498"/>
 <TypedParameter Name="WNMODEL" Type="Info" Value="Intel(R)Xeon(R)CPUE5-2650v2@2.60GHz"/>
@@ -1630,12 +1653,13 @@ class MCProductionRegistration (MCInsertTestCase):
                 'CONDDB': 'sim-20160321-2-vc-mu100'},
             'OutputFileTypes': [
                 {
-                    'Visible': 'N',
+                    'Visible': 'Y',
                     'FileType': 'SIM'}]})
 
     self.assertTrue(retVal['OK'])
     self.assertTrue(retVal['Value'] > 0)
-    self.productionSteps['Steps'].append({'StepId': retVal['Value'], 'Visible': 'Y'})
+    self.productionSteps['Steps'].append(
+        {'StepId': retVal['Value'], 'Visible': 'Y', 'OutputFileTypes': [{'Visible': 'Y', 'FileType': 'SIM'}]})
 
     retVal = self.bk.insertStep(
         {'Step': {'ApplicationName': 'Boole',
@@ -1942,8 +1966,8 @@ class MCProductionTest (MCXMLReportInsert):
     Test the production registration
     """
     prodSteps = {"SimulationConditions": "Beam4000GeV-2012-MagUp-Nu2.5-Pythia8",
-                 "ConfigName": "MC",
-                 "ConfigVersion": "2012",
+                 "ConfigName": "test",
+                 "ConfigVersion": "Jenkins",
                  "Production": 3,
                  "EventType": 11104131,
                  "Steps": []}
@@ -2041,14 +2065,14 @@ class MCProductionTest (MCXMLReportInsert):
           'WNCache': '2593.748',
           'WNModel': 'Intel(R)Xeon(R)CPUE5-2650v2@2.60GHz',
           'NumberOfEvents': 411,
-          'ConfigName': 'MC',
+          'ConfigName': 'test',
           'WNMemory': '700256.0',
           'RunNumber': None,
           'FirstEventNumber': 1,
           'CPUTime': 472.93,
           'FillNumber': None,
           'WorkerNode': 'b6bd1ec9ae.cern.ch',
-          'ConfigVersion': '2012',
+          'ConfigVersion': 'Jenkins',
           'JobStart': self.jobStart,
           'JobEnd': self.jobEnd,
           'Tck': 'None',
@@ -2068,14 +2092,14 @@ class MCProductionTest (MCXMLReportInsert):
           'WNCache': '2593.748',
           'WNModel': 'Intel(R)Xeon(R)CPUE5-2650v2@2.60GHz',
           'NumberOfEvents': 411,
-          'ConfigName': 'MC',
+          'ConfigName': 'test',
           'WNMemory': '2001584.0',
           'RunNumber': None,
           'FirstEventNumber': 1,
           'CPUTime': 641.7,
           'FillNumber': None,
           'WorkerNode': 'b6bd1ec9ae.cern.ch',
-          'ConfigVersion': '2012',
+          'ConfigVersion': 'Jenkins',
           'JobStart': self.jobStart,
           'JobEnd': self.jobEnd,
           'Tck': 'None',
@@ -2126,7 +2150,7 @@ class MCProductionTest (MCXMLReportInsert):
     """
     retVal = self.bk.getProductionOutputFileTypes({"Production": self.production})
     self.assertTrue(retVal['OK'])
-    self.assertDictEqual(retVal['Value'], {'DIGI': 'N'})
+    self.assertDictEqual(retVal['Value'], {'DIGI': 'N', 'SIM': 'Y'})
 
     retVal = self.bk.getAvailableSteps({'StepName': 'Cert-Sim09b - 2012 - MU - Pythia8'})
     self.assertTrue(retVal['OK'])
@@ -2134,7 +2158,7 @@ class MCProductionTest (MCXMLReportInsert):
     stepid = retVal['Value']['Records'][0][0]
     retVal = self.bk.getProductionOutputFileTypes({"Production": self.production, "StepId": stepid})
     self.assertTrue(retVal['OK'])
-    self.assertDictEqual(retVal['Value'], {'SIM': 'N'})
+    self.assertDictEqual(retVal['Value'], {'SIM': 'Y'})
 
     retVal = self.bk.getAvailableSteps({'StepName': 'Cert-Digi14a for 2012 (to use w Sim09)'})
     self.assertTrue(retVal['OK'])
@@ -2221,6 +2245,761 @@ class MCProductionTest (MCXMLReportInsert):
     self.assertDictEqual(retVal['Value'], {'DIGI': 'Y', 'XDIGI': 'Y'})
 
 
+class TestBookkeepingUserInterface(MCInsertTestCase):
+  """
+  For testing the User Interface using the inserted data.
+  This must work using an empty database
+  """
+
+  def test_addFiles(self):
+    lfns = ['/lhcb/MC/2012/SIM/00056438/0000/00056438_00001025_test_1.sim',
+            '/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_2.digi']
+    retVal = self.bk.addFiles(lfns)
+    self.assertTrue(retVal['Value']['Successful'])
+    self.assertEqual(retVal['Value']['Failed'], [])
+    self.assertEqual(retVal['Value']['Successful'], lfns)
+
+    self.bk.updateProductionOutputfiles()
+    self.assertTrue(retVal['OK'])
+
+  def test_getFileTypes(self):
+    bkQuery = {'ConfigName': 'test', 'ConfigVersion': 'Jenkins', 'Production': 2, 'Visible': 'N'}
+    retVal = self.bk.getFileTypes(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    outputFileTypes = ['SIM', 'DIGI']
+    for rec in retVal['Value']['Records']:
+      self.assertTrue(rec[0] in outputFileTypes)
+
+    bkQuery['EventType'] = 11104131
+    retVal = self.bk.getFileTypes(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    outputFileTypes = ['SIM', 'DIGI']
+    for rec in retVal['Value']['Records']:
+      self.assertTrue(rec[0] in outputFileTypes)
+
+    bkQuery['ConditionDescription'] = 'Beam4000GeV-2012-MagUp-Nu2.5-Pythia8'
+    retVal = self.bk.getFileTypes(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    outputFileTypes = ['SIM', 'DIGI']
+    for rec in retVal['Value']['Records']:
+      self.assertTrue(rec[0] in outputFileTypes)
+
+    bkQuery['ProcessingPass'] = '/Sim09b'
+    retVal = self.bk.getFileTypes(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    outputFileTypes = ['SIM', 'DIGI']
+    for rec in retVal['Value']['Records']:
+      self.assertTrue(rec[0] in outputFileTypes)
+
+  def test_getFilesSummary(self):
+    bkQuery = {'ConfigName': 'test', 'ConfigVersion': 'Jenkins', 'Production': 2, 'Visible': 'N'}
+    retVal = self.bk.getFilesSummary(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    self.assertEqual(sorted(retVal['Value']['ParameterNames']), sorted(
+        ['NbofFiles', 'NumberOfEvents', 'FileSize', 'Luminosity', 'InstLuminosity']))
+    self.assertEqual(retVal['Value']['Records'][0], [1, 411, 241904920, 0, 0])
+
+    bkQuery['ReplicaFlag'] = 'No'
+    retVal = self.bk.getFilesSummary(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    self.assertEqual(sorted(retVal['Value']['ParameterNames']), sorted(
+        ['NbofFiles', 'NumberOfEvents', 'FileSize', 'Luminosity', 'InstLuminosity']))
+    self.assertEqual(retVal['Value']['Records'][0], [6, 2466, 988452372, 0, 0])
+
+    bkQuery['FileType'] = 'DIGI'
+    retVal = self.bk.getFilesSummary(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    self.assertEqual(sorted(retVal['Value']['ParameterNames']), sorted(
+        ['NbofFiles', 'NumberOfEvents', 'FileSize', 'Luminosity', 'InstLuminosity']))
+    self.assertEqual(retVal['Value']['Records'][0], [6, 2466, 988452372, 0, 0])
+
+    bkQuery['FileType'] = 'SIM'
+    bkQuery['ReplicaFlag'] = 'Yes'
+    bkQuery['Visible'] = 'Y'
+    retVal = self.bk.getFilesSummary(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    self.assertEqual(sorted(retVal['Value']['ParameterNames']), sorted(
+        ['NbofFiles', 'NumberOfEvents', 'FileSize', 'Luminosity', 'InstLuminosity']))
+    self.assertEqual(retVal['Value']['Records'][0], [1, 411, 862802861, 0, 0])
+
+  def test_getFilesWithMetadata(self):
+    bkQuery = {'ConfigName': 'test', 'ConfigVersion': 'Jenkins', 'Production': 2, 'Visible': 'N'}
+    parameterNames = [u'FileName', u'EventStat', u'FileSize', u'CreationDate', u'JobStart', u'JobEnd', u'WorkerNode',
+                      u'FileType', u'RunNumber', u'FillNumber', u'FullStat', u'DataqualityFlag',
+                      u'EventInputStat', u'TotalLuminosity', u'Luminosity', u'InstLuminosity', u'TCK',
+                      u'GUID', u'ADLER32', u'EventType', u'MD5SUM',
+                      u'VisibilityFlag', u'JobId', u'GotReplica', u'InsertTimeStamp']
+    retVal = self.bk.getFilesWithMetadata(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    self.assertEqual(sorted(retVal['Value']['ParameterNames']), sorted(parameterNames))
+    self.assertEqual(len(retVal['Value']['Records']), 1)
+
+    bkQuery['ReplicaFlag'] = 'No'
+    retVal = self.bk.getFilesWithMetadata(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 6)
+    self.assertEqual(sorted(retVal['Value']['ParameterNames']), sorted(parameterNames))
+    self.assertEqual(len(retVal['Value']['Records']), 6)
+
+    bkQuery['FileType'] = 'DIGI'
+    retVal = self.bk.getFilesWithMetadata(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 6)
+    self.assertEqual(sorted(retVal['Value']['ParameterNames']), sorted(parameterNames))
+    self.assertEqual(len(retVal['Value']['Records']), 6)
+
+    bkQuery['FileType'] = 'SIM'
+    bkQuery['ReplicaFlag'] = 'Yes'
+    bkQuery['Visible'] = 'Y'
+    retVal = self.bk.getFilesWithMetadata(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    self.assertEqual(sorted(retVal['Value']['ParameterNames']), sorted(parameterNames))
+    self.assertEqual(len(retVal['Value']['Records']), 1)
+
+    bkQuery['EventType'] = 11104131
+    retVal = self.bk.getFilesWithMetadata(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    self.assertEqual(sorted(retVal['Value']['ParameterNames']), sorted(parameterNames))
+    self.assertEqual(len(retVal['Value']['Records']), 1)
+
+    bkQuery['ProcessingPass'] = '/Sim09b'
+    retVal = self.bk.getFilesWithMetadata(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    self.assertEqual(sorted(retVal['Value']['ParameterNames']), sorted(parameterNames))
+    self.assertEqual(len(retVal['Value']['Records']), 1)
+
+    bkQuery['FileType'] = 'DIGI'
+    bkQuery['ReplicaFlag'] = 'Yes'
+    bkQuery['Visible'] = 'N'
+    retVal = self.bk.getFilesWithMetadata(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    self.assertEqual(sorted(retVal['Value']['ParameterNames']), sorted(parameterNames))
+    self.assertEqual(len(retVal['Value']['Records']), 1)
+
+  def test_getFiles(self):
+    bkQuery = {'ConfigName': 'test', 'ConfigVersion': 'Jenkins', 'Production': 2, 'Visible': 'N'}
+
+    retVal = self.bk.getFiles(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(len(retVal['Value']), 1)
+
+    bkQuery['ReplicaFlag'] = 'No'
+    retVal = self.bk.getFiles(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(len(retVal['Value']), 6)
+
+    bkQuery['FileType'] = 'DIGI'
+    retVal = self.bk.getFiles(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(len(retVal['Value']), 6)
+
+    bkQuery['FileType'] = 'SIM'
+    bkQuery['ReplicaFlag'] = 'Yes'
+    bkQuery['Visible'] = 'Y'
+    retVal = self.bk.getFiles(bkQuery)
+    self.assertTrue(retVal['OK'])
+
+    self.assertEqual(len(retVal['Value']), 1)
+
+    bkQuery['ProcessingPass'] = '/Sim09b'
+    bkQuery['ReplicaFlag'] = 'Yes'
+    retVal = self.bk.getFiles(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(len(retVal['Value']), 1)
+
+    bkQuery['EventType'] = 11104131
+    bkQuery['ReplicaFlag'] = 'Yes'
+    retVal = self.bk.getFiles(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(len(retVal['Value']), 1)
+
+    bkQuery['FileType'] = 'DIGI'
+    bkQuery['ReplicaFlag'] = 'Yes'
+    bkQuery['Visible'] = 'N'
+    retVal = self.bk.getFiles(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(len(retVal['Value']), 1)
+
+  def test_getProductions(self):
+    bkQuery = {'ConditionDescription': 'Beam4000GeV-2012-MagUp-Nu2.5-Pythia8',
+               'ConfigName': 'test',
+               'ConfigVersion': 'Jenkins',
+               'EventType': 11104131,
+               'Production': 2,
+               'Visible': 'N'}
+    retVal = self.bk.getProductions(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    self.assertEqual(retVal['Value']['Records'], [[2]])
+
+    bkQuery['FileType'] = 'SIM'
+    bkQuery['Visible'] = 'Y'
+    retVal = self.bk.getProductions(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    self.assertEqual(retVal['Value']['Records'], [[2]])
+
+    bkQuery['FileType'] = 'DIGI'
+    bkQuery['Visible'] = 'N'
+    retVal = self.bk.getProductions(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    self.assertEqual(retVal['Value']['Records'], [[2]])
+
+    bkQuery['ReplicaFlag'] = 'Yes'
+    retVal = self.bk.getProductions(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    self.assertEqual(retVal['Value']['Records'], [[2]])
+
+    bkQuery['ProcessingPass'] = '/Sim09b'
+    retVal = self.bk.getProductions(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    self.assertTrue(retVal['Value']['Records'])
+    self.assertTrue(retVal['Value']['TotalRecords'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    self.assertEqual(retVal['Value']['Records'], [[2]])
+
+    bkQuery['ProcessingPass'] = '/Sim09ba'
+    retVal = self.bk.getProductions(bkQuery)
+    self.assertFalse(retVal['OK'])
+
+  def test_getProcessingPass(self):
+    bkQuery = {'ConfigName': 'Test', 'ConfigVersion': 'Test01', 'ConditionDescription': 'Beam450GeV-MagDown'}
+    retVal = self.bk.getProcessingPass(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'][0]['ParameterNames'])
+    self.assertTrue(retVal['Value'][0]['Records'])
+    self.assertTrue(retVal['Value'][0]['TotalRecords'])
+    self.assertEqual(retVal['Value'][0]['TotalRecords'], 1)
+    self.assertEqual(retVal['Value'][0]['Records'], [['Real Data']])
+
+    retVal = self.bk.getProcessingPass(bkQuery, '/Real Data')
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'][1]['ParameterNames'])
+    self.assertTrue(retVal['Value'][1]['Records'])
+    self.assertTrue(retVal['Value'][1]['TotalRecords'])
+    self.assertEqual(retVal['Value'][1]['TotalRecords'], 1)
+    self.assertEqual(retVal['Value'][1]['ParameterNames'], ['EventType', 'Description'])
+    self.assertEqual(retVal['Value'][1]['Records'], [[30000000, 'minbias']])
+
+    bkQuery['RunNumber'] = 1122
+    retVal = self.bk.getProcessingPass(bkQuery, '/Real Data')
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'][0]['ParameterNames'])
+    self.assertEqual(retVal['Value'][0]['TotalRecords'], 0)
+    self.assertTrue(retVal['Value'][1]['ParameterNames'])
+    self.assertEqual(retVal['Value'][1]['ParameterNames'], ['EventType', 'Description'])
+    self.assertEqual(retVal['Value'][1]['TotalRecords'], 1)
+
+  def test_getConditions(self):
+    bkQuery = {'ConfigName': 'Test', 'ConfigVersion': 'Test01'}
+    retVal = self.bk.getConditions(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value'][0]['TotalRecords'], 0)
+    self.assertEqual(retVal['Value'][1]['TotalRecords'], 1)
+
+    bkQuery['EventType'] = 30000000
+    retVal = self.bk.getConditions(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value'][0]['TotalRecords'], 0)
+    self.assertEqual(retVal['Value'][1]['TotalRecords'], 1)
+
+  def test_getMoreProductionInformations(self):
+    retVal = self.bk.getMoreProductionInformations(2)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value']['ConfigName'], 'test')
+    self.assertEqual(retVal['Value']['ConfigVersion'], 'Jenkins')
+    self.assertEqual(retVal['Value']['Simulation conditions'], 'Beam4000GeV-2012-MagUp-Nu2.5-Pythia8')
+    self.assertEqual(retVal['Value']['Processing pass'], '/Sim09b')
+    self.assertEqual(retVal['Value']['ProgramName'], 'Gauss')
+    self.assertEqual(retVal['Value']['ProgramVersion'], 'v49r5')
+
+  def test_getAvailableProductions(self):
+    retVal = self.bk.getAvailableProductions()
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(len(retVal['Value']) > 1)
+
+  def test_getProductionFiles(self):
+    retVal = self.bk.getProductionFiles(2L, 'SIM')
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(len(retVal['Value']), 1)
+    self.assertTrue('/lhcb/MC/2012/SIM/00056438/0000/00056438_00001025_test_1.sim' in retVal['Value'])
+    metadata = ['GotReplica', 'Visible', 'FileType', 'GUID', 'FileSize']
+    for met in metadata:
+      self.assertTrue(met in retVal['Value']['/lhcb/MC/2012/SIM/00056438/0000/00056438_00001025_test_1.sim'])
+
+  def test_getRunFiles(self):
+    retVal = self.bk.getRunFiles(1122)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(len(retVal['Value']), 5)
+
+    files = ['/lhcb/data/2016/RAW/Test/test/1122/0001122_test_1.raw',
+             '/lhcb/data/2016/RAW/Test/test/1122/0001122_test_0.raw',
+             '/lhcb/data/2016/RAW/Test/test/1122/0001122_test_4.raw',
+             '/lhcb/data/2016/RAW/Test/test/1122/0001122_test_3.raw',
+             '/lhcb/data/2016/RAW/Test/test/1122/0001122_test_2.raw']
+
+    runMeta = ['FullStat',
+               'Luminosity',
+               'FileSize',
+               'EventStat',
+               'GotReplica',
+               'GUID',
+               'InstLuminosity']
+    for rec in retVal['Value']:
+      self.assertTrue(rec in files)
+      self.assertTrue(sorted(retVal['Value'][rec]), sorted(runMeta))
+
+  def test_getJobInfo(self):
+    retVal = self.bk.getJobInfo('/lhcb/MC/2012/SIM/00056438/0000/00056438_00001025_test_1.sim')
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(len(retVal['Value'][0]), 22)
+
+  def test_bulkJobInfo(self):
+    retVal = self.bk.bulkJobInfo(
+        {'lfn': ['/lhcb/MC/2012/SIM/00056438/0000/00056438_00001025_test_1.sim',
+                 '/lhcb/data/2016/RAW/Test/test/1122/0001122_test_1.raw']})
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value']['Successful'])
+    files = ['/lhcb/data/2016/RAW/Test/test/1122/0001122_test_1.raw',
+             '/lhcb/MC/2012/SIM/00056438/0000/00056438_00001025_test_1.sim']
+    self.assertEqual(sorted(retVal['Value']['Successful'].keys()), sorted(files))
+
+  def test_getJobInformation(self):
+    retVal = self.bk.getJobInformation({'Production': 2})
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(len(retVal['Value']), 8)
+
+  def test_getRunNbAndTck(self):
+    retVal = self.bk.getRunNbAndTck('/lhcb/data/2016/RAW/Test/test/1122/0001122_test_1.raw')
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value'], [(1122, '-0x7f6bffff')])
+
+  def test_setFileDataQuality(self):
+    fileName = '/lhcb/MC/2012/SIM/00056438/0000/00056438_00001025_test_1.sim'
+    retVal = self.bk.setFileDataQuality(fileName, 'OK')
+    self.assertTrue(retVal['OK'])
+
+    retVal = self.bk.getFileMetadata(fileName)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value']['Successful'][fileName]['DataqualityFlag'], 'OK')
+
+  def test_getProcessingPassId(self):
+    retVal = self.bk.getProcessingPassId('/Real Data')
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'] > 0)
+
+  def test_getFileAncestors(self):
+    fileName = '/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_8.digi'
+    retVal = self.bk.getFileAncestors(fileName)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(len(retVal['Value']['Failed']), 0)
+    self.assertEqual(len(retVal['Value']['Successful']), 0)
+    self.assertEqual(len(retVal['Value']['WithMetadata']), 0)
+
+    retVal = self.bk.getFileAncestors(fileName, replica=False)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(len(retVal['Value']['Failed']) == 0)
+    self.assertTrue(retVal['Value']['Successful'])
+    self.assertTrue(retVal['Value']['WithMetadata'])
+    self.assertEqual(len(retVal['Value']['Successful']), 1)
+    self.assertEqual(len(retVal['Value']['WithMetadata']), 1)
+
+    self.assertTrue(fileName in retVal['Value']['Successful'])
+    self.assertEqual(sorted(retVal['Value']['Successful'][fileName][0].keys()), sorted(['EventType',
+                                                                                        'FileType',
+                                                                                        'FileName',
+                                                                                        'Luminosity',
+                                                                                        'EventStat',
+                                                                                        'GotReplica',
+                                                                                        'InstLuminosity']))
+
+  def test_getFileDescendents(self):
+    fileName = '/lhcb/MC/2012/SIM/00056438/0000/00056438_00001025_test_1.sim'
+    retVal = self.bk.getFileDescendents([fileName], 1, 0, False)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(len(retVal['Value']['Failed']), 0)
+    self.assertEqual(len(retVal['Value']['NotProcessed']), 0)
+    self.assertEqual(len(retVal['Value']['WithMetadata']), 1)
+    self.assertEqual(sorted(retVal['Value']['Successful'][fileName]),
+                     sorted(['/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_2.digi',
+                             '/lhcb/MC/2012/LOG/00056438/0000/00001025/Boole_00056438_00001025_test_2.log']))
+
+  def test_checkfile(self):
+    fileName = '/lhcb/MC/2012/SIM/00056438/0000/00056438_00001025_test_1.sim'
+    retVal = self.bk.checkfile(fileName)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(len(retVal['Value'][0]), 3)
+
+  def test_getSimConditions(self):
+    retVal = self.bk.getSimConditions()
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(len(retVal['Value']) > 0)
+
+  def test_getFileMetadata(self):
+    fileName = '/lhcb/MC/2012/SIM/00056438/0000/00056438_00001025_test_1.sim'
+    retVal = self.bk.getFileMetadata(fileName)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(sorted(retVal['Value']['Successful'][fileName].keys()), sorted(['GUID',
+                                                                                     'ADLER32',
+                                                                                     'FullStat',
+                                                                                     'EventType',
+                                                                                     'FileType',
+                                                                                     'MD5SUM',
+                                                                                     'VisibilityFlag',
+                                                                                     'InsertTimeStamp',
+                                                                                     'RunNumber',
+                                                                                     'JobId',
+                                                                                     'Luminosity',
+                                                                                     'FileSize',
+                                                                                     'EventStat',
+                                                                                     'GotReplica',
+                                                                                     'CreationDate',
+                                                                                     'InstLuminosity',
+                                                                                     'DataqualityFlag']))
+
+  def test_exists(self):
+    fileName = '/lhcb/MC/2012/SIM/00056438/0000/00056438_00001025_test_1.sim'
+    retVal = self.bk.exists(fileName)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(retVal['Value'][fileName])
+
+  def test_getRunInformations(self):
+    retVal = self.bk.getRunInformations(1122L)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value']['Configuration Name'], 'Test')
+    self.assertEqual(retVal['Value']['Configuration Version'], 'Test01')
+    self.assertEqual(retVal['Value']['DataTakingDescription'], 'Beam450GeV-MagDown')
+    self.assertEqual(retVal['Value']['File size'], [8201582930])
+    self.assertEqual(retVal['Value']['FillNumber'], 29)
+    self.assertEqual(retVal['Value']['FullStat'], [2145])
+    self.assertEqual(retVal['Value']['InstLuminosity'], [0])
+    self.assertEqual(retVal['Value']['Number of events'], [45000])
+    self.assertEqual(retVal['Value']['Number of file'], [5])
+    self.assertEqual(retVal['Value']['ProcessingPass'], '/Real Data')
+    self.assertEqual(retVal['Value']['Stream'], [30000000])
+    self.assertEqual(retVal['Value']['Tck'], '-0x7f6bffff')
+    self.assertEqual(retVal['Value']['TotalLuminosity'], 121222.33)
+    self.assertEqual(retVal['Value']['luminosity'], [6061.165])
+
+  def test_getRunInformation(self):
+    retVal = self.bk.getRunInformation({'RunNumber': 1122L})
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value'][1122]['CONDDB'], 'xy')
+    self.assertEqual(retVal['Value'][1122]['ConditionDescription'], 'Beam450GeV-MagDown')
+    self.assertEqual(retVal['Value'][1122]['ConfigName'], 'Test')
+    self.assertEqual(retVal['Value'][1122]['ConfigVersion'], 'Test01')
+    self.assertEqual(retVal['Value'][1122]['DDDB'], 'xyz')
+    self.assertEqual(retVal['Value'][1122]['FillNumber'], 29)
+    self.assertEqual(retVal['Value'][1122]['ProcessingPass'], '/Real Data')
+    self.assertEqual(retVal['Value'][1122]['TCK'], '-0x7f6bffff')
+
+  def test_getProductionFilesStatus(self):
+    files = ['/lhcb/MC/2012/LOG/00056438/0000/00001025/Gauss_00056438_00001025_test_1.log',
+             '/lhcb/MC/2012/LOG/00056438/0000/00001025/Boole_00056438_00001025_test_2.log',
+             '/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_3.digi',
+             '/lhcb/MC/2012/LOG/00056438/0000/00001025/Moore_00056438_00001025_test_3.log',
+             '/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_4.digi',
+             '/lhcb/MC/2012/LOG/00056438/0000/00001025/Moore_00056438_00001025_test_4.log',
+             '/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_5.digi',
+             '/lhcb/MC/2012/LOG/00056438/0000/00001025/Noether_00056438_00001025_test_5.log',
+             '/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_6.digi',
+             '/lhcb/MC/2012/LOG/00056438/0000/00001025/Moore_00056438_00001025_test_6.log',
+             '/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_7.digi',
+             '/lhcb/MC/2012/LOG/00056438/0000/00001025/Moore_00056438_00001025_test_7.log',
+             '/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_8.digi',
+             '/lhcb/MC/2012/LOG/00056438/0000/00001025/Noether_00056438_00001025_test_8.log']
+    retVal = self.bk.getProductionFilesStatus(2)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value']['noreplica'], files)
+    self.assertEqual(retVal['Value']['replica'], ['/lhcb/MC/2012/SIM/00056438/0000/00056438_00001025_test_1.sim',
+                                                  '/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_2.digi'])
+
+  def test_getFileCreationLog(self):
+    retVal = self.bk.getFileCreationLog('/lhcb/MC/2012/SIM/00056438/0000/00056438_00001025_test_1.sim')
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value'], '/lhcb/MC/2012/LOG/00056438/0000/00001025/Gauss_00056438_00001025_test_1.log')
+
+  def test_getFileHistory(self):
+    retVal = self.bk.getFileHistory('/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_2.digi')
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    paramNames = ['FileId',
+                  'FileName',
+                  'ADLER32',
+                  'CreationDate',
+                  'EventStat',
+                  'Eventtype',
+                  'Gotreplica',
+                  'GUI',
+                  'JobId',
+                  'md5sum',
+                  'FileSize',
+                  'FullStat',
+                  'Dataquality',
+                  'FileInsertDate',
+                  'Luminosity',
+                  'InstLuminosity']
+    for param in paramNames:
+      self.assertTrue(param in retVal['Value']['ParameterNames'])
+
+  def test_getProductionNbOfJobs(self):
+    retVal = self.bk.getProductionNbOfJobs(2L)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value'], [(8,)])
+
+  def test_getProductionNbOfEvents(self):
+    retVal = self.bk.getProductionNbOfEvents(2L)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value'], [('SIM', 411, 11104131, None), ('DIGI', 411, 11104131, 411)])
+
+  def test_getProductionSizeOfFiles(self):
+    retVal = self.bk.getProductionSizeOfFiles(2L)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value'], [(2097119140,)])
+
+  def test_getProductionNbOfFiles(self):
+    retVal = self.bk.getProductionNbOfFiles(2L)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value'], [(1, 'SIM', 16), (7, 'DIGI', 16), (8, 'LOG', 16)])
+
+  def test_getProductionInformation(self):
+    retVal = self.bk.getProductionInformation(2L)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(len(retVal['Value']), 8)
+
+  def test_getNbOfJobsBySites(self):
+    retVal = self.bk.getNbOfJobsBySites(2L)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value'], [(8, 'LCG.CERN.ch')])
+
+  def test_getProductionProcessedEvents(self):
+    retVal = self.bk.getProductionProcessedEvents(2L)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value'], 411)
+
+  def test_getRunFilesDataQuality(self):
+    retVal = self.bk.getRunFilesDataQuality(1122)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value'], [(1122, 'UNCHECKED', 30000000)])
+
+  def test_getProductionProcessingPassSteps(self):
+    retVal = self.bk.getProductionProcessingPassSteps({'Production': 2})
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(len(retVal['Value']['Records']), 8)
+
+  def test_getNbOfRawFiles(self):
+    retVal = self.bk.getNbOfRawFiles({'RunNumber': 1122})
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value'], 5)
+
+  def test_getFileTypeVersion(self):
+    fileName = '/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_test_2.digi'
+    retVal = self.bk.getFileTypeVersion(fileName)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(fileName in retVal['Value'])
+    self.assertEqual(retVal['Value'][fileName], 'ROOT')
+
+  def test_getDirectoryMetadata(self):
+    directory = '/lhcb/MC/2012/DIGI/00056438/'
+    retVal = self.bk.getDirectoryMetadata(directory)
+    self.assertTrue(retVal['OK'])
+    self.assertTrue(directory in retVal['Value']['Successful'])
+    self.assertEqual(retVal['Value']['Successful'][directory][0][
+                     'ConditionDescription'], 'Beam4000GeV-2012-MagUp-Nu2.5-Pythia8')
+    self.assertEqual(retVal['Value']['Successful'][directory][0]['ConfigName'], 'test')
+    self.assertEqual(retVal['Value']['Successful'][directory][0]['ConfigVersion'], 'Jenkins')
+    self.assertEqual(retVal['Value']['Successful'][directory][0]['EventType'], 11104131)
+    self.assertEqual(retVal['Value']['Successful'][directory][0]['FileType'], 'DIGI')
+    self.assertEqual(retVal['Value']['Successful'][directory][0]['Production'], 2)
+    self.assertEqual(retVal['Value']['Successful'][directory][0]['VisibilityFlag'], 'N')
+    self.assertEqual(retVal['Value']['Successful'][directory][0]['ProcessingPass'], '/Sim09b')
+
+  def test_getFilesForGUID(self):
+    retVal = self.bk.getFilesForGUID('546014C4-55C6-E611-8E94-02163E00F6B2')
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value'], '/lhcb/MC/2012/SIM/00056438/0000/00056438_00001025_test_1.sim')
+
+  def test_getListOfFills(self):
+    retVal = self.bk.getListOfFills({'ConfigName': 'Test', 'ConfigVersion': 'Test01'})
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value'], [29])
+
+  def test_getRunsForFill(self):
+    retVal = self.bk.getRunsForFill(29)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value'], [1122])
+
+  def test_getProductionSummaryFromView(self):
+    retVal = self.bk.getProductionSummaryFromView({'Production': 2})
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value'][0]['ConditionDescription'], 'Beam4000GeV-2012-MagUp-Nu2.5-Pythia8')
+    self.assertEqual(retVal['Value'][0]['ConfigName'], 'test')
+    self.assertEqual(retVal['Value'][0]['ConfigVersion'], 'Jenkins')
+    self.assertEqual(retVal['Value'][0]['EventType'], 11104131)
+    self.assertEqual(retVal['Value'][0]['ProcessingPass'], '/Sim09b')
+    self.assertEqual(retVal['Value'][0]['Production'], 2)
+
+  def test_getProductionSummary(self):
+    retVal = self.bk.getProductionSummary({'Production': 2})
+    self.assertTrue(retVal['OK'])
+    paramNames = ['ConfigurationName',
+                  'ConfigurationVersion',
+                  'ConditionDescription',
+                  'Processing pass ',
+                  'EventType',
+                  'EventType description',
+                  'Production',
+                  'FileType',
+                  'Number of events']
+    self.assertTrue(retVal['Value']['ParameterNames'])
+    for param in retVal['Value']['ParameterNames']:
+      self.assertTrue(param in paramNames)
+
+    self.assertEqual(retVal['Value']['Records'], [['test',
+                                                   'Jenkins',
+                                                   'Beam4000GeV-2012-MagUp-Nu2.5-Pythia8',
+                                                   1091,
+                                                   11104131,
+                                                   'Bd_KpiKS=DecProdCut',
+                                                   2,
+                                                   'SIM',
+                                                   411]])
+
+  def test_getEventTypes(self):
+    retVal = self.bk.getEventTypes({'ConfigName': 'Test', 'ConfigVersion': 'Test01'})
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value']['Records'], [[30000000, 'minbias']])
+    self.assertEqual(retVal['Value']['ParameterNames'], ['EventType', 'Description'])
+
+    retVal = self.bk.getEventTypes({'Production': 2})
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value']['Records'], [[11104131, 'Bd_KpiKS=DecProdCut']])
+    self.assertEqual(retVal['Value']['ParameterNames'], ['EventType', 'Description'])
+
+  def test_getLimitedFiles(self):
+    bkQuery = {'Visible': 'Y', 'ConfigName': 'Test', 'ConditionDescription': 'Beam450GeV-MagDown',
+               'MaxItem': 25, 'EventType': '30000000', 'FileType': 'RAW', 'ProcessingPass':
+               '/Real Data', 'StartItem': 0,
+               'ConfigVersion': 'Test01', 'DataQuality': [u'OK', u'UNCHECKED']}
+    retVal = self.bk.getLimitedFiles(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 5)
+
+  def test_getListOfRuns(self):
+    bkQuery = {'Visible': 'Y', 'ConfigName': 'Test', 'ConditionDescription': 'Beam450GeV-MagDown',
+               'MaxItem': 25, 'EventType': '30000000', 'FileType': 'RAW', 'ProcessingPass':
+               '/Real Data', 'StartItem': 0,
+               'ConfigVersion': 'Test01', 'DataQuality': [u'OK', u'UNCHECKED']}
+    retVal = self.bk.getListOfRuns(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(len(retVal['Value']), 1)
+    self.assertEqual(retVal['Value'], [1122])
+
+  def test_getTCKs(self):
+    bkQuery = {'Visible': 'Y', 'ConfigName': 'Test', 'ConditionDescription': 'Beam450GeV-MagDown',
+               'MaxItem': 25, 'EventType': '30000000', 'FileType': 'RAW', 'ProcessingPass':
+               '/Real Data', 'StartItem': 0,
+               'ConfigVersion': 'Test01', 'DataQuality': [u'OK', u'UNCHECKED']}
+    retVal = self.bk.getTCKs(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value'], ['-0x7f6bffff'])
+
+  def test_getStepsMetadata(self):
+    bkQuery = {'Visible': 'Y', 'ConfigName': 'Test', 'ConditionDescription': 'Beam450GeV-MagDown',
+               'MaxItem': 25, 'EventType': '30000000', 'FileType': 'RAW', 'ProcessingPass':
+               '/Real Data', 'StartItem': 0,
+               'ConfigVersion': 'Test01', 'DataQuality': [u'OK', u'UNCHECKED']}
+    retVal = self.bk.getStepsMetadata(bkQuery)
+    self.assertTrue(retVal['OK'])
+    self.assertEqual(retVal['Value']['TotalRecords'], 1)
+    stepMeta = [['StepName', 'Real Data'],
+                ['ApplicationName', 'Moore'],
+                ['ApplicationVersion', 'v0r111'],
+                ['OptionFiles', 'NULL'],
+                ['DDDB', 'xyz'],
+                ['CONDDB', 'xy'],
+                ['ExtraPackages', 'NULL'],
+                ['Visible', 'Y']]
+
+    for step in retVal['Value']['Records']:
+      for record in retVal['Value']['Records'][step]:
+        if record[0] not in 'StepId':
+          self.assertTrue(record in stepMeta)
+
+
 if __name__ == '__main__':
 
   mcTestSuite = unittest.defaultTestLoader.loadTestsFromTestCase(MCProductionRegistration)
@@ -2229,6 +3008,7 @@ if __name__ == '__main__':
   unittest.TextTestRunner(verbosity=2, failfast=True).run(mcTestSuite)
   suite = unittest.defaultTestLoader.loadTestsFromTestCase(RAWDataInsert)
   suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestMethods))
+  suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestBookkeepingUserInterface))
   suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestRemoveFiles))
   suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestDestoryDataset))
   testResult = unittest.TextTestRunner(verbosity=2, failfast=True).run(suite)
