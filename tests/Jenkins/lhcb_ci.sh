@@ -181,7 +181,7 @@ diracServices(){
 diracAgents(){
   echo '==> [diracAgents]'
 
-  agents=$(cat agents | cut -d '.' -f 1 | grep -Ev '(FTSAgent|CleanFTSDBAgent|MyProxy|CAUpdate|GOCDB2CS|Bdii2CS|CacheFeederNetworkAgent|FrameworkSystem|StatesMonitoringAgent|DataProcessingProgressAgent|RAWIntegrityAgent|Nagios|AncestorFiles|BKInputData|LHCbPRProxyAgent|StorageUsageAgent|PopularityAnalysisAgent|SEUsageAgent|NotifyAgent|TargzJobLogAgent|ShiftDBAgent)' | sed 's/System / /g' | sed 's/ /\//g')
+  agents=$(cat agents | cut -d '.' -f 1 | grep -Ev '(FTSAgent|CleanFTSDBAgent|MyProxy|CAUpdate|GOCDB2CS|Bdii2CS|StatesMonitoringAgent|DataProcessingProgressAgent|RAWIntegrityAgent|Nagios|AncestorFiles|BKInputData|LHCbPRProxyAgent|StorageUsageAgent|PopularityAnalysisAgent|SEUsageAgent|NotifyAgent|ShiftDBAgent)' | sed 's/System / /g' | sed 's/ /\//g')
 
   for agent in $agents
   do
@@ -197,31 +197,6 @@ diracAgents(){
   done
 
 }
-
-
-
-#.............................................................................
-#
-# diracInstallCommand:
-#
-#   Specialized command:
-#  LHCb project version, obtained from the file 'project.version'.
-#
-#.............................................................................
-
-function diracInstallCommand(){
-  $SERVERINSTALLDIR/dirac-install -l LHCb -r `cat project.version` -e LHCb -t fullserver $DEBUG
-}
-
-# Getting a CFG file for the installation: Specialized command
-function getCFGFile(){
-  echo '==> [getCFGFile]'
-
-  cp $TESTCODE/LHCbDIRAC/tests/Jenkins/install.cfg $SERVERINSTALLDIR/
-  sed -i s/VAR_Release/$projectVersion/g $SERVERINSTALLDIR/install.cfg
-}
-
-
 
 
 #-------------------------------------------------------------------------------
@@ -381,25 +356,6 @@ function submitAndMatch(){
   fi
 }
 
-
-function prepareForLHCbPilot3(){
-  # This does not go to DIRAC utilities because
-  # we specifically take from the LHCb portal and
-  # the LHCb specific pilot.json
-
-  echo '==> [prepareForLHCbPilot3]'
-
-
-  #get the necessary scripts
-  curl --insecure -L -O https://lhcb-portal-dirac.cern.ch/pilot/pilot.json
-  curl --insecure -L -O https://lhcb-portal-dirac.cern.ch/pilot/pilotTools.py
-  curl --insecure -L -O https://lhcb-portal-dirac.cern.ch/pilot/pilotCommands.py
-  curl --insecure -L -O https://lhcb-portal-dirac.cern.ch/pilot/LHCbPilotCommands.py
-  curl --insecure -L -O https://lhcb-portal-dirac.cern.ch/pilot/dirac-pilot.py
-  curl --insecure -L -O https://lhcb-portal-dirac.cern.ch/pilot/dirac-install.py
-
-}
-
 function installLHCbDIRAC(){
 
   if [ ! "$LBRUNRELEASE" ]
@@ -452,12 +408,12 @@ function installLHCbDIRACClient(){
 function setupLHCbDIRAC(){
 
   local version=`cat project.version`
-  echo -e "==> Invoking lb-run LHCbDirac/$version bash -norc"
+  echo -e "==> Sourcing LHCbDirac/$version bash -norc"
   source /cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/lhcbdirac $version
   local status=$?
   if [ $status -ne 0 ]
   then
-    echo -e "==> lb-run from prod CVMFS NOT successful, trying from CVMFS DEV"
+    echo -e "==> sourcing from prod CVMFS NOT successful, trying from CVMFS DEV"
     source /cvmfs/lhcbdev.cern.ch/lib/lhcb/LHCBDIRAC/lhcbdirac $version
     local statusDev=$?
     if [ $statusDev -ne 0 ]
@@ -511,53 +467,4 @@ function setupBKKDB(){
   python $TESTCODE/LHCbDIRAC/tests/Jenkins/dirac-bkk-cfg-update.py -p $ORACLEDB_PASSWORD $DEBUG
 }
 
-
-
-#.............................................................................
-#
-# lhcbDiracReplace
-#
-#   This function gets LHCbDIRAC sources from an alternative gitlab repository,
-#   and replace the existing sources used for installation by these ones.
-#
-#   It is done only the environment variable $LHCbDIRAC_ALTERNATIVE_SRC_ZIP is set
-#
-# Define it in your environment if you want to replace the LHCbDIRAC source with custom ones
-# The URL has to be a zip file provided by gitlab
-# LHCbDIRAC_ALTERNATIVE_SRC_ZIP=''
-#
-#.............................................................................
-
-function lhcbDiracReplace(){
-  echo '==> [lhcbDiracReplace]'
-
-  if [[ -z $LHCbDIRAC_ALTERNATIVE_SRC_ZIP ]]
-  then
-    echo '==> Variable $LHCbDIRAC_ALTERNATIVE_SRC_ZIP not defined';
-    return
-  fi
-
-  cwd=$PWD
-  cd $SERVERINSTALLDIR
-
-  zipName=$(basename $LHCbDIRAC_ALTERNATIVE_SRC_ZIP)
-  curl $LHCbDIRAC_ALTERNATIVE_SRC_ZIP -o $zipName
-  unzip $zipName
-  cd $SERVERINSTALLDIR
-  dirName=$(unzip -l $zipName | head | tail -n 1 | sed 's/  */ /g' | cut -f 5 -d ' ' | cut -f 1 -d '/')
-  if [ -d "LHCbDIRAC" ]
-  then
-    mv LHCbDIRAC LHCbDIRAC.bak
-  else
-    echo "There is no previous LHCbDIRAC directory ??!!!"
-    ls
-  fi
-  cd $SERVERINSTALLDIR
-  mv $dirName/LHCbDIRAC LHCbDIRAC
-
-  cd $cwd
-
-}
-
-#-------------------------------------------------------------------------------
 #EOF
