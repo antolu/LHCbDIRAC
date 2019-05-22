@@ -64,10 +64,6 @@ def getPlatformForJob(workflow):
       :returns: a DIRAC platform (a string) or None
   """
 
-  archSet = set()
-  microarchSet = set()
-  osVersionSet = set()
-  gccVersionSet = set()
   binaryTags = _findBinaryTags(workflow)
 
   if not binaryTags:
