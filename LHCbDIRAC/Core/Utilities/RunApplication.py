@@ -102,43 +102,11 @@ class RunApplication(object):
       self.systemConfig = 'best'
     configString = "-c %s" % self.systemConfig
 
-    allowContainers = gConfig.getValue('/LocalSite/JOBFEATURES/allow_containers', False)
-    preferNative = gConfig.getValue('/LocalSite/JOBFEATURES/prefer_native', True)
-
-    host_info = LbPlatformUtils.describe.platform_info()
-    if self.systemConfig == 'best':
-      if self.applicationVersion is None:
-        raise LHCbDIRACError('Using systemConfig=best without an application version is not supported')
-
-      try:
-        supportNative = findBestPlatform(self.applicationName, self.applicationVersion, host_info)
-      except ValueError:
-        supportNative = False
-    else:
-      supportNative = LbPlatformUtils.host_supports_tag(host_info, self.systemConfig)
-
-    containerTypes = []
-    if allowContainers:
-      if self.systemConfig == 'best':
-        for containerType in host_info['container_technology']:
-          if host_info['container_technology'][containerType]:
-            try:
-              findBestPlatform(self.applicationName, self.applicationVersion,
-                               host_info, container=containerType)
-            except ValueError:
-              continue
-            else:
-              containerTypes.append(containerType)
-      else:
-        containerTypes = LbPlatformUtils.get_viable_containers(host_info, self.systemConfig)
-
-    if preferNative and supportNative:
-      pass
-    elif allowContainers and containerTypes:
-      configString += ' --container ' + containerTypes[0]
-    elif not supportNative:
-      raise LHCbDIRACError('Host %s does not support %s (allowContainers=%r and containerTypes=%r)' %
-                           (LbPlatformUtils.dirac_platform(), self.systemConfig, allowContainers, containerTypes))
+    # Containerisation
+    if gConfig.getValue('/LocalSite/JOBFEATURES/allow_containers', False):
+      configString += " --allow-containers"
+      if not gConfig.getValue('/LocalSite/JOBFEATURES/prefer_container', False):
+        configString += " --prefer-container"
 
     # App
     app = self.applicationName
