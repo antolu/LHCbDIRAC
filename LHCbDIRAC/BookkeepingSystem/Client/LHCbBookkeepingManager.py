@@ -1717,12 +1717,12 @@ class LHCbBookkeepingManager(BaseESManager):
     """It generates the Root format option file.
     """
     string = "\nfrom Gaudi.Configuration import * "
-    string += "\nfrom GaudiConf import IOHelper"
+    string += "\nfrom GaudiConf import IOHelper\n"
     for fileFormat, lfns in filesandformats.iteritems():
       if fileFormat:
-        string += "\nIOHelper('%s').inputFiles([\n" % fileFormat
+        string += "IOHelper('%s').inputFiles([\n" % fileFormat
       else:
-        string += "\nIOHelper().inputFiles([\n"
+        string += "IOHelper().inputFiles([\n"
       string += '\n'.join("'LFN:%s'," % lfn for lfn in lfns)
       string += '\n], clear=True)\n'
 
