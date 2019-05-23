@@ -1776,10 +1776,13 @@ class LHCbBookkeepingManager(BaseESManager):
 
     if lfns:
       # Get file type version from BK
-      retVal = self.db_.getFileTypeVersion(list(files))
+      retVal = self.db_.getFileTypeVersion(lfns)
       if retVal['OK']:
         for lfn, fileFormat in retVal['Value'].iteritems():
           filesandformats.setdefault(fileFormat, []).append(lfn)
+      else:
+        # If no persistency is found, set it to None
+        filesandformats[None] = lfns
     return filesandformats
 
   #############################################################################
