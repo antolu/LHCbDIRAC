@@ -1686,7 +1686,7 @@ class LHCbBookkeepingManager(BaseESManager):
     string += self.__createFormatString(filesandformats)
 
     if catalog:
-      string += "FileCatalog().Catalogs += [ 'xmlcatalog_file:" + catalog + "' ]\n"
+      string += "\nFileCatalog().Catalogs += [ 'xmlcatalog_file:" + catalog + "' ]\n"
 
     if optionsFile:
       # Write options file if requested
