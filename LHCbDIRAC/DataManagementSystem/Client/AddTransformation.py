@@ -263,7 +263,8 @@ def executeAddTransformation(pluginScript):
         res = tr.getTransformation(transName + '/')
         if not res['OK']:
           res = tr.getTransformation(transName.replace('-/', '-'))
-      if res['OK']:
+      if res['OK'] and res['Value']['Status'] not in ('Archived', 'Cleaned', 'Cleaning', 'Deleted'):
+        # If a transformation exists and is not stopped forever, don't allow
         gLogger.notice("Transformation %s already exists with ID %d, status %s" % (transName,
                                                                                    res['Value']['TransformationID'],
                                                                                    res['Value']['Status']))
