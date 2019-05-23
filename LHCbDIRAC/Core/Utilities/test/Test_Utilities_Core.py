@@ -274,7 +274,7 @@ class GangaDataFileSuccess(UtilitiesTestCase):
         'from Gaudi.Configuration import * \n' + \
         "from GaudiConf import IOHelper\nIOHelper('ROOT').inputFiles([\n" + \
         "'LFN:foo',\n'LFN:bar',\n], clear=True)\n" + \
-        "FileCatalog().Catalogs += [ 'xmlcatalog_file:pool_xml_catalog.xml' ]\n"
+        "\nFileCatalog().Catalogs += [ 'xmlcatalog_file:pool_xml_catalog.xml' ]\n"
     self.assertEqual(res, root)
 
     gdf = GangaDataFile(xmlcatalog_file='')
