@@ -1781,9 +1781,9 @@ class LHCbBookkeepingManager(BaseESManager):
         for lfn, fileFormat in retVal['Value'].iteritems():
           filesandformats.setdefault(fileFormat, []).append(lfn)
           lfns.remove(lfn)
-        # If no persistency is found, set it to None
-        if lfns:
-          filesandformats[None] = lfns
+      # If no persistency is found, set it to None
+      if lfns:
+        filesandformats[None] = lfns
     return filesandformats
 
   #############################################################################
