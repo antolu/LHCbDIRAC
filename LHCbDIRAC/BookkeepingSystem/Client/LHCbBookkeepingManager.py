@@ -1671,7 +1671,17 @@ class LHCbBookkeepingManager(BaseESManager):
 
   #############################################################################
   def writeJobOptions(self, files, optionsFile=None, savedType=None, catalog=None, savePfn=None, dataset=None):
-    """create options file"""
+    """create options file
+
+        :params dict files: LFNs for which to write the options
+        :params str optionsFile: file name where options might be written (iff given)
+        :params str savedType: if savedType == 'txt', return the list of LFNs
+        :params str catalog: add catalog or not
+        :params dict savePfn: file type versions
+        :params dict dataset: metadata about the dataset
+
+        :returns: str with options
+    """
     if optionsFile is None and savedType == 'txt':
       # Only return the list of LFNs
       return '\n'.join(str(lfn) for lfn in files) + '\n'
