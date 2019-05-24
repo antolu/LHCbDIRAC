@@ -38,8 +38,13 @@ def tarFiles(outputFile, files=None, compression='gz', deleteInput=False):
   return S_OK()
 
 
-def zipFiles(outputFile, files=None, deleteInput=False):
+def zipFiles(outputFile, files=None, directory=None, deleteInput=False):
   """ just make a zip
+
+      :param str outputFile: output file name, normally something.zip
+      :param list files: file names to be added to the zip file
+      :param str directory: optional directory inside the zip
+      :param bool deleteInput: if you want to delete the inputs
   """
   if files is None:
     files = []
@@ -47,8 +52,12 @@ def zipFiles(outputFile, files=None, deleteInput=False):
   try:
     with zipfile.ZipFile(outputFile, 'w') as zipped:
       for fileIn in files:
-        zipped.write(fileIn)
-  except zipfile.LargeZipFile:
+        if directory:
+          zipped.write(fileIn, directory + '\\' + fileIn, zipfile.ZIP_DEFLATED)
+        else:
+          zipped.write(fileIn)
+  except zipfile.LargeZipFile as zlz:
+    gLogger.error("Too large file", repr(zlz))
     return S_ERROR('Too large file...?')
 
   if deleteInput:

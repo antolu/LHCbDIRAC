@@ -130,9 +130,9 @@ class UploadLogFile(ModuleBase):
                        'with message:\n%s' % (result['Message']))
 
       # zip all files
-      zipFileName = os.path.basename(self.jobID + '.zip')
+      zipFileName = os.path.basename(str(self.jobID) + '.zip')
       try:
-        res = zipFiles(zipFileName, selectedFiles)
+        res = zipFiles(zipFileName, selectedFiles, str(self.jobID))
         if not res['OK']:
           self.log.error('Failed to create zip of log files', res['Message'])
           self.setApplicationStatus('Failed to create zip of log files')
