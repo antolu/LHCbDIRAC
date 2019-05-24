@@ -301,7 +301,7 @@ class UploadLogFileSuccess(ModulesTestCase):
     fd.close()
     res = ulf._determineRelevantFiles()
     self.assertTrue(res['OK'])
-    expected = ['foo.txt', 'aLog.log', 'aLongLog.log.gz']
+    expected = ['foo.txt', 'aLog.log', 'aLongLog.log']
     if 'pylint.txt' in os.listdir('.'):
       expected.append('pylint.txt')
     if 'nosetests.xml' in os.listdir('.'):
@@ -315,7 +315,7 @@ class UploadLogFileSuccess(ModulesTestCase):
     fd.close()
     open('bar.py', 'w').close()
     res = ulf._determineRelevantFiles()
-    expected = ['foo.txt', 'aLog.log', 'aLongLog.log.gz']
+    expected = ['foo.txt', 'aLog.log', 'aLongLog.log']
     if 'pylint.txt' in os.listdir('.'):
       expected.append('pylint.txt')
     if 'nosetests.xml' in os.listdir('.'):

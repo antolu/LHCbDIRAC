@@ -583,32 +583,32 @@ class BookkeepingReport(ModuleBase):
         self.__getNodeInformationDarwin(result)
       else:
         self.__getNodeInformationLinux(result)
-    except Exception as x:
+    except BaseException as x:
       self.log.exception("BookkeepingReport failed to obtain node information", lException=x)
       return S_ERROR("Failed to obtain system information")
 
     return S_OK(result)
 
   def __getNodeInformationDarwin(self, result):
-      cpuFrequency = subprocess.check_output('sysctl -n hw.cpufrequency'.split(' ')).strip()
-      result["CPU(MHz)"] = str(int(cpuFrequency) / 1000000)
-      result["ModelName"] = subprocess.check_output('sysctl -n machdep.cpu.brand_string'.split(' ')).strip()
-      l3CacheSize = subprocess.check_output('sysctl -n hw.l3cachesize'.split(' ')).strip()
-      result["CacheSize(kB)"] = str(int(l3CacheSize) / 1024)
+    cpuFrequency = subprocess.check_output('sysctl -n hw.cpufrequency'.split(' ')).strip()
+    result["CPU(MHz)"] = str(int(cpuFrequency) / 1000000)
+    result["ModelName"] = subprocess.check_output('sysctl -n machdep.cpu.brand_string'.split(' ')).strip()
+    l3CacheSize = subprocess.check_output('sysctl -n hw.l3cachesize'.split(' ')).strip()
+    result["CacheSize(kB)"] = str(int(l3CacheSize) / 1024)
 
-      memSize = subprocess.check_output('sysctl -n hw.memsize'.split(' ')).strip()
-      result["Memory(kB)"] = str(int(memSize) / 1024) + 'kB'
+    memSize = subprocess.check_output('sysctl -n hw.memsize'.split(' ')).strip()
+    result["Memory(kB)"] = str(int(memSize) / 1024) + 'kB'
 
   def __getNodeInformationLinux(self, result):
-      with open("/proc/cpuinfo", "r") as cpuInfo:
-        info = cpuInfo.readlines()
-      result["CPU(MHz)"] = info[6].split(":")[1].replace(" ", "").replace("\n", "")
-      result["ModelName"] = info[4].split(":")[1].replace(" ", "").replace("\n", "")
-      result["CacheSize(kB)"] = info[7].split(":")[1].replace(" ", "").replace("\n", "")
+    with open("/proc/cpuinfo", "r") as cpuInfo:
+      info = cpuInfo.readlines()
+    result["CPU(MHz)"] = info[6].split(":")[1].replace(" ", "").replace("\n", "")
+    result["ModelName"] = info[4].split(":")[1].replace(" ", "").replace("\n", "")
+    result["CacheSize(kB)"] = info[7].split(":")[1].replace(" ", "").replace("\n", "")
 
-      with open("/proc/meminfo", "r") as memInfo:
-        info = memInfo.readlines()
-      result["Memory(kB)"] = info[3].split(":")[1].replace(" ", "").replace("\n", "")
+    with open("/proc/meminfo", "r") as memInfo:
+      info = memInfo.readlines()
+    result["Memory(kB)"] = info[3].split(":")[1].replace(" ", "").replace("\n", "")
 
 ################################################################################
 # END AUXILIAR FUNCTIONS

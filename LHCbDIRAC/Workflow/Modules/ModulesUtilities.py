@@ -1,16 +1,17 @@
 """ Just a module with some utilities
 """
 
+__RCSID__ = "$Id$"
+
 import os
 import tarfile
+import zipfile
 import math
 
 from DIRAC import S_OK, S_ERROR, gConfig, gLogger
 from DIRAC.ConfigurationSystem.Client.Helpers import Resources
 from DIRAC.WorkloadManagementSystem.Client.CPUNormalization import getCPUTime
 from LHCbDIRAC.Core.Utilities.XMLTreeParser import XMLTreeParser
-
-__RCSID__ = "$Id$"
 
 
 def tarFiles(outputFile, files=None, compression='gz', deleteInput=False):
@@ -36,7 +37,28 @@ def tarFiles(outputFile, files=None, compression='gz', deleteInput=False):
 
   return S_OK()
 
-#############################################################################
+
+def zipFiles(outputFile, files=None, deleteInput=False):
+  """ just make a zip
+  """
+  if files is None:
+    files = []
+
+  try:
+    with zipfile.ZipFile(outputFile, 'w') as zipped:
+      for fileIn in files:
+        zipped.write(fileIn)
+  except zipfile.LargeZipFile:
+    return S_ERROR('Too large file...?')
+
+  if deleteInput:
+    for fileIn in files:
+      try:
+        os.remove(fileIn)
+      except OSError:
+        pass
+
+  return S_OK()
 
 
 def lowerExtension():

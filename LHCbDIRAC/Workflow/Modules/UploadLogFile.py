@@ -2,6 +2,8 @@
     directory.
 """
 
+__RCSID__ = "$Id$"
+
 import os
 import shutil
 import glob
@@ -19,11 +21,9 @@ from DIRAC.Resources.Storage.StorageElement import StorageElement
 from DIRAC.Core.Utilities.ReturnValues import returnSingleResult
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
-from LHCbDIRAC.Workflow.Modules.ModulesUtilities import tarFiles
+from LHCbDIRAC.Workflow.Modules.ModulesUtilities import zipFiles
 from LHCbDIRAC.Core.Utilities.ProductionData import getLogPath
 from LHCbDIRAC.Core.Utilities.ResolveSE import getDestinationSEList
-
-__RCSID__ = "$Id$"
 
 
 class UploadLogFile(ModuleBase):
@@ -97,9 +97,10 @@ class UploadLogFile(ModuleBase):
       else:
         self.log.error('Failed to list the log directory', str(res['Value'][2]))
 
-      self.log.info('PRODUCTION_ID = %s, JOB_ID = %s ' % (self.production_id, self.prod_job_id))
+      self.log.debug('PRODUCTION_ID = %s, JOB_ID = %s ' % (self.production_id, self.prod_job_id))
       self.logdir = os.path.realpath('./job/log/%s/%s' % (self.production_id, self.prod_job_id))
-      self.log.info('Selected log files will be temporarily stored in %s' % self.logdir)
+      self.log.info('Selected log files will be temporarily stored',
+                    'in %s' % self.logdir)
 
       ##########################################
       # First determine the files which should be saved
@@ -109,8 +110,7 @@ class UploadLogFile(ModuleBase):
         self.log.error('Completely failed to select relevant log files.', res['Message'])
         return S_OK()
       selectedFiles = res['Value']
-      self.log.info('The following %s files were selected to be saved:\n%s' % (len(selectedFiles),
-                                                                               '\n'.join(selectedFiles)))
+      self.log.info('The following files were selected to be saved', '\n'.join(selectedFiles))
 
       #########################################
       # Create a temporary directory containing these files
@@ -120,60 +120,61 @@ class UploadLogFile(ModuleBase):
         self.log.error('Completely failed to populate temporary log file directory.', res['Message'])
         self.setApplicationStatus('Failed To Populate Log Dir')
         return S_OK()
-      self.log.info('%s populated with log files.' % self.logdir)
+      self.log.debug('%s populated with log files.' % self.logdir)
 
       #########################################
       # Make sure all the files in the log directory have the correct permissions
       result = self.__setLogFilePermissions(self.logdir)
       if not result['OK']:
-        self.log.error('Could not set permissions of log files to 0755 with message:\n%s' % (result['Message']))
+        self.log.error('Could not set permissions of log files to 0755',
+                       'with message:\n%s' % (result['Message']))
+
+      # zip all files
+      zipFileName = os.path.basename(self.jobID + '.zip')
+      try:
+        res = zipFiles(zipFileName, selectedFiles)
+        if not res['OK']:
+          self.log.error('Failed to create zip of log files', res['Message'])
+          self.setApplicationStatus('Failed to create zip of log files')
+          # We do not fail the job for this case
+          return S_OK()
+      except IOError:
+        self.log.error('Failed to create zip of log files', res['Message'])
+        self.setApplicationStatus('Failed to create zip of log files')
+        # We do not fail the job for this case
+        return S_OK()
 
       # Instantiate the failover transfer client with the global request object
       if not self.failoverTransfer:
         self.failoverTransfer = FailoverTransfer(self.request)
 
-      #########################################
+      # Attempt to uplaod logs to the LogSE
+      self.log.info('Transferring log files', 'to the %s' % self.logSE)
+
       if not self._enableModule():
         self.log.info("Would have attempted to upload log files, but there's not JobID")
         return S_OK()
 
-      # Attempt to uplaod logs to the LogSE
-      self.log.info('Transferring log files to the %s' % self.logSE)
-
       res = returnSingleResult(StorageElement(self.logSE).getURL(self.logFilePath, protocol='https'))
       if not res['OK']:
         self.log.warn("Could not get dynamic URL for log", res)
-        logHttpsURL = "http://lhcb-logs.cern.ch/storage%s" % self.logFilePath
+        logHttpsURL = "https://lhcb-dirac-logse.web.cern.ch/lhcb-dirac-logse/%s" % self.logFilePath
       else:
         logHttpsURL = res['Value']
 
       logURL = '<a href="%s">Log file directory</a>' % logHttpsURL
-      self.log.info('Logs for this job may be retrieved from %s' % logURL)
-      self.log.info('putDirectory %s %s %s' % (self.logFilePath, os.path.realpath(self.logdir), self.logSE))
+      self.log.info('Logs for this job may be retrieved', 'from %s' % logURL)
+      self.log.info('putFile %s %s' % (zipFileName, self.logSE))
 
-      res = returnSingleResult(StorageElement(self.logSE).putDirectory(
-          {self.logFilePath: os.path.realpath(self.logdir)}))
-      self.log.verbose(res)
       self.setJobParameter('Log URL', logURL)
+      res = returnSingleResult(StorageElement(self.logSE).putFile({self.logFilePath: zipFileName}))
       if res['OK']:
-        self.log.info('Successfully upload log directory to %s' % self.logSE)
+        self.log.info('Successfully upload log file',
+                      'to %s' % self.logSE)
       else:
-        self.log.error("Failed to upload log files with message '%s', uploading to failover SE" % res['Message'])
-        # make a tar file
-        tarFileName = os.path.basename(self.logLFNPath)
-        try:
-          res = tarFiles(tarFileName, selectedFiles, compression='gz')
-          if not res['OK']:
-            self.log.error('Failed to create tar of log files: %s' % res['Message'])
-            self.setApplicationStatus('Failed to create tar of log files')
-            # We do not fail the job for this case
-            return S_OK()
-        except IOError:
-          self.log.error('Failed to create tar of log files: %s' % res['Message'])
-          self.setApplicationStatus('Failed to create tar of log files')
-          # We do not fail the job for this case
-          return S_OK()
-        self._uploadLogToFailoverSE(tarFileName)
+        self.log.error("Failed to upload log files",
+                       "with message '%s', uploading to failover SE" % res['Message'])
+        self._uploadLogToFailoverSE(zipFileName)
 
       self.workflow_commons['Request'] = self.request
 
@@ -188,27 +189,28 @@ class UploadLogFile(ModuleBase):
 
   #############################################################################
 
-  def _uploadLogToFailoverSE(self, tarFileName):
+  def _uploadLogToFailoverSE(self, zipFileName):
     """  Recover the logs to a failover storage element
     """
 
     # here because self.siteName is not known until execute() is invoked
     self.failoverSEs = getDestinationSEList('Tier1-Failover', self.siteName, outputmode='Any')
     random.shuffle(self.failoverSEs)
-    self.log.info("Attempting to store file %s to the following SE(s):\n%s" % (tarFileName,
-                                                                               ', '.join(self.failoverSEs)))
+    self.log.info("Attempting to store file",
+                  "%s to the following SE(s):\n%s" % (zipFileName,
+                                                      ', '.join(self.failoverSEs)))
 
-    fileDict = {tarFileName: {'lfn': self.logLFNPath,
+    fileDict = {zipFileName: {'lfn': self.logLFNPath,
                               'workflowSE': self.failoverSEs}}
     metadata = self.getFileMetadata(fileDict)
-    fileMetaDict = {'Size': metadata[tarFileName]['filedict']['Size'],
-                    'LFN': metadata[tarFileName]['filedict']['LFN'],
-                    'GUID': metadata[tarFileName]['filedict']['GUID'],
-                    'Checksum': metadata[tarFileName]['filedict']['Checksum'],
-                    'ChecksumType': metadata[tarFileName]['filedict']['ChecksumType']}
+    fileMetaDict = {'Size': metadata[zipFileName]['filedict']['Size'],
+                    'LFN': metadata[zipFileName]['filedict']['LFN'],
+                    'GUID': metadata[zipFileName]['filedict']['GUID'],
+                    'Checksum': metadata[zipFileName]['filedict']['Checksum'],
+                    'ChecksumType': metadata[zipFileName]['filedict']['ChecksumType']}
 
-    result = self.failoverTransfer.transferAndRegisterFile(fileName=tarFileName,
-                                                           localPath='%s/%s' % (os.getcwd(), tarFileName),
+    result = self.failoverTransfer.transferAndRegisterFile(fileName=zipFileName,
+                                                           localPath='%s/%s' % (os.getcwd(), zipFileName),
                                                            lfn=self.logLFNPath,
                                                            destinationSEList=self.failoverSEs,
                                                            fileMetaDict=fileMetaDict,
@@ -219,12 +221,12 @@ class UploadLogFile(ModuleBase):
       self.setApplicationStatus('Failed To Upload Logs')
     else:
       uploadedSE = result['Value']['uploadedSE']
-      self.log.info("Uploaded logs to failover SE %s" % uploadedSE)
+      self.log.info("Uploaded logs to failover SE", uploadedSE)
 
       self.request = self.failoverTransfer.request
 
       self.__createLogUploadRequest(self.logSE, self.logLFNPath, uploadedSE)
-      self.log.info("Successfully created failover request")
+      self.log.verbose("Successfully created failover request")
 
   def _determineRelevantFiles(self):
     """ The files which are below a configurable size will be stored in the logs.
@@ -233,10 +235,10 @@ class UploadLogFile(ModuleBase):
     logFileExtensions = ['*.txt', '*.log', '*.out', '*.output',
                          '*.xml', '*.sh', '*.info', '*.err', 'prodConf*.py']  # '*.root',
     if self.logExtensions:
-      self.log.info('Using list of log extensions from CS:\n%s' % (', '.join(self.logExtensions)))
+      self.log.debug('Using list of log extensions from CS:\n%s' % (', '.join(self.logExtensions)))
       logFileExtensions = self.logExtensions
     else:
-      self.log.info('Using default list of log extensions:\n%s' % (', '.join(logFileExtensions)))
+      self.log.debug('Using default list of log extensions:\n%s' % (', '.join(logFileExtensions)))
 
     candidateFiles = []
     for ext in logFileExtensions:
@@ -247,21 +249,7 @@ class UploadLogFile(ModuleBase):
           self.log.debug('Found locally existing log file: %s' % check)
           candidateFiles.append(check)
 
-    selectedFiles = []
-    try:
-      for candidate in candidateFiles:
-        fileSize = os.stat(candidate)[6]
-        if fileSize < self.logSizeLimit:
-          selectedFiles.append(candidate)
-        else:
-          self.log.info('Log file found to be greater than maximum of %s bytes, compressing' % self.logSizeLimit)
-          tarFileName = os.path.basename(candidate) + '.gz'
-          tarFiles(tarFileName, [candidate], compression='gz')
-          selectedFiles.append(tarFileName)
-      return S_OK(selectedFiles)
-    except OSError as x:
-      self.log.exception('Exception while determining files to save.', '', str(x))
-      return S_ERROR('Could not determine log files')
+    return S_OK(candidateFiles)
 
   #############################################################################
 
@@ -283,10 +271,10 @@ class UploadLogFile(ModuleBase):
         destinationFile = '%s/%s' % (self.logdir, os.path.basename(fileS))
         shutil.copy(fileS, destinationFile)
     except shutil.Error:
-      self.log.warn('scr and dst are the same')
+      self.log.warn('src and dst are the same')
     except IOError as x:
-      self.log.exception('Exception while trying to copy file.', fileS, str(x))
-      self.log.info('File %s will be skipped and can be considered lost.' % fileS)
+      self.log.exception('Exception while trying to copy file.', str(fileS) + str(x))
+      self.log.info('The following files will be skipped and can be considered lost', str(fileS))
 
     # Now verify the contents of our target log dir
     successfulFiles = os.listdir(self.logdir)
@@ -294,7 +282,7 @@ class UploadLogFile(ModuleBase):
       self.log.info('Failed to copy any files to the target directory.')
       return S_ERROR()
 
-    self.log.info('Prepared %s files in the temporary directory.' % self.logdir)
+    self.log.debug('Prepared %s files in the temporary directory.' % self.logdir)
     return S_OK()
 
   #############################################################################
@@ -302,7 +290,8 @@ class UploadLogFile(ModuleBase):
   def __createLogUploadRequest(self, targetSE, logFileLFN, uploadedSE):
     """ Set a request to upload job log files from the output sandbox
     """
-    self.log.info('Setting log upload request for %s at %s' % (logFileLFN, targetSE))
+    self.log.info('Setting log upload request',
+                  'for %s at %s' % (logFileLFN, targetSE))
 
     logUpload = Operation()
     logUpload.Type = 'LogUpload'
