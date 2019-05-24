@@ -63,10 +63,7 @@ class GangaDataFile(object):
       pass
 
     # Create a fake LFN->PFN dictionary to give the persistency
-    if persistency:
-      fakePfns = dict.fromkeys(lfns, {'pfntype': persistency})
-    else:
-      fakePfns = None
+    fakePfns = dict.fromkeys(lfns, {'pfntype': persistency})
     script = LHCB_BKKDBClient(welcome=False).writeJobOptions(lfns,
                                                              optionsFile=self.fileName,
                                                              catalog=self.xmlcatalog_file,
