@@ -1671,7 +1671,17 @@ class LHCbBookkeepingManager(BaseESManager):
 
   #############################################################################
   def writeJobOptions(self, files, optionsFile=None, savedType=None, catalog=None, savePfn=None, dataset=None):
-    """create options file"""
+    """create options file
+
+        :params dict files: LFNs for which to write the options
+        :params str optionsFile: file name where options might be written (iff given)
+        :params str savedType: if savedType == 'txt', return the list of LFNs
+        :params str catalog: add catalog or not
+        :params dict savePfn: file type versions
+        :params dict dataset: metadata about the dataset
+
+        :returns: str with options
+    """
     if optionsFile is None and savedType == 'txt':
       # Only return the list of LFNs
       return '\n'.join(str(lfn) for lfn in files) + '\n'
@@ -1686,7 +1696,7 @@ class LHCbBookkeepingManager(BaseESManager):
     string += self.__createFormatString(filesandformats)
 
     if catalog:
-      string += "FileCatalog().Catalogs += [ 'xmlcatalog_file:" + catalog + "' ]\n"
+      string += "\nFileCatalog().Catalogs += [ 'xmlcatalog_file:" + catalog + "' ]\n"
 
     if optionsFile:
       # Write options file if requested
@@ -1717,12 +1727,12 @@ class LHCbBookkeepingManager(BaseESManager):
     """It generates the Root format option file.
     """
     string = "\nfrom Gaudi.Configuration import * "
-    string += "\nfrom GaudiConf import IOHelper"
+    string += "\nfrom GaudiConf import IOHelper\n"
     for fileFormat, lfns in filesandformats.iteritems():
       if fileFormat:
-        string += "\nIOHelper('%s').inputFiles([\n" % fileFormat
+        string += "IOHelper('%s').inputFiles([\n" % fileFormat
       else:
-        string += "\nIOHelper().inputFiles([\n"
+        string += "IOHelper().inputFiles([\n"
       string += '\n'.join("'LFN:%s'," % lfn for lfn in lfns)
       string += '\n], clear=True)\n'
 
@@ -1766,10 +1776,14 @@ class LHCbBookkeepingManager(BaseESManager):
 
     if lfns:
       # Get file type version from BK
-      retVal = self.db_.getFileTypeVersion(list(files))
+      retVal = self.db_.getFileTypeVersion(lfns)
       if retVal['OK']:
         for lfn, fileFormat in retVal['Value'].iteritems():
           filesandformats.setdefault(fileFormat, []).append(lfn)
+          lfns.remove(lfn)
+      # If no persistency is found, set it to None
+      if lfns:
+        filesandformats[None] = lfns
     return filesandformats
 
   #############################################################################
