@@ -1,3 +1,25 @@
+v9r3p6
+use DIRAC v6r21p7
+
+* improve the docs
+* correct the documentation
+* add test without persistency
+* simplify code
+* always use persistency job parameter
+* set persistency to None in case of error from BK
+* fix previous
+* use persistency as None if not found
+* docstring
+* fix the test
+* move a \n
+* if --Unique is used, allow an Archived trans with the same name
+* Add \n for file catalog
+* Docs: document standing transformations for DM
+* change gLogger verbose to debug
+* add instructions about installing a new vobox
+* add instruction about deploying web server
+* add LHCbWebApp documentation
+
 v9r3p5
 use DIRAC v6r21p6
 
