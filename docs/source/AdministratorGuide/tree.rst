@@ -23,3 +23,5 @@ This page is the work in progress. See more material here soon !
    lhcbMessageQueues
    sandboxStore
    Popularity/index.rst
+   LHCbWebApp/index.rst
+   install
