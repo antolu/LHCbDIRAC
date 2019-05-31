@@ -1,22 +1,13 @@
+.. _installvobox:
+
 =================
 Setup a new vobox
 =================
 
-The configuration file is puppetized. If the machine correctly created, the configuration file
-need to install the machine already must be exists.
+In order to install a vobox you need a configuration file so called install.cfg.  If the machine correctly created, this configuration file
+will be in /home/dirac directory. 
 
-The installation procedure:
-
-	- cd /home/dirac
-	
-	- curl -O https://raw.githubusercontent.com/DIRACGrid/DIRAC/integration/Core/scripts/install_site.sh
-	
-	- chmod +x install_site.sh
-	
-	- Edit install_site.sh add the Release = version
-	
-	- ./install_site.sh install.cfg
-	
-	Note: install.cfg file must exists in the /home/dirac directory
-	
+Please follow `this instructions <https://dirac.readthedocs.io/en/latest/AdministratorGuide/InstallingDIRACService/index.html#additional-server-installation>`_
+and use the configuration file from /home/dirac/install.cfg
+		
 Make sure the dirac.cfg file is correctly created in the machine.
