@@ -39,5 +39,7 @@ To do that please execute the following commands as root::
         semodule -i nginx.pp
         refresh the web portal
 	 
-NOTE: Most probably, it will not work. Ask Joel to create the correct dirac.cfg file. The dirac.cfg file content 
-must be the same as the existing web machine.
+NOTE:: 
+  
+  - You may need to execute the commands above more than once (for example if you change the certificate).   
+  - Most probably, it may not work. Ask Joel to create the correct dirac.cfg file. The dirac.cfg file content must be the same as the existing web machine.
