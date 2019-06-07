@@ -21,22 +21,22 @@
 import os
 
 from pkgutil import extend_path
-__path__ = extend_path( __path__, __name__ )  # pylint: disable=redefined-builtin
+__path__ = extend_path(__path__, __name__)  # pylint: disable=redefined-builtin
 
-rootPath = os.path.dirname( os.path.realpath( __path__[0] ) )
+rootPath = os.path.dirname(os.path.realpath(__path__[0]))
 
 # Define Version
 
 majorVersion = 9
 minorVersion = 3
-patchLevel = 6 
+patchLevel = 6
 preVersion = 0
 
-version = "v%sr%s" % ( majorVersion, minorVersion )
-buildVersion = "v%dr%d" % ( majorVersion, minorVersion )
+version = "v%sr%s" % (majorVersion, minorVersion)
+buildVersion = "v%dr%d" % (majorVersion, minorVersion)
 if patchLevel:
-  version = "%sp%s" % ( version, patchLevel )
-  buildVersion = "%s build %s" % ( buildVersion, patchLevel )
+  version = "%sp%s" % (version, patchLevel)
+  buildVersion = "%s build %s" % (buildVersion, patchLevel)
 if preVersion:
-  version = "%s-pre%s" % ( version, preVersion )
-  buildVersion = "%s pre %s" % ( buildVersion, preVersion )
+  version = "%s-pre%s" % (version, preVersion)
+  buildVersion = "%s pre %s" % (buildVersion, preVersion)

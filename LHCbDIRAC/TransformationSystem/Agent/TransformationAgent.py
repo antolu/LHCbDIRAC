@@ -22,57 +22,58 @@ from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import Resou
 
 AGENT_NAME = 'Transformation/LHCbTransformationAgent'
 
-class TransformationAgent( DIRACTransformationAgent ):
+
+class TransformationAgent(DIRACTransformationAgent):
   """ Extends base class
   """
 
-  def initialize( self ):
+  def initialize(self):
     """ LHCb defaults
     """
-    DIRACTransformationAgent.initialize( self )
+    DIRACTransformationAgent.initialize(self)
 
-    self.pluginLocation = self.am_getOption( 'PluginLocation',
-                                             'LHCbDIRAC.TransformationSystem.Agent.TransformationPlugin' )
+    self.pluginLocation = self.am_getOption('PluginLocation',
+                                            'LHCbDIRAC.TransformationSystem.Agent.TransformationPlugin')
     self.workDirectory = self.am_getWorkDirectory()
-    self.debug = self.am_getOption( 'verbosePlugin', False )
+    self.debug = self.am_getOption('verbosePlugin', False)
 
     return S_OK()
 
-  def _getClients( self ):
+  def _getClients(self):
     """ returns the clients used in the threads
     """
-    res = DIRACTransformationAgent._getClients( self )
+    res = DIRACTransformationAgent._getClients(self)
 
     threadTransformationClient = TransformationClient()
     threadRMClient = ResourceManagementClient()
     threadBkk = BookkeepingClient()
 
-    res.update( {'TransformationClient':threadTransformationClient,
-                 'ResourceManagementClient':threadRMClient,
-                 'BookkeepingClient':threadBkk} )
+    res.update({'TransformationClient': threadTransformationClient,
+                'ResourceManagementClient': threadRMClient,
+                'BookkeepingClient': threadBkk})
 
     return res
 
-  def __generatePluginObject( self, plugin, clients ):
+  def __generatePluginObject(self, plugin, clients):
     """ Generates the plugin object
     """
     try:
-      plugModule = __import__( self.pluginLocation, globals(), locals(), ['TransformationPlugin'] )
+      plugModule = __import__(self.pluginLocation, globals(), locals(), ['TransformationPlugin'])
     except ImportError as x:
-      gLogger.exception( "%s.__generatePluginObject: Failed to import 'TransformationPlugin'" % AGENT_NAME, '', x )
+      gLogger.exception("%s.__generatePluginObject: Failed to import 'TransformationPlugin'" % AGENT_NAME, '', x)
       return S_ERROR()
     try:
-      oPlugin = getattr( plugModule, 'TransformationPlugin' )( '%s' % plugin,
-                                                               dataManager = clients['DataManager'],
-                                                               transClient = clients['TransformationClient'],
-                                                               bkClient = clients['BookkeepingClient'],
-                                                               rmClient = clients['ResourceManagementClient'],
-                                                               transInThread = self.transInThread )
+      oPlugin = getattr(plugModule, 'TransformationPlugin')('%s' % plugin,
+                                                            dataManager=clients['DataManager'],
+                                                            transClient=clients['TransformationClient'],
+                                                            bkClient=clients['BookkeepingClient'],
+                                                            rmClient=clients['ResourceManagementClient'],
+                                                            transInThread=self.transInThread)
     except Exception as x:  # pylint: disable=broad-except
-      gLogger.exception( "%s.__generatePluginObject: Failed to create %s()." % ( AGENT_NAME, plugin ), '', x )
+      gLogger.exception("%s.__generatePluginObject: Failed to create %s()." % (AGENT_NAME, plugin), '', x)
       return S_ERROR()
     oPlugin.workDirectory = self.workDirectory
     oPlugin.pluginCallback = self.pluginCallback
     if self.debug:
       oPlugin.setDebug()
-    return S_OK( oPlugin )
+    return S_OK(oPlugin)
