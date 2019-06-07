@@ -1,3 +1,13 @@
+###############################################################################
+# (c) Copyright 2019 CERN for the benefit of the LHCb Collaboration           #
+#                                                                             #
+# This software is distributed under the terms of the GNU General Public      #
+# Licence version 3 (GPL Version 3), copied verbatim in the file "LICENSE".   #
+#                                                                             #
+# In applying this licence, CERN does not waive the privileges and immunities #
+# granted to it by virtue of its status as an Intergovernmental Organization  #
+# or submit itself to any jurisdiction.                                       #
+###############################################################################
 # This gitlab ci tests, deploys and build the docker images
 # It performs some operations with an account.
 # Its credentials are stored as secret variable KRB_PASSWORD and KRB_USERNAME
@@ -75,6 +85,15 @@ run_pycodestyle:
     - git fetch --no-tags GL
     - git branch -avv
     - git diff -U0 GL/${lhcbDiracBranch}...HEAD | pycodestyle --diff
+
+# This ensures the license text is present
+# Based on: https://gitlab.cern.ch/lhcb/LHCb/blob/master/.gitlab-ci.yml#L14-18
+check-copyright:
+  image: gitlab-registry.cern.ch/ci-tools/ci-worker:cc7
+  stage: test
+  script:
+    - curl -o lb-check-copyright "https://gitlab.cern.ch/lhcb-core/LbDevTools/raw/master/LbDevTools/SourceTools.py?inline=false"
+    - python lb-check-copyright origin/devel
 
 # This job MUST be call pages as per https://docs.gitlab.com/ce/ci/yaml/README.html#pages
 pages:
