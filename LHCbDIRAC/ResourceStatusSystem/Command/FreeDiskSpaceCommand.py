@@ -10,7 +10,6 @@ from DIRAC.Core.Utilities.File import convertSizeUnits
 from DIRAC.AccountingSystem.Client.DataStoreClient import gDataStoreClient
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
 from DIRAC.ResourceStatusSystem.Command.FreeDiskSpaceCommand import FreeDiskSpaceCommand as FDSC
-from DIRAC.Resources.Storage.StorageElement import StorageElement
 
 # LHCbDIRAC
 from LHCbDIRAC.AccountingSystem.Client.Types.SpaceToken import SpaceToken
