@@ -19,9 +19,6 @@ import sys
 import os
 import shlex
 
-from LbEnv.ProjectEnv.lookup import findBestPlatform
-import LbPlatformUtils
-
 from DIRAC import gConfig, gLogger
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.List import fromChar
