@@ -62,18 +62,15 @@ if __name__ == "__main__":
         dExit(1)
 
   try:
-    lbRunOptions = Operations().getValue('GaudiExecution/lbRunOptions', '')
-    allowContainersGlobal = '--allow-containers' in lbRunOptions
-    if allowContainersGlobal:
-      site = gConfig.getValue('/LocalSite/Site')
-      grid = site.split('.')[0]
-      ce = gConfig.getValue('/LocalSite/GridCE')
+    site = gConfig.getValue('/LocalSite/Site')
+    grid = site.split('.')[0]
+    ce = gConfig.getValue('/LocalSite/GridCE')
 
-      allowContainers = gConfig.getValue('/Resources/Sites/%s/%s/CEs/%s/AllowContainers' % (grid, site, ce), None)
-      if allowContainers is None:
-        allowContainers = gConfig.getValue('/Resources/Sites/%s/%s/AllowContainers' % (grid, site), None)
-      if allowContainers is None:
-        allowContainers = allowContainersGlobal
+    allowContainers = gConfig.getValue('/Resources/Sites/%s/%s/CEs/%s/AllowContainers' % (grid, site, ce), None)
+    if allowContainers is None:
+      allowContainers = gConfig.getValue('/Resources/Sites/%s/%s/AllowContainers' % (grid, site), None)
+    if allowContainers is None:
+      allowContainers = Operations().getValue('GaudiExecution/AllowContainers', False)
 
     # Get the platform name. If an error occurs, an exception is thrown
     platform = LbPlatformUtils.dirac_platform(allow_containers=allowContainers)
