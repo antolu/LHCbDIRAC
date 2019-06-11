@@ -72,6 +72,11 @@ if __name__ == "__main__":
     if allowContainers is None:
       allowContainers = Operations().getValue('GaudiExecution/AllowContainers', False)
 
+    if allowContainers.lower() in ('yes', 'true', 'all'):
+      allowContainers = True
+    elif allowContainers.lower() in ('no', 'false', 'none', ''):
+      allowContainers = False
+
     # Get the platform name. If an error occurs, an exception is thrown
     platform = LbPlatformUtils.dirac_platform(allow_containers=allowContainers)
     if not platform:
