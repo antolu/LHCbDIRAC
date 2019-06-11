@@ -99,12 +99,6 @@ class RunApplication(object):
       self.systemConfig = 'best'
     configString = "-c %s" % self.systemConfig
 
-    # Containerisation
-    if gConfig.getValue('/LocalSite/JOBFEATURES/allow_containers', False):
-      configString += " --allow-containers"
-      if not gConfig.getValue('/LocalSite/JOBFEATURES/prefer_container', False):
-        configString += " --prefer-container"
-
     # App
     app = self.applicationName
     if self.applicationVersion:
