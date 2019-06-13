@@ -13,7 +13,7 @@
 ########################################################################
 """ :mod: StorageUsageClient
     ========================
- 
+
     .. module: StorageUsageClient
     :synopsis: Lightweight possbile client to the StorageUsageDB.
 """
@@ -22,11 +22,14 @@ __RCSID__ = "$Id$"
 
 from DIRAC.Core.Base.Client import Client
 
-class StorageUsageClient( Client ):
+
+class StorageUsageClient(Client):
   """
   .. class:: StorageUsageClient
   """
-  def __init__( self ):
+  def __init__(self, url=None, **kwargs):
     """ c'tor """
-    Client.__init__( self )
-    self.setServer( 'DataManagement/StorageUsage' )
+    Client.__init__(self, **kwargs)
+    if url:
+      self.setServer(url)
+    self.setServer('DataManagement/StorageUsage')

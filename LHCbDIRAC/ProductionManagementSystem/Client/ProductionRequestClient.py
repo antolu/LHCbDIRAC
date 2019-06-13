@@ -28,4 +28,3 @@ class ProductionRequestClient(Client):
     self.setServer('ProductionManagement/ProductionRequest')
     if url:
       self.setServer(url)
-    self.setTimeout(3600)
