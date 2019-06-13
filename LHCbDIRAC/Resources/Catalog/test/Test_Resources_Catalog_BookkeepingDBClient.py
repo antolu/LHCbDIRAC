@@ -25,44 +25,44 @@ __RCSID__ = "$Id$"
 
 class BookkeepingDBClientt_TestCase( unittest.TestCase ):
 
-  def setUp( self ):
+  def setUp(self):
     '''
     Setup
     '''
     gLogger.setLevel('DEBUG')
 
-#    # Mock external libraries / modules not interesting for the unit test
-#    mock_pathFinder = mock.Mock()
-#    mock_pathFinder.getServiceURL.return_value = 'cookiesURL'
-#    self.mock_pathFinder = mock_pathFinder
-#
-    mock_RPC = mock.Mock()
-    mock_RPC.addFiles.return_value        = { 'OK' : True, 'Value' : { 'Successful' : ['A'] , 'Failed' :['B']} }
-    mock_RPC.removeFiles.return_value     = { 'OK' : True, 'Value' : { 'Successful' : ['A'] , 'Failed' : ['B']} }
-    mock_RPC.exists.return_value          = { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2} }
-    mock_RPC.getFileMetadata.return_value = { 'OK' : True, 'Value' : { 'Successful':{'A' : { 'FileSize' : 1} ,
-                                                                                     'B' : { 'FileSize' : 2} } } }
-#    mock_RPC.removeMigratingFiles.return_value    = { 'OK' : True }
-#    mock_RPC.removeMigratingReplicas.return_value = { 'OK' : True }
+    # # Mock external libraries / modules not interesting for the unit test
+    # mock_pathFinder = mock.Mock()
+    # mock_pathFinder.getServiceURL.return_value = 'cookiesURL'
+    # self.mock_pathFinder = mock_pathFinder
 
-    mock_RPCClient              = mock.Mock()
-    mock_RPCClient.return_value = mock_RPC
-    self.mock_RPCClient         = mock_RPCClient
-#
-#    # Add mocks to moduleTested
-#    moduleTested.PathFinder = self.mock_pathFinder
-    moduleTested.RPCClient  = self.mock_RPCClient
+    # Add mocks to moduleTested
+    # moduleTested.PathFinder = self.mock_pathFinder
+
+    mock_RPC = mock.Mock()
+    mock_RPC.addFiles.return_value = {'OK': True, 'Value': {'Successful': ['A'], 'Failed': ['B']}}
+    mock_RPC.removeFiles.return_value = {'OK': True, 'Value': {'Successful': ['A'], 'Failed': ['B']}}
+    mock_RPC.exists.return_value = {'OK': True, 'Value': {'A': 1, 'B': 2}}
+    mock_RPC.getFileMetadata.return_value = {'OK': True, 'Value': {'Successful': {'A': {'FileSize': 1}, 'B': {'FileSize': 2}}}}
+    # mock_RPC.removeMigratingFiles.return_value    = { 'OK' : True }
+    # mock_RPC.removeMigratingReplicas.return_value = { 'OK' : True }
+
+    mock_BookkeepingClient = mock.Mock()
+    mock_BookkeepingClient.return_value = mock_RPC
+    self.mock_BookkeepingClient = mock_BookkeepingClient
+
+    moduleTested.BookkeepingClient = self.mock_BookkeepingClient
 
     self.moduleTested = moduleTested
-    self.testClass    = self.moduleTested.BookkeepingDBClient
+    self.testClass = self.moduleTested.BookkeepingDBClient
 
-  def tearDown( self ):
+  def tearDown(self):
     '''
     TearDown
     '''
     del self.testClass
     del self.moduleTested
-    del self.mock_RPCClient
+    del self.mock_BookkeepingClient
 
 ################################################################################
 
@@ -130,7 +130,7 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     mock_RPC = mock.Mock()
     mock_RPC.addFiles.return_value = { 'OK' : False, 'Message' : 'Bo!' }
 
-    self.moduleTested.RPCClient.return_value = mock_RPC
+    self.moduleTested.BookkeepingClient.return_value = mock_RPC
 
     catalog = self.testClass()
 
@@ -159,7 +159,7 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
 #    mock_RPC.addFiles.side_effect = [ { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2 } },
 #                                      { 'OK' : False, 'Message' : 'Bo!' } ]
 
-    self.moduleTested.RPCClient.return_value = mock_RPC
+    self.moduleTested.BookkeepingClient.return_value = mock_RPC
 
     catalog = self.testClass()
     catalog.splitSize = 2
@@ -175,7 +175,7 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     self.assertEqual( { 'Successful' : { 'A' : True }, 'Failed' : {'B' : 'Bo!' } }, res[ 'Value' ] )
 
     # Restore the module
-    self.moduleTested.RPCClient.return_value = self.mock_RPCClient
+    self.moduleTested.BookkeepingClient.return_value = self.mock_BookkeepingClient
     reload( self.moduleTested )
 
   def test__unsetHasReplicaFlag(self):
@@ -203,7 +203,7 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     mock_RPC = mock.Mock()
     mock_RPC.removeFiles.return_value = { 'OK' : False, 'Message' : 'Bo!' }
 
-    self.moduleTested.RPCClient.return_value = mock_RPC
+    self.moduleTested.BookkeepingClient.return_value = mock_RPC
 
     catalog = self.testClass()
 
@@ -232,7 +232,7 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
 #    mock_RPC.removeFiles.side_effect = [ { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2 } },
 #                                      { 'OK' : False, 'Message' : 'Bo!' } ]
 
-    self.moduleTested.RPCClient.return_value = mock_RPC
+    self.moduleTested.BookkeepingClient.return_value = mock_RPC
 
     catalog = self.testClass()
     catalog.splitSize = 2
@@ -246,7 +246,7 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     self.assertEqual( { 'Successful' : {}, 'Failed' : { 'A' :'File does not exist', 'B' : 'Bo!' } }, res[ 'Value' ] )
 
     # Restore the module
-    self.moduleTested.RPCClient.return_value = self.mock_RPCClient
+    self.moduleTested.BookkeepingClient.return_value = self.mock_BookkeepingClient
     reload( self.moduleTested )
 
   def test__exists(self):
@@ -270,7 +270,7 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     mock_RPC = mock.Mock()
     mock_RPC.exists.return_value = { 'OK' : False, 'Message' : 'Bo!' }
 
-    self.moduleTested.RPCClient.return_value = mock_RPC
+    self.moduleTested.BookkeepingClient.return_value = mock_RPC
 
     catalog = self.testClass()
 
@@ -300,7 +300,7 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     #mock_RPC.exists.side_effect = [ { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2 } },
     #                                  { 'OK' : False, 'Message' : 'Bo!' } ]
 
-    self.moduleTested.RPCClient.return_value = mock_RPC
+    self.moduleTested.BookkeepingClient.return_value = mock_RPC
 
     catalog = self.testClass()
     catalog.splitSize = 2
@@ -316,7 +316,7 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     self.assertEqual( { 'Successful' : { 'A' : 1, 'B' : 2 }, 'Failed' : {'B':'Bo!'} }, res[ 'Value' ] )
 
     # Restore the module
-    self.moduleTested.RPCClient.return_value = self.mock_RPCClient
+    self.moduleTested.BookkeepingClient.return_value = self.mock_BookkeepingClient
     reload( self.moduleTested )
 
   def test__getFileMetadata(self):
@@ -341,7 +341,7 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     mock_RPC = mock.Mock()
     mock_RPC.getFileMetadata.return_value = { 'OK' : True, 'Value' : {'Successful': { 'A' : '1' , 'B' : '2' } } }
 
-    self.moduleTested.RPCClient.return_value = mock_RPC
+    self.moduleTested.BookkeepingClient.return_value = mock_RPC
 
     catalog = self.testClass()
 
@@ -356,7 +356,7 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     mock_RPC = mock.Mock()
     mock_RPC.getFileMetadata.return_value = { 'OK' : False, 'Message' : 'Bo!' }
 
-    self.moduleTested.RPCClient.return_value = mock_RPC
+    self.moduleTested.BookkeepingClient.return_value = mock_RPC
 
     catalog = self.testClass()
 
@@ -378,7 +378,7 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
 #    mock_RPC.getFileMetadata.side_effect = [ { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2 } },
 #                                             { 'OK' : False, 'Message' : 'Bo!' } ]
 
-    self.moduleTested.RPCClient.return_value = mock_RPC
+    self.moduleTested.BookkeepingClient.return_value = mock_RPC
 
     catalog = self.testClass()
     catalog.splitSize = 2
@@ -391,7 +391,7 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     mock_RPC = mock.Mock()
     mock_RPC.getFileMetadata.return_value = { 'OK' : True, 'Value' : {'Successful':{ 'A' : str , 'B' : '2' } } }
 
-    self.moduleTested.RPCClient.return_value = mock_RPC
+    self.moduleTested.BookkeepingClient.return_value = mock_RPC
 
     catalog = self.testClass()
 
@@ -400,7 +400,7 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     self.assertEqual( { 'Successful' : {'A': str}, 'Failed' : {'B':'2'} }, res[ 'Value' ] )
 
     # Restore the module
-    self.moduleTested.RPCClient.return_value = self.mock_RPCClient
+    self.moduleTested.BookkeepingClient.return_value = self.mock_BookkeepingClient
     reload( self.moduleTested )
 
   def test_addFile(self):
