@@ -13,7 +13,6 @@ from DIRAC import gLogger
 from DIRAC.ConfigurationSystem.Client.ConfigurationData import gConfigurationData
 gConfigurationData.setOptionInCFG( '/DIRAC/Security/UseServerCertificate', 'true' )
 gLogger.setLevel('FATAL')
-from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Interfaces.API.Dirac import Dirac
 dApi = Dirac()
 

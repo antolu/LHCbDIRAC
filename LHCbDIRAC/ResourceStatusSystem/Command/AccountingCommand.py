@@ -17,7 +17,6 @@ from datetime import datetime, timedelta
 
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.AccountingSystem.Client.ReportsClient import ReportsClient
-from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getSites
 from DIRAC.ResourceStatusSystem.Command.Command import Command
 from DIRAC.ResourceStatusSystem.Utilities import CSHelpers
@@ -40,11 +39,7 @@ class AccountingCommand(Command):
       self.rClient = ReportsClient()
 
     if 'ReportGenerator' in self.apis:
-      self.rgClient = self.apis['ReportGenerator']
-    else:
-      self.rgClient = RPCClient('Accounting/ReportGenerator')
-
-    self.rClient.rpcClient = self.rgClient
+      self.rClient.rpcClient = self.apis['ReportGenerator']
 
     if 'ResourceManagementClient' in self.apis:
       self.rmClient = self.apis['ResourceManagementClient']

@@ -17,10 +17,10 @@ It reports for each site its availability and usage
 import time
 
 from DIRAC import gLogger, S_ERROR
-from DIRAC.Core.DISET.RPCClient import RPCClient
-
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
 from DIRAC.Resources.Storage.StorageElement import StorageElement
+
+from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient import StorageUsageClient
 
 sitesSEs = {}
 spaceTokenInfo = {}
@@ -109,7 +109,7 @@ def getSDUsage(lcgSite):
     site = lcgSite.split('.')[1]
   except IndexError:
     site = lcgSite
-  res = RPCClient('DataManagement/StorageUsage').getSTSummary(site)
+  res = StorageUsageClient().getSTSummary(site)
   if not res['OK']:
     gLogger.error("ERROR: Cannot get storage dump information for site %s :" % site, res['Message'])
     return -1
@@ -131,7 +131,7 @@ def getSDUsage(lcgSite):
 def getFCUsage(lcgSite):
   """ get storage usage from LFC
   """
-  res = RPCClient('DataManagement/StorageUsage').getStorageSummary()
+  res = StorageUsageClient().getStorageSummary()
   if not res['OK']:
     gLogger.error('ERROR in getStorageSummary ', res['Message'])
     return {}

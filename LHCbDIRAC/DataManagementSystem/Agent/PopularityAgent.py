@@ -30,8 +30,6 @@ from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.Core.Utilities import Time
 from DIRAC.Core.Utilities.File import mkDir
 from DIRAC.AccountingSystem.Client.DataStoreClient import gDataStoreClient
-from DIRAC.Core.DISET.RPCClient import RPCClient
-# # from LHCbDIRAC
 from LHCbDIRAC.AccountingSystem.Client.Types.Popularity import Popularity
 from LHCbDIRAC.DataManagementSystem.Client.DataUsageClient import DataUsageClient
 from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
@@ -65,8 +63,7 @@ class PopularityAgent(AgentModule):
       self.__stDB = StorageUsageDB()
       # self.bkClient = BookkeepingClient()#the necessary method is still not available in Bookk. client
     else:
-      self.__stDB = RPCClient('DataManagement/DataUsage')
-      timeout = 600
+      self.__stDB = DataUsageClient()
     self.__bkClient = BookkeepingClient()
     self.__dataUsageClient = DataUsageClient()
     self.__workDirectory = self.am_getOption("WorkDirectory")

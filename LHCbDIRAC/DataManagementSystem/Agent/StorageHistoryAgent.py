@@ -20,18 +20,19 @@ import os
 import time
 import copy
 
-from DIRAC                                                  import S_OK, S_ERROR
-from DIRAC.Core.Utilities                                   import Time
-from DIRAC.Core.Utilities.File                              import mkDir
-from DIRAC.Core.Base.AgentModule                            import AgentModule
-from DIRAC.AccountingSystem.Client.DataStoreClient          import gDataStoreClient
+from DIRAC import S_OK, S_ERROR
+from DIRAC.Core.Utilities import Time
+from DIRAC.Core.Utilities.File import mkDir
+from DIRAC.Core.Base.AgentModule import AgentModule
+from DIRAC.AccountingSystem.Client.DataStoreClient import gDataStoreClient
 
-from LHCbDIRAC.AccountingSystem.Client.Types.UserStorage    import UserStorage
-from LHCbDIRAC.AccountingSystem.Client.Types.Storage        import Storage
-from LHCbDIRAC.AccountingSystem.Client.Types.DataStorage    import DataStorage
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient   import BookkeepingClient
-from LHCbDIRAC.DataManagementSystem.Client.DataUsageClient  import DataUsageClient
-from DIRAC.Core.Utilities.List                              import breakListIntoChunks
+from LHCbDIRAC.AccountingSystem.Client.Types.UserStorage import UserStorage
+from LHCbDIRAC.AccountingSystem.Client.Types.Storage import Storage
+from LHCbDIRAC.AccountingSystem.Client.Types.DataStorage import DataStorage
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.DataManagementSystem.Client.DataUsageClient import DataUsageClient
+from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient import StorageUsageClient
+from DIRAC.Core.Utilities.List import breakListIntoChunks
 
 __RCSID__ = "$Id$"
 
@@ -69,8 +70,7 @@ class StorageHistoryAgent( AgentModule ):
       from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
       self.__stDB = StorageUsageDB()
     else:
-      from DIRAC.Core.DISET.RPCClient import RPCClient
-      self.__stDB = RPCClient( 'DataManagement/StorageUsage' )
+      self.__stDB = StorageUsageClient()
     self.__workDirectory = self.am_getOption( "WorkDirectory" )
     mkDir( self.__workDirectory )
     self.log.info( "Working directory is %s" % self.__workDirectory )

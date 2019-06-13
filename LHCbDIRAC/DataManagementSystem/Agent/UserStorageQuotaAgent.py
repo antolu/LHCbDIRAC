@@ -19,8 +19,8 @@
 from DIRAC import gConfig, S_OK
 from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
-from DIRAC.Core.DISET.RPCClient import RPCClient
 from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
+from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient import StorageUsageClient
 
 __RCSID__ = "$Id$"
 
@@ -48,7 +48,7 @@ class UserStorageQuotaAgent( AgentModule ):
     try:
       self.storageUsageDB = StorageUsageDB()
     except SystemExit:
-      self.storageUsageDB = RPCClient( 'DataManagement/StorageUsage' )
+      self.storageUsageDB = StorageUsageClient()
 
     self.defaultQuota = gConfig.getValue( '/Registry/DefaultStorageQuota', self.defaultQuota )  # Default is 1TB
 

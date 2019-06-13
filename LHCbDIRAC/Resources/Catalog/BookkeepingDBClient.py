@@ -12,10 +12,10 @@
 """
 
 from DIRAC import gLogger, S_OK, S_ERROR
-from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Utilities.List import breakListIntoChunks
 from DIRAC.Resources.Catalog.FileCatalogClientBase import FileCatalogClientBase
 from DIRAC.Resources.Catalog.Utilities import checkCatalogArguments
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
 __RCSID__ = "$Id$"
 
@@ -61,7 +61,7 @@ class BookkeepingDBClient(FileCatalogClientBase):
         self.url = url
       if not self.url:
         self.url = 'Bookkeeping/BookkeepingManager'
-      self.server = RPCClient(self.url, timeout=120)
+      self.server = BookkeepingClient(timeout=120)
     return self.server
 
   def isOK(self):

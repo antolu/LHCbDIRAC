@@ -897,9 +897,7 @@ class ProductionStatusAgent(AgentModule):
       updatedPr.append(prID)
       return
 
-    from DIRAC.Core.DISET.RPCClient import RPCClient
-    # FIXME: This should use ProductionRequestClient instead
-    reqClient = RPCClient('ProductionManagement/ProductionRequest', useCertificates=False, timeout=120)
+    reqClient = ProductionRequestClient(useCertificates=False, timeout=120)
     result = reqClient.updateProductionRequest(long(prID), {'RequestState': status})
     if not result['OK']:
       self.log.error(result)

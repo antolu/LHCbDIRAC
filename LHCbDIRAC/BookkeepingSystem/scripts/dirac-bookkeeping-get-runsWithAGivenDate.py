@@ -18,9 +18,9 @@
 """
 __RCSID__ = "$Id$"
 
-from DIRAC.Core.DISET.RPCClient import RPCClient
-
 from DIRAC.Core.Base import Script
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+
 Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      'Usage:',
                                      '  %s [option|cfgfile] ... Start [End]' % Script.scriptName,
@@ -43,8 +43,7 @@ in_dict = {}
 in_dict['StartDate'] = start
 in_dict['EndDate'] = end if end else start
 
-client = RPCClient( 'Bookkeeping/BookkeepingManager' )
-res = client.getRunsForAGivenPeriod( in_dict )
+res = BookkeepingClient().getRunsForAGivenPeriod(in_dict)
 if not res['OK']:
   print 'ERROR: Failed to retrieve runs: %s' % res['Message']
 else:

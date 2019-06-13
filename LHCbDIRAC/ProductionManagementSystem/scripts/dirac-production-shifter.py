@@ -447,7 +447,6 @@ if __name__ == "__main__":
 
   # Initialized here to avoid multiple initializations due to the for-loop
   transformationClient = TransformationClient()
-  getTransformations({'TransformationFamily': requestID})
 
   # Print summary per request
   for _request in _requests:

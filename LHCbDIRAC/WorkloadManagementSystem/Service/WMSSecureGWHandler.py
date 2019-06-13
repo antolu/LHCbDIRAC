@@ -18,6 +18,7 @@ from types import DictType, StringTypes, ListType
 from DIRAC import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Security import Properties
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getDNForUsername, findDefaultGroupForDN
+from DIRAC.AccountingSystem.Client.DataStoreClient import DataStoreClient
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
 from DIRAC.RequestManagementSystem.Client.Request import Request
 from DIRAC.RequestManagementSystem.Client.Operation import Operation
@@ -26,6 +27,11 @@ from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.ConfigurationSystem.Client.Helpers import cfgPath
 from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC.WorkloadManagementSystem.Client.MatcherClient import MatcherClient
+from DIRAC.WorkloadManagementSystem.Client.JobStateUpdateClient import JobStateUpdateClient
+from DIRAC.WorkloadManagementSystem.Client.JobManagerClient import JobManagerClient
+from DIRAC.WorkloadManagementSystem.Client.WMSAdministratorClient import WMSAdministratorClient
+from DIRAC.WorkloadManagementSystem.Client.JobMonitoringClient import JobMonitoringClient
 
 __RCSID__ = "$Id: $"
 
@@ -95,8 +101,7 @@ class WMSSecureGWHandler(RequestHandler):
     """ Serve a job to the request of an agent which is the highest priority
         one matching the agent's site capacity
     """
-    matcher = RPCClient('WorkloadManagement/Matcher', timeout=600)
-    result = matcher.requestJob(resourceDescription)
+    result = MatcherClient(timeout=600).requestJob(resourceDescription)
     return result
 
   ###########################################################################
@@ -107,8 +112,7 @@ class WMSSecureGWHandler(RequestHandler):
         Set optionally the status date and source component which sends the
         status information.
     """
-    jobReport = RPCClient('WorkloadManagement/JobStateUpdate')
-    jobStatus = jobReport.setJobStatus(int(jobID), status, minorStatus, source, datetime)
+    jobStatus = JobStateUpdateClient().setJobStatus(int(jobID), status, minorStatus, source, datetime)
     return jobStatus
 
   ###########################################################################
@@ -117,8 +121,7 @@ class WMSSecureGWHandler(RequestHandler):
   def export_setJobSite(self, jobID, site):
     """Allows the site attribute to be set for a job specified by its jobID.
     """
-    jobReport = RPCClient('WorkloadManagement/JobStateUpdate')
-    jobSite = jobReport.setJobSite(jobID, site)
+    jobSite = JobStateUpdateClient().setJobSite(jobID, site)
     return jobSite
 
   ###########################################################################
@@ -128,8 +131,7 @@ class WMSSecureGWHandler(RequestHandler):
     """ Set arbitrary parameter specified by name/value pair
         for job specified by its JobId
     """
-    jobReport = RPCClient('WorkloadManagement/JobStateUpdate')
-    jobParam = jobReport.setJobParameter(int(jobID), name, value)
+    jobParam = JobStateUpdateClient().setJobParameter(int(jobID), name, value)
     return jobParam
 
   ###########################################################################
@@ -141,8 +143,7 @@ class WMSSecureGWHandler(RequestHandler):
         logging information in the JobLoggingDB. The statusDict has datetime
         as a key and status information dictionary as values
     """
-    jobReport = RPCClient('WorkloadManagement/JobStateUpdate')
-    jobStatus = jobReport.setJobStatusBulk(jobID, statusDict)
+    jobStatus = JobStateUpdateClient().setJobStatusBulk(jobID, statusDict)
     return jobStatus
 
   ###########################################################################
@@ -152,8 +153,7 @@ class WMSSecureGWHandler(RequestHandler):
     """ Set arbitrary parameters specified by a list of name/value pairs
         for job specified by its JobId
     """
-    jobReport = RPCClient('WorkloadManagement/JobStateUpdate')
-    jobParams = jobReport.setJobParameters(jobID, parameters)
+    jobParams = JobStateUpdateClient().setJobParameters(jobID, parameters)
     return jobParams
 
   ###########################################################################
@@ -162,8 +162,7 @@ class WMSSecureGWHandler(RequestHandler):
   def export_sendHeartBeat(self, jobID, dynamicData, staticData):
     """ Send a heart beat sign of life for a job jobID
     """
-    jobReport = RPCClient('WorkloadManagement/JobStateUpdate', timeout=120)
-    result = jobReport.sendHeartBeat(jobID, dynamicData, staticData)
+    result = JobStateUpdateClient(timeout=120).sendHeartBeat(jobID, dynamicData, staticData)
     return result
 
   ##########################################################################################
@@ -173,20 +172,16 @@ class WMSSecureGWHandler(RequestHandler):
     """  Reschedule a single job. If the optional proxy parameter is given
          it will be used to refresh the proxy in the Proxy Repository
     """
-    jobManager = RPCClient('WorkloadManagement/JobManager')
-    result = jobManager.rescheduleJob(jobIDs)
+    result = JobManagerClient().rescheduleJob(jobIDs)
     return result
 
   ##########################################################################################
   types_setPilotStatus = [basestring, basestring]
 
-  def export_setPilotStatus(self, pilotRef, status,
-                            destination=None, reason=None, gridSite=None, queue=None):
+  def export_setPilotStatus(self, pilotRef, status, destination=None, reason=None, gridSite=None, queue=None):
     """ Set the pilot agent status
     """
-    wmsAdmin = RPCClient('WorkloadManagement/WMSAdministrator')
-    result = wmsAdmin.setPilotStatus(pilotRef, status, destination,
-                                     reason, gridSite, queue)
+    result = WMSAdministratorClient().setPilotStatus(pilotRef, status, destination, reason, gridSite, queue)
     return result
 
   ##############################################################################
@@ -195,8 +190,7 @@ class WMSSecureGWHandler(RequestHandler):
   def export_setJobForPilot(self, jobID, pilotRef, destination=None):
     """ Report the DIRAC job ID which is executed by the given pilot job
     """
-    wmsAdmin = RPCClient('WorkloadManagement/WMSAdministrator')
-    result = wmsAdmin.setJobForPilot(jobID, pilotRef, destination)
+    result = WMSAdministratorClient().setJobForPilot(jobID, pilotRef, destination)
     return result
 
   ##########################################################################################
@@ -205,8 +199,7 @@ class WMSSecureGWHandler(RequestHandler):
   def export_setPilotBenchmark(self, pilotRef, mark):
     """ Set the pilot agent benchmark
     """
-    wmsAdmin = RPCClient('WorkloadManagement/WMSAdministrator')
-    result = wmsAdmin.setPilotBenchmark(pilotRef, mark)
+    result = WMSAdministratorClient().setPilotBenchmark(pilotRef, mark)
     return result
 
   ##############################################################################
@@ -214,8 +207,7 @@ class WMSSecureGWHandler(RequestHandler):
 
   @staticmethod
   def export_getJobParameter(jobID, parName):
-    monitoring = RPCClient('WorkloadManagement/JobMonitoring', timeout=120)
-    result = monitoring.getJobParameter(jobID, parName)
+    result = JobMonitoringClient(timeout=120).getJobParameter(jobID, parName)
     return result
 
   ##############################################################################
@@ -332,6 +324,5 @@ class WMSSecureGWHandler(RequestHandler):
   types_commitRegisters = [list]
 
   def export_commitRegisters(self, entriesList):
-    acc = RPCClient('Accounting/DataStore')
-    retVal = acc.commitRegisters(entriesList)
+    retVal = DataStoreClient().commitRegisters(entriesList)
     return retVal
