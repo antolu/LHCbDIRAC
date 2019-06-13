@@ -15,8 +15,8 @@
 
 from DIRAC import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Base.AgentModule import AgentModule
-from DIRAC.Core.DISET.RPCClient import RPCClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequestClient import ProductionRequestClient
 
 __RCSID__ = "$Id$"
 
@@ -37,7 +37,7 @@ class RequestTrackingAgent(AgentModule):
     """ Just initializing the clients
     """
     self.bkClient = BookkeepingClient()
-    self.prodReq = RPCClient("ProductionManagement/ProductionRequest")
+    self.prodReq = ProductionRequestClient()
 
     return S_OK()
 

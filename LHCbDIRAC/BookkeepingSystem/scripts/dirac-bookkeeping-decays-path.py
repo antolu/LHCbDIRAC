@@ -21,8 +21,8 @@ import ast
 import DIRAC
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
-from DIRAC.Core.DISET.RPCClient import RPCClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequestClient import ProductionRequestClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
 
@@ -95,7 +95,7 @@ for prodID in sorted(prodIDs):
 
   if not (dddb and conddb):  # probably the production above was not a MCSimulation
     reqID = int(parameters.get('RequestID'))
-    res = RPCClient('ProductionManagement/ProductionRequest').getProductionList(reqID)
+    res = ProductionRequestClient().getProductionList(reqID)
     if not res['OK']:
       gLogger.error('Could not retrieve productions list for request %d:' % reqID, result['Message'])
       continue

@@ -19,7 +19,6 @@ import re
 
 from DIRAC import gLogger, S_OK
 
-from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Utilities.DAG import DAG
 from DIRAC.Core.Workflow.Workflow import fromXMLString
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
@@ -27,6 +26,7 @@ from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.ProductionManagementSystem.Client.Production import Production
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequestClient import ProductionRequestClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
 
@@ -51,7 +51,7 @@ class ProductionRequest(object):
     else:
       self.diracProduction = diracProdIn
 
-    self.rpcProductionRequest = RPCClient('ProductionManagement/ProductionRequest')
+    self.rpcProductionRequest = ProductionRequestClient()
     self.tc = TransformationClient()
 
     self.logger = gLogger.getSubLogger('ProductionRequest')

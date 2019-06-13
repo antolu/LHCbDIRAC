@@ -21,12 +21,12 @@ import DIRAC
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
 from DIRAC.Core.Utilities.List import breakListIntoChunks
-from DIRAC.Core.DISET.RPCClient import RPCClient
 
 from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import getProcessingPasses, BKQuery
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequestClient import ProductionRequestClient
 from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities import getRemovalPlugins, getReplicationPlugins
 from LHCbDIRAC.DataManagementSystem.Utilities.FCUtilities import chown
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import ProgressBar
@@ -139,9 +139,10 @@ def executeAddTransformation(pluginScript):
       gLogger.notice("WARNING: list of MC versions reduced to", ','.join(sorted(mcVersions)))
     # Force transformations names to be unique
     unique = True
-    rpc = RPCClient('ProductionManagement/ProductionRequest')
-    res = rpc.getProductionRequestList(0, 'RequestID', 'DESC', 0, 0,
-                                       {'RequestState': 'Active', 'RequestType': 'Simulation'})
+    res = ProductionRequestClient().getProductionRequestList(
+        0, 'RequestID', 'DESC', 0, 0,
+        {'RequestState': 'Active', 'RequestType': 'Simulation'}
+    )
     if not res['OK']:
       gLogger.fatal("Error getting production requests", res['Message'])
     prodReq = res['Value']['Rows']

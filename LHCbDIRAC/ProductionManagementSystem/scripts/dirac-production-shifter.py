@@ -39,8 +39,8 @@ from datetime import datetime
 
 from DIRAC import exit as DIRACExit
 from DIRAC.Core.Base import Script
-from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequestClient import ProductionRequestClient
 
 __RCSID__ = "$Id$"
 
@@ -125,7 +125,7 @@ def getRequests(parsedInput, sortKey):
   Gets the requests from the database using the filters given by the user.
   """
 
-  reqClient = RPCClient('ProductionManagement/ProductionRequest')
+  reqClient = ProductionRequestClient()
 
   for key, value in parsedInput.items():
     if value is None:
@@ -446,7 +446,8 @@ if __name__ == "__main__":
   print 'ReqID\tTransID\tStatus\tType\t\t\t\tCompleted\tTotal Files\tDone\tRunning\tWaiting\tFailed\tHot\n', '=' * 150
 
   # Initialized here to avoid multiple initializations due to the for-loop
-  transformationClient = RPCClient('Transformation/TransformationManager')
+  transformationClient = TransformationClient()
+  getTransformations({'TransformationFamily': requestID})
 
   # Print summary per request
   for _request in _requests:

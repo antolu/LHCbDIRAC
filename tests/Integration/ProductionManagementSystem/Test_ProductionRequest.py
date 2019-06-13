@@ -27,7 +27,7 @@ from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
 from DIRAC import gLogger
-from DIRAC.Core.DISET.RPCClient import RPCClient
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequestClient import ProductionRequestClient
 
 
 class TestProductionRequestTestCase(unittest.TestCase):
@@ -36,7 +36,7 @@ class TestProductionRequestTestCase(unittest.TestCase):
 
   def setUp(self):
     gLogger.setLevel('DEBUG')
-    self.reqClient = RPCClient('ProductionManagement/ProductionRequest')
+    self.reqClient = ProductionRequestClient()
     self.reqIds = []  # this request will be deleted
 
   def tearDown(self):

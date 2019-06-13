@@ -17,9 +17,9 @@ import math
 import datetime
 
 from DIRAC import S_OK, S_ERROR
-from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.TransformationSystem.Agent.MCExtensionAgent import MCExtensionAgent as DIRACMCExtensionAgent
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequestClient import ProductionRequestClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.Workflow.Modules.ModulesUtilities import getCPUNormalizationFactorAvg, \
     getEventsToProduce, \
@@ -56,7 +56,7 @@ class MCExtensionAgent(DIRACMCExtensionAgent):
     """
     self.extensionFactorBoost = self.am_getOption('extensionFactorBoost', self.extensionFactorBoost)
 
-    self.rpcProductionRequest = RPCClient('ProductionManagement/ProductionRequest')
+    self.rpcProductionRequest = ProductionRequestClient()
     self.transClient = TransformationClient()
 
     self.log.info('Will consider the following transformation types: %s' % str(self.transformationTypes))
