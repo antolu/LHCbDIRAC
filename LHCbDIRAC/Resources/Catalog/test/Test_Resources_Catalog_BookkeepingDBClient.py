@@ -104,19 +104,6 @@ class BookkeepingDBClient_Success(BookkeepingDBClientt_TestCase):
     self.assertEqual(True, catalog.valid)
     self.assertEqual('URLTest', catalog.url)
 
-  def test_isOK(self):
-    ''' tests output of isOK method
-    '''
-    catalog = self.testClass()
-    self.assertEqual(True, catalog.valid)
-
-    res = catalog.isOK()
-    self.assertEqual(True, res)
-
-    catalog.valid = 'Banzai !'
-    res = catalog.isOK()
-    self.assertEqual('Banzai !', res)
-
   def test__setHasReplicaFlag(self):
     ''' test the output of __setHasReplicaFlag
     '''
