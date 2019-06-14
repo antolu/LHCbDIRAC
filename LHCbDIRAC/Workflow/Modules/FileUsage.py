@@ -109,7 +109,6 @@ class FileUsage(ModuleBase):
     self.log.verbose('Reporting input file usage:')
     for entry in dirDict:
       self.log.verbose('%s:%s' % (entry, dirDict[entry]))
-    # dataUsageClient = RPCClient( 'DataManagement/DataUsage', timeout = 120 )
     localSite = gConfig.getValue('/LocalSite/Site', 'UNKNOWN')
     try:
       localSite = localSite.split('.')[1]

@@ -18,9 +18,9 @@ __RCSID__ = "$Id$"
 import DIRAC
 from DIRAC.Core.Base import Script
 from DIRAC import gConfig, gLogger
-from DIRAC.Core.DISET.RPCClient import RPCClient
 
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
+from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient import StorageUsageClient
 
 seSvcClassDict = {}
 
@@ -250,7 +250,7 @@ def getStorageSummary(totalUsage, grandTotal, dirName, fileTypes, prodID, ses):
   if not isinstance(fileTypes, type([])):
     fileTypes = [fileTypes]
   for fileType in fileTypes:
-    res = RPCClient('DataManagement/StorageUsage').getStorageSummary(dirName, fileType, prodID, ses)
+    res = StorageUsageClient().getStorageSummary(dirName, fileType, prodID, ses)
     if res['OK']:
       for se in res['Value']:
         totalUsage.setdefault(se, {'Files': 0, 'Size': 0})
@@ -324,7 +324,7 @@ def execute(unit, minimum, depth):
     browseBK(bkQuery, ses, scaleFactor)
     DIRAC.exit(0)
 
-  rpc = RPCClient('DataManagement/StorageUsage')
+  rpc = StorageUsageClient()
   dirs = dmScript.getOption('Directory', [])
   if users:
     if users != 'all':

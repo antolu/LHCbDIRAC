@@ -12,10 +12,10 @@
 """
 
 from DIRAC import gLogger, S_OK, S_ERROR
-from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Utilities.List import breakListIntoChunks
 from DIRAC.Resources.Catalog.FileCatalogClientBase import FileCatalogClientBase
 from DIRAC.Resources.Catalog.Utilities import checkCatalogArguments
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
 __RCSID__ = "$Id$"
 
@@ -37,37 +37,12 @@ class BookkeepingDBClient(FileCatalogClientBase):
                                                          'removeLink',
                                                          'createLink']
 
-  def __init__(self, url=False, **kwargs):
+  def __init__(self, **kwargs):
     """ Constructor of the Bookkeeping catalogue client
     """
     self.splitSize = 1000
     self.name = 'BookkeepingDB'
-    self.valid = True
-    self.server = None
-    self.url = None
-    try:
-      self.server = self.__getServer(url=url)
-      gLogger.verbose("BK catalog URLs: %s" % self.url)
-    except Exception as exceptionMessage:
-      gLogger.exception(
-          'BookkeepingDBClient.__init__: Exception while obtaining Bookkeeping service URL.',
-          '',
-          exceptionMessage)
-      self.valid = False
-
-  def __getServer(self, url=False):
-    if not self.server:
-      if url:
-        self.url = url
-      if not self.url:
-        self.url = 'Bookkeeping/BookkeepingManager'
-      self.server = RPCClient(self.url, timeout=120)
-    return self.server
-
-  def isOK(self):
-    ''' Returns valid
-    '''
-    return self.valid
+    self.server = BookkeepingClient(timeout=120)
 
   @checkCatalogArguments
   def addFile(self, lfn):
@@ -107,7 +82,7 @@ class BookkeepingDBClient(FileCatalogClientBase):
       toCheck = [lfn for lfn, val in res['Value']['Successful'].items() if not val]
       if toCheck:
         # Can't use service directly as
-        res = self.__getServer().getDirectoryMetadata_new(toCheck)
+        res = self.server.getDirectoryMetadata_new(toCheck)
         if not res['OK']:
           failed.update(dict.fromkeys(toCheck, res['Message']))
         else:
@@ -187,8 +162,6 @@ class BookkeepingDBClient(FileCatalogClientBase):
     '''
       Returns a list, either from a string or keys of a dict
     '''
-    if not self.valid:
-      return S_ERROR('BKDBClient not initialised')
     if isinstance(path, basestring):
       return S_OK([path])
     elif isinstance(path, list):
@@ -208,7 +181,7 @@ class BookkeepingDBClient(FileCatalogClientBase):
       successful[lfn] = True
     failed = {}
     for lfnList in breakListIntoChunks(lfns, self.splitSize):
-      res = {True: self.__getServer().addFiles, False: self.__getServer().removeFiles}[setflag](lfnList)
+      res = {True: self.server.addFiles, False: self.server.removeFiles}[setflag](lfnList)
       if not res['OK']:
         failed.update(dict.fromkeys(lfnList, res['Message']))
       else:
@@ -236,7 +209,7 @@ class BookkeepingDBClient(FileCatalogClientBase):
     successful = {}
     failed = {}
     for lfnList in breakListIntoChunks(lfns, self.splitSize):
-      res = self.__getServer().exists(lfnList)
+      res = self.server.exists(lfnList)
       if not res['OK']:
         failed.update(dict.fromkeys(lfnList, res['Message']))
       else:
@@ -251,7 +224,7 @@ class BookkeepingDBClient(FileCatalogClientBase):
     successful = {}
     failed = {}
     for lfnList in breakListIntoChunks(lfns, self.splitSize):
-      res = self.__getServer().getFileMetadata(lfnList)
+      res = self.server.getFileMetadata(lfnList)
       if not res['OK']:
         failed.update(dict.fromkeys(lfnList, res['Message']))
       else:

@@ -8,15 +8,23 @@
 # granted to it by virtue of its status as an Intergovernmental Organization  #
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
-import sys
-from DIRAC import gLogger
-from DIRAC.ConfigurationSystem.Client.ConfigurationData import gConfigurationData
-gConfigurationData.setOptionInCFG( '/DIRAC/Security/UseServerCertificate', 'true' )
-gLogger.setLevel('FATAL')
-from DIRAC.Interfaces.API.Dirac import Dirac
-dApi = Dirac()
+""" Module holding ProductionRequestClient class
+"""
 
-if __name__ == '__main__':
-  
-  print dApi.ping(None, None, url = 'dips://localhost:%s'%sys.argv[1])
-#  print doServerPing(sys.argv[1], sys.argv[2], sys.argv[3])
+from DIRAC.Core.Base.Client import Client
+
+__RCSID__ = "$Id$"
+
+
+class ProductionRequestClient(Client):
+  """ This class expose the methods of the Production Request Service"""
+
+  def __init__(self, url=None, **kwargs):
+    """
+    c'tor
+    :param str url: can specify a specific URL
+    """
+    Client.__init__(self, **kwargs)
+    self.setServer('ProductionManagement/ProductionRequest')
+    if url:
+      self.setServer(url)

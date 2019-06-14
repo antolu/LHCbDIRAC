@@ -18,8 +18,8 @@ import os
 import sys
 from fnmatch import fnmatch
 from DIRAC import gLogger
-from DIRAC.Core.DISET.RPCClient import RPCClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient import StorageUsageClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
 
@@ -751,7 +751,7 @@ class BKQuery():
         for directory in sorted(dirs):
           gLogger.notice("%s %s files" % (directory, dirs[directory]))
         if printSEUsage:
-          rpc = RPCClient('DataManagement/StorageUsage')
+          rpc = StorageUsageClient()
           totalUsage = {}
           totalSize = 0
           for directory in dirs:

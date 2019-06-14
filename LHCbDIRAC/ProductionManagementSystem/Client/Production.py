@@ -35,6 +35,7 @@ from DIRAC.Workflow.Utilities.Utils import getStepDefinition
 from LHCbDIRAC.Core.Utilities.ProductionData import preSubmissionLFNs
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequestClient import ProductionRequestClient
 from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
 
 
@@ -700,10 +701,8 @@ class Production(object):
         return result
 
     if requestID and publish:
-      from DIRAC.Core.DISET.RPCClient import RPCClient
-      reqClient = RPCClient('ProductionManagement/ProductionRequest', timeout=120)
       reqDict = {'ProductionID': long(prodID), 'RequestID': requestID, 'Used': reqUsed, 'BkEvents': 0}
-      result = reqClient.addProductionToRequest(reqDict)
+      result = ProductionRequestClient(timeout=120).addProductionToRequest(reqDict)
       if not result['OK']:
         gLogger.error('Attempt to add production %s to request %s failed: %s ' % (prodID, requestID,
                                                                                   result['Message']))

@@ -23,7 +23,6 @@ from DIRAC.Core.Utilities.List import breakListIntoChunks
 from DIRAC.Core.Utilities.File import mkDir
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers, resolveSEGroup
-from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Resources.Storage.StorageElement import StorageElement
 
 from DIRAC.TransformationSystem.Client.Utilities import PluginUtilities as DIRACPluginUtilities
@@ -34,6 +33,7 @@ from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery, makeBKPath
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import ProgressBar
+from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient import StorageUsageClient
 
 __RCSID__ = "$Id$"
 
@@ -1328,7 +1328,7 @@ get from BK" % (param, self.paramName))
     """
     Get from StorageUsage the actual number of files for a list of directories at a list of SEs
     """
-    suClient = RPCClient('DataManagement/StorageUsage')
+    suClient = StorageUsageClient()
     result = {}
     if isinstance(seList, (dict, set, tuple)):
       seList = list(seList)

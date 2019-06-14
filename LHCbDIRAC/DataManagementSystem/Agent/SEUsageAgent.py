@@ -25,13 +25,13 @@ from datetime import datetime
 from DIRAC import S_OK, S_ERROR, rootPath, gConfig
 from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.Core.Utilities.File import mkDir
-from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.SiteSEMapping import getSEsForSite
 from DIRAC.DataManagementSystem.Client.DataManager import DataManager
 from DIRAC.Resources.Storage.StorageElement import StorageElement
 from DIRAC.Interfaces.API.Dirac import Dirac
 # # from LHCbDIRAC
+from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient import StorageUsageClient
 from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
 
 __RCSID__ = "$Id$"
@@ -87,7 +87,7 @@ class SEUsageAgent( AgentModule ):
     if self.am_getOption( 'DirectDB', False ):
       self.storageUsage = StorageUsageDB()
     else:
-      self.storageUsage = RPCClient( 'DataManagement/StorageUsage' )
+      self.storageUsage = StorageUsageClient()
     # # replica mgr
     self.dataManager = DataManager()
     # # operations helper

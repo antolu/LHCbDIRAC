@@ -37,11 +37,11 @@ from DIRAC.Core.Utilities.ReturnValues import returnSingleResult
 from DIRAC.Core.Utilities import List
 from DIRAC.Core.Utilities.Time import timeInterval, dateTime, week
 from DIRAC.Core.Utilities.DictCache import DictCache
-from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Utilities.List import breakListIntoChunks
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 # # from LHCbDIRAC
 from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
+from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient import StorageUsageClient
 
 
 __RCSID__ = "$Id$"
@@ -95,8 +95,7 @@ class StorageUsageAgent(AgentModule):
       self.storageUsage = StorageUsageDB()
     else:
       # Set a timeout of 0.1 seconds per directory (factor 5 margin)
-      self.storageUsage = RPCClient('DataManagement/StorageUsage',
-                                    timeout=self.am_getOption('Timeout', int(self.__maxToPublish * 0.1)))
+      self.storageUsage = StorageUsageClient(timeout=self.am_getOption('Timeout', int(self.__maxToPublish * 0.1)))
     self.activePeriod = self.am_getOption('ActivePeriod', self.activePeriod)
     self.dataLock = threading.Lock()
     self.replicaListLock = threading.Lock()

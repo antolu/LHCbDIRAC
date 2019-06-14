@@ -21,9 +21,11 @@ from DIRAC.Core.Utilities.ReturnValues import returnSingleResult
 from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
 from DIRAC.Resources.Storage.StorageElement import StorageElement
 from DIRAC.DataManagementSystem.Client.DataIntegrityClient import DataIntegrityClient as DIRACDataIntegrityClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
 
 __RCSID__ = "$Id$"
+
 
 class DataIntegrityClient( DIRACDataIntegrityClient ):
 
@@ -95,10 +97,8 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
   def __getProductionFiles( self, productionID ):
     """ This method queries the bookkeeping and obtains the file metadata for the given production
     """
-    from DIRAC.Core.DISET.RPCClient import RPCClient
     gLogger.info( "Attempting to get files for production %s" % productionID )
-    bk = RPCClient( 'Bookkeeping/BookkeepingManager' )
-    res = bk.getProductionFiles( productionID, 'ALL' )
+    res = BookkeepingClient().getProductionFiles(productionID, 'ALL')
     if not res['OK']:
       return res
     yesReplicaFiles = []

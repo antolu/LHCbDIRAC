@@ -42,13 +42,13 @@ from concurrent.futures import ThreadPoolExecutor, wait
 from DIRAC import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.Core.Utilities.Time import timeThis
-from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Interfaces.API.Dirac import Dirac
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequestClient import ProductionRequestClient
 
 #############################################################################
 # The following is used for StandAlone debugging only (outside Agent)
@@ -472,7 +472,7 @@ class ProductionStatusAgent(AgentModule):
       self.prClient = ProductionRequestSIM()
       self.tClient = TransformationAndBookkeepingSIM()
     else:
-      self.prClient = RPCClient('ProductionManagement/ProductionRequest')
+      self.prClient = ProductionRequestClient()
       self.tClient = TransformationClient()
 
     return S_OK()
@@ -897,7 +897,7 @@ class ProductionStatusAgent(AgentModule):
       updatedPr.append(prID)
       return
 
-    reqClient = RPCClient('ProductionManagement/ProductionRequest', useCertificates=False, timeout=120)
+    reqClient = ProductionRequestClient(useCertificates=False, timeout=120)
     result = reqClient.updateProductionRequest(long(prID), {'RequestState': status})
     if not result['OK']:
       self.log.error(result)
