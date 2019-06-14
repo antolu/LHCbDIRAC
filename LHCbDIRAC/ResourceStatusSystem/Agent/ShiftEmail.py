@@ -17,8 +17,6 @@
 
 __RCSID__ = "$Id$"
 
-#...............................................................................
-
 __productionBody__ = '''Dear %s,
 
 this is an (automatic) mail to welcome you on the grid operations shifts. In order to facilitate your shift activities we wanted to provide you some pointers where you could find more information about shifts, the activities and your duties during this period.
@@ -47,11 +45,9 @@ Please don't forget to attend the 11.15 LHCb Computing Operations Meeting to pro
 
 Best regards and happy shifting
 
-  Joel & Stefan
+  Joel & Concezio
 
 '''
-
-#...............................................................................
 
 
 def getBodyEmail(role):
@@ -63,6 +59,3 @@ def getBodyEmail(role):
     return __productionBody__
 
   return None
-
-#...............................................................................
-# EOF

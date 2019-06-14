@@ -16,7 +16,8 @@
 import json
 from types import DictType, StringTypes, ListType
 from DIRAC import S_OK, S_ERROR, gLogger
-from DIRAC.Core.Security import Properties, CS
+from DIRAC.Core.Security import Properties
+from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getDNForUsername, findDefaultGroupForDN
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
 from DIRAC.RequestManagementSystem.Client.Request import Request
 from DIRAC.RequestManagementSystem.Client.Operation import Operation
@@ -178,7 +179,9 @@ class WMSSecureGWHandler(RequestHandler):
 
   ##########################################################################################
   types_setPilotStatus = [basestring, basestring]
-  def export_setPilotStatus(self, pilotRef, status, destination=None, reason=None, gridSite=None, queue=None):
+
+  def export_setPilotStatus(self, pilotRef, status,
+                            destination=None, reason=None, gridSite=None, queue=None):
     """ Set the pilot agent status
     """
     wmsAdmin = RPCClient('WorkloadManagement/WMSAdministrator')
@@ -188,6 +191,7 @@ class WMSSecureGWHandler(RequestHandler):
 
   ##############################################################################
   types_setJobForPilot = [(basestring, int, long), basestring]
+
   def export_setJobForPilot(self, jobID, pilotRef, destination=None):
     """ Report the DIRAC job ID which is executed by the given pilot job
     """
@@ -197,6 +201,7 @@ class WMSSecureGWHandler(RequestHandler):
 
   ##########################################################################################
   types_setPilotBenchmark = [basestring, float]
+
   def export_setPilotBenchmark(self, pilotRef, mark):
     """ Set the pilot agent benchmark
     """
@@ -311,11 +316,11 @@ class WMSSecureGWHandler(RequestHandler):
     userName = opsHelper.getValue(cfgPath('BoincShifter', shifterType, 'User'), '')
     if not userName:
       return S_ERROR("No shifter User defined for %s" % shifterType)
-    result = CS.getDNForUsername(userName)
+    result = getDNForUsername(userName)
     if not result['OK']:
       return result
     userDN = result['Value'][0]
-    result = CS.findDefaultGroupForDN(userDN)
+    result = findDefaultGroupForDN(userDN)
     if not result['OK']:
       return result
     defaultGroup = result['Value']
