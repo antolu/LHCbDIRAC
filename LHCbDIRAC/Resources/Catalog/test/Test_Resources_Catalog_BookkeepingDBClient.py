@@ -95,11 +95,11 @@ class BookkeepingDBClient_Success(BookkeepingDBClientt_TestCase):
 
     self.assertEqual(1000, catalog.splitSize)
     self.assertEqual('BookkeepingDB', catalog.name)
-    
+
     catalog = self.testClass()
     self.assertEqual(1000, catalog.splitSize)
     self.assertEqual('BookkeepingDB', catalog.name)
-    
+
   def test__setHasReplicaFlag(self):
     ''' test the output of __setHasReplicaFlag
     '''
