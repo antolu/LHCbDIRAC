@@ -43,11 +43,11 @@ for localFile in files:
   if os.path.exists(localFile):
     existFiles[os.path.realpath(localFile)] = localFile
   elif localFile.startswith('/lhcb'):
-    res = dirac.getReplicas(localFile, True)
+    res = dirac.getReplicas(localFile, active=True, preferDisk=True)
     if res['OK'] and localFile in res['Value']['Successful']:
       ses = res['Value']['Successful'][localFile].keys()
       for se in ses:
-        res = dirac.getAccessURL(localFile, se)
+        res = dirac.getAccessURL(localFile, se, protocol=['root', 'xroot'])
         if res['OK'] and localFile in res['Value']['Successful']:
           existFiles[res['Value']['Successful'][localFile]] = "%s @ %s" % (localFile, se)
     else:

@@ -790,6 +790,8 @@ class TransformationDebug(object):
     taskName = '%08d_%08d' % (self.transID, taskID)
     if taskCompleted and (task['ExternalStatus'] not in ('Done', 'Failed') or
                           status in ('Assigned', 'Problematic')):
+      # If the task is completed but files are not set Processed, wand or fix it
+      #   note that this may just be to a delay of the RequestTaskAgent, but it wouldn't harm anyway
       prString = "\tTask %s is completed: no %s replicas" % (taskName, dmFileStatusComment)
       if self.kickRequests:
         res = self.transClient.setFileStatusForTransformation(self.transID, 'Processed', lfnsInTask, force=True)
@@ -802,16 +804,21 @@ class TransformationDebug(object):
       gLogger.notice(prString)
 
     if not requestID:
-      if task['ExternalStatus'] == 'Submitted' and not taskCompleted:
+      if task['ExternalStatus'] == 'Submitted':
+        # This should not happen: a Submitted task should have an associated request: warn or fix
         prString = "\tTask %s is Submitted but has no external ID" % taskName
-        if self.kickRequests:
-          res = self.transClient.setTaskStatus(self.transID, taskID, 'Created')
-          if res['OK']:
-            prString += " - Task reset Created"
-          else:
-            prString += " - Failed to set task Created (%s)" % res['Message']
+        if taskCompleted:
+          newStatus = 'Done'
         else:
-          prString += " - To reset task Created, use option --KickRequests"
+          newStatus = 'Created'
+        if self.kickRequests:
+          res = self.transClient.setTaskStatus(self.transID, taskID, newStatus)
+          if res['OK']:
+            prString += " - Task reset %s" % newStatus
+          else:
+            prString += " - Failed to set task %s (%s)" % (newStatus, res['Message'])
+        else:
+          prString += " - To reset task %s, use option --KickRequests" % newStatus
         gLogger.notice(prString)
       return 0
     # This method updates self.listOfAssignedRequests
@@ -1609,6 +1616,7 @@ class TransformationDebug(object):
     allTasks = False
     checkFlush = False
     checkWaitingTasks = False
+    checkSubmittedTasks = False
     checkLogs = False
     jobList = []
 
@@ -1665,6 +1673,9 @@ class TransformationDebug(object):
         runList = ['0']
       elif opt == 'CheckWaitingTasks':
         checkWaitingTasks = True
+      elif opt == 'CheckSubmittedTasks':
+        checkSubmittedTasks = True
+        byTasks = True
       elif opt == 'Jobs':
         jobList = [int(job) for job in val.split(',') if job.isdigit()]
         byTasks = True
@@ -1683,7 +1694,8 @@ class TransformationDebug(object):
     if fixRun and not status:
       status = 'Unused'
 
-    transList = _getTransformations(Script.getPositionalArgs()) if not jobList else []
+    transList = _getTransformations(Script.getPositionalArgs()) \
+        if not jobList and not checkSubmittedTasks else []
 
     improperJobs = []
     # gLogger.setLevel( 'INFO' )
@@ -1693,6 +1705,17 @@ class TransformationDebug(object):
       res = self.transClient.getTransformationTasks({'ExternalID': jobList})
       if not res['OK']:
         gLogger.notice("Error getting jobs:", res['Message'])
+      else:
+        transList = {}
+        for task in res['Value']:
+          transList.setdefault(task['TransformationID'], []).append(task['TaskID'])
+    if checkSubmittedTasks:
+      res = self.transClient.getTransformationTasks({'ExternalStatus': 'Submitted',
+                                                     'ExternalID': '0'})
+      if not res['OK']:
+        gLogger.notice("Error getting submitted tasks:", res['Message'])
+      elif not res['Value']:
+        gLogger.notice("No tasks submitted with no task ID")
       else:
         transList = {}
         for task in res['Value']:
@@ -1967,7 +1990,7 @@ class TransformationDebug(object):
 
       ###########
       # Print out statistics of SEs if relevant (DMS)
-      if seStat["Total"] and self.transType in self.dataManagerTransTypes:
+      if seStat["Total"] and self.transType in self.dataManagerTransTypes and not checkSubmittedTasks:
         gLogger.notice("%d files found in tasks" % seStat["Total"])
         seStat.pop("Total")
         if None in seStat:

@@ -1,3 +1,10 @@
+v9r3p7
+use DIRAC v6r21p8
+
+* only considering disk replicas and root protocol
+* fixed typo and indentation
+* add option --CheckSubmittedTasks
+
 v9r3p6
 use DIRAC v6r21p7
 
