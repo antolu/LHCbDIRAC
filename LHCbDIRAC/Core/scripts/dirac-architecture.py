@@ -12,6 +12,7 @@
 """
   Returns the platform supported by the current WN
 """
+from __future__ import print_function
 
 __RCSID__ = "$Id$"
 
@@ -19,9 +20,7 @@ __RCSID__ = "$Id$"
 def sendMail(msg=''):
   """ send a notification mail when no platform is found
   """
-  from DIRAC import gConfig
   from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
-  from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 
   mailAddress = Operations().getValue('EMail/JobFailures', 'Vladimir.Romanovskiy@cern.ch')
   site = gConfig.getValue('LocalSite/Site')
@@ -40,7 +39,8 @@ if __name__ == "__main__":
   Script.registerSwitch('', 'BinaryTag', '   Print the host binary tag instead of the host dirac_platform')
   Script.parseCommandLine(ignoreErrors=True)
 
-  from DIRAC import gLogger, exit as dExit
+  from DIRAC import gConfig, gLogger, exit as dExit
+  from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
   import LbPlatformUtils
 
   parList = Script.getUnprocessedSwitches()
@@ -53,7 +53,7 @@ if __name__ == "__main__":
           gLogger.fatal("There is no binaryTag corresponding to this machine")
           sendMail("There is no binaryTag corresponding to this machine")
           dExit(1)
-        print binaryTag
+        print(binaryTag)
         dExit(0)
       except Exception as e:
         msg = "Exception getting binaryTag: " + repr(e)
@@ -62,13 +62,28 @@ if __name__ == "__main__":
         dExit(1)
 
   try:
+    site = gConfig.getValue('/LocalSite/Site')
+    grid = site.split('.')[0]
+    ce = gConfig.getValue('/LocalSite/GridCE')
+
+    allowContainers = gConfig.getValue('/Resources/Sites/%s/%s/CEs/%s/AllowContainers' % (grid, site, ce), None)
+    if allowContainers is None:
+      allowContainers = gConfig.getValue('/Resources/Sites/%s/%s/AllowContainers' % (grid, site), None)
+    if allowContainers is None:
+      allowContainers = Operations().getValue('GaudiExecution/AllowContainers', False)
+
+    if allowContainers.lower() in ('yes', 'true', 'all'):
+      allowContainers = True
+    elif allowContainers.lower() in ('no', 'false', 'none', ''):
+      allowContainers = False
+
     # Get the platform name. If an error occurs, an exception is thrown
-    platform = LbPlatformUtils.dirac_platform()
+    platform = LbPlatformUtils.dirac_platform(allow_containers=allowContainers)
     if not platform:
       gLogger.fatal("There is no platform corresponding to this machine")
       sendMail("There is no platform corresponding to this machine")
       dExit(1)
-    print platform
+    print(platform)
     dExit(0)
 
   except Exception as e:

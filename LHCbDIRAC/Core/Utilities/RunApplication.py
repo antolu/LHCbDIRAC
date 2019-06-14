@@ -10,6 +10,8 @@
 ###############################################################################
 """ Utility for invoking running LHCb applications
 """
+from __future__ import absolute_import
+from __future__ import print_function
 
 __RCSID__ = "$Id$"
 
@@ -231,7 +233,7 @@ class RunApplication(object):
        :param command basestring: the command to run
        :param env dict: environment where to run -- maybe the LHCb environment from LbLogin
     """
-    print 'Command called: \n%s' % command  # Really printing here as we want to see and maybe cut/paste
+    print('Command called: \n%s' % command)  # Really printing here as we want to see and maybe cut/paste
 
     return systemCall(timeout=0,
                       cmdSeq=shlex.split(command),
@@ -248,7 +250,7 @@ class RunApplication(object):
     sys.stdout.flush()
     if message:
       if 'INFO Evt' in message or 'Reading Event record' in message:  # These ones will appear in the std.out log too
-        print message
+        print(message)
       if self.applicationLog:
         with open(self.applicationLog, 'a') as log:
           log.write(message + '\n')
