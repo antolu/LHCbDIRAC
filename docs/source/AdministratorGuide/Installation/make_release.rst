@@ -95,8 +95,6 @@ Then, from the LHCbDIRAC local fork you need to update some files::
   t=$(git describe --abbrev=0 --tags); git --no-pager log ${t}..HEAD --no-merges --pretty=format:'* %s';
   # copy the output, add it to the CHANGELOG (please also add the DIRAC version)
   vim CHANGELOG # please, remove comments like "fix" or "pylint" or "typo"...
-  # Change the versions of the packages
-  vim dist-tools/projectConfig.json
   git add -A && git commit -av -m "<YourNewTag>"
 
 
@@ -303,8 +301,8 @@ The version to be deployed is vArBpC. Login on aivoadm.cern.ch and follow the se
   sudo -i -u cvlhcb
   cd /cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/
   cvmfs_server transaction lhcb.cern.ch
-  source lhcbdirac vDrEpF (vDrEpF is the actual version)
-  export DIRAC=/cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/vDrEpF 
+  source lhcbdirac pro (pro is the actual version)
+  export DIRAC=/cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/pro 
   dirac-install -v -r vArBpC -t server -l LHCb -e LHCb --createLink
   source lhcbdirac vArBpC
   pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org --upgrade pip
