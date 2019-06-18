@@ -24,4 +24,5 @@ This page is the work in progress. See more material here soon !
    sandboxStore
    Popularity/index.rst
    LHCbWebApp/index.rst
+   Elasticsearch/esdocs.rst
    install
