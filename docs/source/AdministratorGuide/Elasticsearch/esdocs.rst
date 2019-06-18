@@ -37,6 +37,8 @@ Kibana
 Kibana is used for visualize the data. IT/ES provides a Kibana end point for each ES instance.
 You can access using https://instance/kibana for example: https://es-lhcb-monitoring.cern.ch/kibana
 
+Note: You can access to kibana, if you are in one of the group: lhcb-dirac, lhcb-geoc, lhcb-gridshifters
+
 ---------------------
 Managing ES templates
 ---------------------
