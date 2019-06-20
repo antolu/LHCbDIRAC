@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<summary xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.0" xsi:noNamespaceSchemaLocation="$XMLSUMMARYBASEROOT/xml/XMLSummary.xsd">
+<!--
+    (c) Copyright 2019 CERN for the benefit of the LHCb Collaboration
+
+    This software is distributed under the terms of the GNU General Public
+    Licence version 3 (GPL Version 3), copied verbatim in the file "LICENSE".
+
+    In applying this licence, CERN does not waive the privileges and immunities
+    granted to it by virtue of its status as an Intergovernmental Organization
+    or submit itself to any jurisdiction.
+-->
+	<success>False</success>
+	<step>finalize</step>
+	<usage>
+		<stat unit="KB" useOf="MemoryMaximum">1149708.0</stat>
+	</usage>
+	<input>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision17/CHARMCOMPLETEEVENT.DST/00071907/0001/00071907_00016993_1.charmcompleteevent.dst" status="full">47847</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision17/CHARMCOMPLETEEVENT.DST/00071501/0002/00071501_00024707_1.charmcompleteevent.dst" status="full">35009</file>
+		<file GUID="" name="PFN:root://xrootd.echo.stfc.ac.uk/lhcb:prod/lhcb/LHCb/Collision17/CHARMCOMPLETEEVENT.DST/00071501/0002/00071501_00024707_1.charmcompleteevent.dstNOTEXISTING" status="fail">0</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision17/CHARMCOMPLETEEVENT.DST/00071571/0002/00071571_00023182_1.charmcompleteevent.dst" status="fail">0</file>
+		<file GUID="" name="PFN:root://xrootd.echo.stfc.ac.uk/lhcb:prod/lhcb/LHCb/Collision17/CHARMCOMPLETEEVENT.DST/00071571/0002/00071571_00023182_1.charmcompleteevent.dstWILLFAIL" status="fail">0</file>
+		<file GUID="" name="PFN:root://marsedpm.in2p3.fr:1094//dpm/in2p3.fr/home/lhcb/LHCb/Collision17/CHARMCOMPLETEEVENT.DST/00071571/0002/00071571_00023182_1.charmcompleteevent.dstWILLFAIL" status="fail">0</file>
+	</input>
+	<output />
+	<counters>
+		<counter name="CounterSummarySvc/handled">82869</counter>
+	</counters>
+	<lumiCounters />
+</summary>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!DOCTYPE POOLFILECATALOG SYSTEM "InMemory">
+<POOLFILECATALOG>
+<!--
+    (c) Copyright 2019 CERN for the benefit of the LHCb Collaboration
+
+    This software is distributed under the terms of the GNU General Public
+    Licence version 3 (GPL Version 3), copied verbatim in the file "LICENSE".
+
+    In applying this licence, CERN does not waive the privileges and immunities
+    granted to it by virtue of its status as an Intergovernmental Organization
+    or submit itself to any jurisdiction.
+-->
+<File ID="B432CC7D-5526-E811-8835-0242AC110007">
+   <physical>
+      <pfn filetype="ROOT_All" name="root://xrootd.echo.stfc.ac.uk/lhcb:prod/lhcb/LHCb/Collision17/CHARMCOMPLETEEVENT.DST/00071907/0001/00071907_00016993_1.charmcompleteevent.dst" se="GOOD-DST"/>
+      <pfn filetype="ROOT_All" name="root://marsedpm.in2p3.fr:1094//dpm/in2p3.fr/home/lhcb/LHCb/Collision17/CHARMCOMPLETEEVENT.DST/00071907/0001/00071907_00016993_1.charmcompleteevent.dst" se="NEVERUSED-DST"/>
+   </physical>
+   <logical>
+      <lfn name="/lhcb/LHCb/Collision17/CHARMCOMPLETEEVENT.DST/00071907/0001/00071907_00016993_1.charmcompleteevent.dst"/>
+   </logical>
+</File>
+<File ID="2E826229-0822-E811-9FA0-0242AC11000A">
+   <physical>
+      <pfn filetype="ROOT_All" name="root://xrootd.echo.stfc.ac.uk/lhcb:prod/lhcb/LHCb/Collision17/CHARMCOMPLETEEVENT.DST/00071501/0002/00071501_00024707_1.charmcompleteevent.dstNOTEXISTING" se="BAD-DST"/>
+      <pfn filetype="ROOT_All" name="root://marsedpm.in2p3.fr:1094//dpm/in2p3.fr/home/lhcb/LHCb/Collision17/CHARMCOMPLETEEVENT.DST/00071501/0002/00071501_00024707_1.charmcompleteevent.dst" se="GOOD-DST"/>
+   </physical>
+   <logical>
+      <lfn name="/lhcb/LHCb/Collision17/CHARMCOMPLETEEVENT.DST/00071501/0002/00071501_00024707_1.charmcompleteevent.dst"/>
+   </logical>
+</File>
+<File ID="5A352884-4422-E811-8645-0242AC110006">
+   <physical>
+      <pfn filetype="ROOT_All" name="root://xrootd.echo.stfc.ac.uk/lhcb:prod/lhcb/LHCb/Collision17/CHARMCOMPLETEEVENT.DST/00071571/0002/00071571_00023182_1.charmcompleteevent.dstWILLFAIL" se="BAD-DST"/>
+      <pfn filetype="ROOT_All" name="root://marsedpm.in2p3.fr:1094//dpm/in2p3.fr/home/lhcb/LHCb/Collision17/CHARMCOMPLETEEVENT.DST/00071571/0002/00071571_00023182_1.charmcompleteevent.dstWILLFAIL" se="OTHERBAD-DST"/>
+   </physical>
+   <logical>
+      <lfn name="/lhcb/LHCb/Collision17/CHARMCOMPLETEEVENT.DST/00071571/0002/00071571_00023182_1.charmcompleteevent.dst"/>
+   </logical>
+</File>
+</POOLFILECATALOG>
