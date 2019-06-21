@@ -165,6 +165,7 @@ BEGIN
 			IF exits>0 then
 				UPDATE productionoutputfiles SET visible=prod.visibilityflag, gotreplica=prod.gotreplica WHERE production=prod.production AND eventtypeid=prod.eventtypeid AND filetypeid=prod.filetypeid AND stepid=prod.stepid;
 			ELSE
+				dbms_output.put_line('Inserting:' || prod.production || '->step:' || prod.stepid || '->file type:' || prod.filetypeid || '->visible:'||prod.visibilityflag||'->event type:'||prod.eventtypeid||'->replica flag:'||prod.gotreplica);
 				INSERT INTO productionoutputfiles(production, stepid, filetypeid, visible, eventtypeid,gotreplica)VALUES(prod.production,prod.stepid, prod.filetypeid, prod.visibilityflag,prod.eventtypeid, prod.gotreplica);
 			END IF;
 		END LOOP;
