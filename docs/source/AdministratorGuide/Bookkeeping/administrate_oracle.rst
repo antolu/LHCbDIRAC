@@ -298,6 +298,13 @@ For monitoring:
 
     select JOB_NAME, STATE, LAST_START_DATE, LAST_RUN_DURATION, NEXT_RUN_DATE, RUN_COUNT, FAILURE_COUNT from USER_SCHEDULER_JOBS;
 
+Debugging the produpdatejob in case of failure:
+
+- sqlplus LHCB_DIRACBOOKKEEPING/xxxxx@LHCB_DIRACBOOKKEEPING
+- set serveroutput on
+- exec BKUTILITIES.updateProdOutputFiles();
+
+You will see the problematic production, which you will need to fix. 
 
 ====================
 Managing partitions
