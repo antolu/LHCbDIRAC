@@ -10,12 +10,14 @@
 ###############################################################################
 """ LHCbDIRAC's Resources helper
 """
+import itertools
 
 import LbPlatformUtils
+from six.moves import xmlrpc_client
 
 from DIRAC import S_OK, S_ERROR, gLogger
-
 import DIRAC.ConfigurationSystem.Client.Helpers.Resources
+
 getQueues = DIRAC.ConfigurationSystem.Client.Helpers.Resources.getQueues
 getDIRACPlatforms = DIRAC.ConfigurationSystem.Client.Helpers.Resources.getDIRACPlatforms
 getCompatiblePlatforms = DIRAC.ConfigurationSystem.Client.Helpers.Resources.getCompatiblePlatforms
@@ -70,17 +72,57 @@ def getPlatformForJob(workflow):
     gLogger.debug("Resources.getPlatformForJob: this job has no specific binary tag requested in any of its steps")
     return None
 
-  return LbPlatformUtils.lowest_common_requirement(binaryTags)
+  # Generate the minimum possible platform required to run each possible combination of platforms
+  results = set()
+
+  # TODO: This should probably move into LbPlatformUtils
+  # The sets are required to reduce the maximum run time from several minutes to ~0.3 seconds
+  for tags in set(map(frozenset, itertools.product(*binaryTags))):
+    # Required for backward compatibility with very old applications
+    tags = {t if t.count('-') >= 2 else t.replace('_', '-') for t in tags}
+    result = LbPlatformUtils.lowest_common_requirement(tags)
+    if result:
+      results.add(result)
+
+  if results:
+    # Find the minimum of all possible platforms
+    results = {b: sum(LbPlatformUtils.can_run(a, b) for a in results)
+               for b in results}
+    return max(results, key=lambda k: results[k])
+  else:
+    return None
 
 
 def _findBinaryTags(wf):
   """ developer function
-      :returns: set of binary tags found in the workflow
+      :returns: set of binary tags found in the workflow, each element is a
+      frozenset of platform alternatives
   """
+  proxy = xmlrpc_client.ServerProxy("https://lbsoftdb.cern.ch/read/", allow_none=True)
+
   binaryTags = set()
   for step_instance in wf.step_instances:
-    for parameter in step_instance.parameters:
-      if parameter.name.lower() == 'systemconfig':  # this is where the CMTConfigs ("binary tags") are stored
-        if parameter.value and parameter.value.lower() != 'any':  # 'ANY' is a wildcard
-          binaryTags.add(parameter.value)
+    systemConfig = step_instance.findParameter('SystemConfig')
+    # If present, prefer the step defined system config
+    if systemConfig and systemConfig.value.lower() != 'any':
+      binaryTags.add(frozenset([systemConfig.value]))
+      continue
+
+    # Else, if there is an application, query the SoftConfDB
+    applicationName = step_instance.findParameter('applicationName')
+    applicationVersion = step_instance.findParameter('applicationVersion')
+    if not (applicationName and applicationVersion):
+      continue
+    applicationName = applicationName.value
+    applicationVersion = applicationVersion.value
+    try:
+      platforms = proxy.listPlatforms(applicationName, applicationVersion)
+    except xmlrpc_client.Fault as e:
+      gLogger.error("Failed to find platform in SoftConfDB for %s/%s %s" %
+                    (applicationName, applicationVersion, e))
+    except Exception as e:
+      gLogger.error("Unknown exception when querying SoftConfDB" % e)
+    if platforms:
+      binaryTags.add(frozenset(platforms))
+
   return binaryTags
