@@ -11,6 +11,9 @@
 """ Moving toward a templates-less system
 """
 
+from __future__ import absolute_import, unicode_literals
+from builtins import range
+
 import ast
 
 from DIRAC.Core.Base import Script

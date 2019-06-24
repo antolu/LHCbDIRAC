@@ -23,6 +23,9 @@
     * run only part of the request on the Grid:
 """
 
+from __future__ import absolute_import, unicode_literals
+from builtins import range
+
 import ast
 
 from DIRAC.Core.Base import Script
@@ -219,7 +222,7 @@ if w1:
   pr.prodsTypeList = [recoType]
   pr.outputSEs = [recoDataSE]
   pr.specialOutputSEs = [recoDataSESpecial]
-  pr.stepsInProds = [range(1, len(pr.stepsList) + 1)]
+  pr.stepsInProds = [list(range(1, len(pr.stepsList) + 1))]
   pr.removeInputsFlags = [False]
   pr.priorities = [recoPriority]
   pr.cpus = [recoCPU]
@@ -233,14 +236,14 @@ if w1:
   pr.outputModes = ['Run']
   pr.ancestorDepths = [recoAncestorDepth]
   pr.compressionLvl = [recoCompressionLvl] * len(pr.stepsInProds[0])
-  pr.outputVisFlag = [{str(i + 1): recoOutputVisFlag} for i in xrange(len(pr.stepsInProds[0]))]
+  pr.outputVisFlag = [{str(i + 1): recoOutputVisFlag} for i in range(len(pr.stepsInProds[0]))]
   pr.specialOutputVisFlag = [{"1": recoOutputVisFlagSpecial}]
 
 elif w2:
   pr.prodsTypeList = ['DataStripping', 'Merge']
   pr.outputSEs = [strippDataSE, mergingDataSE]
   pr.specialOutputSEs = [strippDataSESpecial, mergingDataSESpecial]
-  pr.stepsInProds = [range(1, len(pr.stepsList)),
+  pr.stepsInProds = [list(range(1, len(pr.stepsList))),
                      [len(pr.stepsList)]]
   pr.removeInputsFlags = [False, mergeRemoveInputsFlag]
   pr.priorities = [strippPriority, mergingPriority]
@@ -263,7 +266,7 @@ elif w3:
   pr.prodsTypeList = [recoType, 'Merge']
   pr.outputSEs = [recoDataSE, mergingDataSE]
   pr.specialOutputSEs = [recoDataSESpecial, mergingDataSESpecial]
-  pr.stepsInProds = [range(1, len(pr.stepsList)),
+  pr.stepsInProds = [list(range(1, len(pr.stepsList))),
                      [len(pr.stepsList)]]
   pr.removeInputsFlags = [False, mergeRemoveInputsFlag]
   pr.priorities = [recoPriority, mergingPriority]
@@ -286,8 +289,8 @@ elif w4:
   pr.prodsTypeList = [recoType, 'DataStripping', 'Merge']
   pr.outputSEs = [recoDataSE, strippDataSE, mergingDataSE]
   pr.specialOutputSEs = [recoDataSESpecial, strippDataSESpecial, mergingDataSESpecial]
-  pr.stepsInProds = [range(1, len(pr.stepsList) - 1),
-                     xrange(len(pr.stepsList) - 1, len(pr.stepsList)),
+  pr.stepsInProds = [list(range(1, len(pr.stepsList) - 1)),
+                     range(len(pr.stepsList) - 1, len(pr.stepsList)),
                      [len(pr.stepsList)]]
   pr.removeInputsFlags = [False, False, mergeRemoveInputsFlag]
   pr.priorities = [recoPriority, strippPriority, mergingPriority]
@@ -312,8 +315,8 @@ elif w5:
   pr.prodsTypeList = ['DataStripping', 'Merge', 'WGProduction']
   pr.outputSEs = [strippDataSE, mergingDataSE, indexingDataSE]
   pr.specialOutputSEs = [strippDataSESpecial, mergingDataSESpecial, {}]
-  pr.stepsInProds = [range(1, len(pr.stepsList) - 1),
-                     xrange(len(pr.stepsList) - 1, len(pr.stepsList)),
+  pr.stepsInProds = [list(range(1, len(pr.stepsList) - 1)),
+                     range(len(pr.stepsList) - 1, len(pr.stepsList)),
                      [len(pr.stepsList)]]
   pr.removeInputsFlags = [False, mergeRemoveInputsFlag, False]
   pr.priorities = [strippPriority, mergingPriority, indexingPriority]

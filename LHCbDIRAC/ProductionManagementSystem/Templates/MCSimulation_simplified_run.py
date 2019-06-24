@@ -25,6 +25,9 @@
       - for the merge and/or stripping: set pr.prodsToLaunch, then set pr.previousProdID
 """
 
+from __future__ import absolute_import, unicode_literals
+from builtins import range
+
 import ast
 
 from DIRAC.Core.Base import Script
@@ -148,7 +151,7 @@ elif w1:
   pr.prodsTypeList = [MCSimulationType]
   pr.outputSEs = ['Tier1_MC-DST']
 
-  pr.stepsInProds = [range(1, len(pr.stepsList) + 1)]
+  pr.stepsInProds = [list(range(1, len(pr.stepsList) + 1))]
   pr.removeInputsFlags = [False]
   pr.priorities = [MCPriority]
   pr.cpus = [100000]
@@ -166,7 +169,7 @@ elif w2:
   pr.prodsTypeList = [MCSimulationType, 'MCReconstruction']
   pr.outputSEs = ['Tier1-Buffer', 'Tier1_MC-DST']
 
-  pr.stepsInProds = [[1, ], xrange(2, len(pr.stepsList) + 1)]
+  pr.stepsInProds = [[1, ], range(2, len(pr.stepsList) + 1)]
   pr.outputFileSteps = [str(len(pr.stepsInProds[0])),
                         str(len(pr.stepsInProds[1]))]
 
@@ -186,7 +189,7 @@ elif w3:
   pr.prodsTypeList = [MCSimulationType, 'MCReconstruction', 'MCMerge']
   pr.outputSEs = ['Tier1-Buffer', 'Tier1-Buffer', 'Tier1_MC-DST']
 
-  pr.stepsInProds = [[1, ], xrange(2, len(pr.stepsList)), [len(pr.stepsList)]]
+  pr.stepsInProds = [[1, ], range(2, len(pr.stepsList)), [len(pr.stepsList)]]
   pr.outputFileSteps = ['1', str(len(pr.stepsInProds[1])), '1']
 
   pr.removeInputsFlags = [False, removeInputSelection, removeInputMerge]
@@ -202,8 +205,8 @@ elif w3:
 
 
 numberOfSteps = len(pr.stepsList)
-#pr.compressionLvl = [lowCompressionLvl] * numberOfSteps
-#pr.compressionLvl[-1] = highCompressionLvl
+# pr.compressionLvl = [lowCompressionLvl] * numberOfSteps
+# pr.compressionLvl[-1] = highCompressionLvl
 pr.compressionLvl = ["LOW"] * numberOfSteps
 pr.compressionLvl[-1] = "HIGH"
 

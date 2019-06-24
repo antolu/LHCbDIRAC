@@ -11,6 +11,8 @@
 """ Moving toward a templates-less system
 """
 
+from __future__ import absolute_import, unicode_literals
+
 import ast
 
 from DIRAC.Core.Base import Script
@@ -182,7 +184,8 @@ if enablePopularityReport:
 
 inputDataList = []
 if not pr.publishFlag:
-  testData = 'LFN:/lhcb/LHCb/Collision11/CHARMCOMPLETEEVENT.DST/00012586/0000/00012586_00000706_1.charmcompleteevent.dst'
+  testData = 'LFN:/lhcb/LHCb/Collision11/CHARMCOMPLETEEVENT.DST/'
+  testData += '00012586/0000/00012586_00000706_1.charmcompleteevent.dst'
   inputDataList.append(testData)
   p1Policy = 'protocol'
   evtsPerJob = '5'
