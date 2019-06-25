@@ -24,7 +24,7 @@
 """
 
 from __future__ import absolute_import, unicode_literals
-from builtins import range
+from six.moves import range
 
 import ast
 
