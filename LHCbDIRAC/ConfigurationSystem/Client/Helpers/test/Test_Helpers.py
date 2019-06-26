@@ -54,7 +54,7 @@ gLogger.setLevel('DEBUG')
      'haswell-centos7'),
     ({frozenset({'x86_64-slc5-gcc49-opt'}),
       frozenset({'x86_64+fma-centos7-gcc7-opt'})},
-     None),  # TODO: Should this return 'haswell-any'?
+     'haswell-any'),
     ({frozenset({'x86_64-slc5-gcc49-opt'}),
       frozenset({'x86_64+fma-centos7-gcc7-opt', 'x86_64+fma-slc6-gcc7-opt'})},
      'haswell-slc6'),

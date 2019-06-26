@@ -72,25 +72,7 @@ def getPlatformForJob(workflow):
     gLogger.debug("Resources.getPlatformForJob: this job has no specific binary tag requested in any of its steps")
     return None
 
-  # Generate the minimum possible platform required to run each possible combination of platforms
-  results = set()
-
-  # TODO: This should probably move into LbPlatformUtils
-  # The sets are required to reduce the maximum run time from several minutes to ~0.3 seconds
-  for tags in set(map(frozenset, itertools.product(*binaryTags))):
-    # Required for backward compatibility with very old applications
-    tags = {t if t.count('-') >= 2 else t.replace('_', '-') for t in tags}
-    result = LbPlatformUtils.lowest_common_requirement(tags)
-    if result:
-      results.add(result)
-
-  if results:
-    # Find the minimum of all possible platforms
-    results = {b: sum(LbPlatformUtils.can_run(a, b) for a in results)
-               for b in results}
-    return max(results, key=lambda k: results[k])
-  else:
-    return None
+  return LbPlatformUtils.lowest_common_requirement(binaryTags)
 
 
 def _findBinaryTags(wf):
