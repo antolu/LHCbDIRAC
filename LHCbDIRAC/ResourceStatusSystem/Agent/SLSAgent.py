@@ -10,7 +10,8 @@
 ###############################################################################
 """ LHCbDIRAC.ResourceStatusSystem.Agent.SLSAgent
 
-    This agent creates XML files with SE space left, that will be picked up by a cron job that will add to meter.cern.ch
+    This agent creates XML files with SE space left,
+    that will be picked up by a cron job that will add to meter.cern.ch
 
     What's collected here will enter in https://meter.cern.ch/public/_plugin/kibana/#/dashboard/temp/meter::lhcb
     by using this cronjob:
@@ -39,6 +40,8 @@ exit
 
 # TODO: SLSAgent is not anymore the right name
 # TODO: use elasticseach module to spit in meter.
+
+from __future__ import absolute_import, unicode_literals
 
 __RCSID__ = "$Id$"
 
@@ -146,7 +149,7 @@ class SpaceTokenOccupancyTest(TestBase):
       if not res['OK']:
         continue
 
-      if endpoint == res['Value']:
+      if endpoint == res['Value'][0]:
         # HACK !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         if 'RAL-HEP' in se:
           site = 'RAL-HEP'
