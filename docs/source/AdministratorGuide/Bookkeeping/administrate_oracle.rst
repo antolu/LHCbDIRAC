@@ -304,7 +304,32 @@ Debugging the produpdatejob in case of failure:
 - set serveroutput on
 - exec BKUTILITIES.updateProdOutputFiles();
 
-You will see the problematic production, which you will need to fix. 
+You will see the problematic production, which you will need to fix. For example: If the production is 22719, you can 
+use the following queries for debug:
+
+
+.. code-block:: sql
+
+	SELECT j.production,J.STEPID, f.eventtypeid, f.filetypeid, f.gotreplica, f.visibilityflag 
+		FROM jobs j, files f WHERE 
+			j.jobid = f.jobid AND 
+			j.production=22719 and
+			f.gotreplica IS NOT NULL and
+			f.filetypeid NOT IN(9,17) GROUP BY j.production, J.STEPID, f.eventtypeid, f.filetypeid, f.gotreplica, f.visibilityflag Order by f.gotreplica,f.visibilityflag asc;
+	
+	select * from files f, jobs j where 
+			j.jobid = f.jobid AND 
+			j.production=22719 and
+			f.gotreplica IS NOT NULL and
+            f.eventtypeid is NULL and
+			f.filetypeid NOT IN(9,17);
+
+	update files set eventtypeid=90000000 where fileid in (select f.fileid from files f, jobs j where  j.jobid = f.jobid AND 
+	j.production=22719 and
+	f.gotreplica IS NOT NULL and
+	f.eventtypeid is NULL and
+	f.filetypeid NOT IN(9,17));
+
 
 ====================
 Managing partitions
