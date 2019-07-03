@@ -14,10 +14,10 @@ __RCSID__ = "$Id$"
 
 from DIRAC.Core.Base import Script
 
-Script.setUsageMessage( """
+Script.setUsageMessage("""
 Gives an overview of the grid resources status
-""" )
+""")
 Script.parseCommandLine()
 
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
-DiracLHCb().gridWeather( printOutput = True )
+DiracLHCb().gridWeather(printOutput=True)
