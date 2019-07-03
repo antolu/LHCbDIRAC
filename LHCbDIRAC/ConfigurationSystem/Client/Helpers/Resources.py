@@ -100,10 +100,10 @@ def _findBinaryTags(wf):
     try:
       platforms = proxy.listPlatforms(applicationName, applicationVersion)
     except xmlrpc_client.Fault as e:
-      gLogger.error("Failed to find platform in SoftConfDB for %s/%s %s" %
+      gLogger.error("Failed to find platform in SoftConfDB for", "%s/%s %s" %
                     (applicationName, applicationVersion, e))
     except Exception as e:
-      gLogger.error("Unknown exception when querying SoftConfDB" % e)
+      gLogger.error("Unknown exception when querying SoftConfDB", repr(e))
     if platforms:
       binaryTags.add(frozenset(platforms))
 
