@@ -516,6 +516,10 @@ class BookkeepingReport(ModuleBase):
 
       oFile = addChildNode(oFile, "Parameter", 0, ("FileSize", outputsize))
 
+      oFile = addChildNode(oFile, "Parameter", 0, ("CreationDate",
+                                                   time.strftime('%Y-%m-%d %H:%M',
+                                                                 time.localtime(time.time()))))
+
       ############################################################
       # Log file replica information
 #      if typeName == "LOG":
