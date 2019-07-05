@@ -13,7 +13,8 @@ if __name__ == "__main__":
   dmScript = DMScript()
   dmScript.registerFileSwitches()
   dmScript.registerSiteSwitches()
-  Script.registerSwitch('', 'Protocol=', '   Define the protocol for which a tURL is requested')
+  Script.registerSwitch('', 'Protocol=',
+                        '   Define the protocol for which a tURL is requested (default:root)')
   Script.setUsageMessage('\n'.join(__doc__.split('\n') + [
       'Usage:',
       '  %s [option|cfgfile] ... [LFN[,LFN2[,LFN3...]]] SE[,SE2...]' % Script.scriptName,

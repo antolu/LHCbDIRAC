@@ -456,19 +456,24 @@ def executeAccessURL(dmScript):
   """
   Actual script executor
   """
-  protocol = None
+  # Use xrootd as default protocol since usually this is what users want
+  protocol = ['xroot', 'root']
   for switch in Script.getUnprocessedSwitches():
     if switch[0] == 'Protocol':
-      protocol = switch[1].lower().split(',')
-      if 'root' in protocol and 'xroot' not in protocol:
-        protocol.insert(protocol.index('root'), 'xroot')
-      elif 'xroot' in protocol and 'root' not in protocol:
-        protocol.insert(protocol.index('xroot') + 1, 'root')
-      elif 'xroot' in protocol and 'root' in protocol:
-        indexOfRoot = protocol.index('root')
-        indexOfXRoot = protocol.index('xroot')
-        if indexOfXRoot > indexOfRoot:
-          protocol[indexOfRoot], protocol[indexOfXRoot] = protocol[indexOfXRoot], protocol[indexOfRoot]
+      protocol = switch[1].lower().split(',') if switch[1] else None
+
+  if protocol:
+    # This is due to the possible existence of the "castor:" protocol at some sites
+    #   which is "root" for SRM, while xrootd is "xroot", hence always should be first
+    if 'root' in protocol and 'xroot' not in protocol:
+      protocol.insert(protocol.index('root'), 'xroot')
+    elif 'xroot' in protocol and 'root' not in protocol:
+      protocol.insert(protocol.index('xroot') + 1, 'root')
+    elif 'xroot' in protocol and 'root' in protocol:
+      indexOfRoot = protocol.index('root')
+      indexOfXRoot = protocol.index('xroot')
+      if indexOfXRoot > indexOfRoot:
+        protocol[indexOfRoot], protocol[indexOfXRoot] = protocol[indexOfXRoot], protocol[indexOfRoot]
 
   lfnList, seList = parseArguments(dmScript)
   if not lfnList:

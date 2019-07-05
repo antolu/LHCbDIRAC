@@ -130,7 +130,9 @@ def _getLog(urlBase, logFile, debug=False):
           print "Open"
         cc = fd.read()
         # Check if the page was not found
-        if "was not found on this server." in cc or 'There was an error loading the page you requested' in cc:
+        if "404 - Not Found" in cc or \
+           "was not found on this server." in cc or \
+           "There was an error loading the page you requested" in cc:
           if debug:
             print 'File not found'
           # If the file is not found, try with the urlBase
