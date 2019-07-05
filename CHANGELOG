@@ -1,3 +1,16 @@
+v9r3p8
+use DIRAC v6r21p11
+
+* OK now?
+* another attempt at fixing indent
+* fix indentation
+* Fix spaces
+* Set xrootd protocol as default in dirac-dms-lfn-accessURL
+* fix error for URL not found
+* add groups which can access to kibana
+* add elasticsearch admin docs
+* simplify installation procedure(base)
+
 v9r3p7
 use DIRAC v6r21p8
 
