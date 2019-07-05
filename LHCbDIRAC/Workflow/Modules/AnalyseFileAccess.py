@@ -12,202 +12,177 @@
     We send data to the accounting (Site -> SE : fail/success)
 """
 
+import datetime
+from collections import defaultdict
+
 from DIRAC import S_OK, gLogger
-
-from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
-from DIRAC.Resources.Catalog.PoolXMLCatalog import PoolXMLCatalog
 from DIRAC.AccountingSystem.Client.Types.DataOperation import DataOperation
-from DIRAC.AccountingSystem.Client.DataStoreClient import gDataStoreClient
-
-from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummary
+from DIRAC.Resources.Catalog.PoolXMLCatalog import PoolXMLCatalog
+from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
+
 
 __RCSID__ = "$Id$"
 
-class AnalyseFileAccess( ModuleBase ):
+
+class AnalyseFileAccess(ModuleBase):
   """ Analyzing the access with xroot
   """
 
-  def __init__( self, bkClient = None, dm = None ):
+  def __init__(self, bkClient=None, dm=None):
     """Module initialization.
     """
 
-    self.log = gLogger.getSubLogger( 'AnalyseFileAccess' )
-    super( AnalyseFileAccess, self ).__init__( self.log, bkClientIn = bkClient, dm = dm )
+    self.log = gLogger.getSubLogger('AnalyseFileAccess')
+    super(AnalyseFileAccess, self).__init__(self.log, bkClientIn=bkClient, dm=dm)
 
     self.version = __RCSID__
-    self.nc = NotificationClient()
     self.XMLSummary = ''
     self.XMLSummary_o = None
     self.poolXMLCatName = ''
     self.poolXMLCatName_o = None
 
-    # Used to cache the information PFN -> SE from the catalog
-    self.pfn_se = {}
-    # Used to cache the information LFN -> PFN from the catalog
-    self.lfn_pfn = {}
-
-    # Holds a cache of the mapping SE -> Site
-    self.seSiteCache = {}
-
-  def _resolveInputVariables( self ):
+  def _resolveInputVariables(self):
     """ By convention any workflow parameters are resolved here.
     """
 
-    super( AnalyseFileAccess, self )._resolveInputVariables()
-    super( AnalyseFileAccess, self )._resolveInputStep()
+    super(AnalyseFileAccess, self)._resolveInputVariables()
+    super(AnalyseFileAccess, self)._resolveInputStep()
 
-    self.XMLSummary_o = XMLSummary( self.XMLSummary, log = self.log )
-    self.poolXMLCatName_o = PoolXMLCatalog( xmlfile = self.poolXMLCatName )
+    self.XMLSummary_o = XMLSummary(self.XMLSummary, log=self.log)
+    self.poolXMLCatName_o = PoolXMLCatalog(xmlfile=self.poolXMLCatName)
 
-  def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
-               workflowStatus = None, stepStatus = None,
-               wf_commons = None, step_commons = None,
-               step_number = None, step_id = None ):
+  def execute(self, production_id=None, prod_job_id=None, wms_job_id=None,
+              workflowStatus=None, stepStatus=None,
+              wf_commons=None, step_commons=None,
+              step_number=None, step_id=None):
     """ Main execution method.
 
         Here we analyse what is written in the XML summary and the pool XML, and send accounting
     """
 
     try:
-      super( AnalyseFileAccess, self ).execute( self.version,
-                                                production_id, prod_job_id, wms_job_id,
-                                                workflowStatus, stepStatus,
-                                                wf_commons, step_commons,
-                                                step_number, step_id )
+      super(AnalyseFileAccess, self).execute(self.version,
+                                             production_id, prod_job_id, wms_job_id,
+                                             workflowStatus, stepStatus,
+                                             wf_commons, step_commons,
+                                             step_number, step_id)
 
       self._resolveInputVariables()
 
-      self.log.info( "Analyzing root access from %s and %s" % ( self.XMLSummary, self.poolXMLCatName ) )
+      self.log.info("Analyzing root access from %s and %s" % (self.XMLSummary, self.poolXMLCatName))
 
-      pfn_lfn = {}
-      lfn_guid = {}
+      accessAttempts = self._checkFileAccess(self.poolXMLCatName_o, self.XMLSummary_o)
 
-      lfn_pfn_fail = {}
-      successful_lfn = set()
+      # Retrieve the accounting DataStoreClient shared among the various steps
+      # No need to commit, it's done at the step finalization
+      dsc = self.workflow_commons['AccountingReport']
 
-      for guid in self.poolXMLCatName_o.files:
-        pFile = self.poolXMLCatName_o.files[guid]
-        lfn = pFile.lfns[0] # there can be only one
-        lfn_guid[lfn] = guid
-        self.lfn_pfn[lfn] = []
-        for pfn, _ftype, se in pFile.pfns:
-          pfn_lfn[pfn] = lfn
-          self.pfn_se[pfn] = se
-          self.lfn_pfn[lfn].append(pfn)
+      for remoteSE, success in accessAttempts:
+        oDataOperation = self.__initialiseAccountingObject(remoteSE, success)
+        dsc.addRegister(oDataOperation)
 
-      for inputFile, status in self.XMLSummary_o.inputStatus:
-
-        # The inputFile starts with 'LFN:' or 'PFN:'
-        cleanedName = inputFile[4:]
-        if status == 'full':
-          # it is an LFN
-          successful_lfn.add( cleanedName )
-        elif status == 'fail':
-          # it is a PFN
-          lfn = pfn_lfn.get( cleanedName )
-          if not lfn:
-            self.log.error( "Failed pfn %s is not listed in the catalog" % cleanedName )
-            continue
-          lfn_pfn_fail.setdefault( lfn, [] ).append( cleanedName )
-        else:
-          # intermediate status, think of it...
-          pass
-
-      # The lfn in successful and not in lfn_pfn_failed succeeded immediately
-      immediately_successful = successful_lfn - set( lfn_pfn_fail )
-
-
-      for lfn in immediately_successful:
-        # We take the first replica in the catalog
-        pfn = self.__getNthPfnForLfn( lfn, 0 )
-        remoteSE = self.pfn_se.get( pfn )
-
-        if not remoteSE:
-          continue
-
-        oDataOperation = self.__initialiseAccountingObject( remoteSE, True )
-        gDataStoreClient.addRegister( oDataOperation )
-
-      # For each file that had failure
-      for lfn in lfn_pfn_fail:
-        failedPfns = lfn_pfn_fail[lfn]
-
-        # We add the accounting for the failure
-        for pfn in failedPfns:
-          remoteSE = self.pfn_se.get( pfn )
-          if not remoteSE:
-            continue
-
-          oDataOperation = self.__initialiseAccountingObject( remoteSE, False )
-          gDataStoreClient.addRegister( oDataOperation )
-
-        # If there were more options to try, the next one is successful
-        if len( failedPfns ) < len( self.lfn_pfn[lfn] ):
-          pfn = self.__getNthPfnForLfn( lfn, len( failedPfns ) )
-          remoteSE = self.pfn_se.get( pfn )
-
-          if not remoteSE:
-            continue
-
-          oDataOperation = self.__initialiseAccountingObject( remoteSE, True )
-          gDataStoreClient.addRegister( oDataOperation )
-
-      gDataStoreClient.commit()
-
-    except Exception as e: #pylint:disable=broad-except
-      self.log.warn( str( e ) )
+    except Exception as e:  # pylint:disable=broad-except
+      self.log.warn(str(e))
 
     finally:
-      super( AnalyseFileAccess, self ).finalize( self.version )
+      super(AnalyseFileAccess, self).finalize(self.version)
 
     return S_OK()
 
-  def __initialiseAccountingObject( self, destSE, successful ):
+  @staticmethod
+  def _checkFileAccess(xmlCatalog, xmlSummary):
+    """ Given an xmlCatalog and an xmlSummary, check which were the successful and failed attempts
+        to open remote root files
+
+        For each attempts, we return a tuple (srcSE, flag) with the flag being true if the read was successful.
+
+        :param xmlCatalog: instance of :py:class:`~LHCbDIRAC.Resources.Catalog.PoolXMLCatalog.PoolXMLCatalog`
+        :param xmlSummary: instance of :py:class:`~LHCbDIRAC.LHCbDIRAC.Core.Utilities.XMLSummaries.XMLSummary`
+
+        :returns: list of tuples (srcSE, successful flag)
+    """
+
+    # This will contain the list of tuples with the accesses and their status
+    accessAttempts = []
+
+    # Used to cache the information PFN -> SE from the catalog
+    pfn_se = {}
+    # Used to cache the information LFN -> PFN from the catalog
+    lfn_pfn = defaultdict(list)
+
+    # Matching between a PFN and the LFN
+    pfn_lfn = {}
+
+    # {LFN: failed PFN}
+    lfn_pfn_fail = defaultdict(list)
+
+    # Build all the caches
+    for guid in xmlCatalog.files:
+      pFile = xmlCatalog.files[guid]
+      lfn = pFile.lfns[0]  # there can be only one
+      for pfn, _ftype, se in pFile.pfns:
+        pfn_lfn[pfn] = lfn
+        pfn_se[pfn] = se
+        lfn_pfn[lfn].append(pfn)
+
+    # Check the URLs that failed, and associate them with their LFNs
+    for pfn, _status in xmlSummary.failedInputURL:
+      # The name starts with 'PFN:'
+      pfn = pfn[4:]
+      # Find the matching LFN
+      lfn = pfn_lfn[pfn]
+      lfn_pfn_fail[lfn].append(pfn)
+
+    # For each PFN in the lfn_pfn_fail dictionnary, we will count a failure.
+    for lfn, failedPfns in lfn_pfn_fail.iteritems():
+      # We add the accounting for the failure
+      for pfn in failedPfns:
+        remoteSE = pfn_se[pfn]
+        accessAttempts.append((remoteSE, False))
+
+    # To find the successful access, we take the next available replicas if any.
+    # If the LFN is not in the lfn_pfn_fail dict, that means the first attempt was successful
+    # If there are no more replicas to be tried, then the LFN was never read.
+
+    for lfn, replicaList in lfn_pfn.iteritems():
+      # get the index of the successful replicas
+      succRepIndex = len(lfn_pfn_fail.get(lfn, []))
+      try:
+        succRep = replicaList[succRepIndex]
+        remoteSE = pfn_se[succRep]
+        accessAttempts.append((remoteSE, True))
+      # This happens if all the replicas failed
+      except IndexError:
+        pass
+
+    return accessAttempts
+
+  def __initialiseAccountingObject(self, srcSE, successful):
     """ create accouting record """
     accountingDict = {}
 
     accountingDict['OperationType'] = 'fileAccess'
-    accountingDict['User'] = 'AnalyseFileAccess'
+    accountingDict['User'] = self._getCurrentOwner()
     accountingDict['Protocol'] = 'xroot'
     accountingDict['RegistrationTime'] = 0.0
     accountingDict['RegistrationOK'] = 0
     accountingDict['RegistrationTotal'] = 0
-    accountingDict['Destination'] = destSE
+    accountingDict['Source'] = srcSE
     accountingDict['TransferTotal'] = 1
     accountingDict['TransferOK'] = 1 if successful else 0
     accountingDict['TransferSize'] = 0
     accountingDict['TransferTime'] = 0.0
     accountingDict['FinalStatus'] = 'Successful' if successful else 'Failed'
-    accountingDict['Source'] = self.siteName
+    accountingDict['Destination'] = self.siteName
     oDataOperation = DataOperation()
-    oDataOperation.setValuesFromDict( accountingDict )
+    oDataOperation.setValuesFromDict(accountingDict)
 
     if 'StartTime' in self.step_commons:
-      oDataOperation.setStartTime( self.step_commons['StartTime'] )
-      oDataOperation.setEndTime( self.step_commons['StartTime'] )
+      oDataOperation.setStartTime(self.step_commons['StartTime'])
+      oDataOperation.setEndTime()
 
     return oDataOperation
 
-
-  def __getNthPfnForLfn( self, lfn, pfnIndex ):
-    """ Returns the Nth pfn from the catalog order for the given lfn
-        :param lfn : lfn from the catalog
-        :param pfnIndex : nth element
-
-        :returns the pfn or None
-    """
-
-    pfns = self.lfn_pfn.get( lfn )
-    if not pfns:
-      self.log.error("Could not find lfn %s in catalog"%lfn)
-      return None
-    if len(pfns) <= pfnIndex:
-      self.log.error("Index %s out of range, length %s"%(pfnIndex, len(pfns)))
-      return None
-
-    pfn = pfns[pfnIndex]
-
-    return pfn
 
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

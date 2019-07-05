@@ -19,6 +19,7 @@ import copy
 import time
 
 from DIRAC import gLogger, siteName
+from DIRAC.Core.Security.ProxyInfo import getProxyInfo
 from DIRAC.Core.Utilities.Adler import fileAdler
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Resources.Catalog.PoolXMLFile import getGUID
@@ -1130,3 +1131,21 @@ class ModuleBase(object):
   def get_jobID(self):
     return self._jobID
   jobID = property(get_jobID, set_jobID)
+
+  def _getCurrentOwner(self):
+    """Simple function to return current DIRAC username.
+    """
+    if 'OwnerName' in self.workflow_commons:
+      return self.workflow_commons['OwnerName']
+
+    result = getProxyInfo()
+
+    if not result['OK']:
+      if not self._enableModule():
+        return 'testUser'
+      raise RuntimeError('Could not obtain proxy information')
+
+    if 'username' not in result['Value']:
+      raise RuntimeError('Could not get username from proxy')
+
+    return result['Value']['username']

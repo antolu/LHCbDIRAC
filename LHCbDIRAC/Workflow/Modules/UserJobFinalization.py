@@ -119,7 +119,7 @@ class UserJobFinalization(ModuleBase):
 
       globList = []
       for i in self.userOutputData:
-        if re.search('\*', i):
+        if re.search(r'\*', i):
           globList.append(i)
 
       # Check whether list of userOutputData is a globbable pattern
@@ -324,22 +324,5 @@ class UserJobFinalization(ModuleBase):
 
     return orderedSEs
 
-  def _getCurrentOwner(self):
-    """Simple function to return current DIRAC username.
-    """
-    if 'OwnerName' in self.workflow_commons:
-      return self.workflow_commons['OwnerName']
-
-    result = getProxyInfo()
-
-    if not result['OK']:
-      if not self._enableModule():
-        return 'testUser'
-      raise RuntimeError('Could not obtain proxy information')
-
-    if 'username' not in result['Value']:
-      raise RuntimeError('Could not get username from proxy')
-
-    return result['Value']['username']
 
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

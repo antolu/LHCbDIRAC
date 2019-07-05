@@ -65,7 +65,7 @@ class XMLSummary(object):
     self.success = self.__getSuccess()
     self.step = self.__getStep()
     self.memory = self.__getMemory()
-    self.inputStatus = self.__getInputStatus()
+    self.inputStatus, self.failedInputURL = self.__getInputStatus()
     self.inputFileStats = self.__getInputFileStats()
     self.inputEventsTotal, self.inputsEvents = self.__getInputEvents()
     self.outputFileStats = self.__getOutputFileStats()
@@ -168,7 +168,7 @@ class XMLSummary(object):
     """
 
     files = []
-
+    failedURLs = []
     summary = self.xmlTree[0]
 
     for inputF in summary.childrens('input'):
@@ -177,10 +177,13 @@ class XMLSummary(object):
           fileName = filename.attributes['name']
           if 'LFN:' in fileName:
             files.append((filename.attributes['name'], filename.attributes['status']))
+          elif fileName.startswith('PFN:'):
+            failedURLs.append((filename.attributes['name'], filename.attributes['status']))
         except Exception:
           raise XMLSummaryError("Bad formatted file keys")
 
-    return files
+    return files, failedURLs
+
 
 ################################################################################
 
