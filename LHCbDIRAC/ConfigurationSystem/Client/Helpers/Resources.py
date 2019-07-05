@@ -19,9 +19,9 @@ from DIRAC import S_OK, S_ERROR, gLogger
 import DIRAC.ConfigurationSystem.Client.Helpers.Resources
 
 try:
-    FileNotFoundError
+  FileNotFoundError
 except NameError:
-    FileNotFoundError = IOError
+  FileNotFoundError = IOError
 
 getQueues = DIRAC.ConfigurationSystem.Client.Helpers.Resources.getQueues
 getDIRACPlatforms = DIRAC.ConfigurationSystem.Client.Helpers.Resources.getDIRACPlatforms
