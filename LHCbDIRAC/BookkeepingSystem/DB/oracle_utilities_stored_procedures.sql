@@ -171,6 +171,19 @@ BEGIN
 		END LOOP;
 		COMMIT;
 	END LOOP;
+EXCEPTION  
+	WHEN NO_DATA_FOUND then
+     utl_mail.send(sender     => 'oracle@cern.ch',
+                recipients => 'zoltan.mathe@cern.ch',
+                subject    => 'Test utl_mail.send procedure',
+                message    => 'If you are reading this it worked!');
+
+   	WHEN OTHERS THEN  
+      utl_mail.send(sender     => 'oracle@cern.ch',
+                recipients => 'zoltan.mathe@cern.ch',
+                subject    => 'Test utl_mail.send procedure2',
+                message    => 'If you are reading this it worked!');
+
 END;
 END;
 /
