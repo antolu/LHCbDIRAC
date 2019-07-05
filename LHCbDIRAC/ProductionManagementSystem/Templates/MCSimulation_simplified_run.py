@@ -25,6 +25,9 @@
       - for the merge and/or stripping: set pr.prodsToLaunch, then set pr.previousProdID
 """
 
+from __future__ import absolute_import, unicode_literals
+from six.moves import range
+
 import ast
 
 from DIRAC.Core.Base import Script
@@ -35,31 +38,31 @@ from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import Produc
 
 __RCSID__ = "$Id$"
 
-gLogger = gLogger.getSubLogger( 'MCSimulation_run.py' )
-currentSetup = gConfig.getValue( 'DIRAC/Setup' )
+gLogger = gLogger.getSubLogger('MCSimulation_run.py')
+currentSetup = gConfig.getValue('DIRAC/Setup')
 
 pr = ProductionRequest()
 
 stepsList = ['{{p1Step}}']
-stepsList.append( '{{p2Step}}' )
-stepsList.append( '{{p3Step}}' )
-stepsList.append( '{{p4Step}}' )
-stepsList.append( '{{p5Step}}' )
-stepsList.append( '{{p6Step}}' )
-stepsList.append( '{{p7Step}}' )
-stepsList.append( '{{p8Step}}' )
-stepsList.append( '{{p9Step}}' )
-stepsList.append( '{{p10Step}}' )
-stepsList.append( '{{p11Step}}' )
-stepsList.append( '{{p12Step}}' )
-stepsList.append( '{{p13Step}}' )
-stepsList.append( '{{p14Step}}' )
-stepsList.append( '{{p15Step}}' )
-stepsList.append( '{{p16Step}}' )
-stepsList.append( '{{p17Step}}' )
-stepsList.append( '{{p18Step}}' )
-stepsList.append( '{{p19Step}}' )
-stepsList.append( '{{p20Step}}' )
+stepsList.append('{{p2Step}}')
+stepsList.append('{{p3Step}}')
+stepsList.append('{{p4Step}}')
+stepsList.append('{{p5Step}}')
+stepsList.append('{{p6Step}}')
+stepsList.append('{{p7Step}}')
+stepsList.append('{{p8Step}}')
+stepsList.append('{{p9Step}}')
+stepsList.append('{{p10Step}}')
+stepsList.append('{{p11Step}}')
+stepsList.append('{{p12Step}}')
+stepsList.append('{{p13Step}}')
+stepsList.append('{{p14Step}}')
+stepsList.append('{{p15Step}}')
+stepsList.append('{{p16Step}}')
+stepsList.append('{{p17Step}}')
+stepsList.append('{{p18Step}}')
+stepsList.append('{{p19Step}}')
+stepsList.append('{{p20Step}}')
 pr.stepsList = stepsList
 
 ###########################################
@@ -111,23 +114,23 @@ pr.parentRequestID = '{{_parent}}'
 pr.requestID = '{{ID}}'
 
 if extraOptions:
-  pr.extraOptions = ast.literal_eval( extraOptions )
+  pr.extraOptions = ast.literal_eval(extraOptions)
 pr.prodGroup = '{{pDsc}}'
 pr.dataTakingConditions = '{{simDesc}}'
 
-MCPriority = int( MCPriority )
-selectionPriority = int( selectionPriority )
-mergingPriority = int( mergingPriority )
+MCPriority = int(MCPriority)
+selectionPriority = int(selectionPriority)
+mergingPriority = int(mergingPriority)
 
-removeInputMerge = ast.literal_eval( removeInputMerge )
-removeInputSelection = ast.literal_eval( removeInputSelection )
+removeInputMerge = ast.literal_eval(removeInputMerge)
+removeInputSelection = ast.literal_eval(removeInputSelection)
 
 ###########################################
 # LHCb conventions implied by the above
 ###########################################
 
-localTestFlag = ast.literal_eval( localTestFlag )
-validationFlag = ast.literal_eval( validationFlag )
+localTestFlag = ast.literal_eval(localTestFlag)
+validationFlag = ast.literal_eval(validationFlag)
 
 if localTestFlag:
   pr.testFlag = True
@@ -136,23 +139,23 @@ if localTestFlag:
 
 pr.outConfigName = pr.configName
 
-w1 = ast.literal_eval( w1 )
-w2 = ast.literal_eval( w2 )
-w3 = ast.literal_eval( w3 )
+w1 = ast.literal_eval(w1)
+w2 = ast.literal_eval(w2)
+w3 = ast.literal_eval(w3)
 
 if not w1 and not w2 and not w3:
-  gLogger.error( 'Vladimir, I told you to select at least one workflow!' )
-  DIRACexit( 2 )
+  gLogger.error('Vladimir, I told you to select at least one workflow!')
+  DIRACexit(2)
 
 elif w1:
   pr.prodsTypeList = [MCSimulationType]
   pr.outputSEs = ['Tier1_MC-DST']
 
-  pr.stepsInProds = [range( 1, len( pr.stepsList ) + 1 )]
+  pr.stepsInProds = [list(range(1, len(pr.stepsList) + 1))]
   pr.removeInputsFlags = [False]
   pr.priorities = [MCPriority]
   pr.cpus = [100000]
-  pr.outputFileSteps = [str( len( pr.stepsList ) )]
+  pr.outputFileSteps = [str(len(pr.stepsList))]
   pr.targets = [targets]
   pr.events = [eventsPerJob]
   pr.groupSizes = [1]
@@ -166,15 +169,15 @@ elif w2:
   pr.prodsTypeList = [MCSimulationType, 'MCReconstruction']
   pr.outputSEs = ['Tier1-Buffer', 'Tier1_MC-DST']
 
-  pr.stepsInProds = [[1,] , xrange( 2, len( pr.stepsList ) + 1 )]
-  pr.outputFileSteps = [str( len( pr.stepsInProds[0] ) ),
-                        str( len( pr.stepsInProds[1] ) )]
+  pr.stepsInProds = [[1, ], range(2, len(pr.stepsList) + 1)]
+  pr.outputFileSteps = [str(len(pr.stepsInProds[0])),
+                        str(len(pr.stepsInProds[1]))]
 
   pr.removeInputsFlags = [False, removeInputSelection]
   pr.priorities = [MCPriority, selectionPriority]
   pr.cpus = [100000, selectionCPU]
   pr.targets = [targets, '']
-  pr.events = [eventsPerJob,-1]
+  pr.events = [eventsPerJob, -1]
   pr.groupSizes = [1, selectionGroupSize]
   pr.plugins = ['', selectionPlugin]
   pr.inputDataPolicies = ['', 'download']
@@ -186,14 +189,14 @@ elif w3:
   pr.prodsTypeList = [MCSimulationType, 'MCReconstruction', 'MCMerge']
   pr.outputSEs = ['Tier1-Buffer', 'Tier1-Buffer', 'Tier1_MC-DST']
 
-  pr.stepsInProds = [ [1,], xrange( 2, len( pr.stepsList ) ), [len( pr.stepsList )]]
-  pr.outputFileSteps = [ '1', str( len( pr.stepsInProds[1] ) ), '1']
+  pr.stepsInProds = [[1, ], range(2, len(pr.stepsList)), [len(pr.stepsList)]]
+  pr.outputFileSteps = ['1', str(len(pr.stepsInProds[1])), '1']
 
   pr.removeInputsFlags = [False, removeInputSelection, removeInputMerge]
   pr.priorities = [MCPriority, selectionPriority, mergingPriority]
   pr.cpus = [100000, selectionCPU, mergingCPU]
   pr.targets = [targets, '', '']
-  pr.events = [eventsPerJob,-1,-1]
+  pr.events = [eventsPerJob, -1, -1]
   pr.groupSizes = [1, selectionGroupSize, mergingGroupSize]
   pr.plugins = ['', selectionPlugin, mergingPlugin]
   pr.inputDataPolicies = ['', 'download', 'download']
@@ -201,13 +204,13 @@ elif w3:
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag, mergemulticoreFlag]
 
 
-numberOfSteps = len( pr.stepsList )
-#pr.compressionLvl = [lowCompressionLvl] * numberOfSteps
-#pr.compressionLvl[-1] = highCompressionLvl
+numberOfSteps = len(pr.stepsList)
+# pr.compressionLvl = [lowCompressionLvl] * numberOfSteps
+# pr.compressionLvl[-1] = highCompressionLvl
 pr.compressionLvl = ["LOW"] * numberOfSteps
 pr.compressionLvl[-1] = "HIGH"
 
-vis = dict( [str(i),"N"] for i in range(1,numberOfSteps))
+vis = dict([str(i), "N"] for i in range(1, numberOfSteps))
 vis[str(numberOfSteps)] = "Y"
 
 pr.outputVisFlag = [vis]
@@ -231,13 +234,13 @@ if validationFlag:
   pr.outConfigName = 'validation'
   # Adding GAUSSHIST to the list of outputs to be produced (by the first step, which is Gauss)
   if 'GAUSSHIST' not in pr.stepsListDict[0]['fileTypesOut']:
-    pr.stepsListDict[0]['fileTypesOut'].append( 'GAUSSHIST' )
-  pr.outputFileSteps = [''] * len( pr.prodsTypeList )
+    pr.stepsListDict[0]['fileTypesOut'].append('GAUSSHIST')
+  pr.outputFileSteps = [''] * len(pr.prodsTypeList)
 
 
 res = pr.buildAndLaunchRequest()
 if not res['OK']:
-  gLogger.error( "Errors with submission: %s" % res['Message'] )
-  DIRACexit( 2 )
+  gLogger.error("Errors with submission: %s" % res['Message'])
+  DIRACexit(2)
 else:
-  gLogger.always( "Submitted %s" % str( res['Value'] ) )
+  gLogger.always("Submitted %s" % str(res['Value']))

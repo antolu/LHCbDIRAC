@@ -15,24 +15,26 @@ __RCSID__ = "$Id$"
 import DIRAC
 from DIRAC.Core.Base import Script
 
-Script.parseCommandLine( ignoreErrors = True )
+Script.parseCommandLine(ignoreErrors=True)
 
 args = Script.getPositionalArgs()
 
 from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
 diracProd = DiracProduction()
 
+
 def usage():
   print 'Usage: %s <Command> <Production ID> |<Production ID>' % Script.scriptName
   commands = diracProd.getProductionCommands()['Value']
-  print "\nCommands include: %s" % ( ', '.join( commands.keys() ) )
+  print "\nCommands include: %s" % (', '.join(commands.keys()))
   print '\nDescription:\n'
   for n, v in commands.items():
-    print '%s:' %n
+    print '%s:' % n
     for i, j in v.items():
-      print '     %s = %s' % ( i, j )
+      print '     %s = %s' % (i, j)
 
   DIRAC.exit(2)
+
 
 if len(args) < 2:
   usage()
@@ -43,12 +45,12 @@ command = args[0]
 
 for prodID in args[1:]:
 
-  result = diracProd.production( prodID, command, disableCheck = False )
-  if result.has_key('Message'):
-    errorList.append( (prodID, result['Message']) )
+  result = diracProd.production(prodID, command, disableCheck=False)
+  if 'Message' in result:
+    errorList.append((prodID, result['Message']))
     exitCode = 2
   elif not result:
-    errorList.append( (prodID, 'Null result for getProduction() call' ) )
+    errorList.append((prodID, 'Null result for getProduction() call'))
     exitCode = 2
   else:
     exitCode = 0

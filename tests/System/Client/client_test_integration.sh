@@ -47,7 +47,7 @@ then
    fi
 
 fi
-		
+
 echo " "
 echo "====== dirac-dms-replica-stats --Visibility=All --BKQuery=/certification/test/Beam6500GeV-2015-MagUp-Nu1.6-25ns-Pythia8/Sim09a/Trig0x411400a2/Reco15a/Turbo02/Stripping24NoPrescalingFlagged/13714010/ALLSTREAMS.DST"
 #dirac-dms-replica-stats  --Visibility=All --BKQuery=/LHCb/Collision12//RealData/Reco13a/Stripping19a//PID.MDST

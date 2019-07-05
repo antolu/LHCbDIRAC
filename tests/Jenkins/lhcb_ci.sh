@@ -26,7 +26,7 @@
 source TestCode/DIRAC/tests/Jenkins/dirac_ci.sh
 
 #install file
-INSTALL_CFG_FILE='$TESTCODE/LHCbDIRAC/tests/Jenkins/install.cfg'
+INSTALL_CFG_FILE=$TESTCODE/LHCbDIRAC/tests/Jenkins/install.cfg
 
 
 #.............................................................................
