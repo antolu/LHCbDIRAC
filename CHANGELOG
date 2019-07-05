@@ -1,3 +1,86 @@
+v9r4-pre1
+use DIRAC v6r22
+* Workflow: AnalyzeFileAccess module done properly
+* added CreationDate
+* autopep8
+* removed outdated
+* fix
+* Improve use of gLogger.error
+* add queries for debuging the stored procedure
+* more than one endpoint is returned
+* Bump LbPlatformUtils and LbEnv
+* added client and server tests files
+* builtins -> six.moves
+* python 2 to 3
+* removed tabs in favor of spaces
+* Get binary tags for application from SoftConfDB
+* debugging the procedure used to update the productionoutputfiles
+* add print for better debug
+* remove white spaces
+* fix the pytest, because the interface has simplified
+* Cleanup BookkeepingDBClient
+* Fix linter errors in Test_Resources_Catalog_BookkeepingDBClient
+* Fix initialiser in StorageUsageClient
+* Fix mocking of BookkeepingDBClient
+* Remove most remaining instances of RPCClient
+* Use ProductionRequestClient instead of RPCClient
+* Add ProductionRequestClient
+* restored
+* Add documentation for LHCb containerisation support
+* Parse configuration string to make it a boolean
+* Add a GaudiExecution/AllowContainers option to Operations
+* Use GaudiExecution/lbRunOptions in Operations to add --allow-containers
+* Modify dirac-architecture to report container support
+* Remove unrequired imports
+* Bump version constraint
+* User --allow-containers and --prefer-container
+* Clean up unused varaibles in ConfigurationSystem/Client/Helpers/Resources
+* Improve Python 3 compatibility
+* Add support for lb-run --container
+* fix for CS module removed
+* added v9r4-pre0 for testing purposes
+* style
+* comment format
+* removed file that was here by mistake
+* Fix Jenkinsfile and add html messages
+* Add CI job to check for copyright statement
+* Add licence text to source files
+* adapt to v6r22
+* files inside directory
+* zipping all log files
+* removed the SysAdmin extension
+* autopep8 + minor changes
+* removed TargzJobLogAgent
+* removed old functions
+* Remove return and fix typo
+* Fix pycodestyle tests to ignore upstream changes
+* Improve Python 3 compatibility
+* Tidy up BookkeepingReport
+* improve the documentation
+* Update the replica flag for the productions, which are modified last day
+* remove TestBookkeepingManager
+* more documentation about the productionoutputfiles
+* fix pylint
+* change Quality to DataQuality
+* fix code style
+* add more tests
+* add more tests
+* add more test
+* add more integration test
+* add more tests and introduce new table
+* fix pylint
+* remove mvs
+* add stepid also to the query
+* stored procedure for update
+* Apply review comments
+* Add macOS support for BookkeepingReport.__getNodeInformation
+* Fix code style errors in 6c198f0c
+* Disable GitLab CI deployment on forks
+* Add missing entry to .gitignore
+* Support LbPlatformUtils 3.1
+* Use LbPlatformUtils 3.1
+* CI: use DIRACOS in docker
+
 v9r3p8
 use DIRAC v6r21p11
 

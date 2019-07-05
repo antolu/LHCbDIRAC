@@ -28,9 +28,9 @@ rootPath = os.path.dirname(os.path.realpath(__path__[0]))
 # Define Version
 
 majorVersion = 9
-minorVersion = 3
-patchLevel = 6
-preVersion = 0
+minorVersion = 4
+patchLevel = 0
+preVersion = 1
 
 version = "v%sr%s" % (majorVersion, minorVersion)
 buildVersion = "v%dr%d" % (majorVersion, minorVersion)
