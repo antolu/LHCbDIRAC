@@ -102,3 +102,43 @@ def test_getDIRACPlatform(platform, expectedRes, expectedValue):
   assert res['OK'] is expectedRes
   if res['OK']:
     assert set(expectedValue).issubset(set(res['Value'])) is True
+
+
+@pytest.mark.parametrize("applicationName, applicationVersion, expected", [
+    ('DaVinci', 'v44r4', ['x86_64+avx2+fma-centos7-gcc62-opt', 'x86_64-centos7-gcc62-dbg', 'x86_64-centos7-gcc62-do0',
+                          'x86_64-centos7-gcc62-opt', 'x86_64-centos7-gcc7-dbg', 'x86_64-centos7-gcc7-opt',
+                          'x86_64-slc6-gcc62-dbg', 'x86_64-slc6-gcc62-opt']),
+    ('DaVinci', 'v0r0', None),
+    ('InvalidProject', 'v1r0', None),
+    ('CASTELAO', 'v1r5p1', ['x86_64-centos7-gcc62-do0', 'x86_64-centos7-gcc62-opt', 'x86_64-centos7-gcc62-dbg',
+                            'x86_64-slc6-gcc62-opt', 'x86_64-centos7-gcc7-dbg', 'x86_64+avx2+fma-centos7-gcc62-opt',
+                            'x86_64-slc6-gcc62-dbg', 'x86_64-centos7-gcc7-opt']),
+])
+def test_listPlatforms(applicationName, applicationVersion, expected):
+  # Good RPC and good fallback
+  result = moduleTested._listPlatforms(
+      applicationName, applicationVersion,
+      moduleTested.DEFAULT_XMLRPCURL,
+      moduleTested.DEFAULT_FALLBACKCACHEPATH)
+  assert result is None is expected or set(result) == set(expected)
+
+  # Bad RPC and good fallback
+  result = moduleTested._listPlatforms(
+      applicationName, applicationVersion,
+      'https://lbsoftdb.cern.invalid/read/',
+      moduleTested.DEFAULT_FALLBACKCACHEPATH)
+  assert result is None is expected or set(result) == set(expected)
+
+  # Good RPC and bad fallback
+  result = moduleTested._listPlatforms(
+      applicationName, applicationVersion,
+      moduleTested.DEFAULT_XMLRPCURL,
+      '/cvmfs/lhcb.cern.invalid/lib/var/lib/softmetadata/project-platforms.json')
+  assert result is None is expected or set(result) == set(expected)
+
+  # Bad RPC and bad fallback
+  result = moduleTested._listPlatforms(
+      applicationName, applicationVersion,
+      'https://lbsoftdb.cern.invalid/read/',
+      '/cvmfs/lhcb.cern.invalid/lib/var/lib/softmetadata/project-platforms.json')
+  assert result is None
