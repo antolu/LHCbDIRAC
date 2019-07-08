@@ -164,14 +164,15 @@ diracServices(){
 
     if [ "$serv" == "Bookkeeping/BookkeepingManager" ]
     then
-      # start BKK DB setup
       setupBKKDB
-      curl http://lhcb-portal-dirac.cern.ch/defaults/cx_Oracle-5.1.tar.gz -o cx_Oracle-5.1.tar.gz
-      source /afs/cern.ch/project/oracle/script/setoraenv.sh
-      # -s 11203
-      export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/afs/cern.ch/project/oracle/amd64_linux26/prod/lib/
-      python `which easy_install` cx_Oracle-5.1.tar.gz
-      # end BKK DB setup
+
+      if [ -z $DIRACOSVER ]
+      then
+        curl http://lhcb-portal-dirac.cern.ch/defaults/cx_Oracle-7.2.tar.gz -o cx_Oracle-7.2.tar.gz
+        # -s 11203
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/afs/cern.ch/project/oracle/amd64_linux26/prod/lib/
+        pip install cx_Oracle-7.2.tar.gz
+      fi
     fi
 
     echo '==> calling dirac-install-component' $serv $DEBUG
@@ -396,7 +397,7 @@ function installLHCbDIRACClient(){
   fi
 
   # If DIRACOSVER is not defined, use LcgBundle
-  if [ -z $DIRACOSVER ];
+  if [ -z $DIRACOSVER ]
   then
      echo "Installing with LcgBundle";
     ./dirac-install -l LHCb -r `cat $WORKSPACE/project.version` -e LHCb -t client -g `cat $WORKSPACE/lcg.version` $DEBUG
