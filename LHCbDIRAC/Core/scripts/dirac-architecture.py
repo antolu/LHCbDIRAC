@@ -70,11 +70,14 @@ if __name__ == "__main__":
     if allowContainers is None:
       allowContainers = gConfig.getValue('/Resources/Sites/%s/%s/AllowContainers' % (grid, site), None)
     if allowContainers is None:
-      allowContainers = Operations().getValue('GaudiExecution/AllowContainers', False)
+      allowContainers = Operations().getValue('GaudiExecution/AllowContainers', 'no')
 
     if allowContainers.lower() in ('yes', 'true', 'all'):
       allowContainers = True
     elif allowContainers.lower() in ('no', 'false', 'none', ''):
+      allowContainers = False
+    else:
+      gLogger.warn("Invalid value for AllowContainers", repr(allowContainers))
       allowContainers = False
 
     # Get the platform name. If an error occurs, an exception is thrown
