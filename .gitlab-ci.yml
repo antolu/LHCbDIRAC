@@ -12,7 +12,7 @@
 # It performs some operations with an account.
 # Its credentials are stored as secret variable KRB_PASSWORD and KRB_USERNAME
 variables:
-    SANCHA_PATH_DEVEL: "/cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/Sencha/ext-4.2.1.883/"
+    SANCHA_PATH_DEVEL: "/cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/Sencha/ext-6.2.0/"
     SANCHA_PATH_PROD: "/cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/Sencha/ext-4.2.1.883/"
     LBENV_RELEASE: "1.1.1"
     LBPLATFORMUTILS_RELEASE: "4.2.3"
