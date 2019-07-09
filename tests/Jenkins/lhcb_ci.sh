@@ -168,10 +168,8 @@ diracServices(){
 
       if [ -z $DIRACOSVER ]
       then
-        curl http://lhcb-portal-dirac.cern.ch/defaults/cx_Oracle-7.2.tar.gz -o cx_Oracle-7.2.tar.gz
-        # -s 11203
         export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/afs/cern.ch/project/oracle/amd64_linux26/prod/lib/
-        pip install cx_Oracle-7.2.tar.gz
+        pip install cx_Oracle==7.2
       fi
     fi
 

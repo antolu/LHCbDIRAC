@@ -11,11 +11,6 @@
 ###############################################################################
 # Install Oracle client module on a CERN vobox machine
 #
-# 1) download oracle client tarbal
-#curl http://lhcb-portal-dirac.cern.ch/defaults/cx_Oracle-5.1.tar.gz -o cx_Oracle-5.1.tar.gz
-curl http://lhcb-portal-dirac.cern.ch/defaults/cx_Oracle-7.2.tar.gz -o cx_Oracle-7.2.tar.gz
-#
-# 2) Install client module
-pip install cx_Oracle-7.2.tar.gz
+pip install cx_Oracle==7.2
 #
 exit 0
