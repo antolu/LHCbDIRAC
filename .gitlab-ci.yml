@@ -149,8 +149,10 @@ create_tarball:
     - git config --global http.emptyAuth true
     # java is required by Sencha Cmd
     - yum install -y java
-    # Sencha Cmd is deployed to cvmfs
-    - export PATH=/cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/Sencha/Cmd:$PATH
+    # Sencha Cmd needs to be depoyed using the installer from cvmfs
+    - mkdir /root/sencha
+    - /cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/Sencha/SenchaCmd-6.7.0.63-linux-amd64.sh -q -dir /root/sencha
+    - export PATH=/root/sencha:$PATH
   stage: release
   tags:
     # We need a runner with CVMFS
