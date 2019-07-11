@@ -10,7 +10,7 @@
 ###############################################################################
 """ LHCbDIRAC's Resources helper
 """
-import itertools
+import json
 
 import LbPlatformUtils
 from six.moves import xmlrpc_client
@@ -18,9 +18,17 @@ from six.moves import xmlrpc_client
 from DIRAC import S_OK, S_ERROR, gLogger
 import DIRAC.ConfigurationSystem.Client.Helpers.Resources
 
+try:
+  FileNotFoundError
+except NameError:
+  FileNotFoundError = IOError
+
 getQueues = DIRAC.ConfigurationSystem.Client.Helpers.Resources.getQueues
 getDIRACPlatforms = DIRAC.ConfigurationSystem.Client.Helpers.Resources.getDIRACPlatforms
 getCompatiblePlatforms = DIRAC.ConfigurationSystem.Client.Helpers.Resources.getCompatiblePlatforms
+
+DEFAULT_XMLRPCURL = "https://lbsoftdb.cern.ch/read/"
+DEFAULT_FALLBACKCACHEPATH = '/cvmfs/lhcb.cern.ch/lib/var/lib/softmetadata/project-platforms.json'
 
 
 def getDIRACPlatform(platform):
@@ -65,7 +73,6 @@ def getPlatformForJob(workflow):
 
       :returns: a DIRAC platform (a string) or None
   """
-
   binaryTags = _findBinaryTags(workflow)
 
   if not binaryTags:
@@ -80,8 +87,6 @@ def _findBinaryTags(wf):
       :returns: set of binary tags found in the workflow, each element is a
       frozenset of platform alternatives
   """
-  proxy = xmlrpc_client.ServerProxy("https://lbsoftdb.cern.ch/read/", allow_none=True)
-
   binaryTags = set()
   for step_instance in wf.step_instances:
     systemConfig = step_instance.findParameter('SystemConfig')
@@ -95,16 +100,45 @@ def _findBinaryTags(wf):
     applicationVersion = step_instance.findParameter('applicationVersion')
     if not (applicationName and applicationVersion):
       continue
-    applicationName = applicationName.value
-    applicationVersion = applicationVersion.value
-    try:
-      platforms = proxy.listPlatforms(applicationName, applicationVersion)
-    except xmlrpc_client.Fault as e:
-      gLogger.error("Failed to find platform in SoftConfDB for", "%s/%s %s" %
-                    (applicationName, applicationVersion, e))
-    except Exception as e:
-      gLogger.error("Unknown exception when querying SoftConfDB", repr(e))
+
+    platforms = _listPlatforms(applicationName.value, applicationVersion.value,
+                               DEFAULT_XMLRPCURL, DEFAULT_FALLBACKCACHEPATH)
+
     if platforms:
       binaryTags.add(frozenset(platforms))
 
   return binaryTags
+
+
+def _listPlatforms(applicationName, applicationVersion, xmlrpcUrl, fallbackPath):
+  """ developer function
+      :returns: set of binary tags found for a given application and version
+  """
+  applicationName = applicationName.upper()
+  applicationVersion = applicationVersion.lower()
+  platforms = None
+
+  proxy = xmlrpc_client.ServerProxy(xmlrpcUrl, allow_none=True)
+  try:
+    platforms = proxy.listPlatforms(applicationName, applicationVersion)
+  except xmlrpc_client.Fault as e:
+    gLogger.error("Failed to find platform in SoftConfDB for", "%s/%s %s" %
+                  (applicationName, applicationVersion, e))
+  except Exception as e:
+    gLogger.error("Unknown exception when querying SoftConfDB", repr(e))
+
+  # If the XML RPC endpoint is down, try to use the cache on CVMFS
+  if platforms is None:
+    try:
+      with open(fallbackPath, 'rt') as fp:
+        fallbackCache = json.load(fp)
+    except FileNotFoundError:
+      gLogger.error("SoftConfDB JSON cache not found in", fallbackPath)
+    else:
+      try:
+        platforms = fallbackCache[applicationName][applicationVersion]
+      except KeyError as e:
+        gLogger.error("Failed to find platform in cache for", "%s/%s in %s (%s)" %
+                      (applicationName, applicationVersion, fallbackPath, e))
+
+  return platforms
