@@ -150,9 +150,8 @@ create_tarball:
     # java is required by Sencha Cmd
     - yum install -y java
     # Sencha Cmd needs to be depoyed using the installer from cvmfs
-    - mkdir /root/sencha
-    - /cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/Sencha/SenchaCmd-6.7.0.63-linux-amd64.sh -q -dir /root/sencha
-    - export PATH=/root/sencha:$PATH
+    - /cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/Sencha/SenchaCmd-6.7.0.63-linux-amd64.sh -q -dir /tmp/extjs
+    - export PATH=/tmp/extjs:$PATH
   stage: release
   tags:
     # We need a runner with CVMFS
@@ -174,6 +173,7 @@ create_tarball:
     - SANCHA_PATH=$(if [ $BRANCH == "devel" ]; then echo $SANCHA_PATH_DEVEL; else echo $SANCHA_PATH_PROD; fi)
     # Create the release tarball
     # The last line output by the script is the command to run in order to deploy
+    - echo ${SANCHA_PATH}
     - lb-run LHCbDIRAC/prod dirac-distribution -r ${CI_COMMIT_TAG} -l LHCb -C file:///$(pwd)/releases.cfg --extjspath=${SANCHA_PATH} | tail -n 1  > /tmp/deploy.sh
     # Use the proper user
     - export USER=${KRB_USERNAME}
