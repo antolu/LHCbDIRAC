@@ -93,7 +93,7 @@ check-copyright:
   stage: test
   script:
     - curl -o lb-check-copyright "https://gitlab.cern.ch/lhcb-core/LbDevTools/raw/master/LbDevTools/SourceTools.py?inline=false"
-    - python lb-check-copyright origin/devel
+    - python lb-check-copyright origin/devel --exclude '^tests/.*\.xml$'
 
 # This job MUST be call pages as per https://docs.gitlab.com/ce/ci/yaml/README.html#pages
 pages:

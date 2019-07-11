@@ -12,12 +12,10 @@
 Test XMLErr.py
 """
 
-import json
 import unittest
 import ast
 import xml.etree.ElementTree as ET
 
-from DIRAC import gLogger
 import LHCbDIRAC.Core.Utilities.XMLErr as XMLErr
 
 

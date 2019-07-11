@@ -11,13 +11,10 @@
 ###############################################################################
 
 #-------------------------------------------------------------------------------
-# A convenient way to run all the integration tests for servers -- LHCbDIRAC
+# A convenient way to run all the LHCbDIRAC integration tests for servers
 #
-# It supposes that DIRAC is installed in $SERVERINSTALLDIR
+# It supposes that LHCbDIRAC is installed in $SERVERINSTALLDIR
 #-------------------------------------------------------------------------------
-
-# first first: sourcing the DIRAC file # the location from where this script is sourced is critical
-source TestCode/DIRAC/tests/Jenkins/all_integration_server_tests.sh
 
 
 echo -e '****************************************'
