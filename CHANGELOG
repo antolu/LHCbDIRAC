@@ -1,3 +1,21 @@
+v9r4-pre2
+use DIRAC v6r22p1
+
+* removed import of unicode_literals
+* install sencha cmd before compile
+* Exclude test XML files from copyright check
+* simply pip install
+* updating oracle version
+* removed Copyright from XML files
+* style
+* clean stored procedure
+* use extjs6
+* add automatic email sending
+* Update dirac-architecture.py
+* only LHCbDIRAC tests
+* Fix indentation
+* Fallback to JSON file on CVMFS if XMLRPC fails
+
 v9r4-pre1
 use DIRAC v6r22
 * Workflow: AnalyzeFileAccess module done properly
