@@ -41,7 +41,7 @@ exit
 # TODO: SLSAgent is not anymore the right name
 # TODO: use elasticseach module to spit in meter.
 
-from __future__ import absolute_import, unicode_literals
+from __future__ import absolute_import
 
 __RCSID__ = "$Id$"
 

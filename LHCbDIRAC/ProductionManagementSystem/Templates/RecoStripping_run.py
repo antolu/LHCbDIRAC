@@ -23,7 +23,7 @@
     * run only part of the request on the Grid:
 """
 
-from __future__ import absolute_import, unicode_literals
+from __future__ import absolute_import
 from six.moves import range
 
 import ast

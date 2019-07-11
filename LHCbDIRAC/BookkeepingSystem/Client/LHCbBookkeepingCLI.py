@@ -9,7 +9,7 @@
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
 """Bookkeeping file system"""
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import absolute_import, division, print_function
 
 import sys
 import cmd
@@ -17,8 +17,8 @@ import pydoc
 import shlex
 import argparse
 
-from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
+from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 from LHCbDIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient import LHCB_BKKDBClient
 
 __RCSID__ = "$Id$"

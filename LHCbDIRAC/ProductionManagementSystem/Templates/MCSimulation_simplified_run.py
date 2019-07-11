@@ -25,7 +25,7 @@
       - for the merge and/or stripping: set pr.prodsToLaunch, then set pr.previousProdID
 """
 
-from __future__ import absolute_import, unicode_literals
+from __future__ import absolute_import
 from six.moves import range
 
 import ast
