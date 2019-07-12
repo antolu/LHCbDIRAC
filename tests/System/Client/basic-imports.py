@@ -23,7 +23,6 @@ import requests
 import certifi
 import pexpect
 import fts3
-import arc
 
 from distutils.spawn import find_executable
 
