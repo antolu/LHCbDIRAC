@@ -11,6 +11,6 @@
 ###############################################################################
 # Install Oracle client module on a CERN vobox machine
 #
-pip install cx_Oracle==7.2
+pip install --trusted-host pypi.python.org --trusted-host files.pythonhosted.org --trusted-host pypi.org cx_Oracle==7.2
 #
 exit 0
