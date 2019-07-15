@@ -1,1 +1,0 @@
-from LHCbDIRAC.Workflow.Modules.AnalyseFileAccess import AnalyseFileAccess
