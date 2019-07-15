@@ -16,6 +16,7 @@ variables:
     SANCHA_PATH_PROD: "/cvmfs/lhcb.cern.ch/lib/lhcb/LHCBDIRAC/Sencha/ext-4.2.1.883/"
     LBENV_RELEASE: "1.1.1"
     LBPLATFORMUTILS_RELEASE: "4.2.3"
+    DEPLOY_REPO: "lhcb-core/cvmfs-deploy/deploy-lhcbdirac.git"
 stages:
    # Run all the tests
   - test
@@ -25,7 +26,7 @@ stages:
   # Release the software on AFS
   - release
   # Build the docker
-  - release_docker
+  - deploy_release
   # Tag the devel container if needed
   - tag_container
 
@@ -191,7 +192,7 @@ create_tarball:
 build_docker_image:
   tags:
     - docker-image-build
-  stage: release_docker
+  stage: deploy_release
   only:
     - tags
   # This needs to be there for gitlab
@@ -199,6 +200,36 @@ build_docker_image:
   variables:
     TO: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}
     CONTEXT_DIR: container/lhcbdirac/
+
+
+
+
+# When we have a git tag for a pre-release,
+# update the config of deploy-lhcbdirac
+# to have it deployed on cvmfs-dev
+# Note for the time being, it is allowed to fail
+deploy_on_cvmfs:
+  image: gitlab-registry.cern.ch/ci-tools/ci-worker:cc7
+  stage: deploy_release
+  allow_failure: true
+  only:
+    refs:
+      - tags
+    variables:
+      - $CI_COMMIT_TAG =~ /.*-pre.*/
+  script:
+    # Get the repository
+    - cd $TMPDIR
+    - git clone https://${KRB_USERNAME}:${DEPLOY_KEY}@gitlab.cern.ch/${DEPLOY_REPO}
+    - cd deploy-lhcbdirac
+    # Edit the configuration
+    - python deploylhcbdirac/update_config.py configuration.yaml ${CI_COMMIT_TAG}
+    # show the changes that were done
+    - git diff
+    # commit and push back
+    - git commit -a -m "Autodeploy ${CI_COMMIT_TAG}"
+    - git push origin master
+
 
 
 # If we are triggering on a pre release,
