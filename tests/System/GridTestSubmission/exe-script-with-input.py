@@ -17,4 +17,4 @@ from os import system
 # Main
 if __name__ == '__main__':
 
-  sys.exit( system( '''cat testInputFile.txt''' ) / 256 )
+  sys.exit(system('''cat testInputFile.txt''') / 256)

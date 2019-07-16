@@ -11,15 +11,15 @@
 from ProdConf import ProdConf
 
 ProdConf(
-  NOfEvents=2,
-  DDDBTag='dddb-20170721-3',
-  AppVersion='v49r14',
-  XMLSummaryFile='summaryGauss_MP_test.xml',
-  Application='Gauss',
-  OutputFilePrefix='MP_test',
-  RunNumber=2308595,
-  XMLFileCatalog='pool_xml_catalog.xml',
-  FirstEventNumber=518801,
-  CondDBTag='sim-20190430-vc-mu100',
-  OutputFileTypes=['sim'],
+    NOfEvents=2,
+    DDDBTag='dddb-20170721-3',
+    AppVersion='v49r14',
+    XMLSummaryFile='summaryGauss_MP_test.xml',
+    Application='Gauss',
+    OutputFilePrefix='MP_test',
+    RunNumber=2308595,
+    XMLFileCatalog='pool_xml_catalog.xml',
+    FirstEventNumber=518801,
+    CondDBTag='sim-20190430-vc-mu100',
+    OutputFileTypes=['sim'],
 )
