@@ -138,7 +138,7 @@ def helloWorldTestCentos7():
   job = baseToAllJobs('helloWorld-test-CentOS7', jobClass)
   job.setInputSandbox([find_all('exe-script.py', rootPath, '/tests/System/GridTestSubmission')[0]])
   job.setExecutable("exe-script.py", "", "helloWorld.log")
-  job.setPlatform('x86_64-centos7')
+  job.setPlatform('x86_64+avx2+fma-centos7-gcc8-opt')
   return endOfAllJobs(job)
 
 
@@ -148,7 +148,7 @@ def helloWorldTestSLC6():
   job = baseToAllJobs('helloWorld-test-SLC6', jobClass)
   job.setInputSandbox([find_all('exe-script.py', rootPath, '/tests/System/GridTestSubmission')[0]])
   job.setExecutable("exe-script.py", "", "helloWorld.log")
-  job.setPlatform('x86_64-slc6')
+  job.setPlatform('x86_64-slc6-gcc62-opt')
   return endOfAllJobs(job)
 
 
@@ -158,7 +158,7 @@ def helloWorldTestSLC5():
   job = baseToAllJobs('helloWorld-test-SLC5', jobClass)
   job.setInputSandbox([find_all('exe-script.py', rootPath, '/tests/System/GridTestSubmission')[0]])
   job.setExecutable("exe-script.py", "", "helloWorld.log")
-  job.setPlatform('x86_64-slc5')
+  job.setPlatform('x86_64-slc5-gcc43-opt')
   return endOfAllJobs(job)
 
 
