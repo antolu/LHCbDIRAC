@@ -20,7 +20,7 @@ import itertools
 import os
 import datetime
 
-from mock import MagicMock, patch
+from mock import MagicMock
 
 from DIRAC import gLogger
 
@@ -32,7 +32,6 @@ from LHCbDIRAC.Core.Utilities.InputDataResolution import InputDataResolution
 from LHCbDIRAC.Core.Utilities.ProdConf import ProdConf
 from LHCbDIRAC.Core.Utilities.GangaDataFile import GangaDataFile
 from LHCbDIRAC.Core.Utilities.NagiosConnector import NagiosConnector
-from LHCbDIRAC.Core.Utilities.RunApplication import RunApplication
 
 gConfigMock = MagicMock()
 gConfigMock.getValue.return_value = 'aValue'
@@ -56,86 +55,8 @@ class UtilitiesTestCase(unittest.TestCase):
       except OSError:
         continue
 
-
 #################################################
 
-class RunApplicationSuccess(UtilitiesTestCase):
-
-  def test_lbRunCommand(self):
-    """ Testing lb-run command (for setting the environment)
-    """
-    ra = RunApplication()
-    ra.extraPackages = [('package1', 'v1r0'), ('package2', 'v2r0'), ('package3', '')]
-    ra.runTimeProject = 'aRunTimeProject'
-    ra.runTimeProjectVersion = 'v1r1'
-    ra.opsH = MagicMock()
-    ra.opsH.getValue.return_value = ['lcg1', 'lcg2']
-    ra.prodConf = True
-    extraPackagesString, runtimeProjectString, externalsString = ra._lbRunCommandOptions()
-    self.assertEqual(extraPackagesString, ' --use="package1 v1r0"  --use="package2 v2r0"  --use="package3"')
-    self.assertEqual(runtimeProjectString, ' --runtime-project aRunTimeProject/v1r1')
-    self.assertEqual(externalsString, ' --ext=lcg1 --ext=lcg2')
-
-    ra.site = 'Site1'
-    extraPackagesString, runtimeProjectString, externalsString = ra._lbRunCommandOptions()
-    self.assertEqual(extraPackagesString, ' --use="package1 v1r0"  --use="package2 v2r0"  --use="package3"')
-    self.assertEqual(runtimeProjectString, ' --runtime-project aRunTimeProject/v1r1')
-    self.assertEqual(externalsString, ' --ext=lcg1 --ext=lcg2')
-
-  @patch("LHCbDIRAC.Core.Utilities.RunApplication.gConfig", side_effect=gConfigMock)
-  def test__gaudirunCommand(self, _patch):
-    """ Testing what is run (the gaudirun command, for example)
-    """
-
-    ra = RunApplication()
-    ra.opsH = MagicMock()
-    ra.opsH.getValue.return_value = 'gaudirun.py'
-
-    # simplest
-    res = str(ra._gaudirunCommand())
-    expected = 'gaudirun.py'
-    self.assertEqual(res, expected)
-
-    # simplest with extra opts
-    ra.extraOptionsLine = 'bla bla'
-    res = str(ra._gaudirunCommand())
-    expected = 'gaudirun.py gaudi_extra_options.py'
-    self.assertEqual(res, expected)
-    with open('gaudi_extra_options.py', 'r') as fd:
-      geo = fd.read()
-      self.assertEqual(geo, ra.extraOptionsLine)
-
-    # productions style /1
-    ra.prodConf = True
-    ra.extraOptionsLine = ''
-    ra.prodConfFileName = 'prodConf.py'
-    res = str(ra._gaudirunCommand())
-    expected = 'gaudirun.py prodConf.py'
-    self.assertEqual(res, expected)
-
-    # productions style /2 (multicore)
-    ra.optFile = ''
-    ra.multicore = True
-    res = str(ra._gaudirunCommand())
-    self.assertEqual(res, expected)  # it won't be allowed on this "CE"
-
-    # productions style /3 (multicore and opts)
-    ra.optFile = ''
-    ra.extraOptionsLine = 'bla bla'
-    res = str(ra._gaudirunCommand())
-    expected = 'gaudirun.py prodConf.py gaudi_extra_options.py'
-    self.assertEqual(res, expected)  # it won't be allowed on this "CE"
-
-    # productions style /4
-    ra.extraOptionsLine = ''
-    ra.commandOptions = ['$APP/1.py',
-                         '$APP/2.py']
-    res = str(ra._gaudirunCommand())
-    expected = r'gaudirun.py $APP/1.py $APP/2.py prodConf.py'
-    self.assertEqual(res, expected)
-
-
-#################################################
 
 class ProdConfSuccess(UtilitiesTestCase):
 
@@ -625,7 +546,6 @@ if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase(UtilitiesTestCase)
   suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(ProductionDataSuccess))
   suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(ProdConfSuccess))
-  suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(RunApplicationSuccess))
   suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(InputDataResolutionSuccess))
   suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(NagiosConnectorSuccess))
   testResult = unittest.TextTestRunner(verbosity=2).run(suite)

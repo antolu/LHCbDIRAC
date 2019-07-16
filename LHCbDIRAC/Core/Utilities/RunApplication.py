@@ -290,7 +290,7 @@ def _processorsWN():
   nProcessors = gConfig.getValue('/LocalSite/JOBFEATURES/allocated_cpu')
   if nProcessors:
     gLogger.info("Number of processors from /LocalSite/JOBFEATURES/allocated_cpu", nProcessors)
-    return nProcessors
+    return int(nProcessors)
 
   # now looking in the CS for #Processors tag
   siteName = gConfig.getValue('/LocalSite/Site')
@@ -307,7 +307,7 @@ def _processorsWN():
     numberOfProcessorsTag = re.search('[0-9]Processors', tag)
     if numberOfProcessorsTag:
       gLogger.info("Number of processors from tags", nProcessors)
-      return numberOfProcessorsTag.string.replace('Processors', '')
+      return int(numberOfProcessorsTag.string.replace('Processors', ''))
 
   if 'WholeNode' in tags:
     gLogger.info("Found WholeNode tag, returning -1")
