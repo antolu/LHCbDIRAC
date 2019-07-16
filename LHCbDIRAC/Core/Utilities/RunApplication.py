@@ -282,7 +282,9 @@ def _multicoreWN():
 
 
 def _processorsWN():
-  """ Returns the number of processors on the WN, and if not present, from the CS
+  """ Returns the number of processors on the WN (from JOBFEATURES)
+      If not present, looks in the CS for the #Processors tag, and for the WholeNode tag.
+      If nothing is found, just returns 1
   """
   # if JOBFEATURES is present
   nProcessors = gConfig.getValue('/LocalSite/JOBFEATURES/allocated_cpu')

@@ -115,7 +115,7 @@ class LHCbsubmitSuccess(GridSubmissionTestCase, DIRACGridSubmissionTestCase):
     self.assertTrue(res['OK'])
     jobsSubmittedList.append(res['Value'])
 
-    res = helloWorldTestCento7()
+    res = helloWorldTestCentos7()
     self.assertTrue(res['OK'])
     jobsSubmittedList.append(res['Value'])
 

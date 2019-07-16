@@ -11,7 +11,7 @@
 from ProdConf import ProdConf
 
 ProdConf(
-    NOfEvents=2,
+    NOfEvents=8,
     DDDBTag='dddb-20170721-3',
     AppVersion='v49r14',
     XMLSummaryFile='summaryGauss_MP_test.xml',
