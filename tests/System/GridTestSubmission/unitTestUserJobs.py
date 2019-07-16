@@ -115,6 +115,10 @@ class LHCbsubmitSuccess(GridSubmissionTestCase, DIRACGridSubmissionTestCase):
     self.assertTrue(res['OK'])
     jobsSubmittedList.append(res['Value'])
 
+    res = helloWorldTestCento7()
+    self.assertTrue(res['OK'])
+    jobsSubmittedList.append(res['Value'])
+
     res = helloWorldTestSLC6()
     self.assertTrue(res['OK'])
     jobsSubmittedList.append(res['Value'])
@@ -213,6 +217,9 @@ class LHCbsubmitSuccess(GridSubmissionTestCase, DIRACGridSubmissionTestCase):
     self.assertTrue(res['OK'])
     jobsSubmittedList.append(res['Value'])
 
+    res = gaussMPJob()
+    self.assertTrue(res['OK'])
+    jobsSubmittedList.append(res['Value'])
 
 ########################################################################################
 #
