@@ -10,13 +10,13 @@
 ###############################################################################
 """ Utility for invoking running LHCb applications
 """
-from __future__ import absolute_import
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
 __RCSID__ = "$Id$"
 
 import sys
 import os
+import re
 import shlex
 
 from DIRAC import gConfig, gLogger
@@ -205,8 +205,7 @@ class RunApplication(object):
     # multicore?
     if self.multicore:
       if _multicoreWN():
-        nProcessors = gConfig.getValue('/LocalSite/JOBFEATURES/allocated_cpu', 1)
-        self.log.info("CPUS from /LocalSite/JOBFEATURES/allocated_cpu: %d" % nProcessors)
+        nProcessors = _processorsWN()
         command += ' --ncpus %d ' % nProcessors
       else:
         self.log.info("Would have run with option '--ncpus', but it is not allowed here")
@@ -272,10 +271,45 @@ def _multicoreWN():
   gridCE = gConfig.getValue('/LocalSite/GridCE')
   queue = gConfig.getValue('/LocalSite/CEQueue')
   # Tags of the CE
-  tags = fromChar(gConfig.getValue('/Resources/Sites/%s/%s/CEs/%s/Tag' % (siteName.split('.')[0],
-                                                                          siteName, gridCE), ''))
+  tags = fromChar(gConfig.getValue('/Resources/Sites/%s/%s/CEs/%s/Tag' % (siteName.split('.')[0], siteName, gridCE),
+                  ''))
   # Tags of the Queue
-  tags = fromChar(gConfig.getValue('/Resources/Sites/%s/%s/CEs/%s/Queues/%s/Tag' % (siteName.split('.')[0], queue,
-                                                                                    siteName, gridCE), ''))
+  tags += fromChar(gConfig.getValue('/Resources/Sites/%s/%s/CEs/%s/Queues/%s/Tag' % (siteName.split('.')[0], siteName,
+                                                                                     gridCE, queue),
+                   ''))
 
   return bool(tags and 'MultiProcessor' in tags)
+
+
+def _processorsWN():
+  """ Returns the number of processors on the WN, and if not present, from the CS
+  """
+  # if JOBFEATURES is present
+  nProcessors = gConfig.getValue('/LocalSite/JOBFEATURES/allocated_cpu')
+  if nProcessors:
+    gLogger.info("Number of processors from /LocalSite/JOBFEATURES/allocated_cpu", nProcessors)
+    return nProcessors
+
+  # now looking in the CS for #Processors tag
+  siteName = gConfig.getValue('/LocalSite/Site')
+  gridCE = gConfig.getValue('/LocalSite/GridCE')
+  queue = gConfig.getValue('/LocalSite/CEQueue')
+  # Tags of the CE
+  tags = fromChar(gConfig.getValue('/Resources/Sites/%s/%s/CEs/%s/Tag' % (siteName.split('.')[0], siteName, gridCE),
+                  ''))
+  # Tags of the Queue
+  tags += fromChar(gConfig.getValue('/Resources/Sites/%s/%s/CEs/%s/Queues/%s/Tag' % (siteName.split('.')[0], siteName,
+                                                                                     gridCE, queue),
+                   ''))
+  for tag in tags:
+    numberOfProcessorsTag = re.search('[0-9]Processors', tag)
+    if numberOfProcessorsTag:
+      gLogger.info("Number of processors from tags", nProcessors)
+      return numberOfProcessorsTag.string.replace('Processors', '')
+
+  if 'WholeNode' in tags:
+    gLogger.info("Found WholeNode tag, returning -1")
+    return -1
+
+  gLogger.warn("Number of processors could not be found, returning just 1")
+  return 1
