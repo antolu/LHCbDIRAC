@@ -118,7 +118,7 @@ class LHCbJob(Job):
 
   def setApplication(self, appName, appVersion, optionsFiles, inputData=None,
                      optionsLine=None, inputDataType=None, logFile=None, events=-1,
-                     extraPackages=None, systemConfig='ANY',
+                     extraPackages=None, systemConfig='ANY', multicore=False,
                      modulesNameList=None, parametersList=None):
     """Specifies gaudi application for DIRAC workflows, executed via gaudirun.
 
@@ -158,6 +158,11 @@ class LHCbJob(Job):
        :type events: integer
        :param extraPackages: Optional extra packages
        :type extraPackages: string
+       :param systemConfig: Optional CMT config
+       :type systemConfig: string
+       :param multicore: multicore flag: set True if the step CAN run in multicore mode
+                                        (if set, and if possible, it will use the --ncups flag of gaudirun)
+       :type extraPackages: bool
        :param modulesNameList: list of module names. The default is given.
        :type modulesNameList: list
        :param parametersList: list of parameters. The default is given.
@@ -238,6 +243,7 @@ class LHCbJob(Job):
                         ('inputDataType', 'string', '', 'Input Data Type'),
                         ('inputData', 'string', '', 'Input Data'),
                         ('numberOfEvents', 'string', '', 'Events treated'),
+                        ('multiCore', 'string', '', 'If the step can run multicore'),
                         ('extraPackages', 'string', '', 'ExtraPackages'),
                         ('SystemConfig', 'string', '', 'binary tag')]
 
@@ -264,6 +270,7 @@ class LHCbJob(Job):
     if inputData:
       stepInstance.setValue('inputData', ';'.join(inputData))
     stepInstance.setValue('numberOfEvents', str(events))
+    stepInstance.setValue('multiCore', 'Y' if multicore else 'N')
     stepInstance.setValue('extraPackages', extraPackages)
     stepInstance.setValue('SystemConfig', systemConfig)
 

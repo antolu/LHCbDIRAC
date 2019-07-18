@@ -133,12 +133,22 @@ def helloWorldTestCLOUD():
 
 
 @executeWithUserProxy
+def helloWorldTestCentos7():
+
+  job = baseToAllJobs('helloWorld-test-CentOS7', jobClass)
+  job.setInputSandbox([find_all('exe-script.py', rootPath, '/tests/System/GridTestSubmission')[0]])
+  job.setExecutable("exe-script.py", "", "helloWorld.log")
+  job.setPlatform('x86_64+avx2+fma-centos7-gcc8-opt')
+  return endOfAllJobs(job)
+
+
+@executeWithUserProxy
 def helloWorldTestSLC6():
 
   job = baseToAllJobs('helloWorld-test-SLC6', jobClass)
   job.setInputSandbox([find_all('exe-script.py', rootPath, '/tests/System/GridTestSubmission')[0]])
   job.setExecutable("exe-script.py", "", "helloWorld.log")
-  job.setPlatform('x86_64-slc6')
+  job.setPlatform('x86_64-slc6-gcc62-opt')
   return endOfAllJobs(job)
 
 
@@ -148,7 +158,7 @@ def helloWorldTestSLC5():
   job = baseToAllJobs('helloWorld-test-SLC5', jobClass)
   job.setInputSandbox([find_all('exe-script.py', rootPath, '/tests/System/GridTestSubmission')[0]])
   job.setExecutable("exe-script.py", "", "helloWorld.log")
-  job.setPlatform('x86_64-slc5')
+  job.setPlatform('x86_64-slc5-gcc43-opt')
   return endOfAllJobs(job)
 
 
@@ -565,38 +575,27 @@ def wrongJob():
   return res
 
 
-#
-# #     print "******************************************************************************************************"
-# #
-# #     gLogger.info( "\n Submitting gaudiRun job (Gauss only) that should use TAG to run on a multi-core queue" )
-# #
-# #     gaudirunJob = LHCbJob()
-# #
-# #     gaudirunJob.setName( "gaudirun-Gauss-test-TAG-multicore" )
-# #     gaudirunJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py',
-# #                                             rootPath, '/tests/System/GridTestSubmission' )[0]] )
-# #     gaudirunJob.setOutputSandbox( '00012345_00067890_1.sim' )
-# #
-# #     optGauss = "$APPCONFIGOPTS/Gauss/Sim08-Beam3500GeV-md100-2011-nu2.py;"
-# #     optDec = "$DECFILESROOT/options/34112104.py;"
-# #     optPythia = "$LBPYTHIAROOT/options/Pythia.py;"
-# #     optOpts = "$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;"
-# #     optCompr = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;"
-# #     optPConf = "prodConf_Gauss_00012345_00067890_1.py"
-# #     options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
-# #     gaudirunJob.setApplication( 'Gauss', 'v45r5', options,
-# #                                 extraPackages = 'AppConfig.v3r179;Gen/DecFiles.v27r14p1;ProdConf.v1r9',
-# #                                 systemConfig = 'x86_64-slc5-gcc43-opt' )
-# #
-# #     gaudirunJob.setDIRACPlatform()
-# #     gaudirunJob.setCPUTime( 172800 )
-# #     gaudirunJob.setTag( ['MultiProcessor'] )
-# #
-# #     result = self.dirac.submitJob(gaudirunJob)
-# #     gLogger.info( 'Submission Result: ', result )
-# #
-# #     jobID = int( result['Value'] )
-# #     jobsSubmittedList.append( jobID )
-# #
-# #     self.assertTrue(result['OK'])
-#
+@executeWithUserProxy
+def gaussMPJob():
+
+  job = baseToAllJobs('GaussMP_v49r14', jobClass)
+
+  job.setInputSandbox(
+      [find_all('prodConf_Gauss_MP_test.py', rootPath, '/tests/System/GridTestSubmission')[0]])
+  job.setOutputSandbox('Gauss_MP_test.sim')
+
+  options = "$APPCONFIGOPTS/Gauss/Beam6500GeV-mu100-2018-nu1.6.py;"
+  options += "$APPCONFIGOPTS/Gauss/EnableSpillover-25ns.py;"
+  options += "$APPCONFIGOPTS/Gauss/DataType-2017.py"
+  options += "$APPCONFIGOPTS/Gauss/RICHRandomHits.py"
+  options += "$DECFILESROOT/options/10132060.py"
+  options += "$LBPYTHIA8ROOT/options/Pythia8.py"
+  options += "$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py"
+  job.setApplication('Gauss', 'v49r14', options,  # pylint: disable=no-member
+                     extraPackages='AppConfig.v3r383;Gen/DecFiles.v30r32;ProdConf.v2r8',
+                     systemConfig='x86_64-slc6-gcc48-opt')
+  job.setDIRACPlatform()  # pylint: disable=no-member
+  job.setCPUTime(172800)
+  job.setNumberOfProcessors(4)
+
+  return endOfAllJobs(job)

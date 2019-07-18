@@ -17,4 +17,4 @@ import sys
 # Main
 if __name__ == '__main__':
 
-    sys.exit( system( '''cat testInputFileSingleLocation.txt''' ) / 256 )
+  sys.exit(system('''cat testInputFileSingleLocation.txt''') / 256)
