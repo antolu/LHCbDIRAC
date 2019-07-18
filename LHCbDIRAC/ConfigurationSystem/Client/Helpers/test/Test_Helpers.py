@@ -10,8 +10,8 @@
 ###############################################################################
 """ unit tests for Configuration Helpers
 """
-
 import mock
+import os
 import pytest
 
 from DIRAC import gLogger
@@ -115,6 +115,16 @@ def test_getDIRACPlatform(platform, expectedRes, expectedValue):
                             'x86_64-slc6-gcc62-dbg', 'x86_64-centos7-gcc7-opt']),
 ])
 def test_listPlatforms(applicationName, applicationVersion, expected):
+  if not os.path.isdir('/cvmfs/lhcb.cern.ch'):
+    pytest.skip('CVMFS is required')
+
+  from six.moves import xmlrpc_client
+  import ssl
+  try:
+    xmlrpc_client.ServerProxy('https://lbsoftdb.cern.ch/read/', allow_none=True).listApplications()
+  except ssl.SSLError:
+    pytest.skip('CERN certificate authority must be trusted')
+
   # Good RPC and good fallback
   result = moduleTested._listPlatforms(
       applicationName, applicationVersion,
