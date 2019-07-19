@@ -1,3 +1,22 @@
+v9r4-pre3
+use DIRAC v6r22p2
+
+* fix pylint
+* Visibility flag can be yes and no as well
+* Tests: test LbPlatformUtils and LbEnv in the basic-import tests
+* split test
+* fixed platforms
+* minor
+* style
+* added system test for MP job and centos7 job
+* Added possibility to specify multicore flag for Gaudi applications
+* Reduce indentation to 2
+* Skip test_listPlatforms if the prerequisites are not met
+* Removed fake test file
+* CI: automatically deploy pre releases to CVMFS dev
+* Tests: remove arc from the client basic-import test
+* trust python packages servers used by pip(base)
+
 v9r4-pre2
 use DIRAC v6r22p1
 
